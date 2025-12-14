@@ -13,7 +13,8 @@ import {
   AlertTriangle,
   Plus,
   ExternalLink,
-  Pencil
+  Pencil,
+  Upload
 } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -23,12 +24,14 @@ import StatCard from '../components/dashboard/StatCard';
 import ProgressChart from '../components/dashboard/ProgressChart';
 import TimelineChart from '../components/dashboard/TimelineChart';
 import ProjectModal from '../components/modals/ProjectModal';
+import ExcelImporter from '../components/import/ExcelImporter';
 import EmptyState from '../components/ui/EmptyState';
 
 export default function Dashboard() {
   const queryClient = useQueryClient();
   const [projectModalOpen, setProjectModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
+  const [importModalOpen, setImportModalOpen] = useState(false);
 
   // Fetch all data
   const { data: projects = [] } = useQuery({
@@ -95,6 +98,10 @@ export default function Dashboard() {
     setProjectModalOpen(true);
   };
 
+  const handleImportSuccess = () => {
+    queryClient.invalidateQueries();
+  };
+
   // Calculate stats
   const projectProgress = timelineEvents.length > 0
     ? Math.round(timelineEvents.reduce((sum, e) => sum + (e.progress || 0), 0) / timelineEvents.length)
@@ -148,13 +155,23 @@ export default function Dashboard() {
           <h1 className="text-2xl lg:text-3xl font-bold text-white">Visão Geral</h1>
           <p className="text-slate-400 mt-1">Acompanhe o progresso do seu projeto</p>
         </div>
-        <Button 
-          onClick={() => { setSelectedProject(null); setProjectModalOpen(true); }}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Projeto
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => setImportModalOpen(true)}
+            variant="outline"
+            className="border-slate-600 text-slate-300 hover:bg-slate-700"
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            Importar Excel
+          </Button>
+          <Button 
+            onClick={() => { setSelectedProject(null); setProjectModalOpen(true); }}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Projeto
+          </Button>
+        </div>
       </div>
 
       {/* Active Project Card */}
@@ -306,6 +323,13 @@ export default function Dashboard() {
         onOpenChange={setProjectModalOpen}
         project={selectedProject}
         onSave={handleSaveProject}
+      />
+
+      {/* Excel Importer */}
+      <ExcelImporter
+        open={importModalOpen}
+        onOpenChange={setImportModalOpen}
+        onSuccess={handleImportSuccess}
       />
     </div>
   );
