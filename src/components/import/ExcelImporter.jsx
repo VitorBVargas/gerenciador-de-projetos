@@ -173,39 +173,67 @@ export default function ExcelImporter({ open, onOpenChange, onSuccess }) {
 
   const processProductsSheet = (workbook) => {
     const sheet = workbook.Sheets['Produtos'];
-    if (!sheet) return [];
+    if (!sheet) {
+      console.log('Aba Produtos não encontrada');
+      return [];
+    }
 
     const data = XLSX.utils.sheet_to_json(sheet);
+    console.log('Dados da aba Produtos:', data);
+    
     if (data.length === 0) return [];
 
     const headers = Object.keys(data[0]);
-    const nameCol = findColumn(headers, ['Produto', 'Nome']);
-    const verticalCol = findColumn(headers, ['Vertical', 'Área']);
+    console.log('Headers encontrados:', headers);
+    
+    const nameCol = findColumn(headers, ['Produto', 'Nome', 'Produtos', 'Produto Contratado']);
+    const verticalCol = findColumn(headers, ['Vertical', 'Área', 'Vertial']);
 
-    return data.map(row => ({
-      name: row[nameCol] || 'Produto',
-      vertical: normalizeVertical(row[verticalCol]),
-      status: 'pendente',
-      priority: 'media'
-    })).filter(p => p.name !== 'Produto');
+    console.log('Colunas mapeadas - Nome:', nameCol, 'Vertical:', verticalCol);
+
+    const products = data.map(row => {
+      const name = row[nameCol] || (typeof row === 'string' ? row : null);
+      if (!name || name === 'Produto') return null;
+      
+      return {
+        name: name,
+        vertical: normalizeVertical(row[verticalCol]),
+        status: 'pendente',
+        priority: 'media'
+      };
+    }).filter(p => p !== null);
+
+    console.log('Produtos processados:', products);
+    return products;
   };
 
   const processTimelineSheet = (workbook) => {
     const sheet = workbook.Sheets['Cronograma'];
-    if (!sheet) return [];
+    if (!sheet) {
+      console.log('Aba Cronograma não encontrada');
+      return [];
+    }
 
     const data = XLSX.utils.sheet_to_json(sheet);
+    console.log('Dados da aba Cronograma:', data);
+    
     if (data.length === 0) return [];
 
     const headers = Object.keys(data[0]);
-    const titleCol = findColumn(headers, ['Etapa', 'Título', 'Fase']);
-    const startCol = findColumn(headers, ['Data Início', 'Data Inicio', 'Início', 'Inicio']);
-    const endCol = findColumn(headers, ['Data Fim', 'Fim', 'Término', 'Termino']);
-    const statusCol = findColumn(headers, ['Status', 'Situação']);
-    const progressCol = findColumn(headers, ['Progresso', 'Progress', '%']);
+    console.log('Headers encontrados:', headers);
+    
+    const titleCol = findColumn(headers, ['Etapa', 'Título', 'Titulo', 'Fase', 'Atividade']);
+    const startCol = findColumn(headers, ['Data Início', 'Data Inicio', 'Início', 'Inicio', 'Data de Início']);
+    const endCol = findColumn(headers, ['Data Fim', 'Fim', 'Término', 'Termino', 'Data Fim', 'Data de Término']);
+    const statusCol = findColumn(headers, ['Status', 'Situação', 'Estado']);
+    const progressCol = findColumn(headers, ['Progresso', 'Progress', '%', 'Percentual']);
 
-    return data.map(row => {
+    console.log('Colunas mapeadas - Título:', titleCol, 'Início:', startCol, 'Fim:', endCol);
+
+    const events = data.map(row => {
       const title = row[titleCol] || '';
+      if (!title) return null;
+      
       return {
         title,
         phase: normalizePhase(title),
@@ -214,7 +242,10 @@ export default function ExcelImporter({ open, onOpenChange, onSuccess }) {
         status: 'nao_iniciado',
         progress: parseInt(row[progressCol]) || 0
       };
-    }).filter(e => e.title);
+    }).filter(e => e !== null);
+
+    console.log('Eventos processados:', events);
+    return events;
   };
 
   const processRisksSheet = (workbook) => {
