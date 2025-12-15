@@ -20,6 +20,8 @@ export default function ProductModal({ open, onOpenChange, product, onSave, proj
   const [formData, setFormData] = useState({
     name: '',
     vertical: '',
+    entity: '',
+    ticket_number: '',
     status: 'pendente',
     priority: 'media'
   });
@@ -29,6 +31,8 @@ export default function ProductModal({ open, onOpenChange, product, onSave, proj
       setFormData({
         name: product.name || '',
         vertical: product.vertical || '',
+        entity: product.entity || '',
+        ticket_number: product.ticket_number || '',
         status: product.status || 'pendente',
         priority: product.priority || 'media'
       });
@@ -36,6 +40,8 @@ export default function ProductModal({ open, onOpenChange, product, onSave, proj
       setFormData({
         name: '',
         vertical: '',
+        entity: '',
+        ticket_number: '',
         status: 'pendente',
         priority: 'media'
       });

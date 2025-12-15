@@ -35,7 +35,8 @@ const verticalLabels = {
   educacao: 'Educação',
   iss: 'ISS',
   parceiros: 'Parceiros',
-  plataforma: 'Plataforma'
+  plataforma: 'Plataforma',
+  atendimento: 'Atendimento'
 };
 
 const verticalColors = {
@@ -46,7 +47,8 @@ const verticalColors = {
   educacao: 'bg-pink-500/20 text-pink-400 border-pink-500/30',
   iss: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
   parceiros: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-  plataforma: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30'
+  plataforma: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30',
+  atendimento: 'bg-teal-500/20 text-teal-400 border-teal-500/30'
 };
 
 const statusColors = {
@@ -143,8 +145,12 @@ export default function Products() {
     filteredProducts = filteredProducts.filter(p => p.vertical === activeTab);
   }
 
-  // Get unique verticals
-  const usedVerticals = [...new Set(products.map(p => p.vertical).filter(Boolean))];
+  // Get unique verticals and organize by vertical
+  const usedVerticals = [...new Set(products.map(p => p.vertical).filter(Boolean))].sort();
+  const productsByVertical = {};
+  usedVerticals.forEach(v => {
+    productsByVertical[v] = filteredProducts.filter(p => p.vertical === v);
+  });
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
@@ -164,78 +170,80 @@ export default function Products() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-          <Input
-            placeholder="Buscar produto..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
-          />
-        </div>
-        {usedVerticals.length > 0 && (
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="bg-slate-800 border border-slate-700">
-              <TabsTrigger value="all" className="data-[state=active]:bg-blue-600">
-                Todos
-              </TabsTrigger>
-              {usedVerticals.map(v => (
-                <TabsTrigger key={v} value={v} className="data-[state=active]:bg-blue-600">
-                  {verticalLabels[v]}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
-        )}
+      <div className="relative max-w-md">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+        <Input
+          placeholder="Buscar produto..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-10 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+        />
       </div>
 
-      {/* Products Grid */}
+      {/* Products Table by Vertical */}
       {filteredProducts.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filteredProducts.map((product) => (
-            <Card key={product.id} className="bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 transition-all group">
-              <CardContent className="p-5">
-                <div className="flex items-start justify-between mb-3">
-                  <div className={cn("w-3 h-3 rounded-full", statusColors[product.status])} />
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-7 w-7 text-slate-400 hover:text-white hover:bg-slate-700"
-                      onClick={() => handleEdit(product)}
-                    >
-                      <Pencil className="w-3 h-3" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-500/20"
-                      onClick={() => handleDelete(product)}
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
+        <div className="overflow-x-auto">
+          <div className="inline-flex gap-4 pb-4">
+            {usedVerticals.map((vertical) => {
+              const verticalProducts = productsByVertical[vertical];
+              if (verticalProducts.length === 0) return null;
+              
+              return (
+                <div key={vertical} className="flex-shrink-0 w-72">
+                  <div className={cn(
+                    "rounded-t-lg px-4 py-3 border-t border-x",
+                    verticalColors[vertical]
+                  )}>
+                    <h3 className="font-semibold text-sm">{verticalLabels[vertical]}</h3>
+                    <p className="text-xs opacity-75 mt-0.5">{verticalProducts.length} produtos</p>
+                  </div>
+                  <div className="bg-slate-800/50 border border-slate-700 rounded-b-lg p-3 space-y-2 min-h-[200px]">
+                    {verticalProducts.map((product) => (
+                      <Card key={product.id} className="bg-slate-800 border-slate-700 hover:bg-slate-750 transition-all group">
+                        <CardContent className="p-3">
+                          <div className="flex items-start justify-between mb-2">
+                            <div className={cn("w-2 h-2 rounded-full mt-1", statusColors[product.status])} />
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-6 w-6 text-slate-400 hover:text-white hover:bg-slate-600"
+                                onClick={() => handleEdit(product)}
+                              >
+                                <Pencil className="w-3 h-3" />
+                              </Button>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-red-500/20"
+                                onClick={() => handleDelete(product)}
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </div>
+                          <h4 className="font-semibold text-white text-sm mb-2">{product.name}</h4>
+                          {product.entity && (
+                            <p className="text-xs text-slate-400 mb-1">
+                              <span className="text-slate-500">Entidade:</span> {product.entity}
+                            </p>
+                          )}
+                          {product.ticket_number && (
+                            <p className="text-xs text-slate-400">
+                              <span className="text-slate-500">Chamado:</span> {product.ticket_number}
+                            </p>
+                          )}
+                          <Badge variant="secondary" className="bg-slate-700/50 text-slate-300 text-xs mt-2">
+                            {statusLabels[product.status]}
+                          </Badge>
+                        </CardContent>
+                      </Card>
+                    ))}
                   </div>
                 </div>
-                <h3 className="font-semibold text-white mb-2">{product.name}</h3>
-                <div className="flex flex-wrap gap-2">
-                  {product.vertical && (
-                    <Badge className={cn("border text-xs", verticalColors[product.vertical])}>
-                      {verticalLabels[product.vertical]}
-                    </Badge>
-                  )}
-                  <Badge variant="secondary" className="bg-slate-700/50 text-slate-300 text-xs">
-                    {statusLabels[product.status]}
-                  </Badge>
-                </div>
-                {product.priority && product.priority !== 'media' && (
-                  <p className={cn("text-xs mt-2", priorityColors[product.priority])}>
-                    Prioridade: {product.priority.charAt(0).toUpperCase() + product.priority.slice(1)}
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          ))}
+              );
+            })}
+          </div>
         </div>
       ) : (
         <EmptyState
