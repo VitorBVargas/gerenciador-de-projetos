@@ -195,14 +195,14 @@ export default function ExcelImporter({ open, onOpenChange, onSuccess }) {
   };
 
   const processProductsSheet = (workbook) => {
-    const sheet = workbook.Sheets['Produtos'];
+    const sheet = workbook.Sheets['Produto Contratado'];
     if (!sheet) {
-      console.log('Aba Produtos não encontrada');
+      console.log('Aba Produto Contratado não encontrada');
       return [];
     }
 
     const data = XLSX.utils.sheet_to_json(sheet);
-    console.log('Dados da aba Produtos:', data);
+    console.log('Dados da aba Produto Contratado:', data);
     
     if (data.length === 0) return [];
 
@@ -237,51 +237,69 @@ export default function ExcelImporter({ open, onOpenChange, onSuccess }) {
   };
 
   const processTimelineSheet = (workbook) => {
-    const sheet = workbook.Sheets['Cronograma'];
-    if (!sheet) {
-      console.log('Aba Cronograma não encontrada');
+    // Busca todas as abas que começam com "Cronograma -"
+    const allEvents = [];
+    const sheetNames = workbook.SheetNames;
+    console.log('Todas as abas do Excel:', sheetNames);
+    
+    const cronogramaSheets = sheetNames.filter(name => name.startsWith('Cronograma -'));
+    console.log('Abas de cronograma encontradas:', cronogramaSheets);
+    
+    if (cronogramaSheets.length === 0) {
+      console.log('Nenhuma aba Cronograma - * encontrada');
       return [];
     }
 
-    const data = XLSX.utils.sheet_to_json(sheet);
-    console.log('Dados da aba Cronograma:', data);
-    
-    if (data.length === 0) return [];
-
-    const headers = Object.keys(data[0]);
-    console.log('Headers encontrados:', headers);
-    
-    const titleCol = findColumn(headers, ['Etapa', 'Título', 'Titulo', 'Fase', 'Atividade']);
-    const startCol = findColumn(headers, ['Data Início', 'Data Inicio', 'Data Inicio', 'Início', 'Inicio']);
-    const endCol = findColumn(headers, ['Data Fim', 'Data Fim', 'Fim', 'Término', 'Termino']);
-    const statusCol = findColumn(headers, ['Situação', 'Situacao', 'Status', 'Estado']);
-
-    console.log('Colunas mapeadas - Etapa:', titleCol, 'Data Início:', startCol, 'Data Fim:', endCol, 'Situação:', statusCol);
-
-    const events = data.map(row => {
-      const title = row[titleCol];
-      if (!title) return null;
+    // Processa cada aba de cronograma
+    cronogramaSheets.forEach(sheetName => {
+      const sheet = workbook.Sheets[sheetName];
+      const data = XLSX.utils.sheet_to_json(sheet);
       
-      const situation = row[statusCol] ? String(row[statusCol]).toLowerCase().trim() : 'nao_iniciado';
-      const mappedStatus = situationMapping[situation] || 'nao_iniciado';
+      console.log(`Processando ${sheetName}:`, data);
       
-      // Calculate progress based on status
-      let progress = 0;
-      if (mappedStatus === 'concluido') progress = 100;
-      else if (mappedStatus === 'em_andamento') progress = 50;
-      
-      return {
-        title: String(title).trim(),
-        phase: normalizePhase(title),
-        start_date: excelDateToJSDate(row[startCol]),
-        end_date: excelDateToJSDate(row[endCol]),
-        status: mappedStatus,
-        progress: progress
-      };
-    }).filter(e => e !== null);
+      if (data.length === 0) return;
 
-    console.log('Eventos processados:', events);
-    return events;
+      const headers = Object.keys(data[0]);
+      console.log('Headers encontrados:', headers);
+      
+      const titleCol = findColumn(headers, ['Etapa', 'Título', 'Titulo', 'Fase', 'Atividade']);
+      const startCol = findColumn(headers, ['Data Início', 'Data Inicio', 'Data Inicio', 'Início', 'Inicio']);
+      const endCol = findColumn(headers, ['Data Fim', 'Data Fim', 'Fim', 'Término', 'Termino']);
+      const statusCol = findColumn(headers, ['Situação', 'Situacao', 'Status', 'Estado']);
+
+      console.log('Colunas mapeadas - Etapa:', titleCol, 'Data Início:', startCol, 'Data Fim:', endCol, 'Situação:', statusCol);
+
+      const events = data.map(row => {
+        const title = row[titleCol];
+        if (!title) return null;
+        
+        const situation = row[statusCol] ? String(row[statusCol]).toLowerCase().trim() : 'nao_iniciado';
+        const mappedStatus = situationMapping[situation] || 'nao_iniciado';
+        
+        // Calculate progress based on status
+        let progress = 0;
+        if (mappedStatus === 'concluido') progress = 100;
+        else if (mappedStatus === 'em_andamento') progress = 50;
+        
+        // Extrai a vertical do nome da aba (ex: "Cronograma - Pessoal" -> "Pessoal")
+        const vertical = sheetName.replace('Cronograma - ', '').trim();
+        
+        return {
+          title: String(title).trim(),
+          phase: normalizePhase(title),
+          start_date: excelDateToJSDate(row[startCol]),
+          end_date: excelDateToJSDate(row[endCol]),
+          status: mappedStatus,
+          progress: progress,
+          vertical: normalizeVertical(vertical)
+        };
+      }).filter(e => e !== null);
+
+      allEvents.push(...events);
+    });
+
+    console.log('Total de eventos processados:', allEvents.length);
+    return allEvents;
   };
 
   const processRisksSheet = (workbook) => {
@@ -576,8 +594,8 @@ export default function ExcelImporter({ open, onOpenChange, onSuccess }) {
               <li>• <span className="text-slate-300">Dados Gerais</span> - Informações do projeto</li>
               <li>• <span className="text-slate-300">Equipe do projeto</span> - Membros da equipe</li>
               <li>• <span className="text-slate-300">Dados Cliente</span> - Stakeholders</li>
-              <li>• <span className="text-slate-300">Produtos</span> - Produtos contratados</li>
-              <li>• <span className="text-slate-300">Cronograma</span> - Etapas do projeto</li>
+              <li>• <span className="text-slate-300">Produto Contratado</span> - Produtos contratados</li>
+              <li>• <span className="text-slate-300">Cronograma - *</span> - Etapas do projeto (uma aba por vertical)</li>
               <li>• <span className="text-slate-300">Riscos</span> - Riscos identificados</li>
               <li>• <span className="text-slate-300">Viagens</span> - Viagens planejadas</li>
               <li>• <span className="text-slate-300">Treinamentos</span> - Treinamentos agendados</li>
