@@ -13,7 +13,8 @@ const verticals = [
   { value: 'educacao', label: 'Educação' },
   { value: 'iss', label: 'ISS' },
   { value: 'parceiros', label: 'Parceiros' },
-  { value: 'plataforma', label: 'Plataforma' }
+  { value: 'plataforma', label: 'Plataforma' },
+  { value: 'atendimento', label: 'Atendimento' }
 ];
 
 export default function ProductModal({ open, onOpenChange, product, onSave, projectId }) {
@@ -88,6 +89,29 @@ export default function ProductModal({ open, onOpenChange, product, onSave, proj
               </SelectContent>
             </Select>
           </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="entity">Entidade</Label>
+            <Input
+              id="entity"
+              placeholder="Ex: CM, IPASI"
+              value={formData.entity}
+              onChange={(e) => setFormData({ ...formData, entity: e.target.value })}
+              className="bg-slate-700 border-slate-600 text-white"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="ticket">Chamado</Label>
+            <Input
+              id="ticket"
+              placeholder="Ex: BTHSC-244286"
+              value={formData.ticket_number}
+              onChange={(e) => setFormData({ ...formData, ticket_number: e.target.value })}
+              className="bg-slate-700 border-slate-600 text-white"
+            />
+          </div>
+          
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Status</Label>
