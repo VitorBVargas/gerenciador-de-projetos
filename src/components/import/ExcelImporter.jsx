@@ -20,7 +20,8 @@ const verticalMapping = {
   'educacao': 'educacao',
   'iss': 'iss',
   'parceiros': 'parceiros',
-  'plataforma': 'plataforma'
+  'plataforma': 'plataforma',
+  'atendimento': 'atendimento'
 };
 
 const statusMapping = {
@@ -35,17 +36,29 @@ const phaseMapping = {
   'planejamento e monitoramento': 'planejamento',
   'kick-off': 'kickoff',
   'kickoff': 'kickoff',
+  'diagnóstico': 'diagnostico',
+  'diagnostico': 'diagnostico',
   'diagnóstico técnico': 'diagnostico',
   'diagnostico técnico': 'diagnostico',
   'diagnostico tecnico': 'diagnostico',
+  'migração de homologação': 'migracao_hml',
+  'migracao de homologacao': 'migracao_hml',
   'migração de hml': 'migracao_hml',
   'migracao de hml': 'migracao_hml',
+  'homologação e configuração da migração': 'homologacao_hml',
+  'homologacao e configuracao da migracao': 'homologacao_hml',
   'configuração de hml': 'configuracao_hml',
   'configuracao de hml': 'configuracao_hml',
   'homologação de hml': 'homologacao_hml',
   'homologacao de hml': 'homologacao_hml',
+  'migração em produção': 'migracao_producao',
+  'migracao em producao': 'migracao_producao',
   'migração de produção': 'migracao_producao',
   'migracao de producao': 'migracao_producao',
+  'configuração de prd': 'configuracao_producao',
+  'configuracao de prd': 'configuracao_producao',
+  'treinamento e simulação da operação': 'treinamento',
+  'treinamento e simulacao da operacao': 'treinamento',
   'treinamento': 'treinamento',
   'configuração em produção': 'configuracao_producao',
   'configuracao em producao': 'configuracao_producao',
@@ -53,6 +66,16 @@ const phaseMapping = {
   'estabilizacao': 'estabilizacao',
   'operação assistida': 'operacao_assistida',
   'operacao assistida': 'operacao_assistida'
+};
+
+const situationMapping = {
+  'não iniciado': 'nao_iniciado',
+  'nao iniciado': 'nao_iniciado',
+  'em andamento': 'em_andamento',
+  'concluído': 'concluido',
+  'concluido': 'concluido',
+  'paralisado': 'atrasado',
+  'atrasado': 'atrasado'
 };
 
 export default function ExcelImporter({ open, onOpenChange, onSuccess }) {
@@ -186,22 +209,28 @@ export default function ExcelImporter({ open, onOpenChange, onSuccess }) {
     const headers = Object.keys(data[0]);
     console.log('Headers encontrados:', headers);
     
-    const nameCol = findColumn(headers, ['Produto', 'Nome', 'Produtos', 'Produto Contratado']);
     const verticalCol = findColumn(headers, ['Vertical', 'Área', 'Vertial']);
+    const nameCol = findColumn(headers, ['Produto', 'Nome', 'Produtos']);
+    const entityCol = findColumn(headers, ['Entidade', 'Órgão', 'Orgao']);
+    const ticketCol = findColumn(headers, ['Chamado', 'Ticket', 'Número']);
 
-    console.log('Colunas mapeadas - Nome:', nameCol, 'Vertical:', verticalCol);
+    console.log('Colunas mapeadas - Vertical:', verticalCol, 'Produto:', nameCol, 'Entidade:', entityCol, 'Chamado:', ticketCol);
 
     const products = data.map(row => {
-      const name = row[nameCol] || (typeof row === 'string' ? row : null);
-      if (!name || name === 'Produto') return null;
+      const name = row[nameCol];
+      const vertical = row[verticalCol];
+      
+      if (!name || !vertical) return null;
       
       return {
-        name: name,
-        vertical: normalizeVertical(row[verticalCol]),
+        name: String(name).trim(),
+        vertical: normalizeVertical(vertical),
+        entity: row[entityCol] ? String(row[entityCol]).trim() : '',
+        ticket_number: row[ticketCol] ? String(row[ticketCol]).trim() : '',
         status: 'pendente',
         priority: 'media'
       };
-    }).filter(p => p !== null);
+    }).filter(p => p !== null && p.vertical !== null);
 
     console.log('Produtos processados:', products);
     return products;
@@ -223,24 +252,31 @@ export default function ExcelImporter({ open, onOpenChange, onSuccess }) {
     console.log('Headers encontrados:', headers);
     
     const titleCol = findColumn(headers, ['Etapa', 'Título', 'Titulo', 'Fase', 'Atividade']);
-    const startCol = findColumn(headers, ['Data Início', 'Data Inicio', 'Início', 'Inicio', 'Data de Início']);
-    const endCol = findColumn(headers, ['Data Fim', 'Fim', 'Término', 'Termino', 'Data Fim', 'Data de Término']);
-    const statusCol = findColumn(headers, ['Status', 'Situação', 'Estado']);
-    const progressCol = findColumn(headers, ['Progresso', 'Progress', '%', 'Percentual']);
+    const startCol = findColumn(headers, ['Data Início', 'Data Inicio', 'Data Inicio', 'Início', 'Inicio']);
+    const endCol = findColumn(headers, ['Data Fim', 'Data Fim', 'Fim', 'Término', 'Termino']);
+    const statusCol = findColumn(headers, ['Situação', 'Situacao', 'Status', 'Estado']);
 
-    console.log('Colunas mapeadas - Título:', titleCol, 'Início:', startCol, 'Fim:', endCol);
+    console.log('Colunas mapeadas - Etapa:', titleCol, 'Data Início:', startCol, 'Data Fim:', endCol, 'Situação:', statusCol);
 
     const events = data.map(row => {
-      const title = row[titleCol] || '';
+      const title = row[titleCol];
       if (!title) return null;
       
+      const situation = row[statusCol] ? String(row[statusCol]).toLowerCase().trim() : 'nao_iniciado';
+      const mappedStatus = situationMapping[situation] || 'nao_iniciado';
+      
+      // Calculate progress based on status
+      let progress = 0;
+      if (mappedStatus === 'concluido') progress = 100;
+      else if (mappedStatus === 'em_andamento') progress = 50;
+      
       return {
-        title,
+        title: String(title).trim(),
         phase: normalizePhase(title),
         start_date: excelDateToJSDate(row[startCol]),
         end_date: excelDateToJSDate(row[endCol]),
-        status: 'nao_iniciado',
-        progress: parseInt(row[progressCol]) || 0
+        status: mappedStatus,
+        progress: progress
       };
     }).filter(e => e !== null);
 
