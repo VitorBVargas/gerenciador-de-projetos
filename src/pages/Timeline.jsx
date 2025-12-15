@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Plus, Calendar } from 'lucide-react';
 import TimelineEventModal from '../components/modals/TimelineEventModal';
 import GanttTimeline from '../components/timeline/GanttTimeline';
@@ -17,12 +18,25 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+const verticalLabels = {
+  arrecadacao: 'Arrecadação',
+  compras: 'Compras/Contratos',
+  contabil: 'Contábil',
+  pessoal: 'Pessoal',
+  educacao: 'Educação',
+  iss: 'ISS',
+  parceiros: 'Parceiros',
+  plataforma: 'Plataforma',
+  atendimento: 'Atendimento'
+};
+
 export default function Timeline() {
   const queryClient = useQueryClient();
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [eventToDelete, setEventToDelete] = useState(null);
+  const [activeTab, setActiveTab] = useState('all');
 
   const { data: projects = [] } = useQuery({
     queryKey: ['projects'],
@@ -81,6 +95,14 @@ export default function Timeline() {
     setDeleteDialogOpen(true);
   };
 
+  // Group events by vertical
+  const eventsByVertical = {};
+  const usedVerticals = [...new Set(timelineEvents.map(e => e.vertical).filter(Boolean))].sort();
+  
+  usedVerticals.forEach(vertical => {
+    eventsByVertical[vertical] = timelineEvents.filter(e => e.vertical === vertical);
+  });
+
   // Sort events by phase order
   const phaseOrder = [
     'planejamento', 'kickoff', 'diagnostico', 'migracao_hml', 'configuracao_hml',
@@ -88,13 +110,15 @@ export default function Timeline() {
     'estabilizacao', 'operacao_assistida'
   ];
 
-  const sortedEvents = [...timelineEvents].sort((a, b) => {
-    const aIndex = phaseOrder.indexOf(a.phase);
-    const bIndex = phaseOrder.indexOf(b.phase);
-    if (aIndex !== bIndex) return aIndex - bIndex;
-    if (a.start_date && b.start_date) return a.start_date.localeCompare(b.start_date);
-    return 0;
-  });
+  const sortEvents = (events) => {
+    return [...events].sort((a, b) => {
+      const aIndex = phaseOrder.indexOf(a.phase);
+      const bIndex = phaseOrder.indexOf(b.phase);
+      if (aIndex !== bIndex) return aIndex - bIndex;
+      if (a.start_date && b.start_date) return a.start_date.localeCompare(b.start_date);
+      return 0;
+    });
+  };
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
@@ -115,11 +139,44 @@ export default function Timeline() {
 
       {/* Timeline */}
       {timelineEvents.length > 0 ? (
-        <GanttTimeline
-          events={sortedEvents}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
+        usedVerticals.length > 0 ? (
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+            <TabsList className="bg-slate-800 border border-slate-700">
+              <TabsTrigger value="all" className="data-[state=active]:bg-blue-600">
+                Todos
+              </TabsTrigger>
+              {usedVerticals.map(vertical => (
+                <TabsTrigger key={vertical} value={vertical} className="data-[state=active]:bg-blue-600">
+                  {verticalLabels[vertical] || vertical}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+
+            <TabsContent value="all">
+              <GanttTimeline
+                events={sortEvents(timelineEvents)}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
+            </TabsContent>
+
+            {usedVerticals.map(vertical => (
+              <TabsContent key={vertical} value={vertical}>
+                <GanttTimeline
+                  events={sortEvents(eventsByVertical[vertical])}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
+              </TabsContent>
+            ))}
+          </Tabs>
+        ) : (
+          <GanttTimeline
+            events={sortEvents(timelineEvents)}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        )
       ) : (
         <EmptyState
           icon={Calendar}
