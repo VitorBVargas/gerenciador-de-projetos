@@ -153,11 +153,11 @@ export default function ExcelImporter({ open, onOpenChange, onSuccess }) {
     
     if (data.length === 0) return [];
 
-    const headers = Object.keys(data[0]);
-    console.log('Headers da equipe:', headers);
+    const headers = Object.keys(data[0]).filter(h => !h.startsWith('__EMPTY'));
+    console.log('Headers da equipe (filtrados):', headers);
     
     const nameCol = findColumn(headers, ['Nome', 'Membro da Equipe']);
-    const verticalCol = findColumn(headers, ['Vertical', 'Vertial', 'Área', 'Vertial']);
+    const verticalCol = findColumn(headers, ['Vertial', 'Vertical', 'Área']);
     const respCol = findColumn(headers, ['Responsabilidade', 'Função', 'Papel']);
     const emailCol = findColumn(headers, ['Email', 'E-mail']);
     const phoneCol = findColumn(headers, ['Telefone', 'Fone']);
@@ -167,12 +167,14 @@ export default function ExcelImporter({ open, onOpenChange, onSuccess }) {
     // Remove duplicatas e linhas inválidas
     const seen = new Set();
     const members = data
-      .map(row => {
+      .map((row, index) => {
         const name = row[nameCol] ? String(row[nameCol]).trim() : '';
         const vertical = row[verticalCol] ? String(row[verticalCol]).trim() : '';
         const role = row[respCol] ? String(row[respCol]).trim() : '';
         const email = row[emailCol] ? String(row[emailCol]).trim() : '';
         const phone = row[phoneCol] ? String(row[phoneCol]).trim() : '';
+        
+        console.log(`Linha ${index}:`, { name, vertical, role });
         
         return {
           name,
@@ -184,7 +186,10 @@ export default function ExcelImporter({ open, onOpenChange, onSuccess }) {
       })
       .filter(m => {
         // Ignora se não tem nome ou vertical
-        if (!m.name || !m.vertical) return false;
+        if (!m.name || !m.vertical) {
+          console.log('Ignorando por falta de nome/vertical:', m);
+          return false;
+        }
         
         // Ignora se o nome é muito curto (provavelmente lixo)
         if (m.name.length < 2) return false;
@@ -200,7 +205,7 @@ export default function ExcelImporter({ open, onOpenChange, onSuccess }) {
         return true;
       });
 
-    console.log('Membros processados:', members);
+    console.log('Membros processados (final):', members);
     return members;
   };
 
