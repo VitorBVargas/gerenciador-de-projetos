@@ -120,11 +120,15 @@ export default function Team() {
     verticalLabels[member.vertical]?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Group by vertical
+  // Group by vertical, then by role
   const membersByVertical = filteredMembers.reduce((acc, member) => {
     const vertical = member.vertical || 'outros';
-    if (!acc[vertical]) acc[vertical] = [];
-    acc[vertical].push(member);
+    if (!acc[vertical]) acc[vertical] = {};
+    
+    const role = member.role || 'Sem função definida';
+    if (!acc[vertical][role]) acc[vertical][role] = [];
+    acc[vertical][role].push(member);
+    
     return acc;
   }, {});
 
@@ -159,74 +163,79 @@ export default function Team() {
       {/* Team Grid */}
       {filteredMembers.length > 0 ? (
         <div className="space-y-8">
-          {Object.entries(membersByVertical).map(([vertical, members]) => (
-            <div key={vertical}>
-              <div className="flex items-center gap-3 mb-4">
-                <h2 className="text-lg font-semibold text-white">
-                  {verticalLabels[vertical] || 'Outros'}
-                </h2>
-                <Badge variant="secondary" className="bg-slate-700 text-slate-300">
-                  {members.length}
-                </Badge>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {members.map((member) => (
-                  <Card key={member.id} className="bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 transition-all group">
-                    <CardContent className="p-5">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg">
-                            {member.name?.charAt(0).toUpperCase()}
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-white">{member.name}</h3>
-                            <p className="text-sm text-slate-400">{member.role || 'Função não definida'}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-700"
-                            onClick={() => handleEdit(member)}
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-red-500/20"
-                            onClick={() => handleDelete(member)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
+          {Object.entries(membersByVertical).map(([vertical, roleGroups]) => {
+            const totalMembers = Object.values(roleGroups).reduce((sum, members) => sum + members.length, 0);
+            return (
+              <div key={vertical}>
+                <div className="flex items-center gap-3 mb-4">
+                  <h2 className="text-lg font-semibold text-white">
+                    {verticalLabels[vertical] || 'Outros'}
+                  </h2>
+                  <Badge variant="secondary" className="bg-slate-700 text-slate-300">
+                    {totalMembers}
+                  </Badge>
+                </div>
+                
+                <div className="space-y-6">
+                  {Object.entries(roleGroups).map(([role, members]) => (
+                    <div key={role}>
+                      <h3 className="text-sm font-medium text-slate-400 mb-3">{role}</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {members.map((member) => (
+                          <Card key={member.id} className="bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 transition-all group">
+                            <CardContent className="p-5">
+                              <div className="flex items-start justify-between">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg">
+                                    {member.name?.charAt(0).toUpperCase()}
+                                  </div>
+                                  <div>
+                                    <h4 className="font-semibold text-white">{member.name}</h4>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-700"
+                                    onClick={() => handleEdit(member)}
+                                  >
+                                    <Pencil className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-red-500/20"
+                                    onClick={() => handleDelete(member)}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                              <div className="mt-4 space-y-2">
+                                {member.email && (
+                                  <div className="flex items-center gap-2 text-sm text-slate-400">
+                                    <Mail className="w-4 h-4" />
+                                    <span className="truncate">{member.email}</span>
+                                  </div>
+                                )}
+                                {member.phone && (
+                                  <div className="flex items-center gap-2 text-sm text-slate-400">
+                                    <Phone className="w-4 h-4" />
+                                    <span>{member.phone}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
                       </div>
-                      <div className="mt-4 space-y-2">
-                        {member.vertical && (
-                          <Badge className={cn("border", verticalColors[member.vertical])}>
-                            {verticalLabels[member.vertical]}
-                          </Badge>
-                        )}
-                        {member.email && (
-                          <div className="flex items-center gap-2 text-sm text-slate-400">
-                            <Mail className="w-4 h-4" />
-                            <span className="truncate">{member.email}</span>
-                          </div>
-                        )}
-                        {member.phone && (
-                          <div className="flex items-center gap-2 text-sm text-slate-400">
-                            <Phone className="w-4 h-4" />
-                            <span>{member.phone}</span>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <EmptyState

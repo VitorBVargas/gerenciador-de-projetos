@@ -36,7 +36,7 @@ export default function Timeline() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [eventToDelete, setEventToDelete] = useState(null);
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeTab, setActiveTab] = useState('');
 
   const { data: projects = [] } = useQuery({
     queryKey: ['projects'],
@@ -103,6 +103,13 @@ export default function Timeline() {
     eventsByVertical[vertical] = timelineEvents.filter(e => e.vertical === vertical);
   });
 
+  // Set initial tab to first vertical if not set
+  React.useEffect(() => {
+    if (usedVerticals.length > 0 && !activeTab) {
+      setActiveTab(usedVerticals[0]);
+    }
+  }, [usedVerticals.length]);
+
   // Sort events by phase order
   const phaseOrder = [
     'planejamento', 'kickoff', 'diagnostico', 'migracao_hml', 'configuracao_hml',
@@ -142,23 +149,12 @@ export default function Timeline() {
         usedVerticals.length > 0 ? (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
             <TabsList className="bg-slate-800 border border-slate-700">
-              <TabsTrigger value="all" className="data-[state=active]:bg-blue-600">
-                Todos
-              </TabsTrigger>
               {usedVerticals.map(vertical => (
                 <TabsTrigger key={vertical} value={vertical} className="data-[state=active]:bg-blue-600">
                   {verticalLabels[vertical] || vertical}
                 </TabsTrigger>
               ))}
             </TabsList>
-
-            <TabsContent value="all">
-              <GanttTimeline
-                events={sortEvents(timelineEvents)}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-              />
-            </TabsContent>
 
             {usedVerticals.map(vertical => (
               <TabsContent key={vertical} value={vertical}>

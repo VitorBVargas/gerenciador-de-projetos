@@ -158,13 +158,25 @@ export default function ExcelImporter({ open, onOpenChange, onSuccess }) {
     const emailCol = findColumn(headers, ['Email', 'E-mail']);
     const phoneCol = findColumn(headers, ['Telefone', 'Fone']);
 
-    return data.map(row => ({
-      name: row[nameCol] || 'Nome não informado',
-      vertical: normalizeVertical(row[verticalCol]),
-      role: row[respCol] || '',
-      email: row[emailCol] || '',
-      phone: row[phoneCol] || ''
-    })).filter(m => m.name !== 'Nome não informado');
+    // Remove duplicatas baseado em nome + vertical + função
+    const seen = new Set();
+    const members = data
+      .map(row => ({
+        name: row[nameCol] || 'Nome não informado',
+        vertical: normalizeVertical(row[verticalCol]),
+        role: row[respCol] || '',
+        email: row[emailCol] || '',
+        phone: row[phoneCol] || ''
+      }))
+      .filter(m => {
+        if (m.name === 'Nome não informado') return false;
+        const key = `${m.name}_${m.vertical}_${m.role}`.toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
+    return members;
   };
 
   const processStakeholderSheet = (workbook) => {

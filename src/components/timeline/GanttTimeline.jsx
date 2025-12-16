@@ -7,25 +7,11 @@ import { format, differenceInDays, parseISO, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from "@/lib/utils";
 
-const phaseColors = {
-  planejamento: 'bg-indigo-500',
-  kickoff: 'bg-purple-500',
-  diagnostico: 'bg-violet-500',
-  migracao_hml: 'bg-fuchsia-500',
-  configuracao_hml: 'bg-pink-500',
-  homologacao_hml: 'bg-rose-500',
-  migracao_producao: 'bg-orange-500',
-  treinamento: 'bg-amber-500',
-  configuracao_producao: 'bg-lime-500',
-  estabilizacao: 'bg-green-500',
-  operacao_assistida: 'bg-teal-500'
-};
-
 const statusColors = {
-  nao_iniciado: 'bg-slate-500',
+  nao_iniciado: 'bg-slate-300',
   em_andamento: 'bg-blue-500',
   concluido: 'bg-green-500',
-  atrasado: 'bg-red-500'
+  atrasado: 'bg-orange-500'
 };
 
 const statusLabels = {
@@ -96,25 +82,31 @@ export default function GanttTimeline({ events, onEdit, onDelete }) {
         <div className="divide-y divide-slate-700/30">
           {events.map((event) => (
             <div key={event.id} className="flex items-center px-6 py-3 hover:bg-slate-700/20 group">
-              <div className="w-64 flex-shrink-0 pr-4">
-                <div className="flex items-center gap-2">
-                  <div className={cn("w-2 h-2 rounded-full", phaseColors[event.phase] || 'bg-blue-500')} />
-                  <span className="text-sm font-medium text-white truncate">{event.title}</span>
-                </div>
-                <div className="flex items-center gap-2 mt-1">
-                  <Badge className={cn("text-xs", statusColors[event.status])}>
-                    {statusLabels[event.status]}
-                  </Badge>
-                  <span className="text-xs text-slate-500">{event.progress || 0}%</span>
+              <div className="w-80 flex-shrink-0 pr-4">
+                <div className="flex items-start gap-2">
+                  <div className={cn("w-2 h-2 rounded-full mt-1", statusColors[event.status])} />
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm font-medium text-white block">{event.title}</span>
+                    <div className="flex items-center gap-2 mt-1 text-xs text-slate-400">
+                      {event.start_date && (
+                        <span>{format(parseISO(event.start_date), 'dd/MM/yy', { locale: ptBR })}</span>
+                      )}
+                      {event.end_date && event.start_date !== event.end_date && (
+                        <>
+                          <span>→</span>
+                          <span>{format(parseISO(event.end_date), 'dd/MM/yy', { locale: ptBR })}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
               <div className="flex-1 relative h-8">
                 {event.start_date && (
                   <div
                     className={cn(
-                      "absolute h-6 rounded-full top-1 flex items-center px-2 transition-all",
-                      phaseColors[event.phase] || 'bg-blue-500',
-                      event.status === 'concluido' && 'opacity-60'
+                      "absolute h-6 rounded-md top-1 flex items-center px-2 transition-all",
+                      statusColors[event.status]
                     )}
                     style={{
                       left: `${getPosition(event.start_date)}%`,
@@ -123,10 +115,12 @@ export default function GanttTimeline({ events, onEdit, onDelete }) {
                     }}
                   >
                     {/* Progress bar inside */}
-                    <div 
-                      className="absolute inset-0 bg-white/20 rounded-full"
-                      style={{ width: `${event.progress || 0}%` }}
-                    />
+                    {event.progress > 0 && (
+                      <div 
+                        className="absolute inset-0 bg-white/30 rounded-md"
+                        style={{ width: `${event.progress || 0}%` }}
+                      />
+                    )}
                   </div>
                 )}
               </div>
