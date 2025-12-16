@@ -10,6 +10,7 @@ import Homologation from './pages/Homologation';
 import Migration from './pages/Migration';
 import Reports from './pages/Reports';
 import Risks from './pages/Risks';
+import ProjectsList from './pages/ProjectsList';
 import __Layout from './Layout.jsx';
 
 
@@ -26,6 +27,7 @@ export const PAGES = {
     "Migration": Migration,
     "Reports": Reports,
     "Risks": Risks,
+    "ProjectsList": ProjectsList,
 }
 
 export const pagesConfig = {
