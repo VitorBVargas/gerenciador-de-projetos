@@ -48,6 +48,15 @@ export default function Layout({ children, currentPageName }) {
     base44.auth.logout();
   };
 
+  // Get project_id from URL to pass to navigation links
+  const urlParams = new URLSearchParams(window.location.search);
+  const projectId = urlParams.get('project_id');
+
+  // Don't show sidebar on ProjectsList page
+  if (currentPageName === 'ProjectsList') {
+    return children;
+  }
+
   return (
     <div className="min-h-screen bg-slate-900 flex">
       {/* Sidebar */}
@@ -75,10 +84,11 @@ export default function Layout({ children, currentPageName }) {
           <div className="space-y-1">
             {navigation.map((item) => {
               const isActive = currentPageName === item.href;
+              const url = projectId ? `${item.href}?project_id=${projectId}` : item.href;
               return (
                 <Link
                   key={item.href}
-                  to={createPageUrl(item.href)}
+                  to={createPageUrl(url)}
                   className={cn(
                     "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
                     isActive 

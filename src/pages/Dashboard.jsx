@@ -19,6 +19,7 @@ import {
 import { format, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from "@/lib/utils";
+import { createPageUrl } from '../utils';
 
 import StatCard from '../components/dashboard/StatCard';
 import ProgressChart from '../components/dashboard/ProgressChart';
@@ -33,39 +34,55 @@ export default function Dashboard() {
   const [selectedProject, setSelectedProject] = useState(null);
   const [importModalOpen, setImportModalOpen] = useState(false);
 
+  // Get project_id from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const projectId = urlParams.get('project_id');
+
   // Fetch all data
   const { data: projects = [] } = useQuery({
     queryKey: ['projects'],
     queryFn: () => base44.entities.Project.list('-created_date')
   });
 
+  // Redirect to projects list if no project selected
+  React.useEffect(() => {
+    if (!projectId) {
+      window.location.href = createPageUrl('ProjectsList');
+    }
+  }, [projectId]);
+
   const { data: teamMembers = [] } = useQuery({
-    queryKey: ['teamMembers'],
-    queryFn: () => base44.entities.TeamMember.list()
+    queryKey: ['teamMembers', projectId],
+    queryFn: () => projectId ? base44.entities.TeamMember.filter({ project_id: projectId }) : [],
+    enabled: !!projectId
   });
 
   const { data: products = [] } = useQuery({
-    queryKey: ['products'],
-    queryFn: () => base44.entities.Product.list()
+    queryKey: ['products', projectId],
+    queryFn: () => projectId ? base44.entities.Product.filter({ project_id: projectId }) : [],
+    enabled: !!projectId
   });
 
   const { data: timelineEvents = [] } = useQuery({
-    queryKey: ['timelineEvents'],
-    queryFn: () => base44.entities.TimelineEvent.list()
+    queryKey: ['timelineEvents', projectId],
+    queryFn: () => projectId ? base44.entities.TimelineEvent.filter({ project_id: projectId }) : [],
+    enabled: !!projectId
   });
 
   const { data: kanbanTasks = [] } = useQuery({
-    queryKey: ['kanbanTasks'],
-    queryFn: () => base44.entities.KanbanTask.list()
+    queryKey: ['kanbanTasks', projectId],
+    queryFn: () => projectId ? base44.entities.KanbanTask.filter({ project_id: projectId }) : [],
+    enabled: !!projectId
   });
 
   const { data: risks = [] } = useQuery({
-    queryKey: ['risks'],
-    queryFn: () => base44.entities.Risk.list()
+    queryKey: ['risks', projectId],
+    queryFn: () => projectId ? base44.entities.Risk.filter({ project_id: projectId }) : [],
+    enabled: !!projectId
   });
 
-  // Active project (first one or most recent)
-  const activeProject = projects[0];
+  // Active project
+  const activeProject = projects.find(p => p.id === projectId);
 
   // Mutations
   const createProjectMutation = useMutation({
