@@ -148,34 +148,59 @@ export default function ExcelImporter({ open, onOpenChange, onSuccess }) {
     const sheet = workbook.Sheets['Equipe do projeto'];
     if (!sheet) return [];
 
-    const data = XLSX.utils.sheet_to_json(sheet);
+    const data = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+    console.log('Dados brutos da equipe:', data);
+    
     if (data.length === 0) return [];
 
     const headers = Object.keys(data[0]);
+    console.log('Headers da equipe:', headers);
+    
     const nameCol = findColumn(headers, ['Nome', 'Membro da Equipe']);
-    const verticalCol = findColumn(headers, ['Vertical', 'Vertial', 'Área']);
+    const verticalCol = findColumn(headers, ['Vertical', 'Vertial', 'Área', 'Vertial']);
     const respCol = findColumn(headers, ['Responsabilidade', 'Função', 'Papel']);
     const emailCol = findColumn(headers, ['Email', 'E-mail']);
     const phoneCol = findColumn(headers, ['Telefone', 'Fone']);
 
-    // Remove duplicatas baseado em nome + vertical + função
+    console.log('Colunas mapeadas - Nome:', nameCol, 'Vertical:', verticalCol, 'Resp:', respCol);
+
+    // Remove duplicatas e linhas inválidas
     const seen = new Set();
     const members = data
-      .map(row => ({
-        name: row[nameCol] || 'Nome não informado',
-        vertical: normalizeVertical(row[verticalCol]),
-        role: row[respCol] || '',
-        email: row[emailCol] || '',
-        phone: row[phoneCol] || ''
-      }))
+      .map(row => {
+        const name = row[nameCol] ? String(row[nameCol]).trim() : '';
+        const vertical = row[verticalCol] ? String(row[verticalCol]).trim() : '';
+        const role = row[respCol] ? String(row[respCol]).trim() : '';
+        const email = row[emailCol] ? String(row[emailCol]).trim() : '';
+        const phone = row[phoneCol] ? String(row[phoneCol]).trim() : '';
+        
+        return {
+          name,
+          vertical: normalizeVertical(vertical),
+          role,
+          email,
+          phone
+        };
+      })
       .filter(m => {
-        if (m.name === 'Nome não informado') return false;
-        const key = `${m.name}_${m.vertical}_${m.role}`.toLowerCase();
-        if (seen.has(key)) return false;
+        // Ignora se não tem nome ou vertical
+        if (!m.name || !m.vertical) return false;
+        
+        // Ignora se o nome é muito curto (provavelmente lixo)
+        if (m.name.length < 2) return false;
+        
+        // Remove duplicatas exatas
+        const key = `${m.name}_${m.vertical}_${m.role}`.toLowerCase().trim();
+        if (seen.has(key)) {
+          console.log('Duplicata ignorada:', m.name);
+          return false;
+        }
+        
         seen.add(key);
         return true;
       });
 
+    console.log('Membros processados:', members);
     return members;
   };
 
