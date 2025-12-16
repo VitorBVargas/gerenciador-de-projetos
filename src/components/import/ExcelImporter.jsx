@@ -467,10 +467,12 @@ export default function ExcelImporter({ open, onOpenChange, onSuccess }) {
       // 2. Import Team Members
       setStatus('Importando equipe...');
       const teamMembers = processTeamSheet(workbook);
+      console.log('Criando membros da equipe:', teamMembers.length);
       if (teamMembers.length > 0) {
-        await base44.entities.TeamMember.bulkCreate(
+        const created = await base44.entities.TeamMember.bulkCreate(
           teamMembers.map(m => ({ ...m, project_id: project.id }))
         );
+        console.log('Membros criados:', created);
       }
       setProgress(35);
 
@@ -487,10 +489,25 @@ export default function ExcelImporter({ open, onOpenChange, onSuccess }) {
       // 4. Import Products
       setStatus('Importando produtos...');
       const products = processProductsSheet(workbook);
-      if (products.length > 0) {
-        await base44.entities.Product.bulkCreate(
-          products.map(p => ({ ...p, project_id: project.id }))
+      console.log('Criando produtos:', products.length);
+      
+      // Remove duplicatas de produtos também
+      const uniqueProducts = [];
+      const productSeen = new Set();
+      products.forEach(p => {
+        const key = `${p.name}_${p.vertical}`.toLowerCase();
+        if (!productSeen.has(key)) {
+          productSeen.add(key);
+          uniqueProducts.push(p);
+        }
+      });
+      console.log('Produtos únicos:', uniqueProducts.length);
+      
+      if (uniqueProducts.length > 0) {
+        const created = await base44.entities.Product.bulkCreate(
+          uniqueProducts.map(p => ({ ...p, project_id: project.id }))
         );
+        console.log('Produtos criados:', created);
       }
       setProgress(60);
 
