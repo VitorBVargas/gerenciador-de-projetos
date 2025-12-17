@@ -222,7 +222,7 @@ export default function Dashboard() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                {activeProject.contract_link && (
+                {activeProject?.contract_link && (
                   <Button
                     variant="outline"
                     size="sm"

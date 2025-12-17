@@ -32,22 +32,28 @@ export default function Migration() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [newTaskTitle, setNewTaskTitle] = useState('');
 
+  // Get project_id from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const projectId = urlParams.get('project_id');
+
   const { data: projects = [] } = useQuery({
     queryKey: ['projects'],
     queryFn: () => base44.entities.Project.list('-created_date')
   });
 
   const { data: products = [] } = useQuery({
-    queryKey: ['products'],
-    queryFn: () => base44.entities.Product.list()
+    queryKey: ['products', projectId],
+    queryFn: () => projectId ? base44.entities.Product.filter({ project_id: projectId }) : [],
+    enabled: !!projectId
   });
 
   const { data: tasks = [] } = useQuery({
-    queryKey: ['migrationTasks'],
-    queryFn: () => base44.entities.MigrationTask.list()
+    queryKey: ['migrationTasks', projectId],
+    queryFn: () => projectId ? base44.entities.MigrationTask.filter({ project_id: projectId }) : [],
+    enabled: !!projectId
   });
 
-  const activeProject = projects[0];
+  const activeProject = projects.find(p => p.id === projectId);
 
   const createTaskMutation = useMutation({
     mutationFn: (data) => base44.entities.MigrationTask.create(data),
