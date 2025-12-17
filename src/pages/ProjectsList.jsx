@@ -49,25 +49,33 @@ export default function ProjectsList() {
 
   const deleteMutation = useMutation({
     mutationFn: async (projectId) => {
-      // Delete all related data
+      // Delete all related data first
       const entities = ['TeamMember', 'Stakeholder', 'Product', 'TimelineEvent', 
                        'KanbanTask', 'Risk', 'Travel', 'Training', 'MigrationTask', 
                        'HomologationTask', 'OperationalReport'];
       
       for (const entity of entities) {
-        const records = await base44.entities[entity].filter({ project_id: projectId });
-        for (const record of records) {
-          await base44.entities[entity].delete(record.id);
+        try {
+          const records = await base44.entities[entity].filter({ project_id: projectId });
+          if (records && records.length > 0) {
+            await Promise.all(records.map(record => base44.entities[entity].delete(record.id)));
+          }
+        } catch (error) {
+          console.warn(`Erro ao deletar ${entity}:`, error);
         }
       }
       
-      // Delete project
+      // Delete project last
       await base44.entities.Project.delete(projectId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       setDeleteDialogOpen(false);
       setProjectToDelete(null);
+    },
+    onError: (error) => {
+      console.error('Erro ao deletar projeto:', error);
+      setDeleteDialogOpen(false);
     }
   });
 

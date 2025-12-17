@@ -67,7 +67,7 @@ export default function Layout({ children, currentPageName }) {
         )}
       >
         {/* Logo */}
-        <div className="flex items-center h-16 px-4 border-b border-slate-800">
+        <Link to={createPageUrl('ProjectsList')} className="flex items-center h-16 px-4 border-b border-slate-800 hover:bg-slate-800 transition-colors">
           <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center flex-shrink-0">
             <span className="text-white font-bold text-xl">P</span>
           </div>
@@ -77,7 +77,7 @@ export default function Layout({ children, currentPageName }) {
               <p className="text-slate-500 text-xs truncate">de Projetos</p>
             </div>
           )}
-        </div>
+        </Link>
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-4 px-3">
