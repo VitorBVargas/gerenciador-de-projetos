@@ -94,17 +94,22 @@ export default function Reports() {
     priority: 'media'
   });
 
+  // Get project_id from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const projectId = urlParams.get('project_id');
+
   const { data: projects = [] } = useQuery({
     queryKey: ['projects'],
     queryFn: () => base44.entities.Project.list('-created_date')
   });
 
   const { data: reports = [] } = useQuery({
-    queryKey: ['operationalReports'],
-    queryFn: () => base44.entities.OperationalReport.list('-date')
+    queryKey: ['operationalReports', projectId],
+    queryFn: () => projectId ? base44.entities.OperationalReport.filter({ project_id: projectId }, '-date') : [],
+    enabled: !!projectId
   });
 
-  const activeProject = projects[0];
+  const activeProject = projects.find(p => p.id === projectId);
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.OperationalReport.create(data),
