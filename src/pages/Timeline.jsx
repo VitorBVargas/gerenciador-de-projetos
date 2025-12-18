@@ -67,6 +67,16 @@ export default function Timeline() {
     }
   });
 
+  const handleStatusChange = (eventId, newStatus) => {
+    const event = timelineEvents.find(e => e.id === eventId);
+    if (event) {
+      updateMutation.mutate({ 
+        id: eventId, 
+        data: { ...event, status: newStatus } 
+      });
+    }
+  };
+
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.TimelineEvent.delete(id),
     onSuccess: () => {
@@ -162,6 +172,7 @@ export default function Timeline() {
                   events={sortEvents(eventsByVertical[vertical])}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
+                  onStatusChange={handleStatusChange}
                 />
               </TabsContent>
             ))}
@@ -171,6 +182,7 @@ export default function Timeline() {
             events={sortEvents(timelineEvents)}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            onStatusChange={handleStatusChange}
           />
         )
       ) : (
