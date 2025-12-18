@@ -120,19 +120,16 @@ export default function Timeline() {
     }
   }, [usedVerticals.length]);
 
-  // Sort events by phase order
-  const phaseOrder = [
-    'planejamento', 'kickoff', 'diagnostico', 'migracao_hml', 'configuracao_hml',
-    'homologacao_hml', 'migracao_producao', 'treinamento', 'configuracao_producao',
-    'estabilizacao', 'operacao_assistida'
-  ];
-
   const sortEvents = (events) => {
     return [...events].sort((a, b) => {
-      const aIndex = phaseOrder.indexOf(a.phase);
-      const bIndex = phaseOrder.indexOf(b.phase);
-      if (aIndex !== bIndex) return aIndex - bIndex;
-      if (a.start_date && b.start_date) return a.start_date.localeCompare(b.start_date);
+      // Sort by order field (from Excel import), then by created_date
+      if (a.order !== undefined && b.order !== undefined) {
+        return a.order - b.order;
+      }
+      // Fallback to created_date for manually added events
+      if (a.created_date && b.created_date) {
+        return a.created_date.localeCompare(b.created_date);
+      }
       return 0;
     });
   };

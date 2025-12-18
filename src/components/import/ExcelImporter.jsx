@@ -311,7 +311,7 @@ export default function ExcelImporter({ open, onOpenChange, onSuccess }) {
 
       console.log('Colunas mapeadas - Etapa:', titleCol, 'Data Início:', startCol, 'Data Fim:', endCol, 'Situação:', statusCol);
 
-      const events = data.map(row => {
+      const events = data.map((row, index) => {
         const title = row[titleCol];
         if (!title) return null;
         
@@ -333,7 +333,8 @@ export default function ExcelImporter({ open, onOpenChange, onSuccess }) {
           end_date: excelDateToJSDate(row[endCol]),
           status: mappedStatus,
           progress: progress,
-          vertical: normalizeVertical(vertical)
+          vertical: normalizeVertical(vertical),
+          order: allEvents.length + index
         };
       }).filter(e => e !== null);
 
