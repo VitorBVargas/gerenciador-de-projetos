@@ -41,10 +41,17 @@ export default function GanttTimeline({ events, onEdit, onDelete, onStatusChange
     );
   }
 
-  const getProgressColor = (progress, status) => {
-    if (status === 'nao_iniciado') return 'bg-slate-600';
-    if (progress === 100 || status === 'concluido') return 'bg-green-500';
-    if (progress >= 50) return 'bg-yellow-500';
+  const isEventDelayed = (event) => {
+    if (!event.end_date || event.status === 'concluido') return false;
+    const today = new Date();
+    const endDate = parseISO(event.end_date);
+    return endDate < today && event.progress < 100;
+  };
+
+  const getProgressColor = (event) => {
+    if (event.status === 'nao_iniciado' || event.progress === 0) return 'bg-slate-600';
+    if (event.progress === 100 || event.status === 'concluido') return 'bg-green-500';
+    if (isEventDelayed(event)) return 'bg-yellow-500';
     return 'bg-blue-500';
   };
 
@@ -61,68 +68,74 @@ export default function GanttTimeline({ events, onEdit, onDelete, onStatusChange
 
         {/* Events */}
         <div className="divide-y divide-slate-700/30">
-          {events.map((event) => (
-            <div key={event.id} className="grid grid-cols-12 gap-4 items-center px-6 py-3 hover:bg-slate-700/20 group">
-              {/* Status Dropdown */}
-              <div className="col-span-2">
-                <Select 
-                  value={event.status} 
-                  onValueChange={(value) => onStatusChange?.(event.id, value)}
-                >
-                  <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white h-9 text-sm">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-700 border-slate-600">
-                    <SelectItem value="nao_iniciado" className="text-slate-300">Não Iniciado</SelectItem>
-                    <SelectItem value="em_andamento" className="text-blue-300">Em andamento</SelectItem>
-                    <SelectItem value="concluido" className="text-green-300">Concluído</SelectItem>
-                    <SelectItem value="atrasado" className="text-yellow-300">Atrasado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Atividade */}
-              <div className="col-span-5">
-                <div className="text-sm font-medium text-white">{event.title}</div>
-                <div className="text-xs text-slate-400 mt-0.5">
-                  {event.start_date && event.end_date && (
-                    <>
-                      {format(parseISO(event.start_date), 'dd/MM/yy')} - {format(parseISO(event.end_date), 'dd/MM/yy')}
-                    </>
-                  )}
+          {events.map((event) => {
+            const statusLabel = isEventDelayed(event) && event.status !== 'concluido' 
+              ? 'Atrasado' 
+              : statusLabels[event.status];
+            
+            return (
+              <div key={event.id} className="grid grid-cols-12 gap-4 items-center px-6 py-3 hover:bg-slate-700/20 group">
+                {/* Status Display */}
+                <div className="col-span-2">
+                  <Badge 
+                    className={cn(
+                      "border text-xs",
+                      isEventDelayed(event) && event.status !== 'concluido'
+                        ? "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
+                        : event.status === 'concluido'
+                        ? "bg-green-500/20 text-green-400 border-green-500/30"
+                        : event.status === 'em_andamento'
+                        ? "bg-blue-500/20 text-blue-400 border-blue-500/30"
+                        : "bg-slate-600/20 text-slate-400 border-slate-600/30"
+                    )}
+                  >
+                    {statusLabel}
+                  </Badge>
                 </div>
-              </div>
 
-              {/* Progresso */}
-              <div className="col-span-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 h-8 bg-slate-700/50 rounded-md overflow-hidden">
-                    {event.status !== 'nao_iniciado' && event.progress > 0 && (
-                      <div 
-                        className={cn("h-full transition-all", getProgressColor(event.progress, event.status))}
-                        style={{ width: `${event.progress}%` }}
-                      />
+                {/* Atividade */}
+                <div className="col-span-5">
+                  <div className="text-sm font-medium text-white">{event.title}</div>
+                  <div className="text-xs text-slate-400 mt-0.5">
+                    {event.start_date && event.end_date && (
+                      <>
+                        {format(parseISO(event.start_date), 'dd/MM/yy')} - {format(parseISO(event.end_date), 'dd/MM/yy')}
+                      </>
                     )}
                   </div>
-                  <span className="text-sm text-slate-300 w-10 text-right">
-                    {event.status === 'nao_iniciado' ? '0%' : `${event.progress || 0}%`}
-                  </span>
+                </div>
+
+                {/* Progresso */}
+                <div className="col-span-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 h-5 bg-slate-700/50 rounded-full overflow-hidden">
+                      {event.status !== 'nao_iniciado' && event.progress > 0 && (
+                        <div 
+                          className={cn("h-full transition-all rounded-full", getProgressColor(event))}
+                          style={{ width: `${event.progress}%` }}
+                        />
+                      )}
+                    </div>
+                    <span className="text-sm text-slate-300 w-10 text-right">
+                      {event.status === 'nao_iniciado' ? '0%' : `${event.progress || 0}%`}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="col-span-1 flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7 text-slate-400 hover:text-white hover:bg-slate-600"
+                    onClick={() => onEdit(event)}
+                  >
+                    <Pencil className="w-3 h-3" />
+                  </Button>
                 </div>
               </div>
-
-              {/* Actions */}
-              <div className="col-span-1 flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-7 w-7 text-slate-400 hover:text-white hover:bg-slate-600"
-                  onClick={() => onEdit(event)}
-                >
-                  <Pencil className="w-3 h-3" />
-                </Button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </CardContent>
     </Card>
