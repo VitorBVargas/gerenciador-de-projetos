@@ -36,7 +36,8 @@ const verticalLabels = {
   iss: 'ISS',
   parceiros: 'Parceiros',
   plataforma: 'Plataforma',
-  atendimento: 'Atendimento'
+  atendimento: 'Atendimento',
+  saude: 'Saúde'
 };
 
 const verticalColors = {
@@ -48,7 +49,8 @@ const verticalColors = {
   iss: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
   parceiros: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
   plataforma: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30',
-  atendimento: 'bg-teal-500/20 text-teal-400 border-teal-500/30'
+  atendimento: 'bg-teal-500/20 text-teal-400 border-teal-500/30',
+  saude: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
 };
 
 const statusColors = {
@@ -194,18 +196,18 @@ export default function Products() {
               if (verticalProducts.length === 0) return null;
               
               return (
-                <div key={vertical} className="flex-shrink-0 w-64">
+                <div key={vertical} className="flex-shrink-0 w-56">
                   <div className={cn(
-                    "rounded-t-lg px-3 py-2 border-t border-x",
+                    "rounded-t-lg px-2.5 py-1.5 border-t border-x",
                     verticalColors[vertical]
                   )}>
                     <h3 className="font-semibold text-xs">{verticalLabels[vertical]}</h3>
                     <p className="text-xs opacity-75 mt-0.5">{verticalProducts.length} produtos</p>
                   </div>
-                  <div className="bg-slate-800/50 border border-slate-700 rounded-b-lg p-2 space-y-2 min-h-[180px]">
+                  <div className="bg-slate-800/50 border border-slate-700 rounded-b-lg p-1.5 space-y-1.5 min-h-[160px]">
                     {verticalProducts.map((product) => (
                       <Card key={product.id} className="bg-slate-800 border-slate-700 hover:bg-slate-750 transition-all group">
-                        <CardContent className="p-2.5">
+                        <CardContent className="p-2">
                           <div className="flex items-start justify-between mb-1.5">
                             <div className={cn("w-1.5 h-1.5 rounded-full mt-1", statusColors[product.status])} />
                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
