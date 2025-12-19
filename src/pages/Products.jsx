@@ -153,7 +153,7 @@ export default function Products() {
   });
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
+    <div className="min-h-screen bg-slate-900 p-6 lg:p-8 space-y-6">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
@@ -182,8 +182,8 @@ export default function Products() {
 
       {/* Products Table by Vertical */}
       {filteredProducts.length > 0 ? (
-        <div className="overflow-x-auto">
-          <div className="inline-flex gap-4 pb-4">
+        <div className="overflow-x-auto -mx-6 lg:-mx-8 px-6 lg:px-8">
+          <div className="inline-flex gap-4 pb-4 min-w-full">
             {usedVerticals.map((vertical) => {
               const verticalProducts = productsByVertical[vertical];
               if (verticalProducts.length === 0) return null;
