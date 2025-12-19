@@ -360,19 +360,48 @@ export const migrationTasksByProduct = {
     'Extrair Gestão Bancária'
   ]),
 
-  // Educação
+  // Educação - Educação Básica
   'Educação Básica (Cloud)': parseTasksIntoSections([
-    'MIGRAÇÃO: TABELAS AUXILIARES E GERAIS',
-    'Extrair Países', 'Extrair Estados', 'Extrair Municípios', 'Extrair Bairros', 'Extrair Logradouros',
-    'MIGRAÇÃO: ESTRUTURA ESCOLAR',
-    'Extrair Escolas', 'Extrair Salas', 'Extrair Modalidades de Ensino', 'Extrair Níveis de Ensino', 'Extrair Etapas de Ensino',
-    'Extrair Turnos', 'Extrair Calendários Escolares', 'Extrair Tipos de Avaliação', 'Extrair Disciplinas',
-    'MIGRAÇÃO: PESSOAS',
-    'Extrair Alunos', 'Extrair Responsáveis', 'Extrair Professores', 'Extrair Funcionários',
-    'MIGRAÇÃO: TURMAS E MATRÍCULAS',
-    'Extrair Turmas', 'Extrair Turmas Disciplinas', 'Extrair Matrículas', 'Extrair Transferências', 'Extrair Enturmações',
-    'MIGRAÇÃO: DADOS PEDAGÓGICOS',
-    'Extrair Frequências', 'Extrair Notas', 'Extrair Boletins', 'Extrair Ocorrências Disciplinares'
+    'MIGRAÇÃO: ESTRUTURA ACADÊMICA',
+    'Extrair Anos Letivos', 'Extrair Disciplinas', 'Extrair Eixos Temáticos', 'Extrair Campos Experiências',
+    'Extrair Unidades Temáticas', 'Extrair Objetos Conhecimento', 'Extrair Objetos Aprendizagem',
+    'Extrair Competências CHA', 'Extrair Cursos', 'Extrair Matriz Curricular', 'Extrair Etapas Matriz',
+    'Extrair Etapas Matriz Disciplinas',
+    'MIGRAÇÃO: CADASTRO DE PESSOAS',
+    'Extrair Países', 'Extrair Estados', 'Extrair Municípios', 'Extrair Bairros', 'Extrair Responsáveis',
+    'Extrair Filiações', 'Extrair Religiões', 'Extrair Deficiências', 'Extrair Alunos', 'Extrair Observações Alunos',
+    'Extrair Funcionários', 'Extrair Matrículas Funcionários', 'Extrair Locais Trabalho Matrículas',
+    'Extrair Etapas Níveis Matrículas', 'Extrair Disciplinas Matrículas', 'Extrair Pessoa e-mail', 'Extrair Pessoa telefone',
+    'MIGRAÇÃO: ORGANIZAÇÃO ESCOLAR',
+    'Extrair Estabelecimentos', 'Extrair Históricos Escolares', 'Extrair Dependências Físicas', 'Extrair Tipos Cargos',
+    'Extrair Tipos Dependências Físicas', 'Extrair Cargos', 'Extrair Lotações Físicas', 'Extrair Turmas',
+    'Extrair Enturmações Funcionários', 'Extrair Disponibilidades', 'Extrair Quadro Horários', 'Extrair Aulas Quadros de Horários',
+    'MIGRAÇÃO: CALENDÁRIO E EVENTOS',
+    'Extrair Feriados', 'Extrair Eventos', 'Extrair Calendários Secretarias', 'Extrair Calendários Estabelecimentos',
+    'Extrair Calendários Matrizes Curriculares', 'Extrair Calendários Feriados', 'Extrair Calendários Eventos', 'Extrair Calendários Exceções',
+    'MIGRAÇÃO: DADOS DE MATRÍCULA E AVALIAÇÃO',
+    'Extrair Atividades AEE', 'Extrair Atividades Complementares', 'Extrair Motivos Movimentação',
+    'Extrair Motivos Dispensas', 'Extrair Horas Aulas', 'Extrair Quadro Vagas', 'Extrair Tipos Avaliações Turmas',
+    'Extrair Notas Máximas', 'Extrair Turmas EJA Modular', 'Extrair Disciplinas EJA Modular',
+    'Extrair Módulos Disciplinas EJA Modular', 'Extrair Configurações Avaliação', 'Extrair Campos Adicionais Disciplinas',
+    'Extrair Campos Adicionais Cursos', 'Extrair Campos Adicionais Alunos', 'Extrair Campos Adicionais Turmas',
+    'Extrair Programas Sociais', 'Extrair Legislações', 'Extrair Convenções', 'Extrair Avaliações Externas',
+    'Extrair Estabelecimentos Avaliações Externas', 'Extrair Documentos Estabelecimentos', 'Extrair Funções Gratificadas',
+    'Extrair Cursos Aperfeiçoamento', 'Extrair Cursos Aperfeiçoamento Funcionários', 'Extrair Formações Funcionários',
+    'Extrair Formações Pós Gradução Funcionários', 'Extrair Equipes Diretivas', 'Extrair Configurações Lista Espera',
+    'Extrair Matrículas', 'Extrair Matrículas EJA Modular', 'Extrair Matrículas Movimentação',
+    'Extrair Registros Dispensas Atividades', 'Extrair Registros Dispensas Componentes', 'Extrair Inscrições Lista Espera',
+    'Extrair Encaminhamentos Lista Espera', 'Extrair Registros Faltas', 'Extrair Registros Faltas Aulas',
+    'Extrair Registros Faltas Dias', 'Extrair Registros Faltas EJA Modular', 'Extrair Registros Avaliações',
+    'Extrair Registros Avaliações CHA', 'Extrair Registros Abonos', 'Extrair Acompanhamentos Pedagógicos',
+    'Extrair Encerramentos', 'Extrair Situações Enturmação Componentes Curriculares', 'Extrair Alocações Aulas',
+    'Extrair Aulas Realizadas'
+  ]),
+
+  // Educação - Biblioteca
+  'Biblioteca': parseTasksIntoSections([
+    'MIGRAÇÃO: DADOS DA BIBLIOTECA',
+    'Extrair Empréstimos', 'Extrair Suspensões', 'Extrair Baixa de Materiais'
   ]),
 
   // Plataforma - Protocolo
