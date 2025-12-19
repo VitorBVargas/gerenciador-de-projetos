@@ -105,6 +105,109 @@ export const homologationTasksByProduct = {
     'Módulo Único: Pessoas, Cadastros Gerais, Endereços, Cadastros Financeiros, Cálculo de planejamento fiscal, Procedimento fiscal',
     'SPRINT 2: INTELIGÊNCIA E FISCALIZAÇÃO',
     'Módulo Único: Inteligência Fiscal, Auto de infração, Gerenciador de fiscalizações'
+  ]),
+
+  // COMPRAS
+  'Compras (Cloud)': parseTasksIntoSections([
+    'SPRINT 1: PARÂMETROS GERAIS',
+    'Módulo Único: Por exercício, Por certificado, Geral, Validar scripts, Portal da transparência, PNPC, Validar modelos de relatórios, Data a quantidade e Plano preço unitário',
+    'SPRINT 1: ESTRUTURA ORGANIZACIONAL',
+    'Módulo Único: Organogramas, Entidades, Órgão externo',
+    'SPRINT 1: CATÁLOGO',
+    'Módulo Único: Grupos e Classes, Unidades de medida, Materiais e Serviços',
+    'SPRINT 1: ORÇAMENTO',
+    'Módulo Único: Despesas, Objetos',
+    'SPRINT 1: PESSOAS',
+    'Módulo Único: Membros do Pregão, Pregoeiros, CPC, Responsável, Comissão, Comissão de licitação, Grupos de servidores',
+    'SPRINT 1: BANCÁRIOS',
+    'Módulo Único: Agências',
+    'SPRINT 1: ATOS',
+    'Módulo Único: Ato, Tipo de ato, Naturezas de texto jurídico',
+    'SPRINT 1: INFORMAÇÕES DE ENTREGA',
+    'Módulo Único: Fontes de divulgação, Locais de entrega',
+    'SPRINT 1: CADASTROS AUXILIARES',
+    'Módulo Único: Modalidades de licitação, Modelos de documentos, Formas de julgamento, Tipos de objeto, Tipos de impropriedade de recurso, Tipos de votos de julgamento, Tipos de pareceres, Tipos de publicação do processo, Tipos de documento, Motivos de revogação, Endereços, Fundamentos Legais',
+    'SPRINT 2: SOLICITAÇÕES DE COMPRA',
+    'Módulo Único: Solicitações, Aguardando autorização, Autorizadas, Em cotação, Aguardando aprovação, Aprovadas, Atendidas',
+    'SPRINT 2: COTAÇÃO DE PREÇOS',
+    'Módulo Único: Cotações de preços',
+    'SPRINT 2: PROCESSOS',
+    'Módulo Único: Processos Administrativos (Base Interna/Externa), Validar Informações Gerais, PNPC, Itens adicionais, Validar fases (Em parecer contábil, Aguardando Autorização, Aguardando Formalização, Em parecer Técnico Inicial)',
+    'SPRINT 3: PROCESSOS',
+    'Módulo Único: Integração com Plataforma de Licitação, Atos Finais, Pareceres, Tramitação do processo',
+    'SPRINT 3: REGISTROS DE PREÇOS',
+    'Módulo Único: Atas de registros de preços, Validar Atas Vigentes e Encerradas, Validar ocorrência nas atas',
+    'SPRINT 3: INTEGRAÇÕES ENTRE SISTEMAS',
+    'Módulo Único: Validar Integração com o sistema contábil, Prestação de contas e scripts'
+  ]),
+
+  'Contratos (Cloud)': parseTasksIntoSections([
+    'SPRINT 1: CONFIGURAÇÕES DO SISTEMA',
+    'Módulo Único: Gerais, Por entidade, Scripts de integração, Modelos de relatórios, Numeração da contratação, Endereços, Tipos diversos (aditivo, garantias, instrumento, objeto, publicação, rescisão, responsáveis, apostilamento, sanções), Motivos de rescisão, Fontes de divulgação, Tipos de administração, Tipos de documento, Modelos de documentos, Fundamentos legais',
+    'SPRINT 1: ESTRUTURA ORGANIZACIONAL',
+    'Módulo Único: Organogramas, Entidades',
+    'SPRINT 1: ORÇAMENTO',
+    'Módulo Único: Despesas, Objetos',
+    'SPRINT 1: BANCÁRIOS',
+    'Módulo Único: Agências',
+    'SPRINT 1: COMPROVANTES',
+    'Módulo Único: Tipos de comprovantes, Comprovantes',
+    'SPRINT 1: INFORMAÇÕES DE ENTREGA',
+    'Módulo Único: Locais de entrega, Prazos de entrega/execução',
+    'SPRINT 2: CONTRATAÇÕES',
+    'Módulo Único: Compras diretas (todas as fases), Contratações (todas as fases), Atas de registro de preço (todas as fases)',
+    'SPRINT 2: SOLICITAÇÕES DE FORNECIMENTO',
+    'Módulo Único: Solicitações, Pendentes, Regional, Anuladas, Aguardando Autorização',
+    'SPRINT 3: SOLICITAÇÕES DE FORNECIMENTO',
+    'Módulo Único: Autorizadas, Concluídas',
+    'SPRINT 3: SANÇÕES ADMINISTRATIVAS',
+    'Módulo Único: Fornecedor, Tipo, Nº do contrato, Data, etc.',
+    'SPRINT 3: INTEGRAÇÕES E PRESTAÇÃO DE CONTAS',
+    'Módulo Único: Validar integração com sistemas (contábil, patrimonial, almoxarifado), Pesquisa de preços, Prestação de contas'
+  ]),
+
+  'Almoxarifado': parseTasksIntoSections([
+    'SPRINT 1: PARÂMETROS E CADASTROS',
+    'Módulo Único: Parâmetros, Portal da Transparência, Portal do Gestor, Organogramas, Entidades, Naturezas da movimentação, Endereços, Grupos e Classes, Unidades de medida, Materiais e serviços, Lotes, Almoxarifados, Localizações físicas',
+    'SPRINT 2: PESSOAS E ESTOQUE',
+    'Módulo Único: Fornecedores, Responsáveis, Posição do Estoque, Requisições Internas, Requisições entre Almoxarifados',
+    'SPRINT 3: MOVIMENTAÇÕES',
+    'Módulo Único: Entradas, Saídas, Transferências, Inventários, Encerramentos',
+    'SPRINT 4: PRESTAÇÃO DE CONTAS',
+    'Módulo Único: Validar necessidade de campos relacionados às prestações de contas'
+  ]),
+
+  'Frotas (Cloud)': parseTasksIntoSections([
+    'SPRINT 1: PARÂMETROS E CADASTROS',
+    'Módulo Único: Portal da Transparência, Portal do Gestor, Itens de Checklist, Organogramas, Entidades, Grupos e Classes, Unidades de medida, Veículos e Equipamentos, Acessórios e Itens Agregados',
+    'SPRINT 2: OPERAÇÃO',
+    'Módulo Único: Fornecedores, Motoristas, Reservas de Veículos, Viagens',
+    'SPRINT 3: DESPESAS E DOCUMENTAÇÃO',
+    'Módulo Único: Despesas, Taxas e Licenciamentos, Multas de Trânsito',
+    'SPRINT 4: PRESTAÇÃO DE CONTAS',
+    'Módulo Único: Validar necessidade de campos relacionados às prestações de contas'
+  ]),
+
+  'Patrimônio (Cloud)': parseTasksIntoSections([
+    'SPRINT 1: PARÂMETROS E CADASTROS',
+    'Módulo Único: Por exercício, Portal da Transparência, Scripts de Integração, Métodos de Depreciação, Organogramas, Entidades, Endereços, Localizações físicas, Unidades de medida, Tipos de Comprovante',
+    'SPRINT 2: PESSOAS, SEGUROS E ATOS',
+    'Módulo Único: Responsáveis, Comissões, Apólices de seguro, Tipos de atos, Naturezas de texto jurídico, Fontes de divulgação, Atos',
+    'SPRINT 3: BENS E MOVIMENTAÇÕES',
+    'Módulo Único: Bens, Depreciações, Baixas, Transferências',
+    'SPRINT 4: AVALIAÇÕES E ROTINAS',
+    'Módulo Único: Reavaliações, Inventários, Encerramento de periódicos, Integração com a contabilidade, Coleta de bens',
+    'SPRINT 5: PRESTAÇÃO DE CONTAS',
+    'Módulo Único: Validar necessidade de campos relacionados às prestações de contas'
+  ]),
+
+  'Obras': parseTasksIntoSections([
+    'SPRINT 1: PARÂMETROS E CADASTROS',
+    'Módulo Único: Por exercício e geral, Portal da Transparência, Organogramas, Entidades, Unidades de medida, Responsáveis técnicos, Atos, Tipos de atos, Naturezas do texto jurídico, Categorias da obra, Endereços, CNOS',
+    'SPRINT 2: OBRAS E MEDIÇÕES',
+    'Módulo Único: Obras (todas as situações), Medições, CNOS, Responsáveis técnicos na Obra',
+    'SPRINT 3: PRESTAÇÃO DE CONTAS',
+    'Módulo Único: Validar necessidade de campos relacionados às prestações de contas'
   ])
 };
 
