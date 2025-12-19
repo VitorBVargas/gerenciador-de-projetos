@@ -471,40 +471,71 @@ const processProductsSheet = (workbook) => {
 
   const processRisksSheet = (workbook) => {
     const sheet = workbook.Sheets['Riscos'];
-    if (!sheet) return [];
+    if (!sheet) {
+      console.log('❌ Aba Riscos não encontrada');
+      return [];
+    }
 
-    const data = XLSX.utils.sheet_to_json(sheet);
-    if (data.length === 0) return [];
+    const data = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: false });
+    if (data.length === 0) {
+      console.log('⚠️  Aba Riscos está vazia');
+      return [];
+    }
+
+    console.log('📊 Processando riscos:', data.length, 'linhas');
 
     const headers = Object.keys(data[0]);
-    const titleCol = findColumn(headers, ['Risco', 'Descrição', 'Titulo']);
+    const titleCol = findColumn(headers, ['Risco', 'Descrição', 'Descricao', 'Titulo', 'Nome']);
     const categoryCol = findColumn(headers, ['Categoria', 'Tipo']);
-    const probCol = findColumn(headers, ['Probabilidade']);
+    const probCol = findColumn(headers, ['Probabilidade', 'Prob']);
     const impactCol = findColumn(headers, ['Impacto']);
-    const mitigationCol = findColumn(headers, ['Mitigação', 'Mitigacao', 'Plano']);
+    const mitigationCol = findColumn(headers, ['Mitigação', 'Mitigacao', 'Plano', 'Ação', 'Acao']);
+
+    console.log('🔍 Mapeamento de colunas:', { titleCol, categoryCol, probCol, impactCol, mitigationCol });
 
     const catMapping = {
-      'técnico': 'tecnico', 'tecnico': 'tecnico',
-      'cronograma': 'cronograma',
-      'recurso': 'recurso',
+      'técnico': 'tecnico', 'tecnico': 'tecnico', 'tec': 'tecnico',
+      'cronograma': 'cronograma', 'prazo': 'cronograma', 'tempo': 'cronograma',
+      'recurso': 'recurso', 'recursos': 'recurso',
       'cliente': 'cliente',
       'externo': 'externo'
     };
 
     const levelMapping = {
-      'baixa': 'baixa', 'baixo': 'baixo',
-      'média': 'media', 'media': 'media', 'médio': 'medio', 'medio': 'medio',
-      'alta': 'alta', 'alto': 'alto'
+      'baixa': 'baixa', 'baixo': 'baixo', 'b': 'baixa',
+      'média': 'media', 'media': 'media', 'médio': 'medio', 'medio': 'medio', 'm': 'media',
+      'alta': 'alta', 'alto': 'alto', 'a': 'alta'
     };
 
-    return data.map(row => ({
-      title: row[titleCol] || 'Risco',
-      category: catMapping[row[categoryCol]?.toLowerCase()] || 'tecnico',
-      probability: levelMapping[row[probCol]?.toLowerCase()] || 'media',
-      impact: levelMapping[row[impactCol]?.toLowerCase()] || 'medio',
-      mitigation: row[mitigationCol] || '',
-      status: 'identificado'
-    })).filter(r => r.title !== 'Risco');
+    return data.map((row, index) => {
+      const title = row[titleCol] ? String(row[titleCol]).trim() : '';
+      if (!title || title.length < 2) {
+        console.log(`⏭️  Linha ${index + 2}: Ignorada - nome vazio`);
+        return null;
+      }
+
+      const rawCategory = row[categoryCol] ? String(row[categoryCol]).trim().toLowerCase() : '';
+      const category = catMapping[rawCategory] || 'tecnico';
+
+      const rawProb = row[probCol] ? String(row[probCol]).trim().toLowerCase() : '';
+      const probability = levelMapping[rawProb] || 'media';
+
+      const rawImpact = row[impactCol] ? String(row[impactCol]).trim().toLowerCase() : '';
+      const impact = levelMapping[rawImpact] || 'medio';
+
+      const mitigation = row[mitigationCol] ? String(row[mitigationCol]).trim() : '';
+
+      console.log(`✅ Linha ${index + 2}: ${title} | ${category} | ${probability}/${impact}`);
+
+      return {
+        title,
+        category,
+        probability,
+        impact,
+        mitigation,
+        status: 'em_monitoramento'
+      };
+    }).filter(r => r !== null);
   };
 
   const processTravelsSheet = (workbook) => {
