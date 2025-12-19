@@ -427,6 +427,8 @@ const normalizeProductName = (name) => {
     .toLowerCase()
     .replace(/\(cloud\)/gi, '')
     .replace(/[()]/g, '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Remove acentos
     .trim()
     .replace(/\s+/g, ' ');
 };
