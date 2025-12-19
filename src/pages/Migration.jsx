@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import EmptyState from '../components/ui/EmptyState';
+import { getDefaultTasksForProduct } from '../components/migration/migrationTasks';
 
 const verticalLabels = {
   arrecadacao: 'Arrecadação',
@@ -78,6 +79,40 @@ export default function Migration() {
       queryClient.invalidateQueries({ queryKey: ['migrationTasks'] });
     }
   });
+
+  // Cria tarefas padrão para um produto se não existirem
+  const createDefaultTasks = async (product) => {
+    const existingTasks = tasks.filter(t => t.product_id === product.id);
+    if (existingTasks.length > 0) return;
+
+    const defaultSections = getDefaultTasksForProduct(product.name);
+    const tasksToCreate = [];
+    let order = 0;
+
+    for (const section of defaultSections) {
+      for (const taskTitle of section.tasks) {
+        tasksToCreate.push({
+          title: taskTitle,
+          project_id: projectId,
+          product_id: product.id,
+          completed: false,
+          order: order++
+        });
+      }
+    }
+
+    if (tasksToCreate.length > 0) {
+      await base44.entities.MigrationTask.bulkCreate(tasksToCreate);
+      queryClient.invalidateQueries({ queryKey: ['migrationTasks'] });
+    }
+  };
+
+  // Criar tarefas padrão quando o produto for selecionado
+  React.useEffect(() => {
+    if (selectedProduct && getCurrentProduct()) {
+      createDefaultTasks(getCurrentProduct());
+    }
+  }, [selectedProduct]);
 
   const handleAddTask = () => {
     if (!newTaskTitle.trim() || !selectedProduct) return;
@@ -231,13 +266,8 @@ export default function Migration() {
                           </Button>
                         </div>
 
-                        {/* Section Title */}
-                        <h3 className="text-cyan-400 font-semibold text-sm mb-4 uppercase">
-                          MIGRAÇÃO: TABELAS AUXILIARES E GERAIS
-                        </h3>
-
                         {/* Add Task Input */}
-                        <div className="flex gap-2 mb-4">
+                        <div className="flex gap-2 mb-6">
                           <Input
                             value={newTaskTitle}
                             onChange={(e) => setNewTaskTitle(e.target.value)}
@@ -250,37 +280,101 @@ export default function Migration() {
                           </Button>
                         </div>
 
-                        {/* Tasks List */}
-                        <div className="space-y-2">
-                          {getProductTasks(product.id).map(task => (
-                            <div
-                              key={task.id}
-                              className="flex items-center gap-3 group"
-                            >
-                              <Checkbox
-                                checked={task.completed}
-                                onCheckedChange={() => handleToggleTask(task)}
-                                className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
-                              />
-                              <span className={cn(
-                                "flex-1 text-sm",
-                                task.completed ? "text-slate-500 line-through" : "text-white"
-                              )}>
-                                {task.title}
-                              </span>
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity"
-                                onClick={() => deleteTaskMutation.mutate(task.id)}
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </Button>
-                            </div>
-                          ))}
+                        {/* Tasks List by Section */}
+                        <div className="space-y-6">
+                          {getDefaultTasksForProduct(product.name).map((section, sectionIndex) => {
+                            const sectionTasks = getProductTasks(product.id).filter(task => 
+                              section.tasks.some(t => t.toLowerCase() === task.title.toLowerCase())
+                            );
+                            
+                            return (
+                              <div key={sectionIndex}>
+                                <h3 className="text-cyan-400 font-semibold text-sm mb-3 uppercase">
+                                  {section.section}
+                                </h3>
+                                <div className="space-y-2">
+                                  {sectionTasks.map(task => (
+                                    <div
+                                      key={task.id}
+                                      className="flex items-center gap-3 group"
+                                    >
+                                      <Checkbox
+                                        checked={task.completed}
+                                        onCheckedChange={() => handleToggleTask(task)}
+                                        className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                                      />
+                                      <span className={cn(
+                                        "flex-1 text-sm",
+                                        task.completed ? "text-slate-500 line-through" : "text-white"
+                                      )}>
+                                        {task.title}
+                                      </span>
+                                      <Button
+                                        size="icon"
+                                        variant="ghost"
+                                        className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity"
+                                        onClick={() => deleteTaskMutation.mutate(task.id)}
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                      </Button>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })}
+
+                          {/* Custom tasks not in sections */}
+                          {(() => {
+                            const allSectionTasks = getDefaultTasksForProduct(product.name)
+                              .flatMap(s => s.tasks.map(t => t.toLowerCase()));
+                            const customTasks = getProductTasks(product.id).filter(task =>
+                              !allSectionTasks.includes(task.title.toLowerCase())
+                            );
+                            
+                            if (customTasks.length > 0) {
+                              return (
+                                <div>
+                                  <h3 className="text-cyan-400 font-semibold text-sm mb-3 uppercase">
+                                    TAREFAS PERSONALIZADAS
+                                  </h3>
+                                  <div className="space-y-2">
+                                    {customTasks.map(task => (
+                                      <div
+                                        key={task.id}
+                                        className="flex items-center gap-3 group"
+                                      >
+                                        <Checkbox
+                                          checked={task.completed}
+                                          onCheckedChange={() => handleToggleTask(task)}
+                                          className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                                        />
+                                        <span className={cn(
+                                          "flex-1 text-sm",
+                                          task.completed ? "text-slate-500 line-through" : "text-white"
+                                        )}>
+                                          {task.title}
+                                        </span>
+                                        <Button
+                                          size="icon"
+                                          variant="ghost"
+                                          className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity"
+                                          onClick={() => deleteTaskMutation.mutate(task.id)}
+                                        >
+                                          <Trash2 className="w-3 h-3" />
+                                        </Button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              );
+                            }
+                            return null;
+                          })()}
+
                           {getProductTasks(product.id).length === 0 && (
                             <p className="text-center text-slate-500 py-4 text-sm">
-                              Nenhuma tarefa cadastrada. Adicione tarefas de migração acima.
+                              Carregando tarefas padrão...
                             </p>
                           )}
                         </div>
