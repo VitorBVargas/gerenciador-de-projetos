@@ -491,25 +491,30 @@ const processProductsSheet = (workbook) => {
     console.log('📊 Processando riscos:', data.length, 'linhas');
 
     const headers = Object.keys(data[0]);
-    const titleCol = findColumn(headers, ['Descrição do Risco', 'Descricao do Risco', 'Risco', 'Descrição', 'Descricao', 'Titulo', 'Nome']);
+    const titleCol = findColumn(headers, ['Nome do Risco', 'Descrição do Risco', 'Descricao do Risco', 'Risco', 'Descrição', 'Descricao', 'Titulo', 'Nome']);
+    const priorityCol = findColumn(headers, ['Prioridade']);
     const categoryCol = findColumn(headers, ['Categoria', 'Tipo']);
     const probCol = findColumn(headers, ['Probabilidade', 'Prob']);
     const impactCol = findColumn(headers, ['Impacto']);
     const mitigationCol = findColumn(headers, ['Mitigação', 'Mitigacao', 'Plano', 'Ação', 'Acao']);
 
-    console.log('🔍 Mapeamento de colunas:', { titleCol, categoryCol, probCol, impactCol, mitigationCol });
+    console.log('🔍 Mapeamento de colunas:', { titleCol, priorityCol, categoryCol, probCol, impactCol, mitigationCol });
 
     const catMapping = {
       'técnico': 'tecnico', 'tecnico': 'tecnico', 'tec': 'tecnico',
+      'migração': 'tecnico', 'migracao': 'tecnico',
+      'configuração': 'tecnico', 'configuracao': 'tecnico',
       'cronograma': 'cronograma', 'prazo': 'cronograma', 'tempo': 'cronograma',
       'recurso': 'recurso', 'recursos': 'recurso',
+      'pessoas': 'recurso', 'pessoal': 'recurso',
       'cliente': 'cliente',
-      'externo': 'externo'
+      'projeto': 'cronograma',
+      'ambiente': 'externo', 'externo': 'externo'
     };
 
     const levelMapping = {
       'baixa': 'baixa', 'baixo': 'baixo', 'b': 'baixa',
-      'média': 'media', 'media': 'media', 'médio': 'medio', 'medio': 'medio', 'm': 'media',
+      'média': 'media', 'media': 'media', 'médio': 'medio', 'medio': 'medio', 'm': 'media', 'moderado': 'media', 'moderada': 'media',
       'alta': 'alta', 'alto': 'alto', 'a': 'alta'
     };
 
