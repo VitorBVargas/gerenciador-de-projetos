@@ -13,7 +13,6 @@ import {
   AlertTriangle,
   Plus,
   ExternalLink,
-  Pencil,
   Upload
 } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
@@ -28,6 +27,7 @@ import HomologationProgressChart from '../components/dashboard/HomologationProgr
 import ProjectModal from '../components/modals/ProjectModal';
 import ExcelImporter from '../components/import/ExcelImporter';
 import EmptyState from '../components/ui/EmptyState';
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function Dashboard() {
   const queryClient = useQueryClient();
@@ -225,7 +225,7 @@ export default function Dashboard() {
                 </div>
                 <div className="flex flex-wrap items-center gap-4 text-sm text-slate-400">
                   {activeProject.manager && (
-                    <span>Gerente: <span className="text-white">{activeProject.manager}</span></span>
+                    <span>Gerente de Projetos: <span className="text-white">{activeProject.manager}</span></span>
                   )}
                   {activeProject.value > 0 && (
                     <span>Valor: <span className="text-emerald-400">
@@ -241,28 +241,17 @@ export default function Dashboard() {
                   )}
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                {activeProject?.contract_link && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-slate-600 text-slate-300 hover:bg-slate-700"
-                    onClick={() => window.open(activeProject.contract_link, '_blank')}
-                  >
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    Contrato
-                  </Button>
-                )}
+              {activeProject?.contract_link && (
                 <Button
                   variant="outline"
                   size="sm"
                   className="border-slate-600 text-slate-300 hover:bg-slate-700"
-                  onClick={handleEditProject}
+                  onClick={() => window.open(activeProject.contract_link, '_blank')}
                 >
-                  <Pencil className="w-4 h-4 mr-2" />
-                  Editar
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Contrato
                 </Button>
-              </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -349,6 +338,97 @@ export default function Dashboard() {
       {products.length > 0 && (
         <MigrationProgressChart products={products} tasks={migrationTasks} />
       )}
+
+      {/* Marcos e Documentos */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="bg-slate-800/50 border-slate-700/50">
+          <CardHeader>
+            <CardTitle className="text-white">Marcos do Projeto</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-center gap-3">
+              <Checkbox className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
+              <span className="text-white text-sm">Planejamento e Monitoramento</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Checkbox className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
+              <span className="text-white text-sm">Kickoff</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Checkbox className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
+              <span className="text-white text-sm">Diagnóstico</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Checkbox className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
+              <span className="text-white text-sm">Migração de Homologação</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Checkbox className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
+              <span className="text-white text-sm">Homologação e Configuração da migração</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Checkbox className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
+              <span className="text-white text-sm">Migração em Produção</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Checkbox className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
+              <span className="text-white text-sm">Configuração de PRD</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Checkbox className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
+              <span className="text-white text-sm">Treinamento e simulação da operação</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Checkbox className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
+              <span className="text-white text-sm">Operação assistida</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-slate-800/50 border-slate-700/50">
+          <CardHeader>
+            <CardTitle className="text-white">Documentos Chave</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-center gap-3">
+              <Checkbox className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
+              <span className="text-white text-sm">Termo de Abertura do Projeto</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Checkbox className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
+              <span className="text-white text-sm">Kickoff</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Checkbox className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
+              <span className="text-white text-sm">Diagnóstico</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Checkbox className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
+              <span className="text-white text-sm">Mapa de relatórios</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Checkbox className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
+              <span className="text-white text-sm">Acordos de conversão</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Checkbox className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
+              <span className="text-white text-sm">Aceite de homologação</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Checkbox className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
+              <span className="text-white text-sm">TAC</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Checkbox className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
+              <span className="text-white text-sm">Treinamentos</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Checkbox className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
+              <span className="text-white text-sm">Aceite de implantação</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Project Modal */}
       <ProjectModal
