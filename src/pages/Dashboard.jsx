@@ -20,14 +20,14 @@ import { ptBR } from 'date-fns/locale';
 import { cn } from "@/lib/utils";
 import { createPageUrl } from '../utils';
 
-import StatCard from '../components/dashboard/StatCard';
-import ProgressChart from '../components/dashboard/ProgressChart';
-import MigrationProgressChart from '../components/dashboard/MigrationProgressChart';
-import HomologationProgressChart from '../components/dashboard/HomologationProgressChart';
-import ProjectHealthScore from '../components/dashboard/ProjectHealthScore';
-import ProjectModal from '../components/modals/ProjectModal';
-import ExcelImporter from '../components/import/ExcelImporter';
-import EmptyState from '../components/ui/EmptyState';
+import StatCard from '../components/dashboard/StatCard.jsx';
+import ProgressChart from '../components/dashboard/ProgressChart.jsx';
+import MigrationProgressChart from '../components/dashboard/MigrationProgressChart.jsx';
+import HomologationProgressChart from '../components/dashboard/HomologationProgressChart.jsx';
+import ProjectHealthScore from '../components/dashboard/ProjectHealthScore.jsx';
+import ProjectModal from '../components/modals/ProjectModal.jsx';
+import ExcelImporter from '../components/import/ExcelImporter.jsx';
+import EmptyState from '../components/ui/EmptyState.jsx';
 import { Checkbox } from "@/components/ui/checkbox";
 
 export default function Dashboard() {
