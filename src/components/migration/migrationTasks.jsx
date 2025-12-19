@@ -205,21 +205,83 @@ export const migrationTasksByProduct = {
     'Extrair Autorizações de Fornecimentos Itens', 'Extrair Requisições', 'Extrair Requisições Itens'
   ]),
 
-  // Contábil
-  'Contábil (Cloud)': parseTasksIntoSections([
-    'MIGRAÇÃO: TABELAS AUXILIARES E GERAIS',
-    'Extrair Países', 'Extrair Estados', 'Extrair Municípios', 'Extrair Bairros', 'Extrair Logradouros', 'Extrair Bancos', 'Extrair Agências',
-    'Extrair Órgãos', 'Extrair Unidades', 'Extrair Natureza de Texto Jurídico', 'Extrair Tipos Atos',
-    'MIGRAÇÃO: ESTRUTURA ORÇAMENTÁRIA',
-    'Extrair Plano de Contas Contábil', 'Extrair Receitas Orçamentárias', 'Extrair Despesas Orçamentárias',
-    'Extrair Fontes de Recursos', 'Extrair Configurações de Exercícios', 'Extrair PPA', 'Extrair LDO', 'Extrair LOA',
-    'MIGRAÇÃO: LANÇAMENTOS CONTÁBEIS',
-    'Extrair Lançamentos Contábeis', 'Extrair Lançamentos Diário', 'Extrair Lançamentos Razão',
-    'MIGRAÇÃO: MOVIMENTAÇÕES ORÇAMENTÁRIAS',
-    'Extrair Receitas Previstas', 'Extrair Receitas Arrecadadas', 'Extrair Créditos Orçamentários', 'Extrair Créditos Adicionais',
-    'Extrair Empenhos', 'Extrair Empenhos Itens', 'Extrair Liquidações', 'Extrair Pagamentos', 'Extrair Restos a Pagar',
-    'MIGRAÇÃO: CONTROLE FINANCEIRO',
-    'Extrair Contas Bancárias', 'Extrair Movimentações Bancárias', 'Extrair Conciliações Bancárias', 'Extrair Transferências Financeiras'
+  // Contábil - Planejamento
+  'Planejamento (Cloud)': parseTasksIntoSections([
+    'MIGRAÇÃO: CONFIGURAÇÕES GERAIS E PARÂMETROS',
+    'Extrair Configurações - PPAs', 'Extrair Configurações - LDOS', 'Extrair Configurações - LOAs',
+    'Extrair Configurações - Funcionais', 'Extrair Configurações - Natureza Despesa',
+    'Extrair Configurações - Natureza Receita', 'Extrair Configurações - Organogramas',
+    'Extrair Configurações - Plano de Contas', 'Extrair Configurações - Recursos',
+    'Extrair Configurações - Parâmetros Orçamentários', 'Extrair Configurações - Parâmetros Escrituração',
+    'MIGRAÇÃO: CADASTROS AUXILIARES (TIPOS)',
+    'Extrair Tipos Administração', 'Extrair Tipos Compensações', 'Extrair Tipos Renuncias',
+    'Extrair Tipos Resultados Nominais', 'Extrair Tipos Riscos fiscais', 'Extrair Tipos Responsaveis',
+    'Extrair Tipos Alteração Orçamentária Receita', 'Extrair Tipos Bloqueios', 'Extrair Transações Financeiras',
+    'Extrair Tipos Comprovantes', 'Extrair Tipos Precatórios', 'Extrair Tipos Dividas',
+    'Extrair Tipos Movimentos', 'Extrair Tipos documentos', 'Extrair Tipos Atos', 'Extrair Tipos Logradouros',
+    'Extrair Tipos Aplicações', 'Extrair Fontes de Divulgação', 'Extrair Natureza Texto Jurídico',
+    'MIGRAÇÃO: CADASTROS ESTRUTURAIS',
+    'Extrair Países', 'Extrair - Estados', 'Extrair Cidades', 'Extrair Bairros', 'Extrair Distritos', 'Extrair Logradouros',
+    'Extrair Loteamentos', 'Extrair Condominios', 'Extrair Recursos', 'Extrair Funções', 'Extrair SubFunções',
+    'Extrair Programas', 'Extrair Ações', 'Extrair Dedução Receitas', 'Extrair Organogramas', 'Extrair Natureza Despesa',
+    'Extrair Natureza Receita', 'Extrair Atos', 'Extrair Credores', 'Extrair Responsáveis', 'Extrair Ordenadores',
+    'Extrair Equipe Planejamento', 'Extrair Localizadores', 'Extrair Produtos', 'Extrair Unidade de Medida', 'Extrair Comprovantes',
+    'MIGRAÇÃO: PEÇAS ORÇAMENTÁRIAS (PPA, LDO, LOA)',
+    'Extrair Receitas PPA', 'Extrair Grupo Despesas PPA', 'Extrair Despesas PPA', 'Extrair Metas Fiscais Despesas PPA',
+    'Extrair Orientações Estratégicas', 'Extrair Audiências', 'Extrair Sugestões', 'Extrair Receitas LDO',
+    'Extrair Grupo Despesas LDO', 'Extrair Despesas LDO', 'Extrair Renúncias Fiscais', 'Extrair Expansões Despesa',
+    'Extrair Resultado Nominal', 'Extrair Riscos Fiscais', 'Extrair Projeções Atuariais', 'Extrair Atuário',
+    'Extrair Metas Fiscais Despesas LDO', 'Extrair Metas Fiscais Receitas LDO', 'Extrair Transferências Financeiras LDO',
+    'Extrair Receitas LOA', 'Extrair Grupo Despesas LOA', 'Extrair Transferências Financeiras LOA', 'Extrair Despesas LOA',
+    'MIGRAÇÃO: MOVIMENTAÇÕES E SALDOS',
+    'Extrair Alteracao Despesa', 'Extrair Tipos Alteração Orçamentária Receita Ativar', 'Extrair Tipos Bloqueios Ativar',
+    'Extrair Transações Financeiras Ativar', 'Extrair Tipos Movimentos Ativar', 'Extrair Tipos Documentos Ativar',
+    'Extrair Tipos Aplicações Ativar', 'Extrair Alteração Despesa Ativar', 'Extrair Data Inicial', 'Extrair Data Abertura',
+    'Extrair Fase Saldos', 'Extrair Dedução Receitas Ativar'
+  ]),
+
+  // Contábil - Contabilidade
+  'Contabilidade (Cloud)': parseTasksIntoSections([
+    'MIGRAÇÃO: CADASTROS E CONFIGURAÇÕES INICIAIS',
+    'Extrair Dividas', 'Extrair Precatórios', 'Extrair Diarias', 'Extrair Bancos', 'Extrair Agências',
+    'Extrair Contas Bancárias', 'Extrair Contas Contábeis', 'Extrair Retenções', 'Extrair Cheques',
+    'Extrair Retenções Ativar', 'Extrair Configuração Componentes', 'Extrair Configuração Contas Correntes',
+    'MIGRAÇÃO: ORÇAMENTO (RECEITA E DESPESA)',
+    'Extrair Receitas Não Previstas', 'Extrair Receitas Extras', 'Extrair Receitas Extras Ativar',
+    'Extrair Alterações Receitas', 'Extrair Programação Receitas', 'Extrair Despesas Não Previstas',
+    'Extrair Alteração Orçamentária Despesa - Suplementação', 'Extrair Alteração Orçamentária Despesa - Sanção',
+    'Extrair Programação Despesas', 'Extrair Bloqueios', 'Extrair Desbloqueios',
+    'MIGRAÇÃO: EXECUÇÃO DA RECEITA',
+    'Extrair Lançamento Receitas', 'Extrair Anulação Lançamento Receitas', 'Extrair Arrecadações',
+    'Extrair Anulação Arrecadações', 'Extrair Arrecadações Extras', 'Extrair Anulação Arrecadações Extras',
+    'Extrair Devoluções Receitas',
+    'MIGRAÇÃO: EXECUÇÃO DA DESPESA',
+    'Extrair Empenhos', 'Extrair Anulação Empenhos', 'Extrair SubEmpenhos', 'Extrair Anulação SubEmpenhos',
+    'Extrair Em liquidações', 'Extrair Anulação Em Liquidações', 'Extrair Liquidações', 'Extrair Anulação Liquidações',
+    'Extrair Pagamentos', 'Extrair Anulação Pagamentos', 'Extrair Despesas Extras', 'Extrair Anulação Despesas Extras',
+    'Extrair Adiantamentos', 'Extrair Despesas Ordena', 'Extrair Prestação de Contas', 'Extrair Cvs Restos',
+    'MIGRAÇÃO: ESCRITURAÇÃO E SALDOS',
+    'Extrair Lançamentos Contábeis', 'Extrair Lançamentos Contábeis Contas Correntes', 'Extrair Saldos Iniciais',
+    'Extrair Saldos Iniciais Contas Correntes', 'Extrair Saldos Abertura', 'Extrair Saldos Abertura Contas Correntes',
+    'Extrair Escrituração', 'Extrair Consignações',
+    'MIGRAÇÃO: DADOS PATRIMONIAIS E TRANSFERÊNCIAS',
+    'Extrair Contas Bancárias Aplicações', 'Extrair Contas Bancárias Transferências',
+    'Extrair Contas Bancárias Transferências Aplicações', 'Extrair Créditos Tributários Curto Prazo',
+    'Extrair Créditos Tributários Longo Prazo', 'Extrair Depósitos', 'Extrair Dívida Ativa Não Tributária Curto Prazo',
+    'Extrair Dívida Ativa Não Tributária Longo Prazo', 'Extrair Dívida Ativa Tributária Curto Prazo',
+    'Extrair Dívida Ativa Tributária Longo Prazo', 'Extrair Faturas e Duplicatas Curto Prazo',
+    'Extrair Faturas e Duplicatas Longo Prazo', 'Extrair Imobilizado', 'Extrair Pagamentos Antecipados',
+    'Extrair Transferências Concedidas', 'Extrair Transferências Recebidas', 'Extrair VPA', 'Extrair VPD'
+  ]),
+
+  // Contábil - Tesouraria
+  'Tesouraria (Cloud)': parseTasksIntoSections([
+    'MIGRAÇÃO: OPERAÇÕES DE TESOURARIA',
+    'Extrair Ajustes Bancários',
+    'Extrair Transferências',
+    'Extrair Conciliações Bancárias',
+    'Extrair Saldos Bancários',
+    'Extrair Gestão Bancária'
   ]),
 
   // Educação
