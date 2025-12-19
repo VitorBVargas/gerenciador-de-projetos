@@ -46,11 +46,14 @@ const CustomTooltip = ({ active, payload }) => {
 };
 
 export default function MigrationProgressChart({ products, tasks }) {
-  // Agrupa produtos por vertical (apenas produtos com migração)
+  // Agrupa produtos por vertical (apenas produtos que TÊM processo de migração)
   const productsByVertical = products.reduce((acc, product) => {
-    const vertical = product.vertical || 'outros';
-    if (!acc[vertical]) acc[vertical] = [];
-    acc[vertical].push(product);
+    // Só inclui produtos que têm migração definida
+    if (productHasMigration(product.name)) {
+      const vertical = product.vertical || 'outros';
+      if (!acc[vertical]) acc[vertical] = [];
+      acc[vertical].push(product);
+    }
     return acc;
   }, {});
 
@@ -71,7 +74,7 @@ export default function MigrationProgressChart({ products, tasks }) {
       total,
       color: verticalColors[vertical] || '#64748b'
     };
-  }).filter(d => d.total > 0); // Só mostra verticais com tarefas
+  }); // Mostra todas as verticais com produtos de migração, mesmo com 0 tarefas
 
   // Ordena por progresso decrescente
   chartData.sort((a, b) => b.progress - a.progress);
