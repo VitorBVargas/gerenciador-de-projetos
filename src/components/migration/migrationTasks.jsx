@@ -406,10 +406,17 @@ export const migrationTasksByProduct = {
 
   // Plataforma - Protocolo
   'Protocolo (Cloud)': parseTasksIntoSections([
-    'MIGRAÇÃO: DADOS BÁSICOS',
-    'Extrair Tipos de Processos', 'Extrair Assuntos', 'Extrair Setores', 'Extrair Usuários',
-    'MIGRAÇÃO: PROCESSOS',
-    'Extrair Processos', 'Extrair Documentos Anexos', 'Extrair Tramitações', 'Extrair Despachos', 'Extrair Arquivamentos'
+    'MIGRAÇÃO: CADASTROS BÁSICOS E ESTRUTURA',
+    'Extrair Pessoa', 'Extrair Pessoa e-Mail', 'Extrair Pessoa Telefone', 'Extrair Paises', 'Extrair Estados',
+    'Extrair Cidades', 'Extrair Bairros', 'Extrair Tipo Logradouro', 'Extrair Logradouro', 'Extrair Bairro Logradouro',
+    'Extrair CEP Logradouro', 'Extrair Loteamento', 'Extrair Organograma Config', 'Extrair Organograma Nível',
+    'Extrair Organograma', 'Extrair Organograma Responsável', 'Extrair Feriado', 'Extrair Indexadores',
+    'MIGRAÇÃO: CONFIGURAÇÃO DO PROCESSO',
+    'Extrair Documentos', 'Extrair Classificação', 'Extrair Assuntos', 'Extrair Assuntos Documentos',
+    'Extrair Assuntos Organogramas', 'Extrair Taxas', 'Extrair Taxas Valores', 'Extrair Assuntos Taxas',
+    'MIGRAÇÃO: DADOS DE MOVIMENTAÇÃO',
+    'Extrair Protocolos', 'Extrair Processos', 'Extrair Processos Partes', 'Extrair Entrega Documentos',
+    'Extrair Andamentos', 'Extrair Pareceres', 'Extrair Arquivamentos', 'Extrair Localização'
   ])
 };
 
