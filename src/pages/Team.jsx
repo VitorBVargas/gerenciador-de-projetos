@@ -162,70 +162,71 @@ export default function Team() {
 
       {/* Team List */}
       {filteredMembers.length > 0 ? (
-        <div className="space-y-6">
+        <div className="space-y-4">
           {Object.entries(membersByVertical).map(([vertical, roleGroups]) => {
             const totalMembers = Object.values(roleGroups).reduce((sum, members) => sum + members.length, 0);
             return (
               <div key={vertical}>
-                <div className="flex items-center gap-3 mb-3">
-                  <h2 className="text-lg font-semibold text-white">
+                <div className="flex items-center gap-2 mb-2 px-2">
+                  <h2 className="text-sm font-semibold text-white">
                     {verticalLabels[vertical] || 'Outros'}
                   </h2>
-                  <Badge variant="secondary" className="bg-slate-700 text-slate-300">
+                  <Badge variant="secondary" className="bg-slate-700 text-slate-300 text-xs h-5">
                     {totalMembers}
                   </Badge>
                 </div>
                 
-                <div className="space-y-4">
+                <div className="space-y-2">
                   {Object.entries(roleGroups).map(([role, members]) => (
                     <div key={role}>
-                      <h3 className="text-xs font-medium text-slate-500 mb-2 uppercase">{role}</h3>
-                      <div className="space-y-2">
+                      <div className="text-[10px] font-medium text-slate-500 mb-1 px-2 uppercase tracking-wide">{role}</div>
+                      <div className="space-y-1">
                         {members.map((member) => (
-                          <Card key={member.id} className="bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 transition-all group">
-                            <CardContent className="p-3">
-                              <div className="flex items-center gap-3">
-                                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
-                                  {member.name?.charAt(0).toUpperCase()}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <h4 className="font-medium text-white text-sm">{member.name}</h4>
-                                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
-                                    {member.email && (
-                                      <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                                        <Mail className="w-3 h-3 flex-shrink-0" />
-                                        <span className="truncate">{member.email}</span>
-                                      </div>
-                                    )}
-                                    {member.phone && (
-                                      <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                                        <Phone className="w-3 h-3 flex-shrink-0" />
-                                        <span>{member.phone}</span>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    className="h-7 w-7 text-slate-400 hover:text-white hover:bg-slate-700"
-                                    onClick={() => handleEdit(member)}
-                                  >
-                                    <Pencil className="w-3.5 h-3.5" />
-                                  </Button>
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    className="h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-500/20"
-                                    onClick={() => handleDelete(member)}
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  </Button>
+                          <div 
+                            key={member.id} 
+                            className="bg-slate-800/30 border border-slate-700/50 hover:bg-slate-800/60 transition-all group rounded-lg px-3 py-2"
+                          >
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-xs flex-shrink-0">
+                                {member.name?.charAt(0).toUpperCase()}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-medium text-white text-xs leading-tight">{member.name}</h4>
+                                <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5">
+                                  {member.email && (
+                                    <div className="flex items-center gap-1 text-[10px] text-slate-400">
+                                      <Mail className="w-2.5 h-2.5 flex-shrink-0" />
+                                      <span className="truncate">{member.email}</span>
+                                    </div>
+                                  )}
+                                  {member.phone && (
+                                    <div className="flex items-center gap-1 text-[10px] text-slate-400">
+                                      <Phone className="w-2.5 h-2.5 flex-shrink-0" />
+                                      <span>{member.phone}</span>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
-                            </CardContent>
-                          </Card>
+                              <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-6 w-6 text-slate-400 hover:text-white hover:bg-slate-700"
+                                  onClick={() => handleEdit(member)}
+                                >
+                                  <Pencil className="w-3 h-3" />
+                                </Button>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-red-500/20"
+                                  onClick={() => handleDelete(member)}
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
                         ))}
                       </div>
                     </div>
