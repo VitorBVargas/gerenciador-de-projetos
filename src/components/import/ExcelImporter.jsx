@@ -73,11 +73,17 @@ const phaseMapping = {
 const situationMapping = {
   'não iniciado': 'nao_iniciado',
   'nao iniciado': 'nao_iniciado',
+  'não iniciada': 'nao_iniciado',
+  'nao iniciada': 'nao_iniciado',
   'em andamento': 'em_andamento',
   'concluído': 'concluido',
   'concluido': 'concluido',
+  'concluída': 'concluido',
+  'concluida': 'concluido',
   'paralisado': 'atrasado',
-  'atrasado': 'atrasado'
+  'paralisada': 'atrasado',
+  'atrasado': 'atrasado',
+  'atrasada': 'atrasado'
 };
 
 export default function ExcelImporter({ open, onOpenChange, onSuccess }) {
@@ -354,49 +360,58 @@ const processProductsSheet = (workbook) => {
   };
 
   const processTimelineSheet = (workbook) => {
-    // Busca todas as abas que começam com "Cronograma -"
     const allEvents = [];
     const sheetNames = workbook.SheetNames;
-    console.log('Todas as abas do Excel:', sheetNames);
-    
+    console.log('📋 Todas as abas do Excel:', sheetNames);
+
     const cronogramaSheets = sheetNames.filter(name => name.startsWith('Cronograma -'));
-    console.log('Abas de cronograma encontradas:', cronogramaSheets);
-    
+    console.log(`📊 Abas de cronograma encontradas (${cronogramaSheets.length}):`, cronogramaSheets);
+
     if (cronogramaSheets.length === 0) {
-      console.log('Nenhuma aba Cronograma - * encontrada');
+      console.log('⚠️  Nenhuma aba "Cronograma - *" encontrada');
       return [];
     }
 
-    // Processa cada aba de cronograma
+    let globalOrder = 0;
+
     cronogramaSheets.forEach(sheetName => {
       const sheet = workbook.Sheets[sheetName];
-      const data = XLSX.utils.sheet_to_json(sheet);
-      
-      console.log(`Processando ${sheetName}:`, data);
-      
+      const data = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: false });
+
+      console.log(`\n🔍 Processando ${sheetName}:`, data.length, 'linhas');
+
       if (data.length === 0) return;
 
       const headers = Object.keys(data[0]);
-      console.log('Headers encontrados:', headers);
-      
+
       const titleCol = findColumn(headers, ['Etapa', 'Título', 'Titulo', 'Fase', 'Atividade']);
-      const startCol = findColumn(headers, ['Data Início', 'Data Inicio', 'Data Inicio', 'Início', 'Inicio']);
-      const endCol = findColumn(headers, ['Data Fim', 'Data Fim', 'Fim', 'Término', 'Termino']);
+      const startCol = findColumn(headers, ['Data Início', 'Data Inicio', 'Início', 'Inicio']);
+      const endCol = findColumn(headers, ['Data Fim', 'Fim', 'Término', 'Termino']);
       const statusCol = findColumn(headers, ['Situação', 'Situacao', 'Status', 'Estado']);
 
-      console.log('Colunas mapeadas - Etapa:', titleCol, 'Data Início:', startCol, 'Data Fim:', endCol, 'Situação:', statusCol);
+      console.log('📌 Colunas:', { titleCol, startCol, endCol, statusCol });
+
+      const vertical = sheetName.replace('Cronograma - ', '').trim();
+      const normalizedVertical = normalizeVertical(vertical);
+
+      console.log(`📍 Vertical: "${vertical}" → "${normalizedVertical}"`);
 
       const events = data.map((row, index) => {
-        const title = row[titleCol];
-        if (!title) return null;
-        
-        const situation = row[statusCol] ? String(row[statusCol]).toLowerCase().trim() : 'nao_iniciado';
-        const mappedStatus = situationMapping[situation] || 'nao_iniciado';
-        
+        const title = row[titleCol] ? String(row[titleCol]).trim() : '';
+        if (!title || title.length < 2) {
+          console.log(`⏭️  Linha ${index + 2}: Ignorada - título vazio`);
+          return null;
+        }
+
+        const rawSituation = row[statusCol] ? String(row[statusCol]).trim() : '';
+        const normalizedSituation = rawSituation.toLowerCase()
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        const mappedStatus = situationMapping[normalizedSituation] || 'nao_iniciado';
+
         const startDate = excelDateToJSDate(row[startCol]);
         const endDate = excelDateToJSDate(row[endCol]);
-        
-        // Calculate progress based on dates and status
+
+        // Calcula progresso baseado em status e datas
         let progress = 0;
         if (mappedStatus === 'concluido') {
           progress = 100;
@@ -406,39 +421,38 @@ const processProductsSheet = (workbook) => {
           const today = new Date();
           const start = new Date(startDate);
           const end = new Date(endDate);
-          
+
           if (today <= start) {
             progress = 0;
           } else if (today >= end) {
-            progress = 100;
+            progress = 90; // 90% se está em andamento e passou do prazo
           } else {
             const totalDays = (end - start) / (1000 * 60 * 60 * 24);
             const daysPassed = (today - start) / (1000 * 60 * 60 * 24);
-            progress = Math.round((daysPassed / totalDays) * 100);
+            progress = Math.min(Math.round((daysPassed / totalDays) * 100), 90);
           }
         } else if (mappedStatus === 'atrasado') {
-          progress = 100;
+          progress = 50; // Atrasado = 50%
         }
-        
-        // Extrai a vertical do nome da aba (ex: "Cronograma - Pessoal" -> "Pessoal")
-        const vertical = sheetName.replace('Cronograma - ', '').trim();
-        
+
+        console.log(`✅ Linha ${index + 2}: ${title} | ${rawSituation} → ${mappedStatus} | ${progress}%`);
+
         return {
-          title: String(title).trim(),
+          title,
           phase: normalizePhase(title),
           start_date: startDate,
           end_date: endDate,
           status: mappedStatus,
-          progress: progress,
-          vertical: normalizeVertical(vertical),
-          order: allEvents.length + index
+          progress,
+          vertical: normalizedVertical,
+          order: globalOrder++
         };
       }).filter(e => e !== null);
 
       allEvents.push(...events);
     });
 
-    console.log('Total de eventos processados:', allEvents.length);
+    console.log(`\n✅ Total de ${allEvents.length} etapas processadas do cronograma`);
     return allEvents;
   };
 
