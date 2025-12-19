@@ -485,7 +485,7 @@ const processProductsSheet = (workbook) => {
     console.log('📊 Processando riscos:', data.length, 'linhas');
 
     const headers = Object.keys(data[0]);
-    const titleCol = findColumn(headers, ['Risco', 'Descrição', 'Descricao', 'Titulo', 'Nome']);
+    const titleCol = findColumn(headers, ['Descrição do Risco', 'Descricao do Risco', 'Risco', 'Descrição', 'Descricao', 'Titulo', 'Nome']);
     const categoryCol = findColumn(headers, ['Categoria', 'Tipo']);
     const probCol = findColumn(headers, ['Probabilidade', 'Prob']);
     const impactCol = findColumn(headers, ['Impacto']);
