@@ -48,25 +48,43 @@ export default function GanttTimeline({ events, onEdit, onDelete, onStatusChange
     // Se não iniciado, 0%
     if (event.status === 'nao_iniciado') return 0;
     
+    // Se atrasado, sempre mostra progresso alto (mas não 100%)
+    if (event.status === 'atrasado') return event.progress || 90;
+    
     // Se em andamento e tem datas, calcula baseado no tempo decorrido
     if (event.status === 'em_andamento' && event.start_date && event.end_date) {
-      const today = new Date();
-      const start = parseISO(event.start_date);
-      const end = parseISO(event.end_date);
-      
-      // Se ainda não começou
-      if (today < start) return 0;
-      
-      // Se já passou da data final
-      if (today > end) return 100;
-      
-      // Calcula proporcionalmente
-      const totalDays = (end - start) / (1000 * 60 * 60 * 24);
-      const daysPassed = (today - start) / (1000 * 60 * 60 * 24);
-      const calculatedProgress = Math.round((daysPassed / totalDays) * 100);
-      
-      // Limita entre 1% e 99% (nunca 0% se está em andamento, nunca 100% se não está concluído)
-      return Math.max(1, Math.min(99, calculatedProgress));
+      try {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const start = new Date(event.start_date);
+        start.setHours(0, 0, 0, 0);
+        
+        const end = new Date(event.end_date);
+        end.setHours(0, 0, 0, 0);
+        
+        // Se ainda não começou
+        if (today < start) return 5;
+        
+        // Se já passou da data final ou é o último dia, considera quase completo
+        if (today >= end) return 95;
+        
+        // Calcula proporcionalmente
+        const totalDays = (end - start) / (1000 * 60 * 60 * 24);
+        const daysPassed = (today - start) / (1000 * 60 * 60 * 24);
+        const calculatedProgress = Math.round((daysPassed / totalDays) * 100);
+        
+        // Limita entre 5% e 95%
+        return Math.max(5, Math.min(95, calculatedProgress));
+      } catch (e) {
+        console.error('Erro ao calcular progresso:', e, event);
+        return event.progress || 30;
+      }
+    }
+    
+    // Se em andamento mas sem datas, usa progresso salvo ou padrão de 30%
+    if (event.status === 'em_andamento') {
+      return event.progress || 30;
     }
     
     // Fallback para o progresso salvo no banco ou 0
@@ -131,13 +149,11 @@ export default function GanttTimeline({ events, onEdit, onDelete, onStatusChange
                 {/* Atividade */}
                 <div className="col-span-5">
                   <div className="text-sm font-medium text-white">{event.title}</div>
-                  <div className="text-xs text-slate-400 mt-0.5">
-                    {event.start_date && event.end_date && (
-                      <>
-                        {format(parseISO(event.start_date), 'dd/MM/yy')} - {format(parseISO(event.end_date), 'dd/MM/yy')}
-                      </>
-                    )}
-                  </div>
+                  {event.start_date && event.end_date ? (
+                    <div className="text-xs text-slate-400 mt-0.5">
+                      {format(new Date(event.start_date), 'dd/MM/yy')} - {format(new Date(event.end_date), 'dd/MM/yy')}
+                    </div>
+                  ) : null}
                 </div>
 
                 {/* Progresso */}
