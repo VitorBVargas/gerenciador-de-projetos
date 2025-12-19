@@ -533,7 +533,7 @@ const processProductsSheet = (workbook) => {
       const teamMembers = processTeamSheet(workbook);
       console.log('Criando membros da equipe:', teamMembers.length);
       
-      // Add manager(s) and coordinator to team if not already there
+      // Add manager(s), coordinator and portfolio manager to team if not already there
       const additionalMembers = [];
       
       if (projectData.manager) {
@@ -554,6 +554,16 @@ const processProductsSheet = (workbook) => {
           additionalMembers.push({
             name: projectData.coordinator,
             role: 'Coordenador Técnico',
+            vertical: 'plataforma'
+          });
+        }
+      }
+      
+      if (projectData.portfolio_manager) {
+        if (!teamMembers.some(m => m.name.toLowerCase() === projectData.portfolio_manager.toLowerCase())) {
+          additionalMembers.push({
+            name: projectData.portfolio_manager,
+            role: 'Gerente do Portfólio',
             vertical: 'plataforma'
           });
         }
