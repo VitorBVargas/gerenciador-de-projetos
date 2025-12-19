@@ -381,7 +381,8 @@ const processProductsSheet = (workbook) => {
 
     cronogramaSheets.forEach(sheetName => {
       const sheet = workbook.Sheets[sheetName];
-      const data = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: false });
+      // Usar raw: true para manter números de datas do Excel
+      const data = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: true });
 
       console.log(`\n🔍 Processando ${sheetName}:`, data.length, 'linhas');
 
@@ -413,8 +414,12 @@ const processProductsSheet = (workbook) => {
           .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
         let mappedStatus = situationMapping[normalizedSituation] || 'nao_iniciado';
 
+        // As datas agora vêm como números do Excel
         const startDate = excelDateToJSDate(row[startCol]);
         const endDate = excelDateToJSDate(row[endCol]);
+        
+        console.log(`📅 Linha ${index + 2} - Datas brutas:`, row[startCol], row[endCol]);
+        console.log(`📅 Linha ${index + 2} - Datas convertidas:`, startDate, endDate);
 
         // Ajusta status se passou da data e ainda está "em_andamento"
         if (mappedStatus === 'em_andamento' && endDate) {
@@ -449,7 +454,7 @@ const processProductsSheet = (workbook) => {
           progress = 100;
         }
 
-        console.log(`✅ Linha ${index + 2}: ${title} | ${rawSituation} → ${mappedStatus} | ${progress}%`);
+        console.log(`✅ Linha ${index + 2}: ${title} | ${rawSituation} → ${mappedStatus} | ${progress}% | Datas: ${startDate} - ${endDate}`);
 
         return {
           title,
