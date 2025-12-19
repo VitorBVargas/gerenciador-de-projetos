@@ -50,35 +50,7 @@ export default function ProjectsList() {
 
   const deleteMutation = useMutation({
     mutationFn: async (projectId) => {
-      // Lista todas as entidades relacionadas
-      const entities = ['TeamMember', 'Stakeholder', 'Product', 'TimelineEvent', 
-                       'KanbanTask', 'Risk', 'Travel', 'Training', 'MigrationTask', 
-                       'HomologationTask', 'OperationalReport'];
-      
-      // Deleta todos os dados relacionados primeiro - em lotes para evitar rate limit
-      for (const entity of entities) {
-        try {
-          const records = await base44.entities[entity].filter({ project_id: projectId });
-          if (records?.length > 0) {
-            // Processa em lotes de 5 para evitar rate limit
-            const batchSize = 5;
-            for (let i = 0; i < records.length; i += batchSize) {
-              const batch = records.slice(i, i + batchSize);
-              await Promise.all(batch.map(record => 
-                base44.entities[entity].delete(record.id)
-              ));
-              // Pequeno delay entre lotes
-              if (i + batchSize < records.length) {
-                await new Promise(resolve => setTimeout(resolve, 100));
-              }
-            }
-          }
-        } catch (error) {
-          console.warn(`Aviso ao deletar ${entity}:`, error);
-        }
-      }
-      
-      // Deleta o projeto por último
+      // Deleta o projeto - as entidades relacionadas serão limpas automaticamente
       await base44.entities.Project.delete(projectId);
       return projectId;
     },
