@@ -149,11 +149,23 @@ export default function GanttTimeline({ events, onEdit, onDelete, onStatusChange
                 {/* Atividade */}
                 <div className="col-span-5">
                   <div className="text-sm font-medium text-white">{event.title}</div>
-                  {event.start_date && event.end_date ? (
-                    <div className="text-xs text-slate-400 mt-0.5">
-                      {format(new Date(event.start_date), 'dd/MM/yy')} - {format(new Date(event.end_date), 'dd/MM/yy')}
+                  {event.start_date && event.end_date && (
+                    <div className="text-xs text-slate-400 mt-1">
+                      {(() => {
+                        try {
+                          const start = typeof event.start_date === 'string' 
+                            ? new Date(event.start_date) 
+                            : event.start_date;
+                          const end = typeof event.end_date === 'string' 
+                            ? new Date(event.end_date) 
+                            : event.end_date;
+                          return `${format(start, 'dd/MM/yy')} - ${format(end, 'dd/MM/yy')}`;
+                        } catch (e) {
+                          return null;
+                        }
+                      })()}
                     </div>
-                  ) : null}
+                  )}
                 </div>
 
                 {/* Progresso */}
