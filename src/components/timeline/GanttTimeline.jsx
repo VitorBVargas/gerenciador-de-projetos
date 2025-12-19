@@ -41,16 +41,50 @@ export default function GanttTimeline({ events, onEdit, onDelete, onStatusChange
     );
   }
 
+  const calculateProgress = (event) => {
+    // Se concluído, sempre 100%
+    if (event.status === 'concluido') return 100;
+    
+    // Se não iniciado, 0%
+    if (event.status === 'nao_iniciado') return 0;
+    
+    // Se em andamento e tem datas, calcula baseado no tempo decorrido
+    if (event.status === 'em_andamento' && event.start_date && event.end_date) {
+      const today = new Date();
+      const start = parseISO(event.start_date);
+      const end = parseISO(event.end_date);
+      
+      // Se ainda não começou
+      if (today < start) return 0;
+      
+      // Se já passou da data final
+      if (today > end) return 100;
+      
+      // Calcula proporcionalmente
+      const totalDays = (end - start) / (1000 * 60 * 60 * 24);
+      const daysPassed = (today - start) / (1000 * 60 * 60 * 24);
+      const calculatedProgress = Math.round((daysPassed / totalDays) * 100);
+      
+      // Limita entre 1% e 99% (nunca 0% se está em andamento, nunca 100% se não está concluído)
+      return Math.max(1, Math.min(99, calculatedProgress));
+    }
+    
+    // Fallback para o progresso salvo no banco ou 0
+    return event.progress || 0;
+  };
+
   const isEventDelayed = (event) => {
     if (!event.end_date || event.status === 'concluido') return false;
     const today = new Date();
     const endDate = parseISO(event.end_date);
-    return endDate < today && event.progress < 100;
+    const progress = calculateProgress(event);
+    return endDate < today && progress < 100;
   };
 
   const getProgressColor = (event) => {
-    if (event.status === 'nao_iniciado' || event.progress === 0) return 'bg-slate-600';
-    if (event.progress === 100 || event.status === 'concluido') return 'bg-green-500';
+    const progress = calculateProgress(event);
+    if (event.status === 'nao_iniciado' || progress === 0) return 'bg-slate-600';
+    if (progress === 100 || event.status === 'concluido') return 'bg-green-500';
     if (isEventDelayed(event)) return 'bg-yellow-500';
     return 'bg-blue-500';
   };
@@ -69,6 +103,7 @@ export default function GanttTimeline({ events, onEdit, onDelete, onStatusChange
         {/* Events */}
         <div className="divide-y divide-slate-700/30">
           {events.map((event) => {
+            const currentProgress = calculateProgress(event);
             const statusLabel = isEventDelayed(event) && event.status !== 'concluido' 
               ? 'Atrasado' 
               : statusLabels[event.status];
@@ -109,15 +144,15 @@ export default function GanttTimeline({ events, onEdit, onDelete, onStatusChange
                 <div className="col-span-4">
                   <div className="flex items-center gap-3">
                     <div className="flex-1 h-5 bg-slate-700/50 rounded-full overflow-hidden">
-                      {event.status !== 'nao_iniciado' && event.progress > 0 && (
+                      {currentProgress > 0 && (
                         <div 
                           className={cn("h-full transition-all rounded-full", getProgressColor(event))}
-                          style={{ width: `${event.progress}%` }}
+                          style={{ width: `${currentProgress}%` }}
                         />
                       )}
                     </div>
                     <span className="text-sm text-slate-300 w-10 text-right">
-                      {event.status === 'nao_iniciado' ? '0%' : `${event.progress || 0}%`}
+                      {currentProgress}%
                     </span>
                   </div>
                 </div>
