@@ -72,11 +72,14 @@ export default function ProjectsList() {
       await base44.entities.Project.delete(projectId);
       return projectId;
     },
-    onSuccess: () => {
+    onSuccess: (deletedProjectId) => {
+      // Remove o projeto da cache imediatamente
+      queryClient.setQueryData(['projects'], (oldData) => {
+        return oldData ? oldData.filter(p => p.id !== deletedProjectId) : [];
+      });
       setDeletingProjectId(null);
       setDeleteDialogOpen(false);
       setProjectToDelete(null);
-      queryClient.invalidateQueries({ queryKey: ['projects'] });
     },
     onError: (error) => {
       console.error('Erro ao deletar projeto:', error);
