@@ -68,27 +68,33 @@ export default function Trainings() {
     notes: ''
   });
 
+  // Get project_id from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const projectId = urlParams.get('project_id');
+
   const { data: projects = [] } = useQuery({
     queryKey: ['projects'],
     queryFn: () => base44.entities.Project.list('-created_date')
   });
 
   const { data: trainings = [] } = useQuery({
-    queryKey: ['trainings'],
-    queryFn: () => base44.entities.Training.list('-date')
+    queryKey: ['trainings', projectId],
+    queryFn: () => projectId ? base44.entities.Training.filter({ project_id: projectId }) : [],
+    enabled: !!projectId
   });
 
   const { data: products = [] } = useQuery({
-    queryKey: ['products'],
-    queryFn: () => base44.entities.Product.list()
+    queryKey: ['products', projectId],
+    queryFn: () => projectId ? base44.entities.Product.filter({ project_id: projectId }) : [],
+    enabled: !!projectId
   });
 
-  const activeProject = projects[0];
+  const activeProject = projects.find(p => p.id === projectId);
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Training.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trainings'] });
+      queryClient.invalidateQueries({ queryKey: ['trainings', projectId] });
       setModalOpen(false);
       resetForm();
     }
@@ -97,7 +103,7 @@ export default function Trainings() {
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Training.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trainings'] });
+      queryClient.invalidateQueries({ queryKey: ['trainings', projectId] });
       setModalOpen(false);
       setSelectedTraining(null);
       resetForm();
@@ -107,7 +113,7 @@ export default function Trainings() {
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.Training.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trainings'] });
+      queryClient.invalidateQueries({ queryKey: ['trainings', projectId] });
       setDeleteDialogOpen(false);
       setTrainingToDelete(null);
     }

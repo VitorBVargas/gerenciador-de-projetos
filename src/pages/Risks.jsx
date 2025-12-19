@@ -74,22 +74,27 @@ export default function Risks() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [riskToDelete, setRiskToDelete] = useState(null);
 
+  // Get project_id from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const projectId = urlParams.get('project_id');
+
   const { data: projects = [] } = useQuery({
     queryKey: ['projects'],
     queryFn: () => base44.entities.Project.list('-created_date')
   });
 
   const { data: risks = [] } = useQuery({
-    queryKey: ['risks'],
-    queryFn: () => base44.entities.Risk.list('-created_date')
+    queryKey: ['risks', projectId],
+    queryFn: () => projectId ? base44.entities.Risk.filter({ project_id: projectId }) : [],
+    enabled: !!projectId
   });
 
-  const activeProject = projects[0];
+  const activeProject = projects.find(p => p.id === projectId);
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Risk.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['risks'] });
+      queryClient.invalidateQueries({ queryKey: ['risks', projectId] });
       setModalOpen(false);
     }
   });
@@ -97,7 +102,7 @@ export default function Risks() {
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Risk.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['risks'] });
+      queryClient.invalidateQueries({ queryKey: ['risks', projectId] });
       setModalOpen(false);
       setSelectedRisk(null);
     }
@@ -106,7 +111,7 @@ export default function Risks() {
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.Risk.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['risks'] });
+      queryClient.invalidateQueries({ queryKey: ['risks', projectId] });
       setDeleteDialogOpen(false);
       setRiskToDelete(null);
     }
