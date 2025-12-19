@@ -10,6 +10,7 @@ import Migration from './pages/Migration';
 import Reports from './pages/Reports';
 import Risks from './pages/Risks';
 import ProjectsList from './pages/ProjectsList';
+import Budget from './pages/Budget';
 import __Layout from './Layout.jsx';
 
 
@@ -26,6 +27,7 @@ export const PAGES = {
     "Reports": Reports,
     "Risks": Risks,
     "ProjectsList": ProjectsList,
+    "Budget": Budget,
 }
 
 export const pagesConfig = {
