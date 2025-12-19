@@ -208,6 +208,45 @@ export const homologationTasksByProduct = {
     'Módulo Único: Obras (todas as situações), Medições, CNOS, Responsáveis técnicos na Obra',
     'SPRINT 3: PRESTAÇÃO DE CONTAS',
     'Módulo Único: Validar necessidade de campos relacionados às prestações de contas'
+  ]),
+
+  // CONTÁBIL
+  'Planejamento (Cloud)': parseTasksIntoSections([
+    'SPRINT 1: CADASTROS E ESTRUTURAS',
+    'Módulo Único: Composição da receita e despesa (PPA), Receitas/Despesas/Programas/Ações (PPA/LDO/LOA), Programas, Funções e Subfunções, Indicadores, Organogramas, Entidades, Atos, Recursos, Natureza da Receita, Natureza da Despesa, Cadastros Auxiliares',
+    'SPRINT 2: EXECUÇÃO PPA E SOLICITAÇÕES',
+    'Módulo Único: Solicitações de Despesas, Limites das Despesas da LOA, Execução de Receitas (PPA), Execução de Despesas (PPA), Execução das metas físicas, Análise do PPA',
+    'SPRINT 3: DETALHAMENTO LDO E EXECUÇÃO LOA',
+    'Módulo Único: Detalhamento de Receitas/Despesas (LDO), Expansão de despesas, Projeções atuariais, Resultados nominais, Riscos fiscais, Metas físicas, Transferências financeiras, Execução de Receitas/Despesas (LOA), Alterações orçamentárias, Programação financeira',
+    'SPRINT 4: PRESTAÇÃO DE CONTAS',
+    'Módulo Único: Validar necessidade de campos relacionados às prestações de contas'
+  ]),
+
+  'Contabilidade (Cloud)': parseTasksIntoSections([
+    'SPRINT 1: PARÂMETROS E CADASTROS',
+    'Módulo Único: Parâmetros Gerais, Portal da transparência, EFD-Contribuições, Plano de contas, Eventos contábeis, Regras de documentos, Contas Correntes, Componentes, Equivalentes, Processos, Organogramas, Entidade, Localizadores, Recursos, Operações, Receitas, Comprovantes, Diários, Agências bancárias, Contas bancárias, Cadastros Auxiliares',
+    'SPRINT 2: RECEITA, CONTROLE E INTEGRAÇÕES',
+    'Módulo Único: Arrecadações, Lançamento de receita, Devolução de receita, Alteração orçamentária da receita, Adiantamentos e diárias, Duplicatas, Contratos de fusão, Prestação de contas de consórcio, Gerenciador de integrações',
+    'SPRINT 3: DESPESA E PROGRAMAÇÃO',
+    'Módulo Único: Empenhos, Despesa Extra, Alterações orçamentárias da despesa, Bloqueios/Desbloqueios da despesa, Programação financeira da receita, Programação financeira da despesa, Período Financeiro (Abertura, Encerramento)',
+    'SPRINT 4: ESCRITURAÇÃO E PRESTAÇÃO DE CONTAS',
+    'Módulo Único: Escriturações de documentos, Conferir balancete mês a mês, Períodos da escrituração, Validar necessidade de campos relacionados às prestações de contas'
+  ]),
+
+  'Tesouraria (Cloud)': parseTasksIntoSections([
+    'SPRINT 1: PARÂMETROS E IMPLANTAÇÃO',
+    'Módulo Único: Parâmetros Gerais, Movimentos, Remessas bancárias, Critérios de conciliação, Parâmetros da implantação, Saldo inicial em dinheiro, Cadastros Auxiliares',
+    'SPRINT 2: PROCESSOS, PAGAMENTOS E BANCÁRIOS',
+    'Módulo Único: Arrecadações, Pagamentos a Pagar e Pagos, Devoluções da receita, Ajuste de recursos, Gestão Bancária (Aplicação e Configuração), Contas Bancárias, Transferências',
+    'SPRINT 3: PRESTAÇÃO DE CONTAS',
+    'Módulo Único: Validar necessidade de campos relacionados às prestações de contas'
+  ]),
+
+  'Convênios': parseTasksIntoSections([
+    'SPRINT 1: CONVÊNIOS E EXECUÇÃO',
+    'Módulo Único: Convênios Repassados, Formalização e execução',
+    'SPRINT 2: PRESTAÇÃO DE CONTAS E CONCLUSÃO',
+    'Módulo Único: A comprovar, em comprovação e comprovada, Concluído, Validar necessidade de campos relacionados às prestações de contas'
   ])
 };
 
