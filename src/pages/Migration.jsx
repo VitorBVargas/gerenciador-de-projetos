@@ -134,23 +134,6 @@ export default function Migration() {
     });
   };
 
-  const handleToggleAllTasks = async () => {
-    const productTasks = getProductTasks(selectedProduct);
-    if (productTasks.length === 0) return;
-    
-    const allCompleted = productTasks.every(t => t.completed);
-    const newCompletedState = !allCompleted;
-    
-    // Atualiza no servidor em paralelo
-    await Promise.all(
-      productTasks.map(task => 
-        base44.entities.MigrationTask.update(task.id, { completed: newCompletedState })
-      )
-    );
-    
-    queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
-  };
-
   const getProductTasks = (productId) => {
     return tasks.filter(t => t.product_id === productId);
   };
@@ -280,25 +263,6 @@ export default function Migration() {
                         </div>
                       </CardHeader>
                       <CardContent className="p-6">
-                        {/* Action Buttons */}
-                        <div className="flex gap-2 mb-6">
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={handleToggleAllTasks}
-                            className="border-blue-600 text-blue-400 hover:bg-blue-600/20 hover:text-blue-300"
-                          >
-                            Marcar/Desmarcar Todos
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            className="border-blue-600 text-blue-400 hover:bg-blue-600/20 hover:text-blue-300"
-                          >
-                            Gerar Termo de Conversão de Dados
-                          </Button>
-                        </div>
-
                         {/* Add Task Input */}
                         <div className="flex gap-2 mb-6">
                           <Input
