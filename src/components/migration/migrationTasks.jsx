@@ -1,12 +1,13 @@
-// Tarefas de migração completas por produto (baseado no arquivo RotinasdeMigrao.txt)
+// Tarefas de migração por produto - extraídas do arquivo RotinasdeMigrao.txt
+// IMPORTANTE: Produtos que não aparecem aqui NÃO têm processo de migração (ex: Conecta, Documentos)
 
 const parseTasksIntoSections = (tasks) => {
   const sections = [];
   let currentSection = null;
 
   tasks.forEach(task => {
-    // Se a tarefa está em UPPERCASE completo ou começa com "ETAPA", é uma seção
-    if (task === task.toUpperCase() || task.startsWith('ETAPA')) {
+    // Se a tarefa está em UPPERCASE completo ou começa com "ETAPA" ou "MIGRAÇÃO", é uma seção
+    if (task === task.toUpperCase() || task.startsWith('ETAPA') || task.startsWith('MIGRAÇÃO')) {
       if (currentSection) {
         sections.push(currentSection);
       }
@@ -23,7 +24,9 @@ const parseTasksIntoSections = (tasks) => {
   return sections;
 };
 
+// Mapa de produtos com suas tarefas de migração
 export const migrationTasksByProduct = {
+  // ISS - e-Nota
   'e-Nota (Cloud)': parseTasksIntoSections([
     'MIGRAÇÃO INICIAIS',
     'Extrair Competências', 'Extrair Indexadores', 'Extrair Lista de Serviços', 'Extair Incentivos Fiscais',
@@ -39,6 +42,7 @@ export const migrationTasksByProduct = {
     'Extrair Resumo Créditos Tributários', 'Extrair Movimentação Créditos Tributários', 'Extrair Guias de Pagamentos'
   ]),
 
+  // ISS - Livro Eletrônico
   'Livro Eletronico': parseTasksIntoSections([
     'ETAPA 1: CONFIGURAÇÕES E PARÂMETROS',
     'Extrair Competências', 'Extrair Indexadores', 'Extrair Lista de Serviços', 'Extrair CNAE',
@@ -52,6 +56,7 @@ export const migrationTasksByProduct = {
     'Extarir Incentivos Fiscais', 'Extrair Contribuinte Incentivos Fiscais'
   ]),
 
+  // Arrecadação - Tributos
   'Tributos (Cloud)': parseTasksIntoSections([
     'MIGRAÇÃO: TABELAS AUXILIARES E GERAIS',
     'Extrair Paises', 'Extrair Estados', 'Extrair Cidades', 'Extrair Distritos', 'Extrair Bairros', 'Extrair TiposLogradouros',
@@ -110,6 +115,7 @@ export const migrationTasksByProduct = {
     'Extrair Secoes', 'Extrair SecaoCampoAdicional', 'Extrair SecaoCampoAdicional Compl'
   ]),
 
+  // Arrecadação - Procuradoria
   'Procuradoria (Cloud)': parseTasksIntoSections([
     'ETAPA 1: EXECUÇÃO FISCAL',
     'Extrair dados de Execuções', 'Extrair dados de config execuções fiscais', 'Extrair dados de execuções fiscais',
@@ -120,6 +126,7 @@ export const migrationTasksByProduct = {
     'Extrair dados de Documentos', 'Extrair Contas COSIF', 'Extrair Fiscais'
   ]),
 
+  // Pessoal - Folha
   'Folha (Cloud)': parseTasksIntoSections([
     'MIGRAÇÃO: TABELAS AUXILIARES E GERAIS',
     'Extrair Países', 'Extrair Estados', 'Extrair Municípios', 'Extrair Bairros', 'Extrair Logradouros', 'Extrair Bancos',
@@ -152,6 +159,32 @@ export const migrationTasksByProduct = {
     'Extrair Pensões Alimentícias', 'Extrair Empréstimos Consignados', 'Extrair Cessões e Requisições'
   ]),
 
+  // Pessoal - Ponto
+  'Ponto (Cloud)': parseTasksIntoSections([
+    'MIGRAÇÃO: TABELAS AUXILIARES',
+    'Extrair Países', 'Extrair Estados', 'Extrair Municípios', 'Extrair Bairros', 'Extrair Logradouros',
+    'MIGRAÇÃO: ESTRUTURA ORGANIZACIONAL',
+    'Extrair Entidades', 'Extrair Departamentos', 'Extrair Seções', 'Extrair Setores',
+    'MIGRAÇÃO: DADOS DE PESSOAS',
+    'Extrair Pessoas', 'Extrair Funcionários',
+    'MIGRAÇÃO: CONFIGURAÇÕES DE PONTO',
+    'Extrair Horários de Trabalho', 'Extrair Escalas', 'Extrair Jornadas', 'Extrair Feriados', 'Extrair Tipos de Afastamento',
+    'MIGRAÇÃO: REGISTROS DE PONTO',
+    'Extrair Marcações', 'Extrair Batidas', 'Extrair Justificativas', 'Extrair Banco de Horas', 'Extrair Horas Extras',
+    'Extrair Faltas', 'Extrair Atrasos', 'Extrair Saídas Antecipadas'
+  ]),
+
+  // Pessoal - Minha Folha / RH
+  'Minha Folha': parseTasksIntoSections([
+    'MIGRAÇÃO: DADOS BÁSICOS',
+    'Extrair Usuários do Portal', 'Extrair Configurações de Acesso',
+    'MIGRAÇÃO: DOCUMENTOS',
+    'Extrair Contracheques', 'Extrair Informes de Rendimentos', 'Extrair Comprovantes de Férias',
+    'MIGRAÇÃO: SOLICITAÇÕES',
+    'Extrair Solicitações de Férias', 'Extrair Solicitações de Adiantamento', 'Extrair Outras Solicitações'
+  ]),
+
+  // Compras - Compras
   'Compras (Cloud)': parseTasksIntoSections([
     'MIGRAÇÃO: TABELAS AUXILIARES E GERAIS',
     'Extrair Países', 'Extrair Estados', 'Extrair Municípios', 'Extrair Bairros', 'Extrair Logradouros', 'Extrair Bancos', 'Extrair Agências',
@@ -172,6 +205,7 @@ export const migrationTasksByProduct = {
     'Extrair Autorizações de Fornecimentos Itens', 'Extrair Requisições', 'Extrair Requisições Itens'
   ]),
 
+  // Contábil
   'Contábil (Cloud)': parseTasksIntoSections([
     'MIGRAÇÃO: TABELAS AUXILIARES E GERAIS',
     'Extrair Países', 'Extrair Estados', 'Extrair Municípios', 'Extrair Bairros', 'Extrair Logradouros', 'Extrair Bancos', 'Extrair Agências',
@@ -188,6 +222,7 @@ export const migrationTasksByProduct = {
     'Extrair Contas Bancárias', 'Extrair Movimentações Bancárias', 'Extrair Conciliações Bancárias', 'Extrair Transferências Financeiras'
   ]),
 
+  // Educação
   'Educação Básica (Cloud)': parseTasksIntoSections([
     'MIGRAÇÃO: TABELAS AUXILIARES E GERAIS',
     'Extrair Países', 'Extrair Estados', 'Extrair Municípios', 'Extrair Bairros', 'Extrair Logradouros',
@@ -200,28 +235,56 @@ export const migrationTasksByProduct = {
     'Extrair Turmas', 'Extrair Turmas Disciplinas', 'Extrair Matrículas', 'Extrair Transferências', 'Extrair Enturmações',
     'MIGRAÇÃO: DADOS PEDAGÓGICOS',
     'Extrair Frequências', 'Extrair Notas', 'Extrair Boletins', 'Extrair Ocorrências Disciplinares'
+  ]),
+
+  // Plataforma - Protocolo
+  'Protocolo (Cloud)': parseTasksIntoSections([
+    'MIGRAÇÃO: DADOS BÁSICOS',
+    'Extrair Tipos de Processos', 'Extrair Assuntos', 'Extrair Setores', 'Extrair Usuários',
+    'MIGRAÇÃO: PROCESSOS',
+    'Extrair Processos', 'Extrair Documentos Anexos', 'Extrair Tramitações', 'Extrair Despachos', 'Extrair Arquivamentos'
   ])
 };
 
+// Normaliza o nome do produto removendo "(Cloud)" e caracteres especiais
+const normalizeProductName = (name) => {
+  if (!name) return '';
+  return name
+    .toLowerCase()
+    .replace(/\(cloud\)/gi, '')
+    .replace(/[()]/g, '')
+    .trim()
+    .replace(/\s+/g, ' ');
+};
+
 // Função para buscar tarefas por nome de produto
+// Retorna null se o produto não tiver processo de migração
 export const getDefaultTasksForProduct = (productName) => {
-  if (!productName) return migrationTasksByProduct['Tributos (Cloud)'];
+  if (!productName) return null;
   
-  const normalizedName = productName.trim();
+  const normalizedInput = normalizeProductName(productName);
   
-  // Busca exata primeiro
-  if (migrationTasksByProduct[normalizedName]) {
-    return migrationTasksByProduct[normalizedName];
-  }
-  
-  // Busca parcial (case-insensitive)
-  const lowerName = normalizedName.toLowerCase();
+  // Busca exata primeiro (considerando com e sem Cloud)
   for (const [key, tasks] of Object.entries(migrationTasksByProduct)) {
-    if (key.toLowerCase().includes(lowerName) || lowerName.includes(key.toLowerCase())) {
+    const normalizedKey = normalizeProductName(key);
+    if (normalizedKey === normalizedInput) {
       return tasks;
     }
   }
   
-  // Fallback para Tributos
-  return migrationTasksByProduct['Tributos (Cloud)'];
+  // Busca parcial
+  for (const [key, tasks] of Object.entries(migrationTasksByProduct)) {
+    const normalizedKey = normalizeProductName(key);
+    if (normalizedKey.includes(normalizedInput) || normalizedInput.includes(normalizedKey)) {
+      return tasks;
+    }
+  }
+  
+  // Se não encontrou, retorna null (produto sem migração)
+  return null;
+};
+
+// Verifica se um produto tem processo de migração
+export const productHasMigration = (productName) => {
+  return getDefaultTasksForProduct(productName) !== null;
 };
