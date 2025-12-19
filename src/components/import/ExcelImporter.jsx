@@ -22,8 +22,8 @@ const verticalMapping = {
   'parceiros': 'parceiros',
   'plataforma': 'plataforma',
   'atendimento': 'atendimento',
-  'saúde': 'educacao',
-  'saude': 'educacao'
+  'saúde': 'saude',
+  'saude': 'saude'
 };
 
 const statusMapping = {
