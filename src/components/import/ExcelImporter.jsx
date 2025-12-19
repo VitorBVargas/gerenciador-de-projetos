@@ -21,7 +21,9 @@ const verticalMapping = {
   'iss': 'iss',
   'parceiros': 'parceiros',
   'plataforma': 'plataforma',
-  'atendimento': 'atendimento'
+  'atendimento': 'atendimento',
+  'saúde': 'educacao',
+  'saude': 'educacao'
 };
 
 const statusMapping = {
@@ -144,23 +146,27 @@ export default function ExcelImporter({ open, onOpenChange, onSuccess }) {
     };
   };
 
-  const processTeamSheet = (workbook) => {
+const processTeamSheet = (workbook) => {
     const sheet = workbook.Sheets['Equipe do projeto'];
     if (!sheet) return [];
 
-    const data = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+    const data = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: false });
     console.log('Dados brutos da equipe:', data);
     
     if (data.length === 0) return [];
 
-    const headers = Object.keys(data[0]).filter(h => !h.startsWith('__EMPTY'));
+    // Get all headers including __EMPTY ones for debugging
+    const allHeaders = Object.keys(data[0]);
+    console.log('Todos os headers da equipe:', allHeaders);
+    
+    const headers = allHeaders.filter(h => !h.startsWith('__EMPTY'));
     console.log('Headers da equipe (filtrados):', headers);
     
-    const nameCol = findColumn(headers, ['Nome', 'Membro da Equipe']);
-    const verticalCol = findColumn(headers, ['Vertial', 'Vertical', 'Área']);
-    const respCol = findColumn(headers, ['Responsabilidade', 'Função', 'Papel']);
-    const emailCol = findColumn(headers, ['Email', 'E-mail']);
-    const phoneCol = findColumn(headers, ['Telefone', 'Fone']);
+    const nameCol = findColumn(allHeaders, ['Nome', 'Membro da Equipe', 'Name']);
+    const verticalCol = findColumn(allHeaders, ['Vertial', 'Vertical', 'Área', 'Area']);
+    const respCol = findColumn(allHeaders, ['Responsabilidade', 'Função', 'Papel', 'Funcao']);
+    const emailCol = findColumn(allHeaders, ['Email', 'E-mail']);
+    const phoneCol = findColumn(allHeaders, ['Telefone', 'Fone', 'Celular']);
 
     console.log('Colunas mapeadas - Nome:', nameCol, 'Vertical:', verticalCol, 'Resp:', respCol);
 
@@ -174,7 +180,7 @@ export default function ExcelImporter({ open, onOpenChange, onSuccess }) {
         const email = row[emailCol] ? String(row[emailCol]).trim() : '';
         const phone = row[phoneCol] ? String(row[phoneCol]).trim() : '';
         
-        console.log(`Linha ${index}:`, { name, vertical, role });
+        console.log(`Linha ${index}:`, { name, vertical, role, normalizedVertical: normalizeVertical(vertical) });
         
         return {
           name,
@@ -185,14 +191,23 @@ export default function ExcelImporter({ open, onOpenChange, onSuccess }) {
         };
       })
       .filter(m => {
-        // Ignora se não tem nome ou vertical
-        if (!m.name || !m.vertical) {
-          console.log('Ignorando por falta de nome/vertical:', m);
+        // Ignora se não tem nome
+        if (!m.name) {
+          console.log('Ignorando por falta de nome:', m);
+          return false;
+        }
+        
+        // Ignora se não tem vertical
+        if (!m.vertical) {
+          console.log('Ignorando por falta de vertical válida:', m);
           return false;
         }
         
         // Ignora se o nome é muito curto (provavelmente lixo)
-        if (m.name.length < 2) return false;
+        if (m.name.length < 2) {
+          console.log('Ignorando nome muito curto:', m.name);
+          return false;
+        }
         
         // Remove duplicatas exatas
         const key = `${m.name}_${m.vertical}_${m.role}`.toLowerCase().trim();
@@ -236,43 +251,65 @@ export default function ExcelImporter({ open, onOpenChange, onSuccess }) {
     })).filter(s => s.name !== 'Nome não informado');
   };
 
-  const processProductsSheet = (workbook) => {
+const processProductsSheet = (workbook) => {
     const sheet = workbook.Sheets['Produto Contratado'];
     if (!sheet) {
       console.log('Aba Produto Contratado não encontrada');
       return [];
     }
 
-    const data = XLSX.utils.sheet_to_json(sheet);
+    const data = XLSX.utils.sheet_to_json(sheet, { raw: false });
     console.log('Dados da aba Produto Contratado:', data);
     
     if (data.length === 0) return [];
 
-    const headers = Object.keys(data[0]);
-    console.log('Headers encontrados:', headers);
+    const allHeaders = Object.keys(data[0]);
+    console.log('Todos os headers encontrados:', allHeaders);
     
-    const verticalCol = findColumn(headers, ['Vertical', 'Área', 'Vertial']);
-    const nameCol = findColumn(headers, ['Produto', 'Nome', 'Produtos']);
-    const entityCol = findColumn(headers, ['Entidade', 'Órgão', 'Orgao']);
-    const ticketCol = findColumn(headers, ['Chamado', 'Ticket', 'Número']);
+    const verticalCol = findColumn(allHeaders, ['Vertical', 'Área', 'Vertial', 'Area']);
+    const nameCol = findColumn(allHeaders, ['Produto', 'Nome', 'Produtos', 'Product']);
+    const entityCol = findColumn(allHeaders, ['Entidade', 'Órgão', 'Orgao', 'Entity']);
+    const ticketCol = findColumn(allHeaders, ['Chamado', 'Ticket', 'Número', 'Numero']);
 
     console.log('Colunas mapeadas - Vertical:', verticalCol, 'Produto:', nameCol, 'Entidade:', entityCol, 'Chamado:', ticketCol);
 
-    const products = data.map(row => {
+    const products = data.map((row, index) => {
       const name = row[nameCol];
       const vertical = row[verticalCol];
       
-      if (!name || !vertical) return null;
+      console.log(`Linha ${index}:`, { 
+        name, 
+        vertical, 
+        normalizedVertical: normalizeVertical(vertical),
+        entity: row[entityCol],
+        ticket: row[ticketCol]
+      });
+      
+      if (!name) {
+        console.log('Produto ignorado - sem nome');
+        return null;
+      }
+      
+      if (!vertical) {
+        console.log('Produto ignorado - sem vertical');
+        return null;
+      }
+      
+      const normalizedVertical = normalizeVertical(vertical);
+      if (!normalizedVertical) {
+        console.log('Produto ignorado - vertical não mapeada:', vertical);
+        return null;
+      }
       
       return {
         name: String(name).trim(),
-        vertical: normalizeVertical(vertical),
+        vertical: normalizedVertical,
         entity: row[entityCol] ? String(row[entityCol]).trim() : '',
         ticket_number: row[ticketCol] ? String(row[ticketCol]).trim() : '',
         status: 'pendente',
         priority: 'media'
       };
-    }).filter(p => p !== null && p.vertical !== null);
+    }).filter(p => p !== null);
 
     console.log('Produtos processados:', products);
     return products;
