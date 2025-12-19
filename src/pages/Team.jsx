@@ -50,6 +50,17 @@ const verticalColors = {
   plataforma: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30'
 };
 
+const verticalAvatarColors = {
+  arrecadacao: 'from-blue-500 to-blue-600',
+  compras: 'from-purple-500 to-purple-600',
+  contabil: 'from-green-500 to-green-600',
+  pessoal: 'from-orange-500 to-orange-600',
+  educacao: 'from-pink-500 to-pink-600',
+  iss: 'from-cyan-500 to-cyan-600',
+  parceiros: 'from-yellow-500 to-yellow-600',
+  plataforma: 'from-indigo-500 to-indigo-600'
+};
+
 export default function Team() {
   const queryClient = useQueryClient();
   const [modalOpen, setModalOpen] = useState(false);
@@ -160,14 +171,14 @@ export default function Team() {
         />
       </div>
 
-      {/* Team List */}
+      {/* Team Grid */}
       {filteredMembers.length > 0 ? (
         <div className="space-y-4">
           {Object.entries(membersByVertical).map(([vertical, roleGroups]) => {
             const totalMembers = Object.values(roleGroups).reduce((sum, members) => sum + members.length, 0);
             return (
               <div key={vertical}>
-                <div className="flex items-center gap-2 mb-2 px-2">
+                <div className="flex items-center gap-2 mb-2">
                   <h2 className="text-sm font-semibold text-white">
                     {verticalLabels[vertical] || 'Outros'}
                   </h2>
@@ -176,27 +187,30 @@ export default function Team() {
                   </Badge>
                 </div>
                 
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {Object.entries(roleGroups).map(([role, members]) => (
                     <div key={role}>
-                      <div className="text-[10px] font-medium text-slate-500 mb-1 px-2 uppercase tracking-wide">{role}</div>
-                      <div className="space-y-1">
+                      <div className="text-[10px] font-medium text-slate-500 mb-1.5 uppercase tracking-wide">{role}</div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                         {members.map((member) => (
                           <div 
                             key={member.id} 
                             className="bg-slate-800/30 border border-slate-700/50 hover:bg-slate-800/60 transition-all group rounded-lg px-3 py-2"
                           >
                             <div className="flex items-center gap-2.5">
-                              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-xs flex-shrink-0">
+                              <div className={cn(
+                                "w-7 h-7 rounded-full bg-gradient-to-br flex items-center justify-center text-white font-semibold text-xs flex-shrink-0",
+                                verticalAvatarColors[vertical] || 'from-slate-500 to-slate-600'
+                              )}>
                                 {member.name?.charAt(0).toUpperCase()}
                               </div>
                               <div className="flex-1 min-w-0">
                                 <h4 className="font-medium text-white text-xs leading-tight">{member.name}</h4>
-                                <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5">
+                                <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5">
                                   {member.email && (
                                     <div className="flex items-center gap-1 text-[10px] text-slate-400">
                                       <Mail className="w-2.5 h-2.5 flex-shrink-0" />
-                                      <span className="truncate">{member.email}</span>
+                                      <span className="truncate max-w-[120px]">{member.email}</span>
                                     </div>
                                   )}
                                   {member.phone && (
