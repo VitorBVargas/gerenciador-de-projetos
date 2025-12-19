@@ -48,25 +48,38 @@ export default function GanttTimeline({ events, onEdit, onDelete, onStatusChange
     // Se não iniciado, 0%
     if (event.status === 'nao_iniciado') return 0;
     
+    // Se atrasado, sempre mostra progresso alto (mas não 100%)
+    if (event.status === 'atrasado') return event.progress || 90;
+    
     // Se em andamento e tem datas, calcula baseado no tempo decorrido
     if (event.status === 'em_andamento' && event.start_date && event.end_date) {
-      const today = new Date();
-      const start = parseISO(event.start_date);
-      const end = parseISO(event.end_date);
-      
-      // Se ainda não começou
-      if (today < start) return 0;
-      
-      // Se já passou da data final
-      if (today > end) return 100;
-      
-      // Calcula proporcionalmente
-      const totalDays = (end - start) / (1000 * 60 * 60 * 24);
-      const daysPassed = (today - start) / (1000 * 60 * 60 * 24);
-      const calculatedProgress = Math.round((daysPassed / totalDays) * 100);
-      
-      // Limita entre 1% e 99% (nunca 0% se está em andamento, nunca 100% se não está concluído)
-      return Math.max(1, Math.min(99, calculatedProgress));
+      try {
+        const today = new Date();
+        const start = new Date(event.start_date);
+        const end = new Date(event.end_date);
+        
+        // Se ainda não começou
+        if (today < start) return 5;
+        
+        // Se já passou da data final, está atrasado
+        if (today > end) return 90;
+        
+        // Calcula proporcionalmente
+        const totalDays = (end - start) / (1000 * 60 * 60 * 24);
+        const daysPassed = (today - start) / (1000 * 60 * 60 * 24);
+        const calculatedProgress = Math.round((daysPassed / totalDays) * 100);
+        
+        // Limita entre 5% e 95% (nunca 0% se está em andamento, nunca 100% se não está concluído)
+        return Math.max(5, Math.min(95, calculatedProgress));
+      } catch (e) {
+        // Se houver erro no parse, usa o progresso salvo ou padrão
+        return event.progress || 30;
+      }
+    }
+    
+    // Se em andamento mas sem datas, usa progresso salvo ou padrão de 30%
+    if (event.status === 'em_andamento') {
+      return event.progress || 30;
     }
     
     // Fallback para o progresso salvo no banco ou 0
