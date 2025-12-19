@@ -406,10 +406,19 @@ const processProductsSheet = (workbook) => {
         const rawSituation = row[statusCol] ? String(row[statusCol]).trim() : '';
         const normalizedSituation = rawSituation.toLowerCase()
           .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-        const mappedStatus = situationMapping[normalizedSituation] || 'nao_iniciado';
+        let mappedStatus = situationMapping[normalizedSituation] || 'nao_iniciado';
 
         const startDate = excelDateToJSDate(row[startCol]);
         const endDate = excelDateToJSDate(row[endCol]);
+
+        // Ajusta status se passou da data e ainda está "em_andamento"
+        if (mappedStatus === 'em_andamento' && endDate) {
+          const today = new Date();
+          const end = new Date(endDate);
+          if (today > end) {
+            mappedStatus = 'atrasado';
+          }
+        }
 
         // Calcula progresso baseado em status e datas
         let progress = 0;
@@ -425,14 +434,14 @@ const processProductsSheet = (workbook) => {
           if (today <= start) {
             progress = 0;
           } else if (today >= end) {
-            progress = 90; // 90% se está em andamento e passou do prazo
+            progress = 90;
           } else {
             const totalDays = (end - start) / (1000 * 60 * 60 * 24);
             const daysPassed = (today - start) / (1000 * 60 * 60 * 24);
             progress = Math.min(Math.round((daysPassed / totalDays) * 100), 90);
           }
         } else if (mappedStatus === 'atrasado') {
-          progress = 50; // Atrasado = 50%
+          progress = 100;
         }
 
         console.log(`✅ Linha ${index + 2}: ${title} | ${rawSituation} → ${mappedStatus} | ${progress}%`);
