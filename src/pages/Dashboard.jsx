@@ -24,6 +24,7 @@ import StatCard from '../components/dashboard/StatCard';
 import ProgressChart from '../components/dashboard/ProgressChart';
 import MigrationProgressChart from '../components/dashboard/MigrationProgressChart';
 import HomologationProgressChart from '../components/dashboard/HomologationProgressChart';
+import ProjectHealthScore from '../components/dashboard/ProjectHealthScore';
 import ProjectModal from '../components/modals/ProjectModal';
 import ExcelImporter from '../components/import/ExcelImporter';
 import EmptyState from '../components/ui/EmptyState';
@@ -97,6 +98,12 @@ export default function Dashboard() {
   const { data: documents = [] } = useQuery({
     queryKey: ['documents', projectId],
     queryFn: () => projectId ? base44.entities.ProjectDocument.filter({ project_id: projectId }) : [],
+    enabled: !!projectId
+  });
+
+  const { data: expenses = [] } = useQuery({
+    queryKey: ['expenses', projectId],
+    queryFn: () => projectId ? base44.entities.Expense.filter({ project_id: projectId }) : [],
     enabled: !!projectId
   });
 
@@ -252,71 +259,86 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Active Project Card */}
-      {activeProject ? (
-        <Card className="bg-gradient-to-br from-blue-600/20 to-purple-600/20 border-slate-700/50">
-          <CardContent className="p-6">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-              <div className="flex-1">
-                <div className="mb-3">
-                  <h2 className="text-xl lg:text-2xl font-bold text-white">{activeProject.name}</h2>
+      {/* Project Info Row */}
+      {activeProject && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Project Card */}
+          <div className="lg:col-span-2">
+            <Card className="bg-gradient-to-br from-blue-600/20 to-purple-600/20 border-slate-700/50 h-full">
+              <CardContent className="p-5">
+                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                  <div className="flex-1">
+                    <h2 className="text-xl font-bold text-white mb-4">{activeProject.name}</h2>
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      {activeProject.manager && (
+                        <div className="text-slate-400">
+                          <span className="text-slate-500">Gerente:</span> <span className="text-white">{activeProject.manager}</span>
+                        </div>
+                      )}
+                      {activeProject.coordinator && (
+                        <div className="text-slate-400">
+                          <span className="text-slate-500">Coordenador:</span> <span className="text-white">{activeProject.coordinator}</span>
+                        </div>
+                      )}
+                      {activeProject.portfolio_manager && (
+                        <div className="text-slate-400">
+                          <span className="text-slate-500">Gerente de Portfólio:</span> <span className="text-white">{activeProject.portfolio_manager}</span>
+                        </div>
+                      )}
+                      {activeProject.implementation_value > 0 && (
+                        <div className="text-slate-400">
+                          <span className="text-slate-500">Implantação:</span> <span className="text-emerald-400">
+                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(activeProject.implementation_value)}
+                          </span>
+                        </div>
+                      )}
+                      {activeProject.recurring_value > 0 && (
+                        <div className="text-slate-400">
+                          <span className="text-slate-500">Recorrente:</span> <span className="text-emerald-400">
+                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(activeProject.recurring_value)}
+                          </span>
+                        </div>
+                      )}
+                      {activeProject.deadline && (
+                        <div className="text-slate-400">
+                          <span className="text-slate-500">Prazo:</span> <span className={cn(
+                            daysToDeadline < 0 ? "text-red-400" : daysToDeadline < 30 ? "text-yellow-400" : "text-white"
+                          )}>
+                            {format(new Date(activeProject.deadline), "dd 'de' MMMM, yyyy", { locale: ptBR })}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  {activeProject?.contract_link && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                      onClick={() => window.open(activeProject.contract_link, '_blank')}
+                    >
+                      <ExternalLink className="w-4 h-4 mr-2" />
+                      Contrato
+                    </Button>
+                  )}
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                  {activeProject.manager && (
-                    <div className="text-slate-400">
-                      <span className="text-slate-500">Gerente:</span> <span className="text-white">{activeProject.manager}</span>
-                    </div>
-                  )}
-                  {activeProject.coordinator && (
-                    <div className="text-slate-400">
-                      <span className="text-slate-500">Coordenador:</span> <span className="text-white">{activeProject.coordinator}</span>
-                    </div>
-                  )}
-                  {activeProject.portfolio_manager && (
-                    <div className="text-slate-400">
-                      <span className="text-slate-500">Gerente de Portfólio:</span> <span className="text-white">{activeProject.portfolio_manager}</span>
-                    </div>
-                  )}
-                  {activeProject.implementation_value > 0 && (
-                    <div className="text-slate-400">
-                      <span className="text-slate-500">Implantação:</span> <span className="text-emerald-400">
-                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(activeProject.implementation_value)}
-                      </span>
-                    </div>
-                  )}
-                  {activeProject.recurring_value > 0 && (
-                    <div className="text-slate-400">
-                      <span className="text-slate-500">Recorrente:</span> <span className="text-emerald-400">
-                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(activeProject.recurring_value)}
-                      </span>
-                    </div>
-                  )}
-                  {activeProject.deadline && (
-                    <div className="text-slate-400">
-                      <span className="text-slate-500">Prazo:</span> <span className={cn(
-                        daysToDeadline < 0 ? "text-red-400" : daysToDeadline < 30 ? "text-yellow-400" : "text-white"
-                      )}>
-                        {format(new Date(activeProject.deadline), "dd 'de' MMMM, yyyy", { locale: ptBR })}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-              {activeProject?.contract_link && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-slate-600 text-slate-300 hover:bg-slate-700"
-                  onClick={() => window.open(activeProject.contract_link, '_blank')}
-                >
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                  Contrato
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Health Score */}
+          <ProjectHealthScore
+            timeline={timelineEvents}
+            budget={activeProject?.budget || 0}
+            spent={expenses.reduce((sum, e) => sum + (e.amount || 0), 0)}
+            migrationTasks={migrationTasks}
+            homologationTasks={homologationTasks}
+            risks={risks}
+          />
+        </div>
+      )}
+
+      {!activeProject && (
         <EmptyState
           icon={LayoutDashboard}
           title="Nenhum projeto cadastrado"
@@ -331,7 +353,7 @@ export default function Dashboard() {
       )}
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <StatCard
           title="Progresso Geral"
           value={`${projectProgress}%`}
@@ -339,18 +361,6 @@ export default function Dashboard() {
           color="blue"
           trend={projectProgress > 50 ? "up" : undefined}
           trendValue={projectProgress > 50 ? "Bom progresso" : undefined}
-        />
-        <StatCard
-          title="Equipe"
-          value={teamMembers.length}
-          icon={Users}
-          color="purple"
-        />
-        <StatCard
-          title="Produtos"
-          value={products.length}
-          icon={Package}
-          color="cyan"
         />
         <StatCard
           title="Riscos Altos"
