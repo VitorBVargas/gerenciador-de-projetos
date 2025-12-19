@@ -139,9 +139,6 @@ export default function ProjectsList() {
                       <CardTitle className="text-white text-lg mb-2">
                         {deletingProjectId === project.id ? 'Excluindo...' : project.name}
                       </CardTitle>
-                      <Badge className={statusColors[project.status]}>
-                        {statusLabels[project.status]}
-                      </Badge>
                     </div>
                     {deletingProjectId !== project.id && (
                       <Button
