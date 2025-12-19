@@ -154,55 +154,67 @@ export default function Dashboard() {
 
   // Inicializa os marcos padrão se não existirem
   React.useEffect(() => {
-    if (projectId && milestones.length === 0) {
-      const defaultMilestones = [
-        'Planejamento e Monitoramento',
-        'Kickoff',
-        'Diagnóstico',
-        'Migração de Homologação',
-        'Homologação e Configuração da migração',
-        'Migração em Produção',
-        'Configuração de PRD',
-        'Treinamento e simulação da operação',
-        'Operação assistida'
-      ];
-      
-      defaultMilestones.forEach((title, index) => {
-        base44.entities.ProjectMilestone.create({
-          project_id: projectId,
-          title,
-          completed: false,
-          order: index
-        });
-      });
-    }
-  }, [projectId, milestones.length]);
+    const initializeMilestones = async () => {
+      if (projectId && milestones.length === 0) {
+        const defaultMilestones = [
+          'Planejamento e Monitoramento',
+          'Kickoff',
+          'Diagnóstico',
+          'Migração de Homologação',
+          'Homologação e Configuração da migração',
+          'Migração em Produção',
+          'Configuração de PRD',
+          'Treinamento e simulação da operação',
+          'Operação assistida'
+        ];
+        
+        await base44.entities.ProjectMilestone.bulkCreate(
+          defaultMilestones.map((title, index) => ({
+            project_id: projectId,
+            title,
+            completed: false,
+            order: index
+          }))
+        );
+        
+        queryClient.invalidateQueries({ queryKey: ['milestones', projectId] });
+      }
+    };
+    
+    initializeMilestones();
+  }, [projectId]);
 
   // Inicializa os documentos padrão se não existirem
   React.useEffect(() => {
-    if (projectId && documents.length === 0) {
-      const defaultDocuments = [
-        'Termo de Abertura do Projeto',
-        'Kickoff',
-        'Diagnóstico',
-        'Mapa de relatórios',
-        'Acordos de conversão',
-        'Aceite de homologação',
-        'TAC',
-        'Treinamentos',
-        'Aceite de implantação'
-      ];
-      
-      defaultDocuments.forEach((title, index) => {
-        base44.entities.ProjectDocument.create({
-          project_id: projectId,
-          title,
-          completed: false,
-          order: index
-        });
-      });
-    }
-  }, [projectId, documents.length]);
+    const initializeDocuments = async () => {
+      if (projectId && documents.length === 0) {
+        const defaultDocuments = [
+          'Termo de Abertura do Projeto',
+          'Kickoff',
+          'Diagnóstico',
+          'Mapa de relatórios',
+          'Acordos de conversão',
+          'Aceite de homologação',
+          'TAC',
+          'Treinamentos',
+          'Aceite de implantação'
+        ];
+        
+        await base44.entities.ProjectDocument.bulkCreate(
+          defaultDocuments.map((title, index) => ({
+            project_id: projectId,
+            title,
+            completed: false,
+            order: index
+          }))
+        );
+        
+        queryClient.invalidateQueries({ queryKey: ['documents', projectId] });
+      }
+    };
+    
+    initializeDocuments();
+  }, [projectId]);
 
   // Calculate stats
   const projectProgress = timelineEvents.length > 0
