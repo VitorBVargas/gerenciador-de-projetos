@@ -78,6 +78,42 @@ export default function Homologation() {
     }
   });
 
+  // Cria tarefas padrão para um produto se não existirem
+  const createDefaultTasks = async (product) => {
+    const existingTasks = tasks.filter(t => t.product_id === product.id);
+    if (existingTasks.length > 0) return;
+
+    const defaultSections = getDefaultTasksForProduct(product.name);
+    if (!defaultSections) return; // Produto não tem homologação
+
+    const tasksToCreate = [];
+    let order = 0;
+
+    for (const section of defaultSections) {
+      for (const taskTitle of section.tasks) {
+        tasksToCreate.push({
+          title: taskTitle,
+          project_id: projectId,
+          product_id: product.id,
+          completed: false,
+          order: order++
+        });
+      }
+    }
+
+    if (tasksToCreate.length > 0) {
+      await base44.entities.HomologationTask.bulkCreate(tasksToCreate);
+      queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
+    }
+  };
+
+  // Criar tarefas padrão quando o produto for selecionado
+  React.useEffect(() => {
+    if (selectedProduct && getCurrentProduct()) {
+      createDefaultTasks(getCurrentProduct());
+    }
+  }, [selectedProduct]);
+
   const handleAddTask = () => {
     if (!newTaskTitle.trim() || !selectedProduct) return;
     createTaskMutation.mutate({
