@@ -50,8 +50,6 @@ export default function ProjectsList() {
 
   const deleteMutation = useMutation({
     mutationFn: async (projectId) => {
-      setDeletingProjectId(projectId);
-      
       const entities = ['TeamMember', 'Stakeholder', 'Product', 'TimelineEvent', 
                        'KanbanTask', 'Risk', 'Travel', 'Training', 'MigrationTask', 
                        'HomologationTask', 'OperationalReport'];
@@ -72,26 +70,35 @@ export default function ProjectsList() {
       await base44.entities.Project.delete(projectId);
       return projectId;
     },
+    onMutate: async (projectId) => {
+      setDeletingProjectId(projectId);
+      await queryClient.cancelQueries({ queryKey: ['projects'] });
+    },
     onSuccess: (deletedProjectId) => {
-      // Remove o projeto da cache imediatamente
       queryClient.setQueryData(['projects'], (oldData) => {
         return oldData ? oldData.filter(p => p.id !== deletedProjectId) : [];
       });
+    },
+    onSettled: () => {
       setDeletingProjectId(null);
       setDeleteDialogOpen(false);
       setProjectToDelete(null);
     },
     onError: (error) => {
       console.error('Erro ao deletar projeto:', error);
-      setDeletingProjectId(null);
-      setDeleteDialogOpen(false);
-      setProjectToDelete(null);
+      alert('Erro ao deletar projeto. Tente novamente.');
     }
   });
 
   const handleDelete = (project) => {
     setProjectToDelete(project);
     setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (projectToDelete?.id) {
+      deleteMutation.mutate(projectToDelete.id);
+    }
   };
 
   const handleImportSuccess = () => {
@@ -229,7 +236,7 @@ export default function ProjectsList() {
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => deleteMutation.mutate(projectToDelete?.id)}
+              onClick={confirmDelete}
               disabled={deleteMutation.isPending}
               className="bg-red-600 hover:bg-red-700 disabled:opacity-50"
             >
