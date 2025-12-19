@@ -3,7 +3,6 @@ import Team from './pages/Team';
 import Stakeholders from './pages/Stakeholders';
 import Products from './pages/Products';
 import Timeline from './pages/Timeline';
-import Kanban from './pages/Kanban';
 import Trainings from './pages/Trainings';
 import Travels from './pages/Travels';
 import Homologation from './pages/Homologation';
@@ -20,7 +19,6 @@ export const PAGES = {
     "Stakeholders": Stakeholders,
     "Products": Products,
     "Timeline": Timeline,
-    "Kanban": Kanban,
     "Trainings": Trainings,
     "Travels": Travels,
     "Homologation": Homologation,
