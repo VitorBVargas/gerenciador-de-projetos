@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
   Plus, 
   Plane,
@@ -11,9 +12,22 @@ import {
   MapPin,
   Pencil,
   Trash2,
-  Users
+  Car,
+  Home,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
-import { format, differenceInDays } from 'date-fns';
+import { 
+  format, 
+  startOfMonth, 
+  endOfMonth, 
+  eachDayOfInterval, 
+  isSameDay,
+  addMonths,
+  subMonths,
+  isWithinInterval,
+  parseISO
+} from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from "@/lib/utils";
 import EmptyState from '../components/ui/EmptyState';
@@ -39,18 +53,34 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const statusColors = {
-  planejada: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
-  confirmada: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-  realizada: 'bg-green-500/20 text-green-400 border-green-500/30',
-  cancelada: 'bg-red-500/20 text-red-400 border-red-500/30'
+const travelTypeIcons = {
+  presencial: Home,
+  carro: Car,
+  aviao: Plane
 };
 
-const statusLabels = {
-  planejada: 'Planejada',
-  confirmada: 'Confirmada',
-  realizada: 'Realizada',
-  cancelada: 'Cancelada'
+const travelTypeColors = {
+  presencial: 'bg-slate-500',
+  carro: 'bg-blue-500',
+  aviao: 'bg-purple-500'
+};
+
+const travelTypeLabels = {
+  presencial: 'Presencial',
+  carro: 'Carro',
+  aviao: 'Avião'
+};
+
+const verticalLabels = {
+  arrecadacao: 'Arrecadação',
+  compras: 'Compras',
+  contabil: 'Contábil',
+  pessoal: 'Pessoal',
+  educacao: 'Educação',
+  iss: 'ISS',
+  parceiros: 'Parceiros',
+  plataforma: 'Plataforma',
+  atendimento: 'Atendimento'
 };
 
 export default function Travels() {
@@ -59,22 +89,32 @@ export default function Travels() {
   const [selectedTravel, setSelectedTravel] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [travelToDelete, setTravelToDelete] = useState(null);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [viewMode, setViewMode] = useState('calendar'); // calendar or list
   const [formData, setFormData] = useState({
     title: '',
     start_date: '',
     end_date: '',
     location: '',
+    travel_type: 'presencial',
+    vertical: '',
+    attendees: [],
     status: 'planejada',
     notes: ''
   });
 
-  // Get project_id from URL
   const urlParams = new URLSearchParams(window.location.search);
   const projectId = urlParams.get('project_id');
 
   const { data: projects = [] } = useQuery({
     queryKey: ['projects'],
     queryFn: () => base44.entities.Project.list('-created_date')
+  });
+
+  const { data: teamMembers = [] } = useQuery({
+    queryKey: ['teamMembers', projectId],
+    queryFn: () => projectId ? base44.entities.TeamMember.filter({ project_id: projectId }) : [],
+    enabled: !!projectId
   });
 
   const { data: travels = [] } = useQuery({
@@ -119,6 +159,9 @@ export default function Travels() {
       start_date: '',
       end_date: '',
       location: '',
+      travel_type: 'presencial',
+      vertical: '',
+      attendees: [],
       status: 'planejada',
       notes: ''
     });
@@ -131,6 +174,9 @@ export default function Travels() {
       start_date: travel.start_date || '',
       end_date: travel.end_date || '',
       location: travel.location || '',
+      travel_type: travel.travel_type || 'presencial',
+      vertical: travel.vertical || '',
+      attendees: travel.attendees || [],
       status: travel.status || 'planejada',
       notes: travel.notes || ''
     });
@@ -152,170 +198,293 @@ export default function Travels() {
     }
   };
 
-  const getDuration = (start, end) => {
-    if (!start) return null;
-    if (!end) return '1 dia';
-    const days = differenceInDays(new Date(end), new Date(start)) + 1;
-    return `${days} dia${days > 1 ? 's' : ''}`;
+  // Calendar calculations
+  const monthStart = startOfMonth(currentMonth);
+  const monthEnd = endOfMonth(currentMonth);
+  const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
+
+  // Get travels for a specific day
+  const getTravelsForDay = (day) => {
+    return travels.filter(travel => {
+      if (!travel.start_date) return false;
+      const start = parseISO(travel.start_date);
+      const end = travel.end_date ? parseISO(travel.end_date) : start;
+      return isWithinInterval(day, { start, end });
+    });
   };
 
-  // Group travels by status
-  const upcomingTravels = travels.filter(t => t.status === 'planejada' || t.status === 'confirmada');
-  const completedTravels = travels.filter(t => t.status === 'realizada');
-  const canceledTravels = travels.filter(t => t.status === 'cancelada');
+  // Group team members by vertical
+  const membersByVertical = useMemo(() => {
+    return teamMembers.reduce((acc, member) => {
+      const vertical = member.vertical || 'outros';
+      if (!acc[vertical]) acc[vertical] = [];
+      acc[vertical].push(member);
+      return acc;
+    }, {});
+  }, [teamMembers]);
 
-  const TravelCard = ({ travel }) => (
-    <Card className="bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 transition-all group">
-      <CardContent className="p-5">
-        <div className="flex items-start justify-between mb-3">
-          <Badge className={cn("border", statusColors[travel.status])}>
-            {statusLabels[travel.status]}
-          </Badge>
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-7 w-7 text-slate-400 hover:text-white hover:bg-slate-700"
-              onClick={() => handleEdit(travel)}
-            >
-              <Pencil className="w-3 h-3" />
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-500/20"
-              onClick={() => handleDelete(travel)}
-            >
-              <Trash2 className="w-3 h-3" />
-            </Button>
-          </div>
-        </div>
-        <h3 className="font-semibold text-white mb-3">{travel.title}</h3>
-        <div className="space-y-2 text-sm text-slate-400">
-          {travel.location && (
-            <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4" />
-              {travel.location}
-            </div>
-          )}
-          {travel.start_date && (
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              {format(new Date(travel.start_date), "dd 'de' MMMM", { locale: ptBR })}
-              {travel.end_date && travel.end_date !== travel.start_date && (
-                <> - {format(new Date(travel.end_date), "dd 'de' MMMM", { locale: ptBR })}</>
-              )}
-              {getDuration(travel.start_date, travel.end_date) && (
-                <Badge variant="secondary" className="bg-slate-700 text-slate-300 ml-2">
-                  {getDuration(travel.start_date, travel.end_date)}
-                </Badge>
-              )}
-            </div>
-          )}
-        </div>
-        {travel.notes && (
-          <p className="text-xs text-slate-500 mt-3 line-clamp-2">{travel.notes}</p>
-        )}
-      </CardContent>
-    </Card>
-  );
+  const verticals = Object.keys(membersByVertical).sort();
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-white">Viagens</h1>
-          <p className="text-slate-400 mt-1">{travels.length} viagens cadastradas</p>
+          <h1 className="text-2xl lg:text-3xl font-bold text-white">Viagens dos Implantadores</h1>
+          <p className="text-slate-400 mt-1">Calendário de deslocamentos da equipe</p>
         </div>
-        <Button 
-          onClick={() => { setSelectedTravel(null); resetForm(); setModalOpen(true); }}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Nova Viagem
-        </Button>
+        <div className="flex gap-2">
+          <Tabs value={viewMode} onValueChange={setViewMode}>
+            <TabsList className="bg-slate-800 border border-slate-700">
+              <TabsTrigger value="calendar" className="data-[state=active]:bg-blue-600">
+                Calendário
+              </TabsTrigger>
+              <TabsTrigger value="list" className="data-[state=active]:bg-blue-600">
+                Lista
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <Button 
+            onClick={() => { setSelectedTravel(null); resetForm(); setModalOpen(true); }}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Nova Viagem
+          </Button>
+        </div>
       </div>
 
-      {travels.length > 0 ? (
-        <div className="space-y-8">
-          {upcomingTravels.length > 0 && (
-            <div>
-              <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-blue-500" />
-                Próximas ({upcomingTravels.length})
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {upcomingTravels.map(t => <TravelCard key={t.id} travel={t} />)}
+      {/* Legend */}
+      <Card className="bg-slate-800/50 border-slate-700/50">
+        <CardContent className="p-4">
+          <div className="flex flex-wrap items-center gap-4 text-sm">
+            <span className="text-slate-400 font-medium">Legenda:</span>
+            {Object.entries(travelTypeLabels).map(([type, label]) => {
+              const Icon = travelTypeIcons[type];
+              return (
+                <div key={type} className="flex items-center gap-2">
+                  <div className={cn("w-3 h-3 rounded-full", travelTypeColors[type])} />
+                  <Icon className="w-4 h-4 text-slate-400" />
+                  <span className="text-slate-300">{label}</span>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {viewMode === 'calendar' ? (
+        <>
+          {/* Month Navigation */}
+          <Card className="bg-slate-800/50 border-slate-700/50">
+            <CardHeader className="border-b border-slate-700/50">
+              <div className="flex items-center justify-between">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+                  className="text-slate-400 hover:text-white hover:bg-slate-700"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </Button>
+                <CardTitle className="text-xl text-white">
+                  {format(currentMonth, "MMMM 'de' yyyy", { locale: ptBR })}
+                </CardTitle>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+                  className="text-slate-400 hover:text-white hover:bg-slate-700"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </Button>
               </div>
-            </div>
-          )}
-          {completedTravels.length > 0 && (
-            <div>
-              <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-green-500" />
-                Realizadas ({completedTravels.length})
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {completedTravels.map(t => <TravelCard key={t.id} travel={t} />)}
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-700/50">
+                      <th className="sticky left-0 z-10 bg-slate-800/50 px-4 py-3 text-left text-sm font-semibold text-slate-400 min-w-[200px]">
+                        Implantador
+                      </th>
+                      {daysInMonth.map(day => (
+                        <th key={day.toString()} className="px-2 py-3 text-center text-xs font-medium text-slate-400 min-w-[40px]">
+                          <div>{format(day, 'dd')}</div>
+                          <div className="text-[10px] text-slate-500">{format(day, 'EEE', { locale: ptBR })}</div>
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {verticals.map(vertical => (
+                      <React.Fragment key={vertical}>
+                        <tr className="bg-slate-700/30">
+                          <td colSpan={daysInMonth.length + 1} className="sticky left-0 z-10 px-4 py-2 text-sm font-semibold text-cyan-400 bg-slate-700/30">
+                            {verticalLabels[vertical] || vertical}
+                          </td>
+                        </tr>
+                        {membersByVertical[vertical].map(member => (
+                          <tr key={member.id} className="border-b border-slate-700/30 hover:bg-slate-700/20">
+                            <td className="sticky left-0 z-10 bg-slate-800/90 px-4 py-3 text-sm text-white border-r border-slate-700/50">
+                              {member.name}
+                            </td>
+                            {daysInMonth.map(day => {
+                              const dayTravels = getTravelsForDay(day).filter(t => 
+                                t.attendees?.includes(member.name)
+                              );
+                              const travel = dayTravels[0]; // First travel for this day
+                              
+                              return (
+                                <td 
+                                  key={day.toString()} 
+                                  className="px-1 py-2 text-center border-r border-slate-700/20"
+                                >
+                                  {travel && (
+                                    <div 
+                                      className={cn(
+                                        "w-8 h-8 mx-auto rounded-full flex items-center justify-center cursor-pointer transition-transform hover:scale-110",
+                                        travelTypeColors[travel.travel_type]
+                                      )}
+                                      onClick={() => handleEdit(travel)}
+                                      title={`${travel.title} - ${travel.location || 'Sem local'}`}
+                                    >
+                                      {React.createElement(travelTypeIcons[travel.travel_type], { 
+                                        className: "w-4 h-4 text-white" 
+                                      })}
+                                    </div>
+                                  )}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        ))}
+                      </React.Fragment>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            </div>
-          )}
-          {canceledTravels.length > 0 && (
-            <div>
-              <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-red-500" />
-                Canceladas ({canceledTravels.length})
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {canceledTravels.map(t => <TravelCard key={t.id} travel={t} />)}
-              </div>
-            </div>
+            </CardContent>
+          </Card>
+        </>
+      ) : (
+        // List View
+        <div className="space-y-4">
+          {travels.length > 0 ? (
+            travels.map(travel => {
+              const Icon = travelTypeIcons[travel.travel_type];
+              return (
+                <Card key={travel.id} className="bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 transition-all group">
+                  <CardContent className="p-5">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className={cn("w-10 h-10 rounded-full flex items-center justify-center", travelTypeColors[travel.travel_type])}>
+                            <Icon className="w-5 h-5 text-white" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-white">{travel.title}</h3>
+                            <p className="text-sm text-slate-400">{travelTypeLabels[travel.travel_type]}</p>
+                          </div>
+                        </div>
+                        <div className="ml-13 space-y-2 text-sm text-slate-400">
+                          {travel.location && (
+                            <div className="flex items-center gap-2">
+                              <MapPin className="w-4 h-4" />
+                              {travel.location}
+                            </div>
+                          )}
+                          {travel.start_date && (
+                            <div className="flex items-center gap-2">
+                              <Calendar className="w-4 h-4" />
+                              {format(parseISO(travel.start_date), "dd/MM/yyyy")}
+                              {travel.end_date && travel.end_date !== travel.start_date && (
+                                <> - {format(parseISO(travel.end_date), "dd/MM/yyyy")}</>
+                              )}
+                            </div>
+                          )}
+                          {travel.attendees && travel.attendees.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {travel.attendees.map((attendee, idx) => (
+                                <Badge key={idx} variant="secondary" className="bg-slate-700 text-slate-300">
+                                  {attendee}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7 text-slate-400 hover:text-white hover:bg-slate-700"
+                          onClick={() => handleEdit(travel)}
+                        >
+                          <Pencil className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-500/20"
+                          onClick={() => handleDelete(travel)}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })
+          ) : (
+            <EmptyState
+              icon={Plane}
+              title="Nenhuma viagem cadastrada"
+              description="Adicione as viagens dos implantadores"
+              action={
+                <Button onClick={() => setModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Nova Viagem
+                </Button>
+              }
+            />
           )}
         </div>
-      ) : (
-        <EmptyState
-          icon={Plane}
-          title="Nenhuma viagem cadastrada"
-          description="Adicione as viagens do projeto"
-          action={
-            <Button onClick={() => setModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
-              <Plus className="w-4 h-4 mr-2" />
-              Nova Viagem
-            </Button>
-          }
-        />
       )}
 
       {/* Modal */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="bg-slate-800 border-slate-700 text-slate-100 max-w-lg">
+        <DialogContent className="bg-slate-800 border-slate-700 text-slate-100 max-w-2xl">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold text-white">
               {selectedTravel ? 'Editar Viagem' : 'Nova Viagem'}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label>Objetivo</Label>
-              <Input
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="bg-slate-700 border-slate-600 text-white"
-                placeholder="Ex: Kick-off do projeto"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Local de Destino</Label>
-              <Input
-                value={formData.location}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                className="bg-slate-700 border-slate-600 text-white"
-                placeholder="Ex: São Paulo, SP"
-              />
-            </div>
             <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Objetivo da Viagem</Label>
+                <Input
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  className="bg-slate-700 border-slate-600 text-white"
+                  placeholder="Ex: Kick-off do projeto"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Local de Destino</Label>
+                <Input
+                  value={formData.location}
+                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                  className="bg-slate-700 border-slate-600 text-white"
+                  placeholder="Ex: São Paulo, SP"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>Data Início</Label>
                 <Input
@@ -335,21 +504,88 @@ export default function Travels() {
                   className="bg-slate-700 border-slate-600 text-white"
                 />
               </div>
+              <div className="space-y-2">
+                <Label>Tipo de Deslocamento</Label>
+                <Select value={formData.travel_type} onValueChange={(v) => setFormData({ ...formData, travel_type: v })}>
+                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-700 border-slate-600">
+                    <SelectItem value="presencial">Presencial</SelectItem>
+                    <SelectItem value="carro">Carro</SelectItem>
+                    <SelectItem value="aviao">Avião</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Vertical</Label>
+                <Select value={formData.vertical} onValueChange={(v) => setFormData({ ...formData, vertical: v })}>
+                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-700 border-slate-600">
+                    {Object.entries(verticalLabels).map(([key, label]) => (
+                      <SelectItem key={key} value={key}>{label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Status</Label>
+                <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
+                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-700 border-slate-600">
+                    <SelectItem value="planejada">Planejada</SelectItem>
+                    <SelectItem value="confirmada">Confirmada</SelectItem>
+                    <SelectItem value="realizada">Realizada</SelectItem>
+                    <SelectItem value="cancelada">Cancelada</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
             <div className="space-y-2">
-              <Label>Status</Label>
-              <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
+              <Label>Participantes</Label>
+              <div className="flex flex-wrap gap-2 p-3 bg-slate-700 border border-slate-600 rounded-md min-h-[60px]">
+                {formData.attendees.map((attendee, idx) => (
+                  <Badge 
+                    key={idx} 
+                    className="bg-blue-600 text-white cursor-pointer hover:bg-red-600"
+                    onClick={() => setFormData({
+                      ...formData,
+                      attendees: formData.attendees.filter((_, i) => i !== idx)
+                    })}
+                  >
+                    {attendee} ×
+                  </Badge>
+                ))}
+              </div>
+              <Select 
+                value="" 
+                onValueChange={(v) => {
+                  if (v && !formData.attendees.includes(v)) {
+                    setFormData({ ...formData, attendees: [...formData.attendees, v] });
+                  }
+                }}
+              >
                 <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                  <SelectValue />
+                  <SelectValue placeholder="Adicionar participante..." />
                 </SelectTrigger>
                 <SelectContent className="bg-slate-700 border-slate-600">
-                  <SelectItem value="planejada">Planejada</SelectItem>
-                  <SelectItem value="confirmada">Confirmada</SelectItem>
-                  <SelectItem value="realizada">Realizada</SelectItem>
-                  <SelectItem value="cancelada">Cancelada</SelectItem>
+                  {teamMembers.map(member => (
+                    <SelectItem key={member.id} value={member.name}>
+                      {member.name} ({verticalLabels[member.vertical] || member.vertical})
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
+
             <div className="space-y-2">
               <Label>Observações</Label>
               <Textarea
@@ -358,6 +594,7 @@ export default function Travels() {
                 className="bg-slate-700 border-slate-600 text-white h-20"
               />
             </div>
+
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setModalOpen(false)} className="border-slate-600 text-slate-300 hover:bg-slate-700">
                 Cancelar
