@@ -125,7 +125,7 @@ export default function Budget() {
   };
 
   // Calculate budget metrics
-  const totalBudget = activeProject?.value || 0;
+  const totalBudget = activeProject?.budget || 0;
   const totalSpent = expenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
   const remaining = totalBudget - totalSpent;
   const spentPercentage = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;

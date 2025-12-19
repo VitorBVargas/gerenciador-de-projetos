@@ -140,6 +140,7 @@ export default function ExcelImporter({ open, onOpenChange, onSuccess }) {
       name: data['nome do projeto'] || 'Projeto Importado',
       manager: data['gerente do projeto'] || '',
       value: parseFloat(data['valor do projeto']) || 0,
+      budget: parseFloat(data['orçamento do projeto']) || parseFloat(data['orcamento do projeto']) || 0,
       deadline: excelDateToJSDate(data['prazo final']),
       contract_link: data['link do contrato'] || '',
       status: normalizeStatus(data['status'])
