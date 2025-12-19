@@ -47,10 +47,10 @@ export default function Dashboard() {
 
   // Redirect to projects list if no project selected
   React.useEffect(() => {
-    if (!projectId) {
+    if (!projectId && projects.length === 0) {
       window.location.href = createPageUrl('ProjectsList');
     }
-  }, [projectId]);
+  }, [projectId, projects.length]);
 
   const { data: teamMembers = [] } = useQuery({
     queryKey: ['teamMembers', projectId],
