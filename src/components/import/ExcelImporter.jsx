@@ -286,64 +286,70 @@ const processTeamSheet = (workbook) => {
 const processProductsSheet = (workbook) => {
     const sheet = workbook.Sheets['Produto Contratado'];
     if (!sheet) {
-      console.log('Aba Produto Contratado não encontrada');
+      console.log('❌ Aba Produto Contratado não encontrada');
       return [];
     }
 
-    const data = XLSX.utils.sheet_to_json(sheet, { raw: false });
-    console.log('Dados da aba Produto Contratado:', data);
-    
+    const data = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: false });
+    console.log('📊 Dados brutos da aba Produto Contratado:', data.length, 'linhas');
+
     if (data.length === 0) return [];
 
     const allHeaders = Object.keys(data[0]);
-    console.log('Todos os headers encontrados:', allHeaders);
-    
-    const verticalCol = findColumn(allHeaders, ['Vertical', 'Área', 'Vertial', 'Area']);
+    console.log('📋 Headers encontrados:', allHeaders);
+
+    const verticalCol = findColumn(allHeaders, ['Vertical', 'Vertial', 'Área', 'Area']);
     const nameCol = findColumn(allHeaders, ['Produto', 'Nome', 'Produtos', 'Product']);
-    const entityCol = findColumn(allHeaders, ['Entidade', 'Órgão', 'Orgao', 'Entity']);
+    const entityCol = findColumn(allHeaders, ['Entidade', 'Órgão', 'Orgao', 'Entity', 'Cliente']);
     const ticketCol = findColumn(allHeaders, ['Chamado', 'Ticket', 'Número', 'Numero']);
 
-    console.log('Colunas mapeadas - Vertical:', verticalCol, 'Produto:', nameCol, 'Entidade:', entityCol, 'Chamado:', ticketCol);
+    console.log('🔍 Mapeamento de colunas:', { verticalCol, nameCol, entityCol, ticketCol });
 
+    // Remove duplicatas
+    const seen = new Set();
     const products = data.map((row, index) => {
-      const name = row[nameCol];
-      const vertical = row[verticalCol];
-      
-      console.log(`Linha ${index}:`, { 
-        name, 
-        vertical, 
-        normalizedVertical: normalizeVertical(vertical),
-        entity: row[entityCol],
-        ticket: row[ticketCol]
-      });
-      
-      if (!name) {
-        console.log('Produto ignorado - sem nome');
+      const rawName = row[nameCol] ? String(row[nameCol]).trim() : '';
+      const rawVertical = row[verticalCol] ? String(row[verticalCol]).trim() : '';
+      const entity = row[entityCol] ? String(row[entityCol]).trim() : '';
+      const ticket = row[ticketCol] ? String(row[ticketCol]).trim() : '';
+
+      // Valida se tem dados mínimos
+      if (!rawName || rawName.length < 2) {
+        console.log(`⏭️  Linha ${index + 2}: Ignorada - nome inválido`);
         return null;
       }
-      
-      if (!vertical) {
-        console.log('Produto ignorado - sem vertical');
+
+      if (!rawVertical || rawVertical.length < 2) {
+        console.log(`⏭️  Linha ${index + 2}: Ignorada - vertical inválida`);
         return null;
       }
-      
-      const normalizedVertical = normalizeVertical(vertical);
-      if (!normalizedVertical) {
-        console.log('Produto ignorado - vertical não mapeada:', vertical);
+
+      // Normaliza a vertical (aceita qualquer valor, remove acentos)
+      const normalizedVertical = normalizeVertical(rawVertical) || rawVertical.toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]/g, '_');
+
+      // Remove duplicatas exatas
+      const key = `${normalizedVertical}_${rawName}_${entity}`.toLowerCase();
+      if (seen.has(key)) {
+        console.log(`⏭️  Linha ${index + 2}: Duplicata ignorada - ${rawName}`);
         return null;
       }
-      
+      seen.add(key);
+
+      console.log(`✅ Linha ${index + 2}: ${rawName} (${normalizedVertical})`);
+
       return {
-        name: String(name).trim(),
+        name: rawName,
         vertical: normalizedVertical,
-        entity: row[entityCol] ? String(row[entityCol]).trim() : '',
-        ticket_number: row[ticketCol] ? String(row[ticketCol]).trim() : '',
+        entity,
+        ticket_number: ticket,
         status: 'pendente',
         priority: 'media'
       };
     }).filter(p => p !== null);
 
-    console.log('Produtos processados:', products);
+    console.log(`✅ Total de produtos processados: ${products.length}`);
     return products;
   };
 
