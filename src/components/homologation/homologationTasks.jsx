@@ -247,6 +247,71 @@ export const homologationTasksByProduct = {
     'Módulo Único: Convênios Repassados, Formalização e execução',
     'SPRINT 2: PRESTAÇÃO DE CONTAS E CONCLUSÃO',
     'Módulo Único: A comprovar, em comprovação e comprovada, Concluído, Validar necessidade de campos relacionados às prestações de contas'
+  ]),
+
+  // PESSOAL
+  'Folha (Cloud)': parseTasksIntoSections([
+    'SPRINT 1: CADASTROS INICIAIS',
+    'Módulo Único: Cadastro de Entidade, Cadastro de Grupos Funcionais, Cadastro de Organogramas',
+    'SPRINT 2: ESTRUTURA DE CARGOS',
+    'Módulo Único: Cadastro de Lotações Físicas, Cadastro de Atos, Cadastro de Quadro de Cargos, Cadastro de Cargos, Cadastro de Áreas de Atuação, Cadastro de Planos de Cargos e Salários, Cadastro de Níveis Salariais',
+    'SPRINT 3: CONFIGURAÇÕES DA FOLHA',
+    'Módulo Único: Cadastro de Manutenção de Estabelecimentos, Cadastro de Tipos de Bases',
+    'SPRINT 4: EVENTOS E CÁLCULO',
+    'Módulo Único: Cadastro de Eventos, Cadastro de Médias e Vantagens, Configuração de Provisão',
+    'SPRINT 5: VÍNCULOS E PREVIDÊNCIA',
+    'Módulo Único: Cadastro de Concurso, Cadastro de Vínculos Empregatícios, Cadastro de Planos de Previdência e Assistência, Cadastro de Tipos de Administração, Cadastro de Endereços',
+    'SPRINT 6: CADASTRO DE PESSOAL',
+    'Módulo Único: Cadastro de Pessoas, Cadastro de Matrículas',
+    'SPRINT 7: CADASTROS AUXILIARES',
+    'Módulo Único: Cadastro de Empresas, Cadastro de Agências Bancárias, Cadastro de Profissionais',
+    'SPRINT 8: GESTÃO DE PERÍODOS E MOVIMENTAÇÕES',
+    'Módulo Único: Períodos Aquisitivos de Férias, Períodos Aquisitivos de Décimo Terceiro, Gestão de Processos, Afastamentos, Ocorrências Disciplinares, Avisos Prévios, Movimentações de Pessoal, Lançamentos de Variáveis',
+    'SPRINT 9: CONSULTAS E HISTÓRICOS',
+    'Módulo Único: Consulta de Cálculo, Histórico de Reajuste Salarial, Serviços de Autônomos',
+    'SPRINT 10: BASES EXTERNAS',
+    'Módulo Único: Bases de Outras Empresas',
+    'SPRINT 11: OBRIGAÇÕES E INTEGRAÇÕES',
+    'Módulo Único: DIRF, RAIS, Integração com o Transparência, Prestação de Contas'
+  ]),
+
+  'Recursos Humanos (Cloud)': parseTasksIntoSections([
+    'SPRINT 1: CADASTROS GERAIS E BENEFÍCIOS',
+    'Módulo Único: Experiências Anteriores, Manutenção de averbações, Cursos, Bolsa de estudos, Formações, Cadastro de Cursos, Configuração de Planos de Saúde, Configuração de Vale Alimentação',
+    'SPRINT 2: BENEFÍCIOS E CONSIGNAÇÕES',
+    'Módulo Único: Cadastro de Naturezas de Diárias, Cadastro de Rotas, Cadastro de Distâncias, Configuração de Margem Consignável',
+    'SPRINT 3: ADICIONAIS E LICENÇAS',
+    'Módulo Único: Configuração de Adicionais, Configuração de Licença Prêmio, Cadastro de Procedimentos Médicos',
+    'SPRINT 4: EMPRÉSTIMOS',
+    'Módulo Único: Cadastro de Empréstimos',
+    'SPRINT 5: GESTÃO DE DESPESAS E RECRUTAMENTO',
+    'Módulo Único: Cadastro de Margem Consignável, Despesas de Plano de Saúde/Vale Transporte/Vale Alimentação, Recrutamento e Seleção, Comissões de Avaliações, Avaliações, Locais de Avaliação',
+    'SPRINT 6: GESTÃO DE PESSOAL',
+    'Módulo Único: Vínculo Empregatício, Contratos Temporários, Substituições de Funcionários, Aposentadorias e Pensões, Gestão de Recrutamento e Seleção',
+    'SPRINT 7: SAÚDE OCUPACIONAL',
+    'Módulo Único: Equipamentos de Proteção, Juntas Médicas, Riscos Ambientais, Formulários de Anamnese',
+    'SPRINT 8: SEGURANÇA DO TRABALHO',
+    'Módulo Único: CIPA, Agendas, Atestados',
+    'SPRINT 9: CONTROLE DE EPIS E REGISTROS',
+    'Módulo Único: Solicitação de Equipamentos de Proteção, Controle de Entrega de EPIs, Registro de Extintores, ASO',
+    'SPRINT 10: MEDICINA DO TRABALHO',
+    'Módulo Único: Laudos Médicos, Agendamentos, Acidentes de Trabalho, PPRA, Visitas Técnicas',
+    'SPRINT 11: DESENVOLVIMENTO E PRESTAÇÃO DE CONTAS',
+    'Módulo Único: Avaliações de Desempenho, Conceitos, Competências, Gestão de Avaliações de Desempenho, Solicitações de Cursos, Planejamento de Cursos, Prestação de Contas'
+  ]),
+
+  'Ponto (Cloud)': parseTasksIntoSections([
+    'SPRINT 1: PARÂMETROS E JORNADAS',
+    'Módulo Único: Conferir Parâmetros Gerais e do Ponto, Cadastro de Relógios, Jornadas de Trabalhos, Cadastro de Horários, Cadastro de Escalas, Cadastro de Ocorrências',
+    'SPRINT 2: CONFIGURAÇÕES E LANÇAMENTOS',
+    'Módulo Único: Cadastro de Funções de Relógios, Cadastro de Períodos de Apuração, Cadastro de Funções para Fórmulas, Cadastro de Tipos de Funções de Relógios, Cadastro de Lançamento de Horas, Cadastro de Permutas, Cadastro de Compensação de Horas, Cadastro de Lançamento de Audiência, Cadastro de Eventos Extraordinários, Marcações de Ponto, Prestação de Contas'
+  ]),
+
+  'eSocial': parseTasksIntoSections([
+    'SPRINT 1: CORREÇÕES E ENVIOS',
+    'Módulo Único: Auditoria de ações manuais, Domínios integrados, Eventos Gerados, Envios periódicos (Validar recibos), Envios iniciais e não periódicos (Validar recibos), Agenda de envios',
+    'SPRINT 2: EXECUÇÃO E PRESTAÇÃO DE CONTAS',
+    'Módulo Único: Verificar artefatos, Validar necessidade de campos relacionados às prestações de contas'
   ])
 };
 
