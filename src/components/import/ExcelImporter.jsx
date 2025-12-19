@@ -290,9 +290,13 @@ const processTeamSheet = (workbook) => {
   };
 
 const processProductsSheet = (workbook) => {
-    const sheet = workbook.Sheets['Produto Contratado'];
+    // Tenta encontrar a aba com nomes variantes
+    let sheet = workbook.Sheets['Produto Contratado'] || 
+                workbook.Sheets['Produtos Contratados'] || 
+                workbook.Sheets['Produtos Contratado'];
+
     if (!sheet) {
-      console.log('❌ Aba Produto Contratado não encontrada');
+      console.log('❌ Aba de produtos não encontrada (tentou: Produto Contratado, Produtos Contratados, Produtos Contratado)');
       return [];
     }
 
@@ -852,7 +856,7 @@ const processProductsSheet = (workbook) => {
               <li>• <span className="text-slate-300">Dados Gerais</span> - Informações do projeto</li>
               <li>• <span className="text-slate-300">Equipe do projeto</span> - Membros da equipe</li>
               <li>• <span className="text-slate-300">Dados Cliente</span> - Stakeholders</li>
-              <li>• <span className="text-slate-300">Produto Contratado</span> - Produtos contratados</li>
+              <li>• <span className="text-slate-300">Produto Contratado / Produtos Contratados</span> - Produtos contratados</li>
               <li>• <span className="text-slate-300">Cronograma - *</span> - Etapas do projeto (uma aba por vertical)</li>
               <li>• <span className="text-slate-300">Riscos</span> - Riscos identificados</li>
               <li>• <span className="text-slate-300">Viagens</span> - Viagens planejadas</li>
