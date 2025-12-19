@@ -134,19 +134,22 @@ export default function Migration() {
     });
   };
 
-  const handleToggleAllTasks = () => {
+  const handleToggleAllTasks = async () => {
     const productTasks = getProductTasks(selectedProduct);
     if (productTasks.length === 0) return;
     
     const allCompleted = productTasks.every(t => t.completed);
     const newCompletedState = !allCompleted;
     
-    productTasks.forEach(task => {
-      updateTaskMutation.mutate({
-        id: task.id,
-        data: { ...task, completed: newCompletedState }
-      });
-    });
+    // Atualiza todas as tarefas em paralelo
+    await Promise.all(
+      productTasks.map(task => 
+        base44.entities.MigrationTask.update(task.id, { ...task, completed: newCompletedState })
+      )
+    );
+    
+    // Invalida queries uma vez só depois de tudo
+    queryClient.invalidateQueries({ queryKey: ['migrationTasks'] });
   };
 
   const getProductTasks = (productId) => {
