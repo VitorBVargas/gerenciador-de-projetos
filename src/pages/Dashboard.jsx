@@ -250,23 +250,6 @@ export default function Dashboard() {
           <h1 className="text-2xl lg:text-3xl font-bold text-white">Visão Geral</h1>
           <p className="text-slate-400 mt-1">Acompanhe o progresso do seu projeto</p>
         </div>
-        <div className="flex gap-2">
-          <Button 
-            onClick={() => setImportModalOpen(true)}
-            variant="outline"
-            className="border-slate-600 text-slate-300 hover:bg-slate-700"
-          >
-            <Upload className="w-4 h-4 mr-2" />
-            Importar Excel
-          </Button>
-          <Button 
-            onClick={() => { setSelectedProject(null); setProjectModalOpen(true); }}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Novo Projeto
-          </Button>
-        </div>
       </div>
 
       {/* Active Project Card */}
