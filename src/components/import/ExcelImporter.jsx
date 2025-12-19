@@ -664,28 +664,28 @@ const processProductsSheet = (workbook) => {
             additionalMembers.push({
               name: managerName,
               role: 'Gerente do Projeto',
-              vertical: 'plataforma'
+              vertical: 'gerenciamento'
             });
           }
         });
       }
-      
+
       if (projectData.coordinator) {
         if (!teamMembers.some(m => m.name.toLowerCase() === projectData.coordinator.toLowerCase())) {
           additionalMembers.push({
             name: projectData.coordinator,
             role: 'Coordenador Técnico',
-            vertical: 'plataforma'
+            vertical: 'gerenciamento'
           });
         }
       }
-      
+
       if (projectData.portfolio_manager) {
         if (!teamMembers.some(m => m.name.toLowerCase() === projectData.portfolio_manager.toLowerCase())) {
           additionalMembers.push({
             name: projectData.portfolio_manager,
             role: 'Gerente do Portfólio',
-            vertical: 'plataforma'
+            vertical: 'gerenciamento'
           });
         }
       }
