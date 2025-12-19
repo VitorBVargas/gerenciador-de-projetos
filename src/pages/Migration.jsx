@@ -144,11 +144,14 @@ export default function Migration() {
     return Math.round((completed / productTasks.length) * 100);
   };
 
-  // Group products by vertical
+  // Group products by vertical (apenas produtos com migração)
   const productsByVertical = products.reduce((acc, product) => {
-    const vertical = product.vertical || 'outros';
-    if (!acc[vertical]) acc[vertical] = [];
-    acc[vertical].push(product);
+    // Só inclui produtos que têm processo de migração
+    if (productHasMigration(product.name)) {
+      const vertical = product.vertical || 'outros';
+      if (!acc[vertical]) acc[vertical] = [];
+      acc[vertical].push(product);
+    }
     return acc;
   }, {});
 
@@ -328,7 +331,10 @@ export default function Migration() {
 
                           {/* Custom tasks not in sections */}
                           {(() => {
-                            const allSectionTasks = getDefaultTasksForProduct(product.name)
+                            const defaultSections = getDefaultTasksForProduct(product.name);
+                            if (!defaultSections) return null;
+
+                            const allSectionTasks = defaultSections
                               .flatMap(s => s.tasks.map(t => t.toLowerCase()));
                             const customTasks = getProductTasks(product.id).filter(task =>
                               !allSectionTasks.includes(task.title.toLowerCase())
