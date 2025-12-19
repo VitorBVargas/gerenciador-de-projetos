@@ -305,11 +305,8 @@ export default function Dashboard() {
           <CardContent className="p-6">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
               <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
+                <div className="mb-3">
                   <h2 className="text-xl lg:text-2xl font-bold text-white">{activeProject.name}</h2>
-                  <Badge className={cn("border", statusColors[activeProject.status])}>
-                    {statusLabels[activeProject.status]}
-                  </Badge>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                   {activeProject.manager && (
