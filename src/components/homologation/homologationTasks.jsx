@@ -312,6 +312,56 @@ export const homologationTasksByProduct = {
     'Módulo Único: Auditoria de ações manuais, Domínios integrados, Eventos Gerados, Envios periódicos (Validar recibos), Envios iniciais e não periódicos (Validar recibos), Agenda de envios',
     'SPRINT 2: EXECUÇÃO E PRESTAÇÃO DE CONTAS',
     'Módulo Único: Verificar artefatos, Validar necessidade de campos relacionados às prestações de contas'
+  ]),
+
+  // PLATAFORMA
+  'Transparência (Cloud)': parseTasksIntoSections([
+    'SPRINT 1: CONFIGURAÇÃO E INTEGRAÇÃO',
+    'Configurações Iniciais: Configuração da Entidade (Brasão, Dados, Contatos), Configuração de Usuários e Permissões, Personalização do Layout',
+    'Integrações: Validar Script de Integração (Contábil, Folha, Compras/Licitações), Configurar agendamento de sincronização',
+    'SPRINT 2: VALIDAÇÃO DE DADOS',
+    'Execução Orçamentária: Validar Receitas, Validar Despesas, Validar Transferências e Repasses',
+    'Pessoal e Licitações: Validar Folha de Pagamento, Validar Diárias e Passagens, Validar Licitações, Validar Contratos e Aditivos',
+    'SPRINT 3: CONFORMIDADE LEGAL',
+    'Lei de Acesso à Informação: Validar e-SIC, Validar Acessibilidade (VLibras, Alto Contraste), Validar Responsividade, Publicação do Link'
+  ]),
+
+  'Conecta (Cloud)': parseTasksIntoSections([
+    'SPRINT 1: IDENTIDADE E ACESSO',
+    'Personalização: Configurar Identidade Visual, Banner Principal, Links de Redes Sociais',
+    'Controle de Acesso: Configurar Login (Gov.br ou cadastro próprio), Recuperação de Senha, Termos de Uso',
+    'SPRINT 2: CARTA DE SERVIÇOS',
+    'Configuração de Serviços: Cadastrar Categorias, Configurar Serviços de Link Externo, Configurar Serviços Integrados, Validar Fluxo de Solicitação',
+    'Notificações: Configurar disparos de e-mail, Push Notifications, Acompanhamento de solicitações',
+    'SPRINT 3: PUBLICAÇÃO',
+    'Homologação Final: Validar Download do App, Validar Acesso Web, Divulgação'
+  ]),
+
+  'Documentos (Cloud)': parseTasksIntoSections([
+    'SPRINT 1: PARAMETRIZAÇÃO',
+    'Estrutura Organizacional: Importar/Cadastrar Organograma, Usuários e Lotações, Grupos de Permissão',
+    'Classificação: Cadastrar Tipos de Documentos, Classificação Arquivística',
+    'SPRINT 2: MODELOS E FLUXOS',
+    'Modelos: Criar Modelos (Ofícios, Memorandos, Pareceres), Configurar Variáveis Dinâmicas',
+    'Assinatura Digital: Configurar Assinatura Eletrônica, Configurar Assinatura Digital, Testar Validação',
+    'SPRINT 3: OPERAÇÃO',
+    'Fluxo de Trabalho: Simular Criação, Tramitação, Arquivamento, Pesquisa e Localização'
+  ]),
+
+  // ATENDIMENTO
+  'Protocolo (Cloud)': parseTasksIntoSections([
+    'CADASTROS BÁSICOS',
+    'Módulo Único: Cadastros Básicos',
+    'CONFIGURAÇÃO DE ASSUNTOS',
+    'Módulo Único: Configuração de Assuntos',
+    'FLUXOS DE TRABALHO',
+    'Módulo Único: Fluxo de Trabalho',
+    'MODELOS DE DOCUMENTOS',
+    'Módulo Único: Modelos de Documentos',
+    'GESTÃO DE PROCESSOS',
+    'Módulo Único: Gestão de Processos',
+    'RELATÓRIOS',
+    'Módulo Único: Relatórios'
   ])
 };
 
