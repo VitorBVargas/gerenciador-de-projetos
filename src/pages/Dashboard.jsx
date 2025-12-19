@@ -270,61 +270,92 @@ export default function Dashboard() {
           <div className="lg:col-span-2">
             <Card className="bg-gradient-to-br from-blue-600/20 to-purple-600/20 border-slate-700/50 h-full">
               <CardContent className="p-5">
-                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-                  <div className="flex-1">
-                    <h2 className="text-xl font-bold text-white mb-4">{activeProject.name}</h2>
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                      {activeProject.manager && (
-                        <div className="text-slate-400">
-                          <span className="text-slate-500">Gerente:</span> <span className="text-white">{activeProject.manager}</span>
-                        </div>
-                      )}
-                      {activeProject.coordinator && (
-                        <div className="text-slate-400">
-                          <span className="text-slate-500">Coordenador:</span> <span className="text-white">{activeProject.coordinator}</span>
-                        </div>
-                      )}
-                      {activeProject.portfolio_manager && (
-                        <div className="text-slate-400">
-                          <span className="text-slate-500">Gerente de Portfólio:</span> <span className="text-white">{activeProject.portfolio_manager}</span>
-                        </div>
-                      )}
-                      {activeProject.implementation_value > 0 && (
-                        <div className="text-slate-400">
-                          <span className="text-slate-500">Implantação:</span> <span className="text-emerald-400">
-                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(activeProject.implementation_value)}
-                          </span>
-                        </div>
-                      )}
-                      {activeProject.recurring_value > 0 && (
-                        <div className="text-slate-400">
-                          <span className="text-slate-500">Recorrente:</span> <span className="text-emerald-400">
-                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(activeProject.recurring_value)}
-                          </span>
-                        </div>
-                      )}
-                      {activeProject.deadline && (
-                        <div className="text-slate-400">
-                          <span className="text-slate-500">Prazo:</span> <span className={cn(
-                            daysToDeadline < 0 ? "text-red-400" : daysToDeadline < 30 ? "text-yellow-400" : "text-white"
-                          )}>
-                            {format(new Date(activeProject.deadline), "dd 'de' MMMM, yyyy", { locale: ptBR })}
-                          </span>
-                        </div>
-                      )}
+                <div className="flex flex-col gap-4">
+                  {/* Header with title and contract link */}
+                  <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                    <div className="flex-1">
+                      <h2 className="text-xl font-bold text-white mb-4">{activeProject.name}</h2>
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        {activeProject.manager && (
+                          <div className="text-slate-400">
+                            <span className="text-slate-500">Gerente:</span> <span className="text-white">{activeProject.manager}</span>
+                          </div>
+                        )}
+                        {activeProject.coordinator && (
+                          <div className="text-slate-400">
+                            <span className="text-slate-500">Coordenador:</span> <span className="text-white">{activeProject.coordinator}</span>
+                          </div>
+                        )}
+                        {activeProject.portfolio_manager && (
+                          <div className="text-slate-400">
+                            <span className="text-slate-500">Gerente de Portfólio:</span> <span className="text-white">{activeProject.portfolio_manager}</span>
+                          </div>
+                        )}
+                        {activeProject.implementation_value > 0 && (
+                          <div className="text-slate-400">
+                            <span className="text-slate-500">Implantação:</span> <span className="text-emerald-400">
+                              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(activeProject.implementation_value)}
+                            </span>
+                          </div>
+                        )}
+                        {activeProject.recurring_value > 0 && (
+                          <div className="text-slate-400">
+                            <span className="text-slate-500">Recorrente:</span> <span className="text-emerald-400">
+                              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(activeProject.recurring_value)}
+                            </span>
+                          </div>
+                        )}
+                        {activeProject.deadline && (
+                          <div className="text-slate-400">
+                            <span className="text-slate-500">Prazo:</span> <span className={cn(
+                              daysToDeadline < 0 ? "text-red-400" : daysToDeadline < 30 ? "text-yellow-400" : "text-white"
+                            )}>
+                              {format(new Date(activeProject.deadline), "dd 'de' MMMM, yyyy", { locale: ptBR })}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    {activeProject?.contract_link && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                        onClick={() => window.open(activeProject.contract_link, '_blank')}
+                      >
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        Contrato
+                      </Button>
+                    )}
+                  </div>
+
+                  {/* Metrics */}
+                  <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/10">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                        <TrendingUp className="w-6 h-6 text-blue-400" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-400">Progresso Geral</p>
+                        <p className="text-2xl font-bold text-white">{projectProgress}%</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className={cn(
+                        "w-12 h-12 rounded-lg flex items-center justify-center",
+                        highRisks > 0 ? "bg-red-500/20" : "bg-green-500/20"
+                      )}>
+                        <AlertTriangle className={cn(
+                          "w-6 h-6",
+                          highRisks > 0 ? "text-red-400" : "text-green-400"
+                        )} />
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-400">Riscos Altos</p>
+                        <p className="text-2xl font-bold text-white">{highRisks}</p>
+                      </div>
                     </div>
                   </div>
-                  {activeProject?.contract_link && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="border-slate-600 text-slate-300 hover:bg-slate-700"
-                      onClick={() => window.open(activeProject.contract_link, '_blank')}
-                    >
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      Contrato
-                    </Button>
-                  )}
                 </div>
               </CardContent>
             </Card>
@@ -355,24 +386,6 @@ export default function Dashboard() {
           }
         />
       )}
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <StatCard
-          title="Progresso Geral"
-          value={`${projectProgress}%`}
-          icon={TrendingUp}
-          color="blue"
-          trend={projectProgress > 50 ? "up" : undefined}
-          trendValue={projectProgress > 50 ? "Bom progresso" : undefined}
-        />
-        <StatCard
-          title="Riscos Altos"
-          value={highRisks}
-          icon={AlertTriangle}
-          color={highRisks > 0 ? "red" : "green"}
-        />
-      </div>
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
