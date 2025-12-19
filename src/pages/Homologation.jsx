@@ -8,14 +8,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { 
-  Plus, 
-  CheckCircle,
-  Package,
-  Trash2
-} from 'lucide-react';
+import { Plus, CheckCircle, Trash2 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import EmptyState from '../components/ui/EmptyState';
+import { getDefaultTasksForProduct, productHasHomologation } from '../components/homologation/homologationTasks';
 
 const verticalLabels = {
   arrecadacao: 'Arrecadação',
@@ -25,15 +21,16 @@ const verticalLabels = {
   educacao: 'Educação',
   iss: 'ISS',
   parceiros: 'Parceiros',
-  plataforma: 'Plataforma'
+  plataforma: 'Plataforma',
+  atendimento: 'Atendimento'
 };
 
 export default function Homologation() {
   const queryClient = useQueryClient();
-  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedVertical, setSelectedVertical] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState('');
   const [newTaskTitle, setNewTaskTitle] = useState('');
 
-  // Get project_id from URL
   const urlParams = new URLSearchParams(window.location.search);
   const projectId = urlParams.get('project_id');
 
@@ -78,13 +75,12 @@ export default function Homologation() {
     }
   });
 
-  // Cria tarefas padrão para um produto se não existirem
   const createDefaultTasks = async (product) => {
     const existingTasks = tasks.filter(t => t.product_id === product.id);
     if (existingTasks.length > 0) return;
 
     const defaultSections = getDefaultTasksForProduct(product.name);
-    if (!defaultSections) return; // Produto não tem homologação
+    if (!defaultSections) return;
 
     const tasksToCreate = [];
     let order = 0;
@@ -107,7 +103,6 @@ export default function Homologation() {
     }
   };
 
-  // Criar tarefas padrão quando o produto for selecionado
   React.useEffect(() => {
     if (selectedProduct && getCurrentProduct()) {
       createDefaultTasks(getCurrentProduct());
@@ -119,7 +114,7 @@ export default function Homologation() {
     createTaskMutation.mutate({
       title: newTaskTitle,
       project_id: activeProject?.id,
-      product_id: selectedProduct.id,
+      product_id: selectedProduct,
       completed: false
     });
   };
@@ -127,7 +122,7 @@ export default function Homologation() {
   const handleToggleTask = (task) => {
     updateTaskMutation.mutate({
       id: task.id,
-      data: { ...task, completed: !task.completed }
+      data: { completed: !task.completed }
     });
   };
 
@@ -142,150 +137,227 @@ export default function Homologation() {
     return Math.round((completed / productTasks.length) * 100);
   };
 
-  // Group products by vertical
   const productsByVertical = products.reduce((acc, product) => {
-    const vertical = product.vertical || 'outros';
-    if (!acc[vertical]) acc[vertical] = [];
-    acc[vertical].push(product);
+    if (productHasHomologation(product.name)) {
+      const vertical = product.vertical || 'outros';
+      if (!acc[vertical]) acc[vertical] = [];
+      acc[vertical].push(product);
+    }
     return acc;
   }, {});
 
-  const verticals = Object.keys(productsByVertical);
+  const verticals = Object.keys(productsByVertical).sort();
+
+  React.useEffect(() => {
+    if (verticals.length > 0 && !selectedVertical) {
+      const firstVertical = verticals[0];
+      setSelectedVertical(firstVertical);
+      if (productsByVertical[firstVertical]?.length > 0) {
+        setSelectedProduct(productsByVertical[firstVertical][0].id);
+      }
+    }
+  }, [verticals.length, products.length]);
+
+  React.useEffect(() => {
+    if (selectedVertical && productsByVertical[selectedVertical]?.length > 0) {
+      setSelectedProduct(productsByVertical[selectedVertical][0].id);
+    }
+  }, [selectedVertical]);
+
+  const productsWithHomologation = products.filter(p => productHasHomologation(p.name));
+  const overallProgress = productsWithHomologation.length > 0
+    ? Math.round(productsWithHomologation.reduce((sum, p) => sum + getProductProgress(p.id), 0) / productsWithHomologation.length)
+    : 0;
+
+  const getCurrentProduct = () => products.find(p => p.id === selectedProduct);
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl lg:text-3xl font-bold text-white">Homologação</h1>
-        <p className="text-slate-400 mt-1">Acompanhe o checklist de homologação por produto</p>
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl lg:text-3xl font-bold text-white">Homologação</h1>
+          <p className="text-slate-400 mt-1">Acompanhe o progresso de homologação por produto</p>
+        </div>
+        {productsWithHomologation.length > 0 && (
+          <div className="flex items-center gap-4 bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
+            <div className="text-sm text-slate-400">Progresso Geral</div>
+            <div className="w-32">
+              <Progress value={overallProgress} className="h-2" />
+            </div>
+            <div className="text-lg font-bold text-white">{overallProgress}%</div>
+          </div>
+        )}
       </div>
 
       {products.length > 0 ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Products List */}
-          <div className="lg:col-span-1 space-y-4">
-            <Card className="bg-slate-800/50 border-slate-700/50">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg text-white">Produtos</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 max-h-[600px] overflow-y-auto">
-                {verticals.map(vertical => (
-                  <div key={vertical} className="mb-4">
-                    <p className="text-xs font-medium text-slate-500 uppercase mb-2">
-                      {verticalLabels[vertical] || vertical}
-                    </p>
-                    {productsByVertical[vertical].map(product => {
-                      const progress = getProductProgress(product.id);
-                      const isSelected = selectedProduct?.id === product.id;
-                      return (
-                        <button
-                          key={product.id}
-                          onClick={() => setSelectedProduct(product)}
-                          className={cn(
-                            "w-full text-left p-3 rounded-lg mb-2 transition-all",
-                            isSelected 
-                              ? "bg-blue-600/20 border border-blue-500/50" 
-                              : "bg-slate-700/30 hover:bg-slate-700/50 border border-transparent"
-                          )}
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="font-medium text-white text-sm">{product.name}</span>
-                            <span className="text-xs text-slate-400">{progress}%</span>
-                          </div>
-                          <Progress value={progress} className="h-1" />
-                        </button>
-                      );
-                    })}
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </div>
+        <Tabs value={selectedVertical} onValueChange={setSelectedVertical} className="space-y-4">
+          <TabsList className="bg-slate-800 border border-slate-700">
+            {verticals.map(vertical => (
+              <TabsTrigger 
+                key={vertical} 
+                value={vertical} 
+                className="data-[state=active]:bg-blue-600"
+              >
+                {verticalLabels[vertical] || vertical}
+              </TabsTrigger>
+            ))}
+          </TabsList>
 
-          {/* Checklist */}
-          <div className="lg:col-span-2">
-            {selectedProduct ? (
-              <Card className="bg-slate-800/50 border-slate-700/50">
-                <CardHeader className="border-b border-slate-700/50">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-xl text-white">{selectedProduct.name}</CardTitle>
-                      <p className="text-sm text-slate-400 mt-1">
-                        {getProductTasks(selectedProduct.id).filter(t => t.completed).length} de {getProductTasks(selectedProduct.id).length} tarefas concluídas
-                      </p>
-                    </div>
-                    <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 border">
-                      {getProductProgress(selectedProduct.id)}% Concluído
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-6">
-                  {/* Add Task */}
-                  <div className="flex gap-2 mb-6">
-                    <Input
-                      value={newTaskTitle}
-                      onChange={(e) => setNewTaskTitle(e.target.value)}
-                      placeholder="Nova tarefa de homologação..."
-                      className="bg-slate-700 border-slate-600 text-white"
-                      onKeyDown={(e) => e.key === 'Enter' && handleAddTask()}
-                    />
-                    <Button onClick={handleAddTask} className="bg-blue-600 hover:bg-blue-700">
-                      <Plus className="w-4 h-4" />
-                    </Button>
-                  </div>
-
-                  {/* Tasks List */}
-                  <div className="space-y-2">
-                    {getProductTasks(selectedProduct.id).map(task => (
-                      <div
-                        key={task.id}
-                        className={cn(
-                          "flex items-center gap-3 p-3 rounded-lg transition-all group",
-                          task.completed ? "bg-green-500/10" : "bg-slate-700/30 hover:bg-slate-700/50"
-                        )}
+          {verticals.map(vertical => (
+            <TabsContent key={vertical} value={vertical} className="space-y-4">
+              <Tabs value={selectedProduct} onValueChange={setSelectedProduct}>
+                <TabsList className="bg-slate-800/50 border border-slate-700/50">
+                  {productsByVertical[vertical]?.map(product => {
+                    const progress = getProductProgress(product.id);
+                    const capitalizedName = product.name
+                      .split(' ')
+                      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                      .join(' ');
+                    return (
+                      <TabsTrigger 
+                        key={product.id} 
+                        value={product.id}
+                        className="data-[state=active]:bg-blue-600 flex items-center gap-2"
                       >
-                        <Checkbox
-                          checked={task.completed}
-                          onCheckedChange={() => handleToggleTask(task)}
-                          className="border-slate-500 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
-                        />
-                        <span className={cn(
-                          "flex-1 text-sm",
-                          task.completed ? "text-slate-500 line-through" : "text-white"
-                        )}>
-                          {task.title}
-                        </span>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => deleteTaskMutation.mutate(task.id)}
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    ))}
-                    {getProductTasks(selectedProduct.id).length === 0 && (
-                      <p className="text-center text-slate-500 py-8">
-                        Nenhuma tarefa cadastrada. Adicione tarefas de homologação.
-                      </p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <Card className="bg-slate-800/50 border-slate-700/50">
-                <CardContent className="py-12">
-                  <EmptyState
-                    icon={Package}
-                    title="Selecione um produto"
-                    description="Escolha um produto na lista para gerenciar o checklist de homologação"
-                  />
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </div>
+                        {capitalizedName}
+                        <span className="text-xs">({progress}%)</span>
+                      </TabsTrigger>
+                    );
+                  })}
+                </TabsList>
+
+                {productsByVertical[vertical]?.map(product => (
+                  <TabsContent key={product.id} value={product.id}>
+                    <Card className="bg-slate-800/50 border-slate-700/50">
+                      <CardHeader className="border-b border-slate-700/50">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-xl text-white">
+                            {product.name.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')}
+                          </CardTitle>
+                          <Badge className={cn(
+                            "border",
+                            getProductProgress(product.id) === 100 
+                              ? "bg-green-500/20 text-green-400 border-green-500/30"
+                              : "bg-orange-500/20 text-orange-400 border-orange-500/30"
+                          )}>
+                            {getProductProgress(product.id)}% Concluído
+                          </Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="p-6">
+                        <div className="flex gap-2 mb-6">
+                          <Input
+                            value={newTaskTitle}
+                            onChange={(e) => setNewTaskTitle(e.target.value)}
+                            placeholder="Nova tarefa de homologação..."
+                            className="bg-slate-700 border-slate-600 text-white"
+                            onKeyDown={(e) => e.key === 'Enter' && handleAddTask()}
+                          />
+                          <Button onClick={handleAddTask} className="bg-blue-600 hover:bg-blue-700">
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        </div>
+
+                        <div className="space-y-6">
+                          {(getDefaultTasksForProduct(product.name) || []).map((section, sectionIndex) => {
+                            const sectionTasks = getProductTasks(product.id).filter(task => 
+                              section.tasks.some(t => t.toLowerCase() === task.title.toLowerCase())
+                            );
+                            
+                            return (
+                              <div key={sectionIndex}>
+                                <h3 className="text-cyan-400 font-semibold text-sm mb-3 uppercase">
+                                  {section.section}
+                                </h3>
+                                <div className="space-y-2">
+                                  {sectionTasks.map(task => (
+                                    <div key={task.id} className="flex items-center gap-3 group">
+                                      <Checkbox
+                                        checked={task.completed}
+                                        onCheckedChange={() => handleToggleTask(task)}
+                                        className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                                      />
+                                      <span className={cn(
+                                        "flex-1 text-sm",
+                                        task.completed ? "text-slate-500 line-through" : "text-white"
+                                      )}>
+                                        {task.title}
+                                      </span>
+                                      <Button
+                                        size="icon"
+                                        variant="ghost"
+                                        className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity"
+                                        onClick={() => deleteTaskMutation.mutate(task.id)}
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                      </Button>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })}
+
+                          {(() => {
+                            const defaultSections = getDefaultTasksForProduct(product.name);
+                            if (!defaultSections) return null;
+
+                            const allSectionTasks = defaultSections.flatMap(s => s.tasks.map(t => t.toLowerCase()));
+                            const customTasks = getProductTasks(product.id).filter(task =>
+                              !allSectionTasks.includes(task.title.toLowerCase())
+                            );
+                            
+                            if (customTasks.length > 0) {
+                              return (
+                                <div>
+                                  <h3 className="text-cyan-400 font-semibold text-sm mb-3 uppercase">
+                                    TAREFAS PERSONALIZADAS
+                                  </h3>
+                                  <div className="space-y-2">
+                                    {customTasks.map(task => (
+                                      <div key={task.id} className="flex items-center gap-3 group">
+                                        <Checkbox
+                                          checked={task.completed}
+                                          onCheckedChange={() => handleToggleTask(task)}
+                                          className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                                        />
+                                        <span className={cn(
+                                          "flex-1 text-sm",
+                                          task.completed ? "text-slate-500 line-through" : "text-white"
+                                        )}>
+                                          {task.title}
+                                        </span>
+                                        <Button
+                                          size="icon"
+                                          variant="ghost"
+                                          className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity"
+                                          onClick={() => deleteTaskMutation.mutate(task.id)}
+                                        >
+                                          <Trash2 className="w-3 h-3" />
+                                        </Button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              );
+                            }
+                            return null;
+                          })()}
+
+                          {getProductTasks(product.id).length === 0 && (
+                            <p className="text-center text-slate-500 py-4 text-sm">
+                              Carregando tarefas padrão...
+                            </p>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                ))}
+              </Tabs>
+            </TabsContent>
+          ))}
+        </Tabs>
       ) : (
         <EmptyState
           icon={CheckCircle}

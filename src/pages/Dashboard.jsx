@@ -24,6 +24,7 @@ import { createPageUrl } from '../utils';
 import StatCard from '../components/dashboard/StatCard';
 import ProgressChart from '../components/dashboard/ProgressChart';
 import MigrationProgressChart from '../components/dashboard/MigrationProgressChart';
+import HomologationProgressChart from '../components/dashboard/HomologationProgressChart';
 import ProjectModal from '../components/modals/ProjectModal';
 import ExcelImporter from '../components/import/ExcelImporter';
 import EmptyState from '../components/ui/EmptyState';
@@ -75,9 +76,9 @@ export default function Dashboard() {
     enabled: !!projectId
   });
 
-  const { data: kanbanTasks = [] } = useQuery({
-    queryKey: ['kanbanTasks', projectId],
-    queryFn: () => projectId ? base44.entities.KanbanTask.filter({ project_id: projectId }) : [],
+  const { data: homologationTasks = [] } = useQuery({
+    queryKey: ['homologationTasks', projectId],
+    queryFn: () => projectId ? base44.entities.HomologationTask.filter({ project_id: projectId }) : [],
     enabled: !!projectId
   });
 
@@ -130,8 +131,8 @@ export default function Dashboard() {
     ? Math.round(timelineEvents.reduce((sum, e) => sum + (e.progress || 0), 0) / timelineEvents.length)
     : 0;
 
-  const tasksCompleted = kanbanTasks.filter(t => t.status === 'done').length;
-  const totalTasks = kanbanTasks.length;
+  const tasksCompleted = homologationTasks.filter(t => t.completed).length;
+  const totalTasks = homologationTasks.length;
 
   const highRisks = risks.filter(r => r.probability === 'alta' || r.impact === 'alto').length;
 
@@ -147,14 +148,27 @@ export default function Dashboard() {
     { name: 'Produção', value: products.filter(p => p.status === 'em_producao').length }
   ].filter(d => d.value > 0);
 
-  // Task status distribution
-  const taskStatusData = [
-    { name: 'Backlog', value: kanbanTasks.filter(t => t.status === 'backlog').length },
-    { name: 'A Fazer', value: kanbanTasks.filter(t => t.status === 'todo').length },
-    { name: 'Em Progresso', value: kanbanTasks.filter(t => t.status === 'doing').length },
-    { name: 'Revisão', value: kanbanTasks.filter(t => t.status === 'review').length },
-    { name: 'Concluído', value: kanbanTasks.filter(t => t.status === 'done').length }
-  ].filter(d => d.value > 0);
+  // Homologation progress by vertical
+  const homologationByVertical = products.reduce((acc, product) => {
+    const vertical = product.vertical || 'outros';
+    const productTasks = homologationTasks.filter(t => t.product_id === product.id);
+    const completed = productTasks.filter(t => t.completed).length;
+    
+    if (!acc[vertical]) {
+      acc[vertical] = { total: 0, completed: 0 };
+    }
+    acc[vertical].total += productTasks.length;
+    acc[vertical].completed += completed;
+    
+    return acc;
+  }, {});
+
+  const homologationData = Object.entries(homologationByVertical)
+    .map(([vertical, data]) => ({
+      name: vertical.charAt(0).toUpperCase() + vertical.slice(1),
+      value: data.total > 0 ? Math.round((data.completed / data.total) * 100) : 0
+    }))
+    .filter(d => d.value > 0);
 
   const statusColors = {
     planejamento: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
@@ -316,19 +330,15 @@ export default function Dashboard() {
           </Card>
         )}
 
-        {taskStatusData.length > 0 ? (
-          <ProgressChart 
-            title="Status das Tarefas" 
-            data={taskStatusData}
-            colors={['#64748b', '#3b82f6', '#f59e0b', '#8b5cf6', '#22c55e']}
-          />
+        {products.length > 0 && homologationTasks.length > 0 ? (
+          <HomologationProgressChart products={products} tasks={homologationTasks} />
         ) : (
           <Card className="bg-slate-800/50 border-slate-700/50">
             <CardContent className="py-12">
               <EmptyState
                 icon={Calendar}
-                title="Nenhuma tarefa cadastrada"
-                description="Adicione tarefas no Kanban para visualizar o gráfico"
+                title="Nenhuma tarefa de homologação"
+                description="Adicione tarefas de homologação para visualizar o gráfico"
               />
             </CardContent>
           </Card>
