@@ -114,7 +114,7 @@ export default function Reports() {
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.OperationalReport.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['operationalReports'] });
+      queryClient.invalidateQueries({ queryKey: ['operationalReports', projectId] });
       setModalOpen(false);
       resetForm();
     }
@@ -123,7 +123,7 @@ export default function Reports() {
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.OperationalReport.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['operationalReports'] });
+      queryClient.invalidateQueries({ queryKey: ['operationalReports', projectId] });
       setModalOpen(false);
       setSelectedReport(null);
       resetForm();
@@ -133,7 +133,7 @@ export default function Reports() {
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.OperationalReport.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['operationalReports'] });
+      queryClient.invalidateQueries({ queryKey: ['operationalReports', projectId] });
       setDeleteDialogOpen(false);
       setReportToDelete(null);
     }
