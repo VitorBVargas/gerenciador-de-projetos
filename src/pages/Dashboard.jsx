@@ -88,6 +88,18 @@ export default function Dashboard() {
     enabled: !!projectId
   });
 
+  const { data: milestones = [] } = useQuery({
+    queryKey: ['milestones', projectId],
+    queryFn: () => projectId ? base44.entities.ProjectMilestone.filter({ project_id: projectId }) : [],
+    enabled: !!projectId
+  });
+
+  const { data: documents = [] } = useQuery({
+    queryKey: ['documents', projectId],
+    queryFn: () => projectId ? base44.entities.ProjectDocument.filter({ project_id: projectId }) : [],
+    enabled: !!projectId
+  });
+
   // Active project
   const activeProject = projects.find(p => p.id === projectId);
 
@@ -109,6 +121,20 @@ export default function Dashboard() {
     }
   });
 
+  const toggleMilestoneMutation = useMutation({
+    mutationFn: ({ id, completed }) => base44.entities.ProjectMilestone.update(id, { completed }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['milestones', projectId] });
+    }
+  });
+
+  const toggleDocumentMutation = useMutation({
+    mutationFn: ({ id, completed }) => base44.entities.ProjectDocument.update(id, { completed }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['documents', projectId] });
+    }
+  });
+
   const handleSaveProject = (data) => {
     if (selectedProject) {
       updateProjectMutation.mutate({ id: selectedProject.id, data });
@@ -126,6 +152,58 @@ export default function Dashboard() {
     queryClient.invalidateQueries();
   };
 
+  // Inicializa os marcos padrão se não existirem
+  React.useEffect(() => {
+    if (projectId && milestones.length === 0) {
+      const defaultMilestones = [
+        'Planejamento e Monitoramento',
+        'Kickoff',
+        'Diagnóstico',
+        'Migração de Homologação',
+        'Homologação e Configuração da migração',
+        'Migração em Produção',
+        'Configuração de PRD',
+        'Treinamento e simulação da operação',
+        'Operação assistida'
+      ];
+      
+      defaultMilestones.forEach((title, index) => {
+        base44.entities.ProjectMilestone.create({
+          project_id: projectId,
+          title,
+          completed: false,
+          order: index
+        });
+      });
+    }
+  }, [projectId, milestones.length]);
+
+  // Inicializa os documentos padrão se não existirem
+  React.useEffect(() => {
+    if (projectId && documents.length === 0) {
+      const defaultDocuments = [
+        'Termo de Abertura do Projeto',
+        'Kickoff',
+        'Diagnóstico',
+        'Mapa de relatórios',
+        'Acordos de conversão',
+        'Aceite de homologação',
+        'TAC',
+        'Treinamentos',
+        'Aceite de implantação'
+      ];
+      
+      defaultDocuments.forEach((title, index) => {
+        base44.entities.ProjectDocument.create({
+          project_id: projectId,
+          title,
+          completed: false,
+          order: index
+        });
+      });
+    }
+  }, [projectId, documents.length]);
+
   // Calculate stats
   const projectProgress = timelineEvents.length > 0
     ? Math.round(timelineEvents.reduce((sum, e) => sum + (e.progress || 0), 0) / timelineEvents.length)
@@ -140,12 +218,10 @@ export default function Dashboard() {
     ? differenceInDays(new Date(activeProject.deadline), new Date())
     : null;
 
-  // Product status distribution
-  const productStatusData = [
-    { name: 'Pendente', value: products.filter(p => p.status === 'pendente').length },
-    { name: 'Homologação', value: products.filter(p => p.status === 'em_homologacao').length },
-    { name: 'Homologado', value: products.filter(p => p.status === 'homologado').length },
-    { name: 'Produção', value: products.filter(p => p.status === 'em_producao').length }
+  // Milestone status distribution
+  const milestoneStatusData = [
+    { name: 'Não Iniciado', value: milestones.filter(m => !m.completed).length },
+    { name: 'Concluído', value: milestones.filter(m => m.completed).length }
   ].filter(d => d.value > 0);
 
   // Homologation progress by vertical
@@ -301,19 +377,19 @@ export default function Dashboard() {
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {productStatusData.length > 0 ? (
+        {milestoneStatusData.length > 0 ? (
           <ProgressChart 
-            title="Status dos Produtos" 
-            data={productStatusData}
-            colors={['#64748b', '#f59e0b', '#22c55e', '#3b82f6']}
+            title="Status dos Marcos" 
+            data={milestoneStatusData}
+            colors={['#64748b', '#22c55e']}
           />
         ) : (
           <Card className="bg-slate-800/50 border-slate-700/50">
             <CardContent className="py-12">
               <EmptyState
-                icon={Package}
-                title="Nenhum produto cadastrado"
-                description="Adicione produtos para visualizar o gráfico"
+                icon={Calendar}
+                title="Nenhum marco cadastrado"
+                description="Os marcos serão carregados automaticamente"
               />
             </CardContent>
           </Card>
@@ -346,42 +422,22 @@ export default function Dashboard() {
             <CardTitle className="text-white">Marcos do Projeto</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="flex items-center gap-3">
-              <Checkbox className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
-              <span className="text-white text-sm">Planejamento e Monitoramento</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Checkbox className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
-              <span className="text-white text-sm">Kickoff</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Checkbox className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
-              <span className="text-white text-sm">Diagnóstico</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Checkbox className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
-              <span className="text-white text-sm">Migração de Homologação</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Checkbox className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
-              <span className="text-white text-sm">Homologação e Configuração da migração</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Checkbox className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
-              <span className="text-white text-sm">Migração em Produção</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Checkbox className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
-              <span className="text-white text-sm">Configuração de PRD</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Checkbox className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
-              <span className="text-white text-sm">Treinamento e simulação da operação</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Checkbox className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
-              <span className="text-white text-sm">Operação assistida</span>
-            </div>
+            {milestones.sort((a, b) => a.order - b.order).map((milestone) => (
+              <div key={milestone.id} className="flex items-center gap-3">
+                <Checkbox 
+                  checked={milestone.completed}
+                  onCheckedChange={(checked) => toggleMilestoneMutation.mutate({ 
+                    id: milestone.id, 
+                    completed: checked 
+                  })}
+                  className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" 
+                />
+                <span className={cn(
+                  "text-sm",
+                  milestone.completed ? "text-slate-500 line-through" : "text-white"
+                )}>{milestone.title}</span>
+              </div>
+            ))}
           </CardContent>
         </Card>
 
@@ -390,42 +446,22 @@ export default function Dashboard() {
             <CardTitle className="text-white">Documentos Chave</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="flex items-center gap-3">
-              <Checkbox className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
-              <span className="text-white text-sm">Termo de Abertura do Projeto</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Checkbox className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
-              <span className="text-white text-sm">Kickoff</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Checkbox className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
-              <span className="text-white text-sm">Diagnóstico</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Checkbox className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
-              <span className="text-white text-sm">Mapa de relatórios</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Checkbox className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
-              <span className="text-white text-sm">Acordos de conversão</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Checkbox className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
-              <span className="text-white text-sm">Aceite de homologação</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Checkbox className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
-              <span className="text-white text-sm">TAC</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Checkbox className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
-              <span className="text-white text-sm">Treinamentos</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Checkbox className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
-              <span className="text-white text-sm">Aceite de implantação</span>
-            </div>
+            {documents.sort((a, b) => a.order - b.order).map((document) => (
+              <div key={document.id} className="flex items-center gap-3">
+                <Checkbox 
+                  checked={document.completed}
+                  onCheckedChange={(checked) => toggleDocumentMutation.mutate({ 
+                    id: document.id, 
+                    completed: checked 
+                  })}
+                  className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" 
+                />
+                <span className={cn(
+                  "text-sm",
+                  document.completed ? "text-slate-500 line-through" : "text-white"
+                )}>{document.title}</span>
+              </div>
+            ))}
           </CardContent>
         </Card>
       </div>
