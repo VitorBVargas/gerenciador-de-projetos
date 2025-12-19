@@ -446,10 +446,14 @@ export const getDefaultTasksForProduct = (productName) => {
     }
   }
   
-  // Busca parcial
+  // Busca parcial - só se o input inteiro estiver contido na key
+  // Isso evita que "Cidadão Web Tributos" pegue "Tributos (Cloud)"
   for (const [key, tasks] of Object.entries(migrationTasksByProduct)) {
     const normalizedKey = normalizeProductName(key);
-    if (normalizedKey.includes(normalizedInput) || normalizedInput.includes(normalizedKey)) {
+    // Só aceita se o input está contido COMPLETAMENTE na key E começa no início ou após espaço
+    if (normalizedKey === normalizedInput || 
+        (normalizedKey.startsWith(normalizedInput + ' ') || 
+         normalizedKey.endsWith(' ' + normalizedInput))) {
       return tasks;
     }
   }
