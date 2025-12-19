@@ -133,6 +133,21 @@ export default function Migration() {
     });
   };
 
+  const handleToggleAllTasks = () => {
+    const productTasks = getProductTasks(selectedProduct);
+    if (productTasks.length === 0) return;
+    
+    const allCompleted = productTasks.every(t => t.completed);
+    const newCompletedState = !allCompleted;
+    
+    productTasks.forEach(task => {
+      updateTaskMutation.mutate({
+        id: task.id,
+        data: { ...task, completed: newCompletedState }
+      });
+    });
+  };
+
   const getProductTasks = (productId) => {
     return tasks.filter(t => t.product_id === productId);
   };
@@ -160,12 +175,14 @@ export default function Migration() {
   // Set initial vertical and product
   React.useEffect(() => {
     if (verticals.length > 0 && !selectedVertical) {
-      setSelectedVertical(verticals[0]);
+      const firstVertical = verticals[0];
+      setSelectedVertical(firstVertical);
+      // Auto-seleciona o primeiro produto da vertical
+      if (productsByVertical[firstVertical]?.length > 0) {
+        setSelectedProduct(productsByVertical[firstVertical][0].id);
+      }
     }
-    if (selectedVertical && productsByVertical[selectedVertical]?.length > 0 && !selectedProduct) {
-      setSelectedProduct(productsByVertical[selectedVertical][0].id);
-    }
-  }, [verticals.length, selectedVertical, productsByVertical]);
+  }, [verticals.length, products.length]);
 
   // Overall migration progress
   const overallProgress = products.length > 0
@@ -215,13 +232,18 @@ export default function Migration() {
                 <TabsList className="bg-slate-800/50 border border-slate-700/50">
                   {productsByVertical[vertical]?.map(product => {
                     const progress = getProductProgress(product.id);
+                    // Capitaliza primeira letra de cada palavra
+                    const capitalizedName = product.name
+                      .split(' ')
+                      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                      .join(' ');
                     return (
                       <TabsTrigger 
                         key={product.id} 
                         value={product.id}
                         className="data-[state=active]:bg-blue-600 flex items-center gap-2"
                       >
-                        {product.name}
+                        {capitalizedName}
                         <span className="text-xs">({progress}%)</span>
                       </TabsTrigger>
                     );
@@ -233,7 +255,9 @@ export default function Migration() {
                     <Card className="bg-slate-800/50 border-slate-700/50">
                       <CardHeader className="border-b border-slate-700/50">
                         <div className="flex items-center justify-between">
-                          <CardTitle className="text-xl text-white">{product.name}</CardTitle>
+                          <CardTitle className="text-xl text-white">
+                            {product.name.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')}
+                          </CardTitle>
                           <Badge className={cn(
                             "border",
                             getProductProgress(product.id) === 100 
@@ -250,22 +274,15 @@ export default function Migration() {
                           <Button 
                             variant="outline" 
                             size="sm"
-                            className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                            onClick={handleToggleAllTasks}
+                            className="border-blue-600 text-blue-400 hover:bg-blue-600/20 hover:text-blue-300"
                           >
                             Marcar/Desmarcar Todos
                           </Button>
                           <Button 
                             variant="outline" 
                             size="sm"
-                            className="border-slate-600 text-slate-300 hover:bg-slate-700"
-                          >
-                            <Plus className="w-4 h-4 mr-2" />
-                            Adicionar Tarefa
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                            className="border-blue-600 text-blue-400 hover:bg-blue-600/20 hover:text-blue-300"
                           >
                             Gerar Termo de Conversão de Dados
                           </Button>
