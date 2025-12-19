@@ -489,10 +489,13 @@ const processProductsSheet = (workbook) => {
     }
 
     console.log('📊 Processando riscos:', data.length, 'linhas');
+    console.log('📊 Primeira linha de dados:', data[0]);
 
     const headers = Object.keys(data[0]);
+    console.log('📋 Headers encontrados:', headers);
+    
     const titleCol = findColumn(headers, ['Nome do Risco', 'Descrição do Risco', 'Descricao do Risco', 'Risco', 'Descrição', 'Descricao', 'Titulo', 'Nome']);
-    const priorityCol = findColumn(headers, ['Prioridade']);
+    const priorityCol = findColumn(headers, ['Prioridade', 'Priorização', 'Priorizacao']);
     const categoryCol = findColumn(headers, ['Categoria', 'Tipo']);
     const probCol = findColumn(headers, ['Probabilidade', 'Prob']);
     const impactCol = findColumn(headers, ['Impacto']);
@@ -509,7 +512,10 @@ const processProductsSheet = (workbook) => {
       'pessoas': 'recurso', 'pessoal': 'recurso',
       'cliente': 'cliente',
       'projeto': 'cronograma',
-      'ambiente': 'externo', 'externo': 'externo'
+      'ambiente': 'externo', 'externo': 'externo',
+      'configuracao': 'tecnico',
+      'passoas': 'recurso',
+      'passoas': 'recurso'
     };
 
     const levelMapping = {
@@ -518,25 +524,40 @@ const processProductsSheet = (workbook) => {
       'alta': 'alta', 'alto': 'alto', 'a': 'alta'
     };
 
+    const seen = new Set();
+    
     return data.map((row, index) => {
+      console.log(`\n🔍 Processando linha ${index + 2}:`, row);
+      
       const title = row[titleCol] ? String(row[titleCol]).trim() : '';
       if (!title || title.length < 2) {
-        console.log(`⏭️  Linha ${index + 2}: Ignorada - nome vazio`);
+        console.log(`⏭️  Linha ${index + 2}: Ignorada - nome vazio ou muito curto`);
         return null;
       }
 
-      const rawCategory = row[categoryCol] ? String(row[categoryCol]).trim().toLowerCase() : '';
+      // Remove duplicatas
+      const titleKey = title.toLowerCase().trim();
+      if (seen.has(titleKey)) {
+        console.log(`⏭️  Linha ${index + 2}: Duplicata ignorada - ${title}`);
+        return null;
+      }
+      seen.add(titleKey);
+
+      const rawCategory = row[categoryCol] ? String(row[categoryCol]).trim().toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '') : '';
       const category = catMapping[rawCategory] || 'tecnico';
 
-      const rawProb = row[probCol] ? String(row[probCol]).trim().toLowerCase() : '';
+      const rawProb = row[probCol] ? String(row[probCol]).trim().toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '') : '';
       const probability = levelMapping[rawProb] || 'media';
 
-      const rawImpact = row[impactCol] ? String(row[impactCol]).trim().toLowerCase() : '';
+      const rawImpact = row[impactCol] ? String(row[impactCol]).trim().toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '') : '';
       const impact = levelMapping[rawImpact] || 'medio';
 
       const mitigation = row[mitigationCol] ? String(row[mitigationCol]).trim() : '';
 
-      console.log(`✅ Linha ${index + 2}: ${title} | ${category} | ${probability}/${impact}`);
+      console.log(`✅ Linha ${index + 2}: "${title}" | Cat: ${rawCategory} → ${category} | Prob: ${rawProb} → ${probability} | Impact: ${rawImpact} → ${impact}`);
 
       return {
         title,
