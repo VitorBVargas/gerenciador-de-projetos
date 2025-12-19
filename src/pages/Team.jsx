@@ -160,14 +160,14 @@ export default function Team() {
         />
       </div>
 
-      {/* Team Grid */}
+      {/* Team List */}
       {filteredMembers.length > 0 ? (
-        <div className="space-y-8">
+        <div className="space-y-6">
           {Object.entries(membersByVertical).map(([vertical, roleGroups]) => {
             const totalMembers = Object.values(roleGroups).reduce((sum, members) => sum + members.length, 0);
             return (
               <div key={vertical}>
-                <div className="flex items-center gap-3 mb-4">
+                <div className="flex items-center gap-3 mb-3">
                   <h2 className="text-lg font-semibold text-white">
                     {verticalLabels[vertical] || 'Outros'}
                   </h2>
@@ -176,55 +176,53 @@ export default function Team() {
                   </Badge>
                 </div>
                 
-                <div className="space-y-6">
+                <div className="space-y-4">
                   {Object.entries(roleGroups).map(([role, members]) => (
                     <div key={role}>
-                      <h3 className="text-sm font-medium text-slate-400 mb-3">{role}</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <h3 className="text-xs font-medium text-slate-500 mb-2 uppercase">{role}</h3>
+                      <div className="space-y-2">
                         {members.map((member) => (
                           <Card key={member.id} className="bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 transition-all group">
-                            <CardContent className="p-5">
-                              <div className="flex items-start justify-between">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg">
-                                    {member.name?.charAt(0).toUpperCase()}
-                                  </div>
-                                  <div>
-                                    <h4 className="font-semibold text-white">{member.name}</h4>
+                            <CardContent className="p-3">
+                              <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+                                  {member.name?.charAt(0).toUpperCase()}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="font-medium text-white text-sm">{member.name}</h4>
+                                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+                                    {member.email && (
+                                      <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                                        <Mail className="w-3 h-3 flex-shrink-0" />
+                                        <span className="truncate">{member.email}</span>
+                                      </div>
+                                    )}
+                                    {member.phone && (
+                                      <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                                        <Phone className="w-3 h-3 flex-shrink-0" />
+                                        <span>{member.phone}</span>
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                   <Button
                                     size="icon"
                                     variant="ghost"
-                                    className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-700"
+                                    className="h-7 w-7 text-slate-400 hover:text-white hover:bg-slate-700"
                                     onClick={() => handleEdit(member)}
                                   >
-                                    <Pencil className="w-4 h-4" />
+                                    <Pencil className="w-3.5 h-3.5" />
                                   </Button>
                                   <Button
                                     size="icon"
                                     variant="ghost"
-                                    className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-red-500/20"
+                                    className="h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-500/20"
                                     onClick={() => handleDelete(member)}
                                   >
-                                    <Trash2 className="w-4 h-4" />
+                                    <Trash2 className="w-3.5 h-3.5" />
                                   </Button>
                                 </div>
-                              </div>
-                              <div className="mt-4 space-y-2">
-                                {member.email && (
-                                  <div className="flex items-center gap-2 text-sm text-slate-400">
-                                    <Mail className="w-4 h-4" />
-                                    <span className="truncate">{member.email}</span>
-                                  </div>
-                                )}
-                                {member.phone && (
-                                  <div className="flex items-center gap-2 text-sm text-slate-400">
-                                    <Phone className="w-4 h-4" />
-                                    <span>{member.phone}</span>
-                                  </div>
-                                )}
                               </div>
                             </CardContent>
                           </Card>

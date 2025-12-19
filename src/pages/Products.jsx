@@ -189,51 +189,51 @@ export default function Products() {
               if (verticalProducts.length === 0) return null;
               
               return (
-                <div key={vertical} className="flex-shrink-0 w-72">
+                <div key={vertical} className="flex-shrink-0 w-64">
                   <div className={cn(
-                    "rounded-t-lg px-4 py-3 border-t border-x",
+                    "rounded-t-lg px-3 py-2 border-t border-x",
                     verticalColors[vertical]
                   )}>
-                    <h3 className="font-semibold text-sm">{verticalLabels[vertical]}</h3>
+                    <h3 className="font-semibold text-xs">{verticalLabels[vertical]}</h3>
                     <p className="text-xs opacity-75 mt-0.5">{verticalProducts.length} produtos</p>
                   </div>
-                  <div className="bg-slate-800/50 border border-slate-700 rounded-b-lg p-3 space-y-2 min-h-[200px]">
+                  <div className="bg-slate-800/50 border border-slate-700 rounded-b-lg p-2 space-y-2 min-h-[180px]">
                     {verticalProducts.map((product) => (
                       <Card key={product.id} className="bg-slate-800 border-slate-700 hover:bg-slate-750 transition-all group">
-                        <CardContent className="p-3">
-                          <div className="flex items-start justify-between mb-2">
-                            <div className={cn("w-2 h-2 rounded-full mt-1", statusColors[product.status])} />
+                        <CardContent className="p-2.5">
+                          <div className="flex items-start justify-between mb-1.5">
+                            <div className={cn("w-1.5 h-1.5 rounded-full mt-1", statusColors[product.status])} />
                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                               <Button
                                 size="icon"
                                 variant="ghost"
-                                className="h-6 w-6 text-slate-400 hover:text-white hover:bg-slate-600"
+                                className="h-5 w-5 text-slate-400 hover:text-white hover:bg-slate-600"
                                 onClick={() => handleEdit(product)}
                               >
-                                <Pencil className="w-3 h-3" />
+                                <Pencil className="w-2.5 h-2.5" />
                               </Button>
                               <Button
                                 size="icon"
                                 variant="ghost"
-                                className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-red-500/20"
+                                className="h-5 w-5 text-red-400 hover:text-red-300 hover:bg-red-500/20"
                                 onClick={() => handleDelete(product)}
                               >
-                                <Trash2 className="w-3 h-3" />
+                                <Trash2 className="w-2.5 h-2.5" />
                               </Button>
                             </div>
                           </div>
-                          <h4 className="font-semibold text-white text-sm mb-2">{product.name}</h4>
+                          <h4 className="font-semibold text-white text-xs mb-1.5 line-clamp-2">{product.name}</h4>
                           {product.entity && (
-                            <p className="text-xs text-slate-400 mb-1">
+                            <p className="text-[10px] text-slate-400 mb-1 truncate">
                               <span className="text-slate-500">Entidade:</span> {product.entity}
                             </p>
                           )}
                           {product.ticket_number && (
-                            <p className="text-xs text-slate-400">
+                            <p className="text-[10px] text-slate-400 truncate">
                               <span className="text-slate-500">Chamado:</span> {product.ticket_number}
                             </p>
                           )}
-                          <Badge variant="secondary" className="bg-slate-700/50 text-slate-300 text-xs mt-2">
+                          <Badge variant="secondary" className="bg-slate-700/50 text-slate-300 text-[10px] mt-1.5 h-4">
                             {statusLabels[product.status]}
                           </Badge>
                         </CardContent>
