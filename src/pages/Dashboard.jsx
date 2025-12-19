@@ -311,21 +311,44 @@ export default function Dashboard() {
                     {statusLabels[activeProject.status]}
                   </Badge>
                 </div>
-                <div className="flex flex-wrap items-center gap-4 text-sm text-slate-400">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                   {activeProject.manager && (
-                    <span>Gerente de Projetos: <span className="text-white">{activeProject.manager}</span></span>
+                    <div className="text-slate-400">
+                      <span className="text-slate-500">Gerente:</span> <span className="text-white">{activeProject.manager}</span>
+                    </div>
                   )}
-                  {activeProject.value > 0 && (
-                    <span>Valor: <span className="text-emerald-400">
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(activeProject.value)}
-                    </span></span>
+                  {activeProject.coordinator && (
+                    <div className="text-slate-400">
+                      <span className="text-slate-500">Coordenador:</span> <span className="text-white">{activeProject.coordinator}</span>
+                    </div>
+                  )}
+                  {activeProject.portfolio_manager && (
+                    <div className="text-slate-400">
+                      <span className="text-slate-500">Gerente de Portfólio:</span> <span className="text-white">{activeProject.portfolio_manager}</span>
+                    </div>
+                  )}
+                  {activeProject.implementation_value > 0 && (
+                    <div className="text-slate-400">
+                      <span className="text-slate-500">Implantação:</span> <span className="text-emerald-400">
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(activeProject.implementation_value)}
+                      </span>
+                    </div>
+                  )}
+                  {activeProject.recurring_value > 0 && (
+                    <div className="text-slate-400">
+                      <span className="text-slate-500">Recorrente:</span> <span className="text-emerald-400">
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(activeProject.recurring_value)}
+                      </span>
+                    </div>
                   )}
                   {activeProject.deadline && (
-                    <span>Prazo: <span className={cn(
-                      daysToDeadline < 0 ? "text-red-400" : daysToDeadline < 30 ? "text-yellow-400" : "text-white"
-                    )}>
-                      {format(new Date(activeProject.deadline), "dd 'de' MMMM, yyyy", { locale: ptBR })}
-                    </span></span>
+                    <div className="text-slate-400">
+                      <span className="text-slate-500">Prazo:</span> <span className={cn(
+                        daysToDeadline < 0 ? "text-red-400" : daysToDeadline < 30 ? "text-yellow-400" : "text-white"
+                      )}>
+                        {format(new Date(activeProject.deadline), "dd 'de' MMMM, yyyy", { locale: ptBR })}
+                      </span>
+                    </div>
                   )}
                 </div>
               </div>

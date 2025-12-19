@@ -139,10 +139,13 @@ export default function ExcelImporter({ open, onOpenChange, onSuccess }) {
     return {
       name: data['nome do projeto'] || 'Projeto Importado',
       manager: data['gerente do projeto'] || '',
-      value: parseFloat(data['valor do projeto']) || 0,
-      budget: parseFloat(data['orçamento do projeto']) || parseFloat(data['orcamento do projeto']) || 0,
+      coordinator: data['coordenador técnico'] || data['coordenador tecnico'] || data['coordenador'] || '',
+      portfolio_manager: data['gerente do portfólio'] || data['gerente do portifolio'] || data['gerente de portfólio'] || data['gerente de portifolio'] || '',
+      implementation_value: parseFloat(data['implantação'] || data['implantacao'] || 0),
+      recurring_value: parseFloat(data['inclusão'] || data['inclusao'] || 0),
+      budget: parseFloat(data['orçamento do projeto'] || data['orcamento do projeto'] || 0),
       deadline: excelDateToJSDate(data['prazo final']),
-      contract_link: data['link do contrato'] || '',
+      contract_link: data['contrato'] || '',
       status: normalizeStatus(data['status'])
     };
   };
@@ -529,9 +532,38 @@ const processProductsSheet = (workbook) => {
       setStatus('Importando equipe...');
       const teamMembers = processTeamSheet(workbook);
       console.log('Criando membros da equipe:', teamMembers.length);
-      if (teamMembers.length > 0) {
+      
+      // Add manager(s) and coordinator to team if not already there
+      const additionalMembers = [];
+      
+      if (projectData.manager) {
+        const managers = projectData.manager.split(/[,/]/).map(m => m.trim()).filter(m => m);
+        managers.forEach(managerName => {
+          if (!teamMembers.some(m => m.name.toLowerCase() === managerName.toLowerCase())) {
+            additionalMembers.push({
+              name: managerName,
+              role: 'Gerente do Projeto',
+              vertical: 'plataforma'
+            });
+          }
+        });
+      }
+      
+      if (projectData.coordinator) {
+        if (!teamMembers.some(m => m.name.toLowerCase() === projectData.coordinator.toLowerCase())) {
+          additionalMembers.push({
+            name: projectData.coordinator,
+            role: 'Coordenador Técnico',
+            vertical: 'plataforma'
+          });
+        }
+      }
+      
+      const allTeamMembers = [...teamMembers, ...additionalMembers];
+      
+      if (allTeamMembers.length > 0) {
         const created = await base44.entities.TeamMember.bulkCreate(
-          teamMembers.map(m => ({ ...m, project_id: project.id }))
+          allTeamMembers.map(m => ({ ...m, project_id: project.id }))
         );
         console.log('Membros criados:', created);
       }
