@@ -318,10 +318,32 @@ export default function ExcelImporter({ open, onOpenChange, onSuccess }) {
         const situation = row[statusCol] ? String(row[statusCol]).toLowerCase().trim() : 'nao_iniciado';
         const mappedStatus = situationMapping[situation] || 'nao_iniciado';
         
-        // Calculate progress based on status
+        const startDate = excelDateToJSDate(row[startCol]);
+        const endDate = excelDateToJSDate(row[endCol]);
+        
+        // Calculate progress based on dates and status
         let progress = 0;
-        if (mappedStatus === 'concluido') progress = 100;
-        else if (mappedStatus === 'em_andamento') progress = 50;
+        if (mappedStatus === 'concluido') {
+          progress = 100;
+        } else if (mappedStatus === 'nao_iniciado') {
+          progress = 0;
+        } else if (mappedStatus === 'em_andamento' && startDate && endDate) {
+          const today = new Date();
+          const start = new Date(startDate);
+          const end = new Date(endDate);
+          
+          if (today <= start) {
+            progress = 0;
+          } else if (today >= end) {
+            progress = 100;
+          } else {
+            const totalDays = (end - start) / (1000 * 60 * 60 * 24);
+            const daysPassed = (today - start) / (1000 * 60 * 60 * 24);
+            progress = Math.round((daysPassed / totalDays) * 100);
+          }
+        } else if (mappedStatus === 'atrasado') {
+          progress = 100;
+        }
         
         // Extrai a vertical do nome da aba (ex: "Cronograma - Pessoal" -> "Pessoal")
         const vertical = sheetName.replace('Cronograma - ', '').trim();
@@ -329,8 +351,8 @@ export default function ExcelImporter({ open, onOpenChange, onSuccess }) {
         return {
           title: String(title).trim(),
           phase: normalizePhase(title),
-          start_date: excelDateToJSDate(row[startCol]),
-          end_date: excelDateToJSDate(row[endCol]),
+          start_date: startDate,
+          end_date: endDate,
           status: mappedStatus,
           progress: progress,
           vertical: normalizeVertical(vertical),
