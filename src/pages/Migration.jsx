@@ -185,6 +185,13 @@ export default function Migration() {
     }
   }, [verticals.length, products.length]);
 
+  // Auto-seleciona o primeiro produto quando mudar de vertical
+  React.useEffect(() => {
+    if (selectedVertical && productsByVertical[selectedVertical]?.length > 0) {
+      setSelectedProduct(productsByVertical[selectedVertical][0].id);
+    }
+  }, [selectedVertical]);
+
   // Overall migration progress
   const overallProgress = products.length > 0
     ? Math.round(products.reduce((sum, p) => sum + getProductProgress(p.id), 0) / products.length)
