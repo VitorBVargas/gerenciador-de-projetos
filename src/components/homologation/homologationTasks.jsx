@@ -1,19 +1,51 @@
 // Tarefas de homologação por produto - serão preenchidas depois
 // IMPORTANTE: Produtos que não aparecem aqui NÃO têm processo de homologação
 
+// Função para dividir texto por vírgulas, respeitando parênteses
+const splitByComma = (text) => {
+  const parts = [];
+  let current = '';
+  let depth = 0;
+  
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    
+    if (char === '(') {
+      depth++;
+      current += char;
+    } else if (char === ')') {
+      depth--;
+      current += char;
+    } else if (char === ',' && depth === 0) {
+      const trimmed = current.trim();
+      if (trimmed) parts.push(trimmed);
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  
+  const trimmed = current.trim();
+  if (trimmed) parts.push(trimmed);
+  
+  return parts;
+};
+
 const parseTasksIntoSections = (tasks) => {
   const sections = [];
   let currentSection = null;
 
   tasks.forEach(task => {
-    // Se a tarefa está em UPPERCASE completo ou começa com "ETAPA" ou "HOMOLOGAÇÃO", é uma seção
-    if (task === task.toUpperCase() || task.startsWith('ETAPA') || task.startsWith('HOMOLOGAÇÃO')) {
+    // Se a tarefa está em UPPERCASE completo ou começa com "ETAPA", "HOMOLOGAÇÃO" ou "SPRINT", é uma seção
+    if (task === task.toUpperCase() || task.startsWith('ETAPA') || task.startsWith('HOMOLOGAÇÃO') || task.startsWith('SPRINT')) {
       if (currentSection) {
         sections.push(currentSection);
       }
       currentSection = { section: task, tasks: [] };
     } else if (currentSection) {
-      currentSection.tasks.push(task);
+      // Divide a tarefa por vírgulas (respeitando parênteses)
+      const subtasks = splitByComma(task);
+      currentSection.tasks.push(...subtasks);
     }
   });
 
