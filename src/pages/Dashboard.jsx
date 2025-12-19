@@ -23,7 +23,7 @@ import { createPageUrl } from '../utils';
 
 import StatCard from '../components/dashboard/StatCard';
 import ProgressChart from '../components/dashboard/ProgressChart';
-import TimelineChart from '../components/dashboard/TimelineChart';
+import MigrationProgressChart from '../components/dashboard/MigrationProgressChart';
 import ProjectModal from '../components/modals/ProjectModal';
 import ExcelImporter from '../components/import/ExcelImporter';
 import EmptyState from '../components/ui/EmptyState';
@@ -66,6 +66,12 @@ export default function Dashboard() {
   const { data: timelineEvents = [] } = useQuery({
     queryKey: ['timelineEvents', projectId],
     queryFn: () => projectId ? base44.entities.TimelineEvent.filter({ project_id: projectId }) : [],
+    enabled: !!projectId
+  });
+
+  const { data: migrationTasks = [] } = useQuery({
+    queryKey: ['migrationTasks', projectId],
+    queryFn: () => projectId ? base44.entities.MigrationTask.filter({ project_id: projectId }) : [],
     enabled: !!projectId
   });
 
@@ -329,9 +335,9 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* Timeline Chart */}
-      {timelineEvents.length > 0 && (
-        <TimelineChart events={timelineEvents} />
+      {/* Migration Progress Chart */}
+      {products.length > 0 && (
+        <MigrationProgressChart products={products} tasks={migrationTasks} />
       )}
 
       {/* Project Modal */}

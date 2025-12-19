@@ -1,0 +1,130 @@
+import React from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+
+const verticalLabels = {
+  arrecadacao: 'Arrecadação',
+  compras: 'Compras/Contratos',
+  contabil: 'Contábil',
+  pessoal: 'Pessoal',
+  educacao: 'Educação',
+  iss: 'ISS',
+  parceiros: 'Parceiros',
+  plataforma: 'Plataforma',
+  atendimento: 'Atendimento'
+};
+
+const verticalColors = {
+  arrecadacao: '#3b82f6',
+  compras: '#8b5cf6',
+  contabil: '#06b6d4',
+  pessoal: '#10b981',
+  educacao: '#f59e0b',
+  iss: '#ef4444',
+  parceiros: '#ec4899',
+  plataforma: '#6366f1',
+  atendimento: '#14b8a6'
+};
+
+const CustomTooltip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="bg-slate-800 border border-slate-700 rounded-lg p-3 shadow-lg">
+        <p className="text-white font-semibold mb-1">{data.name}</p>
+        <p className="text-slate-300 text-sm">
+          Progresso: <span className="text-blue-400 font-semibold">{data.progress}%</span>
+        </p>
+        <p className="text-slate-400 text-xs mt-1">
+          {data.completed} de {data.total} tarefas
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
+
+export default function MigrationProgressChart({ products, tasks }) {
+  // Agrupa produtos por vertical (apenas produtos com migração)
+  const productsByVertical = products.reduce((acc, product) => {
+    const vertical = product.vertical || 'outros';
+    if (!acc[vertical]) acc[vertical] = [];
+    acc[vertical].push(product);
+    return acc;
+  }, {});
+
+  // Calcula progresso por vertical
+  const chartData = Object.entries(productsByVertical).map(([vertical, verticalProducts]) => {
+    const productIds = verticalProducts.map(p => p.id);
+    const verticalTasks = tasks.filter(t => productIds.includes(t.product_id));
+    
+    const total = verticalTasks.length;
+    const completed = verticalTasks.filter(t => t.completed).length;
+    const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+    return {
+      vertical,
+      name: verticalLabels[vertical] || vertical,
+      progress,
+      completed,
+      total,
+      color: verticalColors[vertical] || '#64748b'
+    };
+  }).filter(d => d.total > 0); // Só mostra verticais com tarefas
+
+  // Ordena por progresso decrescente
+  chartData.sort((a, b) => b.progress - a.progress);
+
+  if (chartData.length === 0) {
+    return (
+      <Card className="bg-slate-800/50 border-slate-700/50">
+        <CardHeader>
+          <CardTitle className="text-white">Progresso da Migração</CardTitle>
+        </CardHeader>
+        <CardContent className="py-12">
+          <p className="text-center text-slate-500 text-sm">
+            Nenhuma tarefa de migração cadastrada
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="bg-slate-800/50 border-slate-700/50">
+      <CardHeader>
+        <CardTitle className="text-white">Progresso da Migração por Vertical</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ResponsiveContainer width="100%" height={Math.max(300, chartData.length * 50)}>
+          <BarChart 
+            data={chartData} 
+            layout="vertical"
+            margin={{ top: 5, right: 30, left: 120, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+            <XAxis 
+              type="number" 
+              domain={[0, 100]}
+              stroke="#94a3b8"
+              tick={{ fill: '#94a3b8' }}
+            />
+            <YAxis 
+              type="category" 
+              dataKey="name" 
+              stroke="#94a3b8"
+              tick={{ fill: '#94a3b8' }}
+              width={110}
+            />
+            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(51, 65, 85, 0.3)' }} />
+            <Bar dataKey="progress" radius={[0, 8, 8, 0]}>
+              {chartData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
+  );
+}
