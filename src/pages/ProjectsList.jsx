@@ -41,6 +41,7 @@ export default function ProjectsList() {
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState(null);
+  const [deletingProjectId, setDeletingProjectId] = useState(null);
 
   const { data: projects = [], isLoading } = useQuery({
     queryKey: ['projects'],
@@ -49,11 +50,12 @@ export default function ProjectsList() {
 
   const deleteMutation = useMutation({
     mutationFn: async (projectId) => {
+      setDeletingProjectId(projectId);
+      
       const entities = ['TeamMember', 'Stakeholder', 'Product', 'TimelineEvent', 
                        'KanbanTask', 'Risk', 'Travel', 'Training', 'MigrationTask', 
                        'HomologationTask', 'OperationalReport'];
       
-      // Deleta todas as entidades relacionadas em paralelo
       await Promise.all(
         entities.map(async (entity) => {
           try {
@@ -68,15 +70,19 @@ export default function ProjectsList() {
       );
       
       await base44.entities.Project.delete(projectId);
+      return projectId;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      setDeletingProjectId(null);
       setDeleteDialogOpen(false);
       setProjectToDelete(null);
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
     },
     onError: (error) => {
       console.error('Erro ao deletar projeto:', error);
+      setDeletingProjectId(null);
       setDeleteDialogOpen(false);
+      setProjectToDelete(null);
     }
   });
 
@@ -99,7 +105,7 @@ export default function ProjectsList() {
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-white">Meus Projetos</h1>
+            <h1 className="text-3xl font-bold text-white">Portifólio SC/MG</h1>
             <p className="text-slate-400 mt-1">{activeProjects.length} projeto(s) ativo(s)</p>
           </div>
           <Button 
@@ -115,26 +121,36 @@ export default function ProjectsList() {
         {activeProjects.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {activeProjects.map((project) => (
-              <Card key={project.id} className="bg-slate-800/50 border-slate-700 hover:bg-slate-800 transition-all group">
+              <Card 
+                key={project.id} 
+                className={`bg-slate-800/50 border-slate-700 hover:bg-slate-800 transition-all group ${
+                  deletingProjectId === project.id ? 'opacity-50 pointer-events-none' : ''
+                }`}
+              >
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <CardTitle className="text-white text-lg mb-2">{project.name}</CardTitle>
+                      <CardTitle className="text-white text-lg mb-2">
+                        {deletingProjectId === project.id ? 'Excluindo...' : project.name}
+                      </CardTitle>
                       <Badge className={statusColors[project.status]}>
                         {statusLabels[project.status]}
                       </Badge>
                     </div>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleDelete(project);
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    {deletingProjectId !== project.id && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleDelete(project);
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -159,7 +175,10 @@ export default function ProjectsList() {
                   )}
 
                   <Link to={createPageUrl(`Dashboard?project_id=${project.id}`)}>
-                    <Button className="w-full bg-blue-600 hover:bg-blue-700 mt-4">
+                    <Button 
+                      className="w-full bg-blue-600 hover:bg-blue-700 mt-4"
+                      disabled={deletingProjectId === project.id}
+                    >
                       <FolderOpen className="w-4 h-4 mr-2" />
                       Abrir Projeto
                     </Button>
