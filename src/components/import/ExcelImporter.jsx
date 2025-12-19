@@ -228,31 +228,59 @@ const processTeamSheet = (workbook) => {
     return members;
   };
 
+  const inferCommunicationLevel = (role) => {
+    if (!role) return 'medio';
+    const roleLower = role.toLowerCase();
+
+    // Alto: Cargos de gestão e diretoria
+    if (roleLower.includes('gestor') || roleLower.includes('diretor') || 
+        roleLower.includes('gerente') || roleLower.includes('coordenador') ||
+        roleLower.includes('superintendente') || roleLower.includes('secretário') ||
+        roleLower.includes('secretario') || roleLower.includes('chefe')) {
+      return 'alto';
+    }
+
+    // Baixo: Cargos operacionais
+    if (roleLower.includes('assistente') || roleLower.includes('auxiliar') ||
+        roleLower.includes('estagiário') || roleLower.includes('estagiario') ||
+        roleLower.includes('operador')) {
+      return 'baixo';
+    }
+
+    // Médio: Analistas, técnicos e demais
+    return 'medio';
+  };
+
   const processStakeholderSheet = (workbook) => {
     const sheet = workbook.Sheets['Dados Cliente'];
     if (!sheet) return [];
 
-    const data = XLSX.utils.sheet_to_json(sheet);
+    const data = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: false });
     if (data.length === 0) return [];
 
-    const headers = Object.keys(data[0]);
-    const atuacaoCol = findColumn(headers, ['Atuação', 'Papel']);
-    const nomeCol = findColumn(headers, ['Nome', 'Contato']);
-    const emailCol = findColumn(headers, ['Email', 'E-mail']);
-    const telefoneCol = findColumn(headers, ['Telefone', 'Fone']);
-    const comCol = findColumn(headers, ['Comunicação', 'Nível de Comunicação']);
-    const rotinaCol = findColumn(headers, ['Rotina', 'Rotina de Comunicação']);
+    const allHeaders = Object.keys(data[0]);
+    const nomeCol = findColumn(allHeaders, ['Nome', 'Contato', 'Name']);
+    const cargoCol = findColumn(allHeaders, ['Cargo', 'Atuação', 'Papel', 'Função', 'Funcao']);
+    const telefoneCol = findColumn(allHeaders, ['Telefone', 'Fone', 'Celular', 'Phone']);
+    const emailCol = findColumn(allHeaders, ['Email', 'E-mail']);
 
-    const commMapping = { 'alto': 'alto', 'médio': 'medio', 'medio': 'medio', 'baixo': 'baixo' };
+    return data.map(row => {
+      const name = row[nomeCol] ? String(row[nomeCol]).trim() : '';
+      const role = row[cargoCol] ? String(row[cargoCol]).trim() : '';
+      const phone = row[telefoneCol] ? String(row[telefoneCol]).trim() : '';
+      const email = row[emailCol] ? String(row[emailCol]).trim() : '';
 
-    return data.map(row => ({
-      name: row[nomeCol] || 'Nome não informado',
-      role: row[atuacaoCol] || '',
-      email: row[emailCol] || '',
-      phone: row[telefoneCol] || '',
-      communication_level: commMapping[row[comCol]?.toLowerCase()] || 'medio',
-      communication_routine: row[rotinaCol] || ''
-    })).filter(s => s.name !== 'Nome não informado');
+      if (!name || name.length < 2) return null;
+
+      return {
+        name,
+        role,
+        email,
+        phone,
+        communication_level: inferCommunicationLevel(role),
+        communication_routine: ''
+      };
+    }).filter(s => s !== null);
   };
 
 const processProductsSheet = (workbook) => {
