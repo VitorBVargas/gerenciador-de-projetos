@@ -8,6 +8,7 @@ import * as XLSX from 'xlsx';
 import { base44 } from '@/api/base44Client';
 
 const verticalMapping = {
+  'gerenciamento': 'gerenciamento',
   'arrecadação': 'arrecadacao',
   'arrecadacao': 'arrecadacao',
   'compras': 'compras',

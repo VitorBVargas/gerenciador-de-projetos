@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const verticalLabels = {
+  gerenciamento: 'Gerenciamento',
   arrecadacao: 'Arrecadação',
   compras: 'Compras/Contratos',
   contabil: 'Contábil',
@@ -36,10 +37,12 @@ const verticalLabels = {
   educacao: 'Educação',
   iss: 'ISS',
   parceiros: 'Parceiros',
-  plataforma: 'Plataforma'
+  plataforma: 'Plataforma',
+  saude: 'Saúde'
 };
 
 const verticalColors = {
+  gerenciamento: 'bg-slate-500/20 text-slate-300 border-slate-500/30',
   arrecadacao: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
   compras: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
   contabil: 'bg-green-500/20 text-green-400 border-green-500/30',
@@ -47,10 +50,12 @@ const verticalColors = {
   educacao: 'bg-pink-500/20 text-pink-400 border-pink-500/30',
   iss: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
   parceiros: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-  plataforma: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30'
+  plataforma: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30',
+  saude: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
 };
 
 const verticalAvatarColors = {
+  gerenciamento: 'from-slate-500 to-slate-600',
   arrecadacao: 'from-blue-500 to-blue-600',
   compras: 'from-purple-500 to-purple-600',
   contabil: 'from-green-500 to-green-600',
@@ -58,7 +63,8 @@ const verticalAvatarColors = {
   educacao: 'from-pink-500 to-pink-600',
   iss: 'from-cyan-500 to-cyan-600',
   parceiros: 'from-yellow-500 to-yellow-600',
-  plataforma: 'from-indigo-500 to-indigo-600'
+  plataforma: 'from-indigo-500 to-indigo-600',
+  saude: 'from-emerald-500 to-emerald-600'
 };
 
 export default function Team() {
@@ -179,7 +185,13 @@ export default function Team() {
       {/* Team Grid */}
       {filteredMembers.length > 0 ? (
         <div className="space-y-4">
-          {Object.entries(membersByVertical).map(([vertical, roleGroups]) => {
+          {Object.entries(membersByVertical)
+            .sort(([verticalA], [verticalB]) => {
+              if (verticalA === 'gerenciamento') return -1;
+              if (verticalB === 'gerenciamento') return 1;
+              return 0;
+            })
+            .map(([vertical, roleGroups]) => {
             const totalMembers = Object.values(roleGroups).reduce((sum, members) => sum + members.length, 0);
             return (
               <div key={vertical}>
