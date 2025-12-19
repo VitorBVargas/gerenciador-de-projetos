@@ -127,11 +127,24 @@ export default function Migration() {
     });
   };
 
-  const handleToggleTask = (task) => {
-    updateTaskMutation.mutate({
-      id: task.id,
-      data: { ...task, completed: !task.completed }
+  const handleToggleTask = async (task) => {
+    const newCompleted = !task.completed;
+    
+    // Atualiza de forma otimista primeiro
+    queryClient.setQueryData(['migrationTasks', projectId], (oldTasks) => {
+      if (!oldTasks) return oldTasks;
+      return oldTasks.map(t => 
+        t.id === task.id ? { ...t, completed: newCompleted } : t
+      );
     });
+    
+    // Depois faz a atualização no servidor
+    try {
+      await base44.entities.MigrationTask.update(task.id, { completed: newCompleted });
+    } catch (error) {
+      // Em caso de erro, reverte
+      queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
+    }
   };
 
   const handleToggleAllTasks = async () => {
@@ -141,15 +154,27 @@ export default function Migration() {
     const allCompleted = productTasks.every(t => t.completed);
     const newCompletedState = !allCompleted;
     
-    // Atualiza todas as tarefas em paralelo
-    await Promise.all(
-      productTasks.map(task => 
-        base44.entities.MigrationTask.update(task.id, { ...task, completed: newCompletedState })
-      )
-    );
+    // Atualiza de forma otimista primeiro
+    queryClient.setQueryData(['migrationTasks', projectId], (oldTasks) => {
+      if (!oldTasks) return oldTasks;
+      return oldTasks.map(t => 
+        productTasks.find(pt => pt.id === t.id) 
+          ? { ...t, completed: newCompletedState } 
+          : t
+      );
+    });
     
-    // Invalida queries uma vez só depois de tudo
-    queryClient.invalidateQueries({ queryKey: ['migrationTasks'] });
+    // Depois atualiza no servidor em paralelo
+    try {
+      await Promise.all(
+        productTasks.map(task => 
+          base44.entities.MigrationTask.update(task.id, { completed: newCompletedState })
+        )
+      );
+    } catch (error) {
+      // Em caso de erro, recarrega os dados
+      queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
+    }
   };
 
   const getProductTasks = (productId) => {
