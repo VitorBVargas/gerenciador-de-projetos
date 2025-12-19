@@ -523,6 +523,35 @@ const processProductsSheet = (workbook) => {
     })).filter(t => t.title !== 'Treinamento');
   };
 
+  const processDocumentsSheet = (workbook) => {
+    const sheet = workbook.Sheets['Documentos chaves'];
+    if (!sheet) return [];
+
+    const data = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: false });
+    if (data.length === 0) return [];
+
+    const headers = Object.keys(data[0]);
+    const titleCol = findColumn(headers, ['Documento', 'Título', 'Titulo', 'Nome']);
+    const situationCol = findColumn(headers, ['Situação', 'Situacao', 'Status']);
+    const linkCol = findColumn(headers, ['Link', 'URL']);
+
+    return data.map((row, index) => {
+      const title = row[titleCol] ? String(row[titleCol]).trim() : '';
+      if (!title || title.length < 2) return null;
+
+      const situation = row[situationCol] ? String(row[situationCol]).toLowerCase().trim() : 'em aberto';
+      const completed = situation !== 'em aberto';
+      const link = row[linkCol] ? String(row[linkCol]).trim() : '';
+
+      return {
+        title,
+        link,
+        completed,
+        order: index
+      };
+    }).filter(d => d !== null);
+  };
+
   const handleFileSelect = (e) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
@@ -686,6 +715,16 @@ const processProductsSheet = (workbook) => {
           trainings.map(t => ({ ...t, project_id: project.id }))
         );
       }
+      setProgress(95);
+
+      // 9. Import Documents
+      setStatus('Importando documentos chave...');
+      const documents = processDocumentsSheet(workbook);
+      if (documents.length > 0) {
+        await base44.entities.ProjectDocument.bulkCreate(
+          documents.map(d => ({ ...d, project_id: project.id }))
+        );
+      }
       setProgress(100);
 
       setStatus('Importação concluída com sucesso!');
@@ -795,6 +834,7 @@ const processProductsSheet = (workbook) => {
               <li>• <span className="text-slate-300">Riscos</span> - Riscos identificados</li>
               <li>• <span className="text-slate-300">Viagens</span> - Viagens planejadas</li>
               <li>• <span className="text-slate-300">Treinamentos</span> - Treinamentos agendados</li>
+              <li>• <span className="text-slate-300">Documentos chaves</span> - Documentos do projeto</li>
             </ul>
           </div>
         </div>

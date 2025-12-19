@@ -184,37 +184,7 @@ export default function Dashboard() {
     initializeMilestones();
   }, [projectId]);
 
-  // Inicializa os documentos padrão se não existirem
-  React.useEffect(() => {
-    const initializeDocuments = async () => {
-      if (projectId && documents.length === 0) {
-        const defaultDocuments = [
-          'Termo de Abertura do Projeto',
-          'Kickoff',
-          'Diagnóstico',
-          'Mapa de relatórios',
-          'Acordos de conversão',
-          'Aceite de homologação',
-          'TAC',
-          'Treinamentos',
-          'Aceite de implantação'
-        ];
-        
-        await base44.entities.ProjectDocument.bulkCreate(
-          defaultDocuments.map((title, index) => ({
-            project_id: projectId,
-            title,
-            completed: false,
-            order: index
-          }))
-        );
-        
-        queryClient.invalidateQueries({ queryKey: ['documents', projectId] });
-      }
-    };
-    
-    initializeDocuments();
-  }, [projectId]);
+
 
   // Calculate stats
   const projectProgress = timelineEvents.length > 0
@@ -488,10 +458,25 @@ export default function Dashboard() {
                   })}
                   className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" 
                 />
-                <span className={cn(
-                  "text-sm",
-                  document.completed ? "text-slate-500 line-through" : "text-white"
-                )}>{document.title}</span>
+                {document.link ? (
+                  <a
+                    href={document.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={cn(
+                      "text-sm hover:underline flex items-center gap-1",
+                      document.completed ? "text-slate-500 line-through" : "text-blue-400"
+                    )}
+                  >
+                    {document.title}
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                ) : (
+                  <span className={cn(
+                    "text-sm",
+                    document.completed ? "text-slate-500 line-through" : "text-white"
+                  )}>{document.title}</span>
+                )}
               </div>
             ))}
           </CardContent>
