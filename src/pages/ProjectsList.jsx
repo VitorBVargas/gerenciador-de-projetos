@@ -50,7 +50,26 @@ export default function ProjectsList() {
 
   const deleteMutation = useMutation({
     mutationFn: async (projectId) => {
-      // Deleta projeto diretamente - relacionados em cascata se configurado
+      // Lista todas as entidades relacionadas
+      const entities = ['TeamMember', 'Stakeholder', 'Product', 'TimelineEvent', 
+                       'KanbanTask', 'Risk', 'Travel', 'Training', 'MigrationTask', 
+                       'HomologationTask', 'OperationalReport'];
+      
+      // Deleta todos os dados relacionados primeiro
+      for (const entity of entities) {
+        try {
+          const records = await base44.entities[entity].filter({ project_id: projectId });
+          if (records?.length > 0) {
+            await Promise.all(records.map(record => 
+              base44.entities[entity].delete(record.id)
+            ));
+          }
+        } catch (error) {
+          console.warn(`Aviso ao deletar ${entity}:`, error);
+        }
+      }
+      
+      // Deleta o projeto por último
       await base44.entities.Project.delete(projectId);
       return projectId;
     },
@@ -59,9 +78,17 @@ export default function ProjectsList() {
       await queryClient.cancelQueries({ queryKey: ['projects'] });
     },
     onSuccess: (deletedProjectId) => {
-      queryClient.setQueryData(['projects'], (oldData) => {
-        return oldData ? oldData.filter(p => p.id !== deletedProjectId) : [];
-      });
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['teamMembers'] });
+      queryClient.invalidateQueries({ queryKey: ['stakeholders'] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['timelineEvents'] });
+      queryClient.invalidateQueries({ queryKey: ['kanbanTasks'] });
+      queryClient.invalidateQueries({ queryKey: ['risks'] });
+      queryClient.invalidateQueries({ queryKey: ['travels'] });
+      queryClient.invalidateQueries({ queryKey: ['trainings'] });
+      queryClient.invalidateQueries({ queryKey: ['migrationTasks'] });
+      queryClient.invalidateQueries({ queryKey: ['homologationTasks'] });
     },
     onSettled: () => {
       setDeletingProjectId(null);
@@ -70,9 +97,11 @@ export default function ProjectsList() {
     },
     onError: (error) => {
       console.error('Erro ao deletar projeto:', error);
+      alert('Erro ao excluir o projeto. Tente novamente.');
       setDeletingProjectId(null);
       setDeleteDialogOpen(false);
       setProjectToDelete(null);
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
     }
   });
 
