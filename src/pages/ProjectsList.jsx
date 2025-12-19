@@ -49,23 +49,24 @@ export default function ProjectsList() {
 
   const deleteMutation = useMutation({
     mutationFn: async (projectId) => {
-      // Delete all related data first
       const entities = ['TeamMember', 'Stakeholder', 'Product', 'TimelineEvent', 
                        'KanbanTask', 'Risk', 'Travel', 'Training', 'MigrationTask', 
                        'HomologationTask', 'OperationalReport'];
       
-      for (const entity of entities) {
-        try {
-          const records = await base44.entities[entity].filter({ project_id: projectId });
-          if (records && records.length > 0) {
-            await Promise.all(records.map(record => base44.entities[entity].delete(record.id)));
+      // Deleta todas as entidades relacionadas em paralelo
+      await Promise.all(
+        entities.map(async (entity) => {
+          try {
+            const records = await base44.entities[entity].filter({ project_id: projectId });
+            if (records?.length > 0) {
+              await Promise.all(records.map(r => base44.entities[entity].delete(r.id)));
+            }
+          } catch (error) {
+            console.warn(`Erro ao deletar ${entity}:`, error);
           }
-        } catch (error) {
-          console.warn(`Erro ao deletar ${entity}:`, error);
-        }
-      }
+        })
+      );
       
-      // Delete project last
       await base44.entities.Project.delete(projectId);
     },
     onSuccess: () => {
@@ -199,12 +200,18 @@ export default function ProjectsList() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="border-slate-600 text-slate-300 hover:bg-slate-700">Cancelar</AlertDialogCancel>
+            <AlertDialogCancel 
+              className="border-slate-600 text-slate-300 hover:bg-slate-700"
+              disabled={deleteMutation.isPending}
+            >
+              Cancelar
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteMutation.mutate(projectToDelete?.id)}
-              className="bg-red-600 hover:bg-red-700"
+              disabled={deleteMutation.isPending}
+              className="bg-red-600 hover:bg-red-700 disabled:opacity-50"
             >
-              Excluir Projeto
+              {deleteMutation.isPending ? 'Excluindo...' : 'Excluir Projeto'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
