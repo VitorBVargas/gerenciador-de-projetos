@@ -213,23 +213,72 @@ export const migrationTasksByProduct = {
 
   // Compras - Compras
   'Compras (Cloud)': parseTasksIntoSections([
-    'MIGRAÇÃO: TABELAS AUXILIARES E GERAIS',
-    'Extrair Países', 'Extrair Estados', 'Extrair Municípios', 'Extrair Bairros', 'Extrair Logradouros', 'Extrair Bancos', 'Extrair Agências',
-    'Extrair Órgãos', 'Extrair Unidades', 'Extrair Unidade de Medida', 'Extrair Natureza Texto Jurídico', 'Extrair Tipos Atos',
-    'Extrair Tabelas de Elementos de Despesas', 'Extrair Tabelas de Fontes de Recursos',
-    'MIGRAÇÃO: FORNECEDORES E TERCEIROS',
-    'Extrair Tipos de Terceiros', 'Extrair Dados de Terceiros', 'Extrair Terceiros', 'Extrair Terceiros Produto', 'Extrair Comissões',
-    'MIGRAÇÃO: CLASSIFICAÇÃO E PRODUTOS',
-    'Extrair Grupo de Material e Serviço', 'Extrair Classe de Material e Serviço', 'Extrair Material e Serviço',
-    'Extrair Material e Serviço de Suprimentos', 'Extrair Estoques', 'Extrair Lotes',
-    'MIGRAÇÃO: PLANEJAMENTO E PROGRAMAÇÃO',
-    'Extrair Plano Plurianual', 'Extrair Lei Orçamentária', 'Extrair Solicitações de Compras', 'Extrair Solicitações de Compras Itens',
-    'MIGRAÇÃO: LICITAÇÕES E CONTRATOS',
-    'Extrair Modalidades', 'Extrair Licitações', 'Extrair Licitações Dotações', 'Extrair Licitações Itens', 'Extrair Licitações Fornecedores',
-    'Extrair Contratos', 'Extrair Contratos Aditivos', 'Extrair Contratos Itens', 'Extrair Contratos Partes',
-    'MIGRAÇÃO: ORDENS E EXECUÇÕES',
-    'Extrair Ordens de Compras', 'Extrair Ordens de Compras Produtos', 'Extrair Autorizações de Fornecimentos',
-    'Extrair Autorizações de Fornecimentos Itens', 'Extrair Requisições', 'Extrair Requisições Itens'
+    'MIGRAÇÃO: SOLICITAÇÕES E COTAÇÕES',
+    'Extrair Solicitação Compra', 'Extrair Solicitação Compra Item', 'Extrair Solicitação Compra Despesa',
+    'Extrair Solicitação Compra Atualizar Valores', 'Extrair Cotação Preço', 'Extrair Cotação Preço Itens',
+    'Extrair Cotação Vínculo Solicitação', 'Extrair Cotação Participantes', 'Extrair Cotação Participantes Item',
+    'Extrair Cotação Finalizar',
+    'MIGRAÇÃO: PROCESSOS ADMINISTRATIVOS',
+    'Extrair Processo Adm', 'Extrair Processo Adm Documento', 'Extrair Processo Adm Entidade',
+    'Extrair Processo Adm Tipos Textos', 'Extrair Processo Adm Textos', 'Extrair Processo Adm Anexos',
+    'Extrair Processo Adm Pareceres', 'Extrair Processo Adm Item Livre', 'Extrair Processo Adm Item Reservado',
+    'Extrair Processo Adm Despesa', 'Extrair Processo Adm Lote', 'Extrair Processo Adm Lote Item',
+    'Extrair Processo Adm Entidade Item', 'Extrair Processo Adm Processo Origem Adesão',
+    'Extrair Processo Adm Processo Origem Adesão Itens', 'Extrair Processo Adm Convidado',
+    'Extrair Processo Adm Publicação', 'Extrair Processo Adm Impugnação', 'Extrair Processo Adm Sessão Julgamento',
+    'Extrair Processo Adm Participante', 'Extrair Processo Adm Participante Documento', 'Extrair Processo Adm Participante Proposta',
+    'Extrair Processo Adm Sessão Julgamento Ata', 'Extrair Processo Adm Interposição Recurso',
+    'Extrair Processo Adm Ato Final', 'Extrair Processo Adm Ato Final Revogação', 'Extrair Processo Adm Atualizar Valores',
+    'MIGRAÇÃO: ATAS DE REGISTRO DE PREÇO',
+    'Extrair Ata Registro Preço', 'Extrair Ata Registro Preço Item', 'Extrair Ata Registro Preço Ocorrência',
+    'Extrair Ata Registro Preço Ocorrência Item', 'Extrair Ata Registro Preço Atualizar Valores'
+  ]),
+
+  // Compras - Contratos
+  'Contratos (Cloud)': parseTasksIntoSections([
+    'MIGRAÇÃO: INSTRUMENTOS CONTRATUAIS',
+    'Extrair Compras Diretas', 'Extrair Compras Diretas Item', 'Extrair Compras Diretas Despesa',
+    'Extrair Compras Diretas Publicação', 'Extrair Contratações', 'Extrair Contratações Sem Processo',
+    'Extrair Contratação Item', 'Extrair Contratação Responsável Adm', 'Extrair Contratação Publicação',
+    'Extrair Contratação Despesa', 'Extrair Contratação Textos', 'Extrair Contratação Anexos',
+    'MIGRAÇÃO: ALTERAÇÕES E TERMOS ADITIVOS',
+    'Extrair Contratação Aditivo', 'Extrair Contratação Aditivo Item', 'Extrair Contratação Aditivo Sem Processo',
+    'Extrair Contratação Aditivo Item Não Previsto', 'Extrair Contratação Apostila', 'Extrair Contratação Apostila Item',
+    'MIGRAÇÃO: EXECUÇÃO E FORNECIMENTO',
+    'Extrair Solicitação Fornecimento Compra Direta', 'Extrair Solicitação Fornecimento Compra Direta Item',
+    'Extrair Solicitação Fornecimento', 'Extrair Solicitação Fornecimento Multi', 'Extrair Solicitação Fornecimento Item',
+    'Extrair Recebimento Compra Direta', 'Extrair Recebimento Item Compra Direta', 'Extrair Comprovante Compra Direta',
+    'Extrair Comprovante Recebimentos', 'Extrair Recebimento', 'Extrair Recebimento Item', 'Extrair Comprovante',
+    'MIGRAÇÃO: ENCERRAMENTO E SANÇÕES',
+    'Extrair Rescisão Contratual', 'Extrair Sanção'
+  ]),
+
+  // Compras - Almoxarifado
+  'Almoxarifado': parseTasksIntoSections([
+    'MIGRAÇÃO: MOVIMENTAÇÃO DE ESTOQUE',
+    'Extrair Requisições', 'Extrair Requisições Item', 'Extrair Lote', 'Extrair Entradas',
+    'Extrair Entradas Itens', 'Extrair Entradas Itens Lotes', 'Extrair Entradas Finalizar',
+    'Extrair Saídas', 'Extrair Saídas Itens', 'Extrair Saídas Itens Lotes', 'Extrair Saídas Finalizar',
+    'MIGRAÇÃO: CONTROLE E ENCERRAMENTO',
+    'Extrair Estoque', 'Extrair Posição Estoque', 'Extrair Movimento Atualização', 'Extrair Encerramentos'
+  ]),
+
+  // Compras - Frotas
+  'Frotas (Cloud)': parseTasksIntoSections([
+    'MIGRAÇÃO: OPERAÇÃO E CONTROLE DE VIAGENS',
+    'Extrair Reserva Veículo', 'Extrair Ocorrência', 'Extrair Controle Viagem',
+    'Extrair Controle Viagem Finalidade', 'Extrair Controle Viagem Rota',
+    'MIGRAÇÃO: MANUTENÇÃO E DESPESAS',
+    'Extrair Controle Revisão', 'Extrair Acompanhamento Mensal', 'Extrair Taxa Licenciamento',
+    'Extrair Taxa Licenciamento Parcela', 'Extrair Ordem Abastecimento', 'Extrair Ordem Abastecimento Item',
+    'Extrair Lançamento Despesa', 'Extrair Lançamento Despesa Item'
+  ]),
+
+  // Compras - Patrimônio
+  'Patrimônio (Cloud)': parseTasksIntoSections([
+    'MIGRAÇÃO: MOVIMENTAÇÃO DE BENS PATRIMONIAIS',
+    'Extrair Manutenção Bem', 'Extrair Transferência Bem', 'Extrair Reavaliação Bem',
+    'Extrair Baixa', 'Extrair Baixa Bem', 'Extrair Baixa Finalizar'
   ]),
 
   // Contábil - Planejamento
