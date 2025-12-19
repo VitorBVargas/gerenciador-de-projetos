@@ -26,7 +26,8 @@ const verticalLabels = {
   educacao: 'Educação',
   iss: 'ISS',
   parceiros: 'Parceiros',
-  plataforma: 'Plataforma'
+  plataforma: 'Plataforma',
+  atendimento: 'Atendimento'
 };
 
 export default function Migration() {
