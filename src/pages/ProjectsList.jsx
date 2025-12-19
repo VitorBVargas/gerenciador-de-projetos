@@ -54,18 +54,19 @@ export default function ProjectsList() {
                        'KanbanTask', 'Risk', 'Travel', 'Training', 'MigrationTask', 
                        'HomologationTask', 'OperationalReport'];
       
-      await Promise.all(
-        entities.map(async (entity) => {
-          try {
-            const records = await base44.entities[entity].filter({ project_id: projectId });
-            if (records?.length > 0) {
-              await Promise.all(records.map(r => base44.entities[entity].delete(r.id)));
+      // Deleta sequencialmente para evitar rate limit
+      for (const entity of entities) {
+        try {
+          const records = await base44.entities[entity].filter({ project_id: projectId });
+          if (records?.length > 0) {
+            for (const record of records) {
+              await base44.entities[entity].delete(record.id);
             }
-          } catch (error) {
-            console.warn(`Erro ao deletar ${entity}:`, error);
           }
-        })
-      );
+        } catch (error) {
+          console.warn(`Erro ao deletar ${entity}:`, error);
+        }
+      }
       
       await base44.entities.Project.delete(projectId);
       return projectId;
@@ -86,7 +87,9 @@ export default function ProjectsList() {
     },
     onError: (error) => {
       console.error('Erro ao deletar projeto:', error);
-      alert('Erro ao deletar projeto. Tente novamente.');
+      setDeletingProjectId(null);
+      setDeleteDialogOpen(false);
+      setProjectToDelete(null);
     }
   });
 
