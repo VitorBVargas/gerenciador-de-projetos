@@ -50,24 +50,7 @@ export default function ProjectsList() {
 
   const deleteMutation = useMutation({
     mutationFn: async (projectId) => {
-      const entities = ['TeamMember', 'Stakeholder', 'Product', 'TimelineEvent', 
-                       'KanbanTask', 'Risk', 'Travel', 'Training', 'MigrationTask', 
-                       'HomologationTask', 'OperationalReport'];
-      
-      // Deleta sequencialmente para evitar rate limit
-      for (const entity of entities) {
-        try {
-          const records = await base44.entities[entity].filter({ project_id: projectId });
-          if (records?.length > 0) {
-            for (const record of records) {
-              await base44.entities[entity].delete(record.id);
-            }
-          }
-        } catch (error) {
-          console.warn(`Erro ao deletar ${entity}:`, error);
-        }
-      }
-      
+      // Deleta projeto diretamente - relacionados em cascata se configurado
       await base44.entities.Project.delete(projectId);
       return projectId;
     },

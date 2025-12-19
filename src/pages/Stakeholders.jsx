@@ -49,22 +49,27 @@ export default function Stakeholders() {
   const [stakeholderToDelete, setStakeholderToDelete] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Get project_id from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const projectId = urlParams.get('project_id');
+
   const { data: projects = [] } = useQuery({
     queryKey: ['projects'],
     queryFn: () => base44.entities.Project.list('-created_date')
   });
 
   const { data: stakeholders = [] } = useQuery({
-    queryKey: ['stakeholders'],
-    queryFn: () => base44.entities.Stakeholder.list()
+    queryKey: ['stakeholders', projectId],
+    queryFn: () => projectId ? base44.entities.Stakeholder.filter({ project_id: projectId }) : [],
+    enabled: !!projectId
   });
 
-  const activeProject = projects[0];
+  const activeProject = projects.find(p => p.id === projectId);
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Stakeholder.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['stakeholders'] });
+      queryClient.invalidateQueries({ queryKey: ['stakeholders', projectId] });
       setModalOpen(false);
     }
   });
@@ -72,7 +77,7 @@ export default function Stakeholders() {
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Stakeholder.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['stakeholders'] });
+      queryClient.invalidateQueries({ queryKey: ['stakeholders', projectId] });
       setModalOpen(false);
       setSelectedStakeholder(null);
     }
@@ -81,7 +86,7 @@ export default function Stakeholders() {
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.Stakeholder.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['stakeholders'] });
+      queryClient.invalidateQueries({ queryKey: ['stakeholders', projectId] });
       setDeleteDialogOpen(false);
       setStakeholderToDelete(null);
     }

@@ -62,7 +62,7 @@ export default function Migration() {
   const createTaskMutation = useMutation({
     mutationFn: (data) => base44.entities.MigrationTask.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['migrationTasks'] });
+      queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
       setNewTaskTitle('');
     }
   });
@@ -70,14 +70,14 @@ export default function Migration() {
   const updateTaskMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.MigrationTask.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['migrationTasks'] });
+      queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
     }
   });
 
   const deleteTaskMutation = useMutation({
     mutationFn: (id) => base44.entities.MigrationTask.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['migrationTasks'] });
+      queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
     }
   });
 
@@ -106,7 +106,7 @@ export default function Migration() {
 
     if (tasksToCreate.length > 0) {
       await base44.entities.MigrationTask.bulkCreate(tasksToCreate);
-      queryClient.invalidateQueries({ queryKey: ['migrationTasks'] });
+      queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
     }
   };
 
@@ -220,9 +220,10 @@ export default function Migration() {
     }
   }, [selectedVertical]);
 
-  // Overall migration progress
-  const overallProgress = products.length > 0
-    ? Math.round(products.reduce((sum, p) => sum + getProductProgress(p.id), 0) / products.length)
+  // Overall migration progress (apenas produtos com migração)
+  const productsWithMigration = products.filter(p => productHasMigration(p.name));
+  const overallProgress = productsWithMigration.length > 0
+    ? Math.round(productsWithMigration.reduce((sum, p) => sum + getProductProgress(p.id), 0) / productsWithMigration.length)
     : 0;
 
   const getCurrentProduct = () => products.find(p => p.id === selectedProduct);
@@ -235,7 +236,7 @@ export default function Migration() {
           <h1 className="text-2xl lg:text-3xl font-bold text-white">Migração</h1>
           <p className="text-slate-400 mt-1">Acompanhe o progresso de migração por produto</p>
         </div>
-        {products.length > 0 && (
+        {productsWithMigration.length > 0 && (
           <div className="flex items-center gap-4 bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
             <div className="text-sm text-slate-400">Progresso Geral</div>
             <div className="w-32">

@@ -59,7 +59,7 @@ export default function Homologation() {
   const createTaskMutation = useMutation({
     mutationFn: (data) => base44.entities.HomologationTask.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['homologationTasks'] });
+      queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
       setNewTaskTitle('');
     }
   });
@@ -67,14 +67,14 @@ export default function Homologation() {
   const updateTaskMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.HomologationTask.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['homologationTasks'] });
+      queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
     }
   });
 
   const deleteTaskMutation = useMutation({
     mutationFn: (id) => base44.entities.HomologationTask.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['homologationTasks'] });
+      queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
     }
   });
 

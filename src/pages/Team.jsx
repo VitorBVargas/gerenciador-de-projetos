@@ -69,22 +69,27 @@ export default function Team() {
   const [memberToDelete, setMemberToDelete] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Get project_id from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const projectId = urlParams.get('project_id');
+
   const { data: projects = [] } = useQuery({
     queryKey: ['projects'],
     queryFn: () => base44.entities.Project.list('-created_date')
   });
 
-  const { data: teamMembers = [], isLoading } = useQuery({
-    queryKey: ['teamMembers'],
-    queryFn: () => base44.entities.TeamMember.list()
+  const { data: teamMembers = [] } = useQuery({
+    queryKey: ['teamMembers', projectId],
+    queryFn: () => projectId ? base44.entities.TeamMember.filter({ project_id: projectId }) : [],
+    enabled: !!projectId
   });
 
-  const activeProject = projects[0];
+  const activeProject = projects.find(p => p.id === projectId);
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.TeamMember.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['teamMembers'] });
+      queryClient.invalidateQueries({ queryKey: ['teamMembers', projectId] });
       setModalOpen(false);
     }
   });
@@ -92,7 +97,7 @@ export default function Team() {
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.TeamMember.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['teamMembers'] });
+      queryClient.invalidateQueries({ queryKey: ['teamMembers', projectId] });
       setModalOpen(false);
       setSelectedMember(null);
     }
@@ -101,7 +106,7 @@ export default function Team() {
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.TeamMember.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['teamMembers'] });
+      queryClient.invalidateQueries({ queryKey: ['teamMembers', projectId] });
       setDeleteDialogOpen(false);
       setMemberToDelete(null);
     }
