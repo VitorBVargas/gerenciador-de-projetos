@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import EmptyState from '../components/ui/EmptyState';
-import { getDefaultTasksForProduct } from '../components/migration/migrationTasks';
+import { getDefaultTasksForProduct, productHasMigration } from '../components/migration/migrationTasks';
 
 const verticalLabels = {
   arrecadacao: 'Arrecadação',
@@ -86,6 +86,8 @@ export default function Migration() {
     if (existingTasks.length > 0) return;
 
     const defaultSections = getDefaultTasksForProduct(product.name);
+    if (!defaultSections) return; // Produto não tem migração
+
     const tasksToCreate = [];
     let order = 0;
 
@@ -282,7 +284,7 @@ export default function Migration() {
 
                         {/* Tasks List by Section */}
                         <div className="space-y-6">
-                          {getDefaultTasksForProduct(product.name).map((section, sectionIndex) => {
+                          {(getDefaultTasksForProduct(product.name) || []).map((section, sectionIndex) => {
                             const sectionTasks = getProductTasks(product.id).filter(task => 
                               section.tasks.some(t => t.toLowerCase() === task.title.toLowerCase())
                             );
