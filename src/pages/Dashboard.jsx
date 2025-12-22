@@ -164,7 +164,8 @@ export default function Dashboard() {
   
   React.useEffect(() => {
     const initializeMilestones = async () => {
-      if (projectId && milestones.length === 0 && !milestonesInitialized) {
+      // Adicionada a verificação !isLoadingMilestones para evitar duplicidade
+      if (!isLoadingMilestones && projectId && milestones.length === 0 && !milestonesInitialized) {
         setMilestonesInitialized(true);
         
         const defaultMilestones = [
@@ -193,7 +194,7 @@ export default function Dashboard() {
     };
     
     initializeMilestones();
-  }, [projectId, milestones.length, milestonesInitialized, queryClient]);
+  }, [projectId, milestones.length, milestonesInitialized, queryClient, isLoadingMilestones]);
 
 
 
