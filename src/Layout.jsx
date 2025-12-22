@@ -80,7 +80,7 @@ export default function Layout({ children, currentPageName }) {
         </Link>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-4 px-3">
+        <nav className="flex-1 overflow-y-auto py-4 px-3 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
           <div className="space-y-1">
             {navigation.map((item) => {
               const isActive = currentPageName === item.href;

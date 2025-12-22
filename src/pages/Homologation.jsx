@@ -104,10 +104,13 @@ export default function Homologation() {
   };
 
   React.useEffect(() => {
-    if (selectedProduct && getCurrentProduct()) {
-      createDefaultTasks(getCurrentProduct());
+    if (selectedProduct && products.length > 0) {
+      const product = getCurrentProduct();
+      if (product) {
+        createDefaultTasks(product);
+      }
     }
-  }, [selectedProduct]);
+  }, [selectedProduct, products]);
 
   const handleAddTask = () => {
     if (!newTaskTitle.trim() || !selectedProduct) return;

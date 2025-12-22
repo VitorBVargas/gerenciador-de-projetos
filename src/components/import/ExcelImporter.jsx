@@ -509,13 +509,10 @@ const processProductsSheet = (workbook) => {
       'configuração': 'tecnico', 'configuracao': 'tecnico',
       'cronograma': 'cronograma', 'prazo': 'cronograma', 'tempo': 'cronograma',
       'recurso': 'recurso', 'recursos': 'recurso',
-      'pessoas': 'recurso', 'pessoal': 'recurso',
+      'pessoas': 'recurso', 'pessoal': 'recurso', 'passoas': 'recurso',
       'cliente': 'cliente',
       'projeto': 'cronograma',
-      'ambiente': 'externo', 'externo': 'externo',
-      'configuracao': 'tecnico',
-      'passoas': 'recurso',
-      'passoas': 'recurso'
+      'ambiente': 'externo', 'externo': 'externo'
     };
 
     const levelMapping = {

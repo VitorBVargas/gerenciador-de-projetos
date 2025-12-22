@@ -160,13 +160,9 @@ export default function Dashboard() {
   };
 
   // Inicializa os marcos padrão se não existirem
-  const [milestonesInitialized, setMilestonesInitialized] = React.useState(false);
-  
   React.useEffect(() => {
     const initializeMilestones = async () => {
-      if (projectId && milestones.length === 0 && !milestonesInitialized) {
-        setMilestonesInitialized(true);
-        
+      if (projectId && milestones.length === 0) {
         const defaultMilestones = [
           'Planejamento e Monitoramento',
           'Kickoff',
@@ -193,7 +189,7 @@ export default function Dashboard() {
     };
     
     initializeMilestones();
-  }, [projectId, milestones.length, milestonesInitialized, queryClient]);
+  }, [projectId, queryClient]);
 
 
 
