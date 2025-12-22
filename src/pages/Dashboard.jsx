@@ -89,7 +89,7 @@ export default function Dashboard() {
     enabled: !!projectId
   });
 
-  const { data: milestones = [] } = useQuery({
+  const { data: milestones = [], isLoading: isLoadingMilestones } = useQuery({ // [!code ++]
     queryKey: ['milestones', projectId],
     queryFn: () => projectId ? base44.entities.ProjectMilestone.filter({ project_id: projectId }) : [],
     enabled: !!projectId
