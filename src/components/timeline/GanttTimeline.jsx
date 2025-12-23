@@ -153,16 +153,22 @@ export default function GanttTimeline({ events, onEdit, onDelete, onStatusChange
                     <div className="text-xs text-slate-400 mt-1">
                       {(() => {
                         try {
-                          const start = typeof event.start_date === 'string' 
-                            ? new Date(event.start_date) 
-                            : event.start_date;
-                          const end = typeof event.end_date === 'string' 
-                            ? new Date(event.end_date) 
-                            : event.end_date;
-                          return `${format(start, 'dd/MM/yy')} - ${format(end, 'dd/MM/yy')}`;
-                        } catch (e) {
-                          return null;
-                        }
+                              // Função auxiliar para ajustar o fuso
+                                  const adjustDate = (dateInput) => {
+                                        if (!dateInput) return null;
+                                           const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+    // Adiciona os minutos do fuso horário para compensar a subtração automática
+    date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
+    return date;
+  };
+
+  const start = adjustDate(event.start_date);
+  const end = adjustDate(event.end_date);
+  
+  return `${format(start, 'dd/MM/yy')} - ${format(end, 'dd/MM/yy')}`;
+} catch (e) {
+  return null;
+}
                       })()}
                     </div>
                   )}
