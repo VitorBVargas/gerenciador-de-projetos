@@ -239,20 +239,24 @@ export default function Migration() {
       const product = getCurrentProduct();
       const existingTasks = tasks.filter(t => t.product_id === product.id);
       
-      // Deleta todas as tarefas existentes
-      for (const task of existingTasks) {
-        await base44.entities.MigrationTask.delete(task.id);
-      }
+      // Deleta todas as tarefas existentes em paralelo
+      await Promise.all(existingTasks.map(task => 
+        base44.entities.MigrationTask.delete(task.id)
+      ));
+      
+      // Aguarda um pouco para garantir que as deleções foram processadas
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Recria as tarefas padrão
       await createDefaultTasks(product);
       
       toast.success('Tarefas zeradas e recriadas com sucesso!');
-      queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
     } catch (error) {
       toast.error('Erro ao zerar tarefas');
+      console.error(error);
     } finally {
       setIsResetting(false);
+      queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
     }
   };
 
