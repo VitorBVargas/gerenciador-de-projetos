@@ -37,7 +37,7 @@ export const migrationTasksByProduct = {
     'MIGRAÇÃO: OPERACIONAL E DOCUMENTOS',
     'Extrair RPS', 'Extrair Impressão de RPS', 'Extrair Notas Fiscais (Prestador, Tomador, Serviço, Obra...)',
     'Extrair XML Notas Fiscais', 'Extrair Substituição Nota / Estorno', 'Extrair Cancelamento Nota',
-    'Extrair Denúncias', 'Extrações', 'Extrair Autos',
+    'Extrair Denúncias', 'Extrair Infrações', 'Extrair Autos',
     'MIGRAÇÃO: FINANCEIRA',
     'Extrair Resumo Créditos Tributários', 'Extrair Movimentação Créditos Tributários', 'Extrair Guias de Pagamentos'
   ]),
