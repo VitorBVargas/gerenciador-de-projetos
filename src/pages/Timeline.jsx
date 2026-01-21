@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
 import { Plus, Calendar } from 'lucide-react';
 import TimelineEventModal from '../components/modals/TimelineEventModal';
 import GanttTimeline from '../components/timeline/GanttTimeline';
@@ -139,6 +140,14 @@ export default function Timeline() {
     });
   };
 
+  // Calcula o progresso de uma vertical (média do progresso de todas as etapas)
+  const getVerticalProgress = (vertical) => {
+    const events = eventsByVertical[vertical] || [];
+    if (events.length === 0) return 0;
+    const totalProgress = events.reduce((sum, event) => sum + (event.progress || 0), 0);
+    return Math.round(totalProgress / events.length);
+  };
+
   return (
     <div className="p-6 lg:p-8 space-y-6">
       {/* Header */}
@@ -168,16 +177,32 @@ export default function Timeline() {
               ))}
             </TabsList>
 
-            {usedVerticals.map(vertical => (
-              <TabsContent key={vertical} value={vertical}>
-                <GanttTimeline
-                  events={sortEvents(eventsByVertical[vertical])}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                  onStatusChange={handleStatusChange}
-                />
-              </TabsContent>
-            ))}
+            {usedVerticals.map(vertical => {
+              const verticalProgress = getVerticalProgress(vertical);
+              return (
+                <TabsContent key={vertical} value={vertical} className="space-y-4">
+                  {/* Barra de Progresso da Vertical */}
+                  <div className="flex items-center gap-4 bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
+                    <div className="text-sm text-slate-400 min-w-[140px]">
+                      Progresso {verticalLabels[vertical] || vertical}
+                    </div>
+                    <div className="flex-1">
+                      <Progress value={verticalProgress} className="h-3" />
+                    </div>
+                    <div className="text-lg font-bold text-white min-w-[50px] text-right">
+                      {verticalProgress}%
+                    </div>
+                  </div>
+
+                  <GanttTimeline
+                    events={sortEvents(eventsByVertical[vertical])}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onStatusChange={handleStatusChange}
+                  />
+                </TabsContent>
+              );
+            })}
           </Tabs>
         ) : (
           <GanttTimeline
