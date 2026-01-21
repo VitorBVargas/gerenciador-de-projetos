@@ -12,7 +12,9 @@ import {
   Plus, 
   ArrowLeftRight,
   Package,
-  Trash2
+  Trash2,
+  ChevronUp,
+  ChevronDown
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import EmptyState from '../components/ui/EmptyState';
@@ -35,6 +37,7 @@ export default function Migration() {
   const [selectedVertical, setSelectedVertical] = useState('');
   const [selectedProduct, setSelectedProduct] = useState('');
   const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [sectionOrder, setSectionOrder] = useState({});
 
   // Get project_id from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -194,6 +197,34 @@ export default function Migration() {
 
   const getCurrentProduct = () => products.find(p => p.id === selectedProduct);
 
+  const moveSectionUp = (productId, sectionIndex) => {
+    if (sectionIndex === 0) return;
+    setSectionOrder(prev => {
+      const key = productId;
+      const currentOrder = prev[key] || getDefaultTasksForProduct(getCurrentProduct()?.name)?.map((_, i) => i) || [];
+      const newOrder = [...currentOrder];
+      [newOrder[sectionIndex - 1], newOrder[sectionIndex]] = [newOrder[sectionIndex], newOrder[sectionIndex - 1]];
+      return { ...prev, [key]: newOrder };
+    });
+  };
+
+  const moveSectionDown = (productId, sectionIndex, totalSections) => {
+    if (sectionIndex >= totalSections - 1) return;
+    setSectionOrder(prev => {
+      const key = productId;
+      const currentOrder = prev[key] || getDefaultTasksForProduct(getCurrentProduct()?.name)?.map((_, i) => i) || [];
+      const newOrder = [...currentOrder];
+      [newOrder[sectionIndex], newOrder[sectionIndex + 1]] = [newOrder[sectionIndex + 1], newOrder[sectionIndex]];
+      return { ...prev, [key]: newOrder };
+    });
+  };
+
+  const getOrderedSections = (productId, sections) => {
+    const key = productId;
+    const order = sectionOrder[key] || sections?.map((_, i) => i) || [];
+    return order.map(i => sections[i]).filter(Boolean);
+  };
+
   return (
     <div className="p-6 lg:p-8 space-y-6">
       {/* Header */}
@@ -288,16 +319,40 @@ export default function Migration() {
 
                         {/* Tasks List by Section */}
                         <div className="space-y-6">
-                          {(getDefaultTasksForProduct(product.name) || []).map((section, sectionIndex) => {
+                          {getOrderedSections(product.id, getDefaultTasksForProduct(product.name) || []).map((section, displayIndex) => {
                             const sectionTasks = getProductTasks(product.id).filter(task => 
                               section.tasks.some(t => t.toLowerCase() === task.title.toLowerCase())
                             );
                             
+                            const totalSections = getDefaultTasksForProduct(product.name)?.length || 0;
+                            
                             return (
-                              <div key={sectionIndex}>
-                                <h3 className="text-cyan-400 font-semibold text-sm mb-3 uppercase">
-                                  {section.section}
-                                </h3>
+                              <div key={displayIndex}>
+                                <div className="flex items-center justify-between mb-3">
+                                  <h3 className="text-cyan-400 font-semibold text-sm uppercase">
+                                    {section.section}
+                                  </h3>
+                                  <div className="flex gap-1">
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      disabled={displayIndex === 0}
+                                      className="h-6 w-6 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/20 disabled:opacity-30"
+                                      onClick={() => moveSectionUp(product.id, displayIndex)}
+                                    >
+                                      <ChevronUp className="w-4 h-4" />
+                                    </Button>
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      disabled={displayIndex >= totalSections - 1}
+                                      className="h-6 w-6 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/20 disabled:opacity-30"
+                                      onClick={() => moveSectionDown(product.id, displayIndex, totalSections)}
+                                    >
+                                      <ChevronDown className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+                                </div>
                                 <div className="space-y-2">
                                   {sectionTasks.map(task => (
                                     <div
