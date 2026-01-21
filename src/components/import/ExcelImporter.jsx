@@ -340,15 +340,16 @@ const processProductsSheet = (workbook) => {
         .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
         .replace(/[^a-z0-9]/g, '_');
 
-      // Remove duplicatas exatas
-      const key = `${normalizedVertical}_${rawName}_${entity}`.toLowerCase();
+      // Remove duplicatas EXATAS (nome + vertical + entidade + chamado)
+      // Permite produtos com mesmo nome mas entidades/chamados diferentes
+      const key = `${normalizedVertical}_${rawName}_${entity}_${ticket}`.toLowerCase().trim();
       if (seen.has(key)) {
-        console.log(`⏭️  Linha ${index + 2}: Duplicata ignorada - ${rawName}`);
+        console.log(`⏭️  Linha ${index + 2}: Duplicata ignorada - ${rawName} (${entity}) - ${ticket}`);
         return null;
       }
       seen.add(key);
 
-      console.log(`✅ Linha ${index + 2}: ${rawName} (${normalizedVertical})`);
+      console.log(`✅ Linha ${index + 2}: ${rawName} | Vertical: ${normalizedVertical} | Entidade: ${entity} | Chamado: ${ticket}`);
 
       return {
         name: rawName,
@@ -744,21 +745,10 @@ const processProductsSheet = (workbook) => {
       const products = processProductsSheet(workbook);
       console.log('Criando produtos:', products.length);
       
-      // Remove duplicatas de produtos também
-      const uniqueProducts = [];
-      const productSeen = new Set();
-      products.forEach(p => {
-        const key = `${p.name}_${p.vertical}`.toLowerCase();
-        if (!productSeen.has(key)) {
-          productSeen.add(key);
-          uniqueProducts.push(p);
-        }
-      });
-      console.log('Produtos únicos:', uniqueProducts.length);
-      
-      if (uniqueProducts.length > 0) {
+      // Não precisa de validação adicional aqui, já foi feita no processProductsSheet
+      if (products.length > 0) {
         const created = await base44.entities.Product.bulkCreate(
-          uniqueProducts.map(p => ({ ...p, project_id: project.id }))
+          products.map(p => ({ ...p, project_id: project.id }))
         );
         console.log('Produtos criados:', created);
       }
