@@ -16,7 +16,8 @@ import {
   ChevronUp,
   ChevronDown,
   RotateCcw,
-  Upload
+  Upload,
+  AlertTriangle
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -394,10 +395,10 @@ export default function Migration() {
                             </Button>
                           </div>
                           
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 flex-wrap">
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
-                                <Button variant="outline" className="flex-1 border-orange-500/30 text-orange-400 hover:bg-orange-500/10">
+                                <Button variant="outline" className="flex-1 min-w-[180px] border-orange-500/30 text-orange-400 hover:bg-orange-500/10">
                                   <RotateCcw className="w-4 h-4 mr-2" />
                                   Zerar Tarefas
                                 </Button>
@@ -406,7 +407,7 @@ export default function Migration() {
                                 <AlertDialogHeader>
                                   <AlertDialogTitle className="text-white">Zerar todas as tarefas?</AlertDialogTitle>
                                   <AlertDialogDescription className="text-slate-400">
-                                    Isso irá deletar todas as tarefas atuais e recriar as tarefas padrão do produto. Esta ação não pode ser desfeita.
+                                    Isso irá deletar todas as tarefas atuais deste produto (incluindo duplicatas) e recriar as tarefas padrão. Esta ação não pode ser desfeita.
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
@@ -427,13 +428,29 @@ export default function Migration() {
                             />
                             <Button 
                               variant="outline" 
-                              className="flex-1 border-blue-500/30 text-blue-400 hover:bg-blue-500/10"
+                              className="flex-1 min-w-[180px] border-blue-500/30 text-blue-400 hover:bg-blue-500/10"
                               onClick={() => fileInputRef.current?.click()}
                             >
                               <Upload className="w-4 h-4 mr-2" />
                               Importar Excel
                             </Button>
                           </div>
+                          
+                          {(() => {
+                            const productTasks = tasks.filter(t => t.product_id === product.id);
+                            const uniqueTitles = new Set(productTasks.map(t => t.title.toLowerCase()));
+                            const hasDuplicates = productTasks.length > uniqueTitles.size;
+                            
+                            if (hasDuplicates) {
+                              return (
+                                <div className="flex items-center gap-2 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg text-yellow-400 text-sm">
+                                  <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                                  <span className="flex-1">Foram detectadas tarefas duplicadas neste produto ({productTasks.length - uniqueTitles.size} duplicatas). Use "Zerar Tarefas" para corrigir.</span>
+                                </div>
+                              );
+                            }
+                            return null;
+                          })()}
                         </div>
 
                         {/* Tasks List by Section */}
