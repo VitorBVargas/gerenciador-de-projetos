@@ -103,14 +103,20 @@ export default function Homologation() {
     }
   };
 
+  const [tasksInitialized, setTasksInitialized] = React.useState(new Set());
+
   React.useEffect(() => {
-    if (selectedProduct && products.length > 0) {
+    if (selectedProduct && products.length > 0 && tasks.length >= 0) {
       const product = getCurrentProduct();
-      if (product) {
-        createDefaultTasks(product);
+      if (product && !tasksInitialized.has(product.id)) {
+        const existingTasks = tasks.filter(t => t.product_id === product.id);
+        if (existingTasks.length === 0) {
+          setTasksInitialized(prev => new Set([...prev, product.id]));
+          createDefaultTasks(product);
+        }
       }
     }
-  }, [selectedProduct, products]);
+  }, [selectedProduct, products.length, tasks.length]);
 
   const handleAddTask = () => {
     if (!newTaskTitle.trim() || !selectedProduct) return;
