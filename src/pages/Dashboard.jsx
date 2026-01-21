@@ -212,11 +212,37 @@ export default function Dashboard() {
     ? differenceInDays(new Date(activeProject.deadline), new Date())
     : null;
 
-  // Milestone status distribution
-  const milestoneStatusData = [
-    { name: 'Não Iniciado', value: milestones.filter(m => !m.completed).length },
-    { name: 'Concluído', value: milestones.filter(m => m.completed).length }
-  ].filter(d => d.value > 0);
+  // Timeline progress by vertical
+  const eventsByVertical = {};
+  const usedVerticals = [...new Set(timelineEvents.map(e => e.vertical).filter(Boolean))];
+  
+  usedVerticals.forEach(vertical => {
+    eventsByVertical[vertical] = timelineEvents.filter(e => e.vertical === vertical);
+  });
+
+  const verticalLabels = {
+    arrecadacao: 'Arrecadação',
+    compras: 'Compras/Contratos',
+    contabil: 'Contábil',
+    pessoal: 'Pessoal',
+    educacao: 'Educação',
+    iss: 'ISS',
+    parceiros: 'Parceiros',
+    plataforma: 'Plataforma',
+    atendimento: 'Atendimento'
+  };
+
+  const timelineProgressData = Object.entries(eventsByVertical)
+    .map(([vertical, events]) => {
+      const totalProgress = events.reduce((sum, event) => sum + (event.progress || 0), 0);
+      const avgProgress = events.length > 0 ? Math.round(totalProgress / events.length) : 0;
+      return {
+        name: verticalLabels[vertical] || vertical,
+        progress: avgProgress
+      };
+    })
+    .filter(d => d.progress > 0)
+    .sort((a, b) => b.progress - a.progress);
 
   // Homologation progress by vertical
   const homologationByVertical = products.reduce((acc, product) => {
@@ -390,19 +416,37 @@ export default function Dashboard() {
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {milestoneStatusData.length > 0 ? (
-          <ProgressChart 
-            title="Status dos Marcos" 
-            data={milestoneStatusData}
-            colors={['#64748b', '#22c55e']}
-          />
+        {timelineProgressData.length > 0 ? (
+          <Card className="bg-slate-800/50 border-slate-700/50">
+            <CardHeader>
+              <CardTitle className="text-white">Progresso do Cronograma por Vertical</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {timelineProgressData.map((item) => (
+                  <div key={item.name} className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-slate-300">{item.name}</span>
+                      <span className="text-white font-semibold">{item.progress}%</span>
+                    </div>
+                    <div className="w-full bg-slate-700 rounded-full h-2.5">
+                      <div
+                        className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+                        style={{ width: `${item.progress}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         ) : (
           <Card className="bg-slate-800/50 border-slate-700/50">
             <CardContent className="py-12">
               <EmptyState
                 icon={Calendar}
-                title="Nenhum marco cadastrado"
-                description="Os marcos serão carregados automaticamente"
+                title="Nenhuma etapa cadastrada"
+                description="Adicione etapas no cronograma para visualizar o progresso"
               />
             </CardContent>
           </Card>
