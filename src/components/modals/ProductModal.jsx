@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Check } from 'lucide-react';
 
 const verticals = [
   { value: 'arrecadacao', label: 'Arrecadação' },
@@ -23,8 +25,8 @@ export default function ProductModal({ open, onOpenChange, product, onSave, proj
     vertical: '',
     entity: '',
     ticket_number: '',
-    status: 'pendente',
-    priority: 'media'
+    priority: 'media',
+    production_password: false
   });
 
   useEffect(() => {
@@ -34,8 +36,8 @@ export default function ProductModal({ open, onOpenChange, product, onSave, proj
         vertical: product.vertical || '',
         entity: product.entity || '',
         ticket_number: product.ticket_number || '',
-        status: product.status || 'pendente',
-        priority: product.priority || 'media'
+        priority: product.priority || 'media',
+        production_password: product.production_password || false
       });
     } else {
       setFormData({
@@ -43,8 +45,8 @@ export default function ProductModal({ open, onOpenChange, product, onSave, proj
         vertical: '',
         entity: '',
         ticket_number: '',
-        status: 'pendente',
-        priority: 'media'
+        priority: 'media',
+        production_password: false
       });
     }
   }, [product, open]);
@@ -114,20 +116,6 @@ export default function ProductModal({ open, onOpenChange, product, onSave, proj
           
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Status</Label>
-              <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
-                <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-700 border-slate-600">
-                  <SelectItem value="pendente">Pendente</SelectItem>
-                  <SelectItem value="em_homologacao">Em Homologação</SelectItem>
-                  <SelectItem value="homologado">Homologado</SelectItem>
-                  <SelectItem value="em_producao">Em Produção</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
               <Label>Prioridade</Label>
               <Select value={formData.priority} onValueChange={(value) => setFormData({ ...formData, priority: value })}>
                 <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
@@ -140,6 +128,22 @@ export default function ProductModal({ open, onOpenChange, product, onSave, proj
                   <SelectItem value="critica">Crítica</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-slate-300">Senha PRD</Label>
+              <div 
+                onClick={() => setFormData({ ...formData, production_password: !formData.production_password })}
+                className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border transition-all cursor-pointer ${
+                  formData.production_password 
+                    ? 'bg-green-500/20 border-green-500/50 text-green-400 hover:bg-green-500/30' 
+                    : 'bg-slate-700 border-slate-600 text-slate-400 hover:bg-slate-600'
+                }`}
+              >
+                {formData.production_password && <Check className="w-4 h-4" />}
+                <span className="text-sm font-medium">
+                  {formData.production_password ? 'Senha Liberada' : 'Senha Pendente'}
+                </span>
+              </div>
             </div>
           </div>
           <DialogFooter>
