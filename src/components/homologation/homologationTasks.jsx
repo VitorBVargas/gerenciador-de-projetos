@@ -108,11 +108,11 @@ export const homologationTasksByProduct = {
   ]),
 
   'e-Nota (Cloud)': parseTasksIntoSections([
-    'SPRINT 1: CADASTROS E CONFIGURAÇÕES',
+    'SPRINT: CADASTROS E CONFIGURAÇÕES',
     'Módulo Único: Cadastros (Entidades, Pessoas, Usuários), Auto de infração, Base cadastral (lista de serviços Lei 116/03, alíquotas, taxas), Configurações gerais, Endereços, Financeiros (competências, convênios, indexadores, feriados), Manutenção de incentivos fiscais, Mensagens, Relatórios personalizados, Rotinas externas, Scripts',
-    'SPRINT 2: PROCESSOS E MOVIMENTAÇÕES',
+    'SPRINT: PROCESSOS E MOVIMENTAÇÕES',
     'Módulo Único: Processos (Liberação, Denúncia fiscal), Prestadores, Autorização para impressão de RPS, Gerar competências, Saldos, Créditos tributários, Cancelar notas, Substituir notas, Manutenção de guias de pagamento, Manutenções fiscais, Importação de arquivos (Simples Nacional/SIMEI), Exportação de notas, Sincronizar cadastros, Gerenciador de processos',
-    'SPRINT 3: RELATÓRIOS, CONSULTAS E ACESSOS',
+    'SPRINT: RELATÓRIOS, CONSULTAS E ACESSOS',
     'Módulo Único: Relatórios (Acessos, Cadastrais, Créditos, Notas fiscais, Pagamentos, RPS), Gerenciador de relatórios, Consultas, Resumos, Gráficos, Acessos, Prestação de Contas'
   ]),
 
@@ -124,11 +124,11 @@ export const homologationTasksByProduct = {
   ]),
 
   'Livro Eletrônico': parseTasksIntoSections([
-    'SPRINT 1: CADASTROS',
+    'SPRINT: CADASTROS',
     'Módulo Único: Cadastros (Entidade, Configurações, Pessoa), Financeiros, Base cadastral, Auto de infração, Endereços, Fiscalizações por período',
-    'SPRINT 2: PROCESSOS E DECLARAÇÕES',
+    'SPRINT: PROCESSOS E DECLARAÇÕES',
     'Módulo Único: Processos (Liberação de acesso, AIDF, Contador, Notas Avulsas), Saldos, Encerramento de declarações, Reabertura das declarações, Análise das declarações, Alteração cadastral, Sincronizar dados, Gerenciador de processos',
-    'SPRINT 3: RELATÓRIOS E ACESSOS',
+    'SPRINT: RELATÓRIOS E ACESSOS',
     'Módulo Único: Relatórios, Gerenciador de relatórios, Consultas, Acessos, Prestação de Contas'
   ]),
 
