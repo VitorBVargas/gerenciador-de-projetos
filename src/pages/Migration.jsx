@@ -14,8 +14,13 @@ import {
   Package,
   Trash2,
   ChevronUp,
-  ChevronDown
+  ChevronDown,
+  RotateCcw,
+  Upload
 } from 'lucide-react';
+import * as XLSX from 'xlsx';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { toast } from 'sonner';
 import { cn } from "@/lib/utils";
 import EmptyState from '../components/ui/EmptyState';
 import { getDefaultTasksForProduct, productHasMigration } from '../components/migration/migrationTasks';
@@ -38,6 +43,8 @@ export default function Migration() {
   const [selectedProduct, setSelectedProduct] = useState('');
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [sectionOrder, setSectionOrder] = useState({});
+  const [isResetting, setIsResetting] = useState(false);
+  const fileInputRef = React.useRef(null);
 
   // Get project_id from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -225,6 +232,71 @@ export default function Migration() {
     return order.map(i => sections[i]).filter(Boolean);
   };
 
+  const handleResetTasks = async () => {
+    if (!selectedProduct) return;
+    setIsResetting(true);
+    try {
+      const product = getCurrentProduct();
+      const existingTasks = tasks.filter(t => t.product_id === product.id);
+      
+      // Deleta todas as tarefas existentes
+      for (const task of existingTasks) {
+        await base44.entities.MigrationTask.delete(task.id);
+      }
+      
+      // Recria as tarefas padrão
+      await createDefaultTasks(product);
+      
+      toast.success('Tarefas zeradas e recriadas com sucesso!');
+      queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
+    } catch (error) {
+      toast.error('Erro ao zerar tarefas');
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
+  const handleImportTasks = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file || !selectedProduct) return;
+
+    try {
+      const product = getCurrentProduct();
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data);
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+      // Deleta todas as tarefas existentes
+      const existingTasks = tasks.filter(t => t.product_id === product.id);
+      for (const task of existingTasks) {
+        await base44.entities.MigrationTask.delete(task.id);
+      }
+
+      // Cria novas tarefas do Excel
+      const tasksToCreate = jsonData.map((row, index) => ({
+        title: row.Tarefa || row.tarefa || '',
+        project_id: projectId,
+        product_id: product.id,
+        completed: false,
+        order: index
+      })).filter(t => t.title.trim());
+
+      if (tasksToCreate.length > 0) {
+        await base44.entities.MigrationTask.bulkCreate(tasksToCreate);
+        toast.success(`${tasksToCreate.length} tarefas importadas com sucesso!`);
+        queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
+      }
+    } catch (error) {
+      toast.error('Erro ao importar tarefas. Verifique o formato do arquivo.');
+    }
+    
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   return (
     <div className="p-6 lg:p-8 space-y-6">
       {/* Header */}
@@ -304,17 +376,60 @@ export default function Migration() {
                       </CardHeader>
                       <CardContent className="p-6">
                         {/* Add Task Input */}
-                        <div className="flex gap-2 mb-6">
-                          <Input
-                            value={newTaskTitle}
-                            onChange={(e) => setNewTaskTitle(e.target.value)}
-                            placeholder="Nova tarefa de migração..."
-                            className="bg-slate-700 border-slate-600 text-white"
-                            onKeyDown={(e) => e.key === 'Enter' && handleAddTask()}
-                          />
-                          <Button onClick={handleAddTask} className="bg-blue-600 hover:bg-blue-700">
-                            <Plus className="w-4 h-4" />
-                          </Button>
+                        <div className="space-y-4 mb-6">
+                          <div className="flex gap-2">
+                            <Input
+                              value={newTaskTitle}
+                              onChange={(e) => setNewTaskTitle(e.target.value)}
+                              placeholder="Nova tarefa de migração..."
+                              className="bg-slate-700 border-slate-600 text-white"
+                              onKeyDown={(e) => e.key === 'Enter' && handleAddTask()}
+                            />
+                            <Button onClick={handleAddTask} className="bg-blue-600 hover:bg-blue-700">
+                              <Plus className="w-4 h-4" />
+                            </Button>
+                          </div>
+                          
+                          <div className="flex gap-2">
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="outline" className="flex-1 border-orange-500/30 text-orange-400 hover:bg-orange-500/10">
+                                  <RotateCcw className="w-4 h-4 mr-2" />
+                                  Zerar Tarefas
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent className="bg-slate-800 border-slate-700">
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle className="text-white">Zerar todas as tarefas?</AlertDialogTitle>
+                                  <AlertDialogDescription className="text-slate-400">
+                                    Isso irá deletar todas as tarefas atuais e recriar as tarefas padrão do produto. Esta ação não pode ser desfeita.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel className="bg-slate-700 text-white border-slate-600">Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction onClick={handleResetTasks} className="bg-orange-600 hover:bg-orange-700" disabled={isResetting}>
+                                    {isResetting ? 'Processando...' : 'Zerar'}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+
+                            <input
+                              ref={fileInputRef}
+                              type="file"
+                              accept=".xlsx,.xls"
+                              onChange={handleImportTasks}
+                              className="hidden"
+                            />
+                            <Button 
+                              variant="outline" 
+                              className="flex-1 border-blue-500/30 text-blue-400 hover:bg-blue-500/10"
+                              onClick={() => fileInputRef.current?.click()}
+                            >
+                              <Upload className="w-4 h-4 mr-2" />
+                              Importar Excel
+                            </Button>
+                          </div>
                         </div>
 
                         {/* Tasks List by Section */}
