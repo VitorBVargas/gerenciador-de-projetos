@@ -126,6 +126,13 @@ export default function Products() {
     }
   });
 
+  const togglePasswordMutation = useMutation({
+    mutationFn: ({ id, value }) => base44.entities.Product.update(id, { production_password: value }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products', projectId] });
+    }
+  });
+
   const handleSave = (data) => {
     if (selectedProduct) {
       updateMutation.mutate({ id: selectedProduct.id, data });
@@ -142,6 +149,13 @@ export default function Products() {
   const handleDelete = (product) => {
     setProductToDelete(product);
     setDeleteDialogOpen(true);
+  };
+
+  const handleTogglePassword = (product) => {
+    togglePasswordMutation.mutate({ 
+      id: product.id, 
+      value: !product.production_password 
+    });
   };
 
   let filteredProducts = products.filter(p =>
@@ -209,7 +223,18 @@ export default function Products() {
                       <Card key={product.id} className="bg-slate-800 border-slate-700 hover:bg-slate-750 transition-all group">
                         <CardContent className="p-2">
                           <div className="flex items-start justify-between mb-1.5">
-                            <div className={cn("w-1.5 h-1.5 rounded-full mt-1", statusColors[product.status])} />
+                            <div 
+                              className={cn(
+                                "w-2 h-2 rounded-full mt-0.5 cursor-pointer transition-all",
+                                product.production_password 
+                                  ? "bg-green-500 shadow-lg shadow-green-500/50 ring-2 ring-green-500/30" 
+                                  : statusColors[product.status]
+                              )}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleTogglePassword(product);
+                              }}
+                            />
                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                               <Button
                                 size="icon"
@@ -240,9 +265,15 @@ export default function Products() {
                               <span className="text-slate-500">Chamado:</span> {product.ticket_number}
                             </p>
                           )}
-                          <Badge variant="secondary" className="bg-slate-700/50 text-slate-300 text-[10px] mt-1.5 h-4">
-                            {statusLabels[product.status]}
-                          </Badge>
+                          {product.production_password ? (
+                            <Badge className="bg-green-500/20 text-green-400 border-green-500/30 border text-[10px] mt-1.5 h-4 font-semibold">
+                              Senha Liberada
+                            </Badge>
+                          ) : (
+                            <Badge variant="secondary" className="bg-slate-700/50 text-slate-300 text-[10px] mt-1.5 h-4">
+                              {statusLabels[product.status]}
+                            </Badge>
+                          )}
                         </CardContent>
                       </Card>
                     ))}
