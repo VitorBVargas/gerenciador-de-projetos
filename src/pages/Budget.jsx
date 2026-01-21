@@ -71,6 +71,12 @@ export default function Budget() {
     enabled: !!projectId
   });
 
+  const { data: products = [] } = useQuery({
+    queryKey: ['products', projectId],
+    queryFn: () => projectId ? base44.entities.Product.filter({ project_id: projectId }) : [],
+    enabled: !!projectId
+  });
+
   const activeProject = projects.find(p => p.id === projectId);
 
   const createExpenseMutation = useMutation({
@@ -97,6 +103,13 @@ export default function Budget() {
       queryClient.invalidateQueries({ queryKey: ['expenses', projectId] });
       setDeleteDialogOpen(false);
       setExpenseToDelete(null);
+    }
+  });
+
+  const toggleProductionPasswordMutation = useMutation({
+    mutationFn: ({ id, value }) => base44.entities.Product.update(id, { production_password: value }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products', projectId] });
     }
   });
 
@@ -143,6 +156,13 @@ export default function Budget() {
     acc[category].push(exp);
     return acc;
   }, {});
+
+  const handleTogglePassword = (product) => {
+    toggleProductionPasswordMutation.mutate({ 
+      id: product.id, 
+      value: !product.production_password 
+    });
+  };
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
@@ -240,6 +260,61 @@ export default function Budget() {
               </p>
             )}
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Products - Production Password Status */}
+      <Card className="bg-slate-800/50 border-slate-700/50">
+        <CardHeader>
+          <CardTitle className="text-white">Produtos - Liberação de Senha PRD</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {products.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {products.map((product) => (
+                <div
+                  key={product.id}
+                  className="p-4 bg-slate-700/30 rounded-lg border border-slate-700 hover:border-slate-600 transition-colors cursor-pointer"
+                  onClick={() => handleTogglePassword(product)}
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <h3 className="text-white font-medium text-sm flex-1">
+                      {product.name.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')}
+                    </h3>
+                    <div 
+                      className={cn(
+                        "w-3 h-3 rounded-full flex-shrink-0 ml-2",
+                        product.production_password ? "bg-green-500 shadow-lg shadow-green-500/50" : "bg-slate-600"
+                      )}
+                    />
+                  </div>
+                  <div className="space-y-1 text-xs">
+                    <div className="text-slate-400">
+                      <span className="text-slate-500">Entidade:</span> <span className="text-slate-300">{product.entity || '-'}</span>
+                    </div>
+                    <div className="text-slate-400">
+                      <span className="text-slate-500">Chamado:</span> <span className="text-slate-300">{product.ticket_number || '-'}</span>
+                    </div>
+                  </div>
+                  <div className="mt-3">
+                    {product.production_password ? (
+                      <Badge className="bg-green-500/20 text-green-400 border-green-500/30 border text-xs font-semibold">
+                        Senha Liberada
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-slate-600/20 text-slate-400 border-slate-600/30 border text-xs">
+                        Pendente
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-slate-400">Nenhum produto cadastrado</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
