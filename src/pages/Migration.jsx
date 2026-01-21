@@ -122,15 +122,15 @@ export default function Migration() {
   };
 
   // Criar tarefas padrão quando o produto for selecionado
-  const [tasksInitialized, setTasksInitialized] = React.useState(new Set());
+  const tasksInitializedRef = React.useRef(new Set());
 
   React.useEffect(() => {
     if (selectedProduct && products.length > 0 && tasks.length >= 0) {
       const product = getCurrentProduct();
-      if (product && !tasksInitialized.has(product.id)) {
+      if (product && !tasksInitializedRef.current.has(product.id)) {
         const existingTasks = tasks.filter(t => t.product_id === product.id);
         if (existingTasks.length === 0) {
-          setTasksInitialized(prev => new Set([...prev, product.id]));
+          tasksInitializedRef.current.add(product.id);
           createDefaultTasks(product);
         }
       }
