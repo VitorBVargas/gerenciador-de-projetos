@@ -259,14 +259,22 @@ export default function Homologation() {
         await base44.entities.HomologationTask.delete(task.id);
       }
 
-      // Cria novas tarefas do Excel
-      const tasksToCreate = jsonData.map((row, index) => ({
-        title: row.Tarefa || row.tarefa || '',
-        project_id: projectId,
-        product_id: product.id,
-        completed: false,
-        order: index
-      })).filter(t => t.title.trim());
+      // Cria novas tarefas do Excel com suporte a Etapa/Sprint + Tarefa
+      const tasksToCreate = jsonData.map((row, index) => {
+        const etapa = row.Etapa || row.etapa || row['Nome da Etapa'] || row['nome da etapa'] || '';
+        const tarefa = row.Tarefa || row.tarefa || row['Nome da Tarefa'] || row['nome da tarefa'] || '';
+        
+        // Se tiver etapa, usa formato "||ETAPA||Tarefa", senão só o nome da tarefa
+        const title = etapa.trim() ? `||${etapa.trim()}||${tarefa.trim()}` : tarefa.trim();
+        
+        return {
+          title: title,
+          project_id: projectId,
+          product_id: product.id,
+          completed: false,
+          order: index
+        };
+      }).filter(t => t.title.trim() && t.title !== '||||');
 
       if (tasksToCreate.length > 0) {
         await base44.entities.HomologationTask.bulkCreate(tasksToCreate);

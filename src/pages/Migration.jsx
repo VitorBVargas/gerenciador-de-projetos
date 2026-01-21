@@ -278,14 +278,22 @@ export default function Migration() {
         await base44.entities.MigrationTask.delete(task.id);
       }
 
-      // Cria novas tarefas do Excel
-      const tasksToCreate = jsonData.map((row, index) => ({
-        title: row.Tarefa || row.tarefa || '',
-        project_id: projectId,
-        product_id: product.id,
-        completed: false,
-        order: index
-      })).filter(t => t.title.trim());
+      // Cria novas tarefas do Excel com suporte a Etapa/Sprint + Tarefa
+      const tasksToCreate = jsonData.map((row, index) => {
+        const etapa = row.Etapa || row.etapa || row['Nome da Etapa'] || row['nome da etapa'] || '';
+        const tarefa = row.Tarefa || row.tarefa || row['Nome da Tarefa'] || row['nome da tarefa'] || '';
+        
+        // Se tiver etapa, usa formato "||ETAPA||Tarefa", senão só o nome da tarefa
+        const title = etapa.trim() ? `||${etapa.trim()}||${tarefa.trim()}` : tarefa.trim();
+        
+        return {
+          title: title,
+          project_id: projectId,
+          product_id: product.id,
+          completed: false,
+          order: index
+        };
+      }).filter(t => t.title.trim() && t.title !== '||||');
 
       if (tasksToCreate.length > 0) {
         await base44.entities.MigrationTask.bulkCreate(tasksToCreate);
@@ -455,81 +463,148 @@ export default function Migration() {
 
                         {/* Tasks List by Section */}
                         <div className="space-y-6">
-                          {getOrderedSections(product.id, getDefaultTasksForProduct(product.name) || []).map((section, displayIndex) => {
-                            const sectionTasks = getProductTasks(product.id).filter(task => 
-                              section.tasks.some(t => t.toLowerCase() === task.title.toLowerCase())
-                            );
+                          {(() => {
+                            const productTasks = getProductTasks(product.id);
+                            const defaultSections = getDefaultTasksForProduct(product.name) || [];
                             
-                            const totalSections = getDefaultTasksForProduct(product.name)?.length || 0;
+                            // Separar tarefas importadas (com ||) de tarefas padrão
+                            const importedTasks = productTasks.filter(t => t.title.includes('||'));
+                            const standardTasks = productTasks.filter(t => !t.title.includes('||'));
+                            
+                            // Agrupar tarefas importadas por etapa
+                            const importedBySection = importedTasks.reduce((acc, task) => {
+                              const match = task.title.match(/^\|\|(.+?)\|\|(.+)$/);
+                              if (match) {
+                                const [, sectionName, taskName] = match;
+                                if (!acc[sectionName]) acc[sectionName] = [];
+                                acc[sectionName].push({ ...task, displayTitle: taskName });
+                              }
+                              return acc;
+                            }, {});
+                            
+                            const hasImportedTasks = Object.keys(importedBySection).length > 0;
+                            const hasStandardSections = defaultSections.length > 0;
                             
                             return (
-                              <div key={displayIndex}>
-                                <div className="flex items-center justify-between mb-3">
-                                  <h3 className="text-cyan-400 font-semibold text-sm uppercase">
-                                    {section.section}
-                                  </h3>
-                                  <div className="flex gap-1">
-                                    <Button
-                                      size="icon"
-                                      variant="ghost"
-                                      disabled={displayIndex === 0}
-                                      className="h-6 w-6 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/20 disabled:opacity-30"
-                                      onClick={() => moveSectionUp(product.id, displayIndex)}
-                                    >
-                                      <ChevronUp className="w-4 h-4" />
-                                    </Button>
-                                    <Button
-                                      size="icon"
-                                      variant="ghost"
-                                      disabled={displayIndex >= totalSections - 1}
-                                      className="h-6 w-6 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/20 disabled:opacity-30"
-                                      onClick={() => moveSectionDown(product.id, displayIndex, totalSections)}
-                                    >
-                                      <ChevronDown className="w-4 h-4" />
-                                    </Button>
-                                  </div>
-                                </div>
-                                <div className="space-y-2">
-                                  {sectionTasks.map(task => (
-                                    <div
-                                      key={task.id}
-                                      className="flex items-center gap-3 group"
-                                    >
-                                      <Checkbox
-                                        checked={task.completed}
-                                        onCheckedChange={() => handleToggleTask(task)}
-                                        className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
-                                      />
-                                      <span className={cn(
-                                        "flex-1 text-sm",
-                                        task.completed ? "text-slate-500 line-through" : "text-white"
-                                      )}>
-                                        {task.title}
-                                      </span>
-                                      <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity"
-                                        onClick={() => deleteTaskMutation.mutate(task.id)}
-                                      >
-                                        <Trash2 className="w-3 h-3" />
-                                      </Button>
+                              <>
+                                {/* Renderizar seções importadas */}
+                                {Object.entries(importedBySection).map(([sectionName, sectionTasks], idx) => (
+                                  <div key={`imported-${idx}`}>
+                                    <div className="flex items-center justify-between mb-3">
+                                      <h3 className="text-cyan-400 font-semibold text-sm uppercase">
+                                        {sectionName}
+                                      </h3>
                                     </div>
-                                  ))}
-                                </div>
-                              </div>
+                                    <div className="space-y-2">
+                                      {sectionTasks.map(task => (
+                                        <div key={task.id} className="flex items-center gap-3 group">
+                                          <Checkbox
+                                            checked={task.completed}
+                                            onCheckedChange={() => handleToggleTask(task)}
+                                            className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                                          />
+                                          <span className={cn(
+                                            "flex-1 text-sm",
+                                            task.completed ? "text-slate-500 line-through" : "text-white"
+                                          )}>
+                                            {task.displayTitle}
+                                          </span>
+                                          <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity"
+                                            onClick={() => deleteTaskMutation.mutate(task.id)}
+                                          >
+                                            <Trash2 className="w-3 h-3" />
+                                          </Button>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                ))}
+                                
+                                {/* Renderizar seções padrão */}
+                                {hasStandardSections && getOrderedSections(product.id, defaultSections).map((section, displayIndex) => {
+                                  const sectionTasks = standardTasks.filter(task => 
+                                    section.tasks.some(t => t.toLowerCase() === task.title.toLowerCase())
+                                  );
+                                  
+                                  if (sectionTasks.length === 0) return null;
+                                  
+                                  const totalSections = defaultSections.length;
+                                  
+                                  return (
+                                    <div key={displayIndex}>
+                                      <div className="flex items-center justify-between mb-3">
+                                        <h3 className="text-cyan-400 font-semibold text-sm uppercase">
+                                          {section.section}
+                                        </h3>
+                                        <div className="flex gap-1">
+                                          <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            disabled={displayIndex === 0}
+                                            className="h-6 w-6 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/20 disabled:opacity-30"
+                                            onClick={() => moveSectionUp(product.id, displayIndex)}
+                                          >
+                                            <ChevronUp className="w-4 h-4" />
+                                          </Button>
+                                          <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            disabled={displayIndex >= totalSections - 1}
+                                            className="h-6 w-6 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/20 disabled:opacity-30"
+                                            onClick={() => moveSectionDown(product.id, displayIndex, totalSections)}
+                                          >
+                                            <ChevronDown className="w-4 h-4" />
+                                          </Button>
+                                        </div>
+                                      </div>
+                                      <div className="space-y-2">
+                                        {sectionTasks.map(task => (
+                                          <div
+                                            key={task.id}
+                                            className="flex items-center gap-3 group"
+                                          >
+                                            <Checkbox
+                                              checked={task.completed}
+                                              onCheckedChange={() => handleToggleTask(task)}
+                                              className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                                            />
+                                            <span className={cn(
+                                              "flex-1 text-sm",
+                                              task.completed ? "text-slate-500 line-through" : "text-white"
+                                            )}>
+                                              {task.title}
+                                            </span>
+                                            <Button
+                                              size="icon"
+                                              variant="ghost"
+                                              className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity"
+                                              onClick={() => deleteTaskMutation.mutate(task.id)}
+                                            >
+                                              <Trash2 className="w-3 h-3" />
+                                            </Button>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </>
                             );
-                          })}
+                          })()}
 
                           {/* Custom tasks not in sections */}
                           {(() => {
+                            const productTasks = getProductTasks(product.id);
                             const defaultSections = getDefaultTasksForProduct(product.name);
                             if (!defaultSections) return null;
 
                             const allSectionTasks = defaultSections
                               .flatMap(s => s.tasks.map(t => t.toLowerCase()));
-                            const customTasks = getProductTasks(product.id).filter(task =>
-                              !allSectionTasks.includes(task.title.toLowerCase())
+                            const customTasks = productTasks.filter(task =>
+                              !allSectionTasks.includes(task.title.toLowerCase()) && !task.title.includes('||')
                             );
                             
                             if (customTasks.length > 0) {
