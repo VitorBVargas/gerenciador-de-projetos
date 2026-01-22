@@ -144,7 +144,11 @@ export default function Timeline() {
   const getVerticalProgress = (vertical) => {
     const events = eventsByVertical[vertical] || [];
     if (events.length === 0) return 0;
-    const totalProgress = events.reduce((sum, event) => sum + (event.progress || 0), 0);
+    const totalProgress = events.reduce((sum, event) => {
+      // Usar 100% se status for concluído, caso contrário usar o valor de progress
+      if (event.status === 'concluido') return sum + 100;
+      return sum + (event.progress || 0);
+    }, 0);
     return Math.round(totalProgress / events.length);
   };
 
