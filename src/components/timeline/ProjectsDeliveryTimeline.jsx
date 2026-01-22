@@ -15,7 +15,17 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents }) {
     return projects.map(project => {
       const projectEvents = timelineEvents.filter(e => e.project_id === project.id);
       
-      // Find the last event end_date
+      // Find Go Live event (production migration or similar)
+      const goLiveEvent = projectEvents.find(e => 
+        e.phase && (
+          e.phase === 'migracao_producao' || 
+          e.phase === 'operacao_assistida' ||
+          e.title?.toLowerCase().includes('go live') ||
+          e.title?.toLowerCase().includes('produção')
+        )
+      );
+      
+      // Find the last event end_date (project end)
       const deliveryDate = projectEvents.reduce((latest, event) => {
         if (event.end_date) {
           const eventDate = new Date(event.end_date);
@@ -43,6 +53,7 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents }) {
 
       return {
         ...project,
+        goLiveDate: goLiveEvent?.end_date,
         deliveryDate,
         status
       };
@@ -73,7 +84,8 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents }) {
   const statusConfig = {
     client_release: { icon: Triangle, color: 'text-blue-400', label: 'Liberação Cliente' },
     project_end: { icon: Circle, color: 'text-green-400', label: 'Fim do Projeto' },
-    awaiting_release: { icon: Star, color: 'text-orange-400', label: 'Aguardando Aceite' }
+    awaiting_release: { icon: Star, color: 'text-orange-400', label: 'Aguardando Aceite' },
+    go_live: { icon: Triangle, color: 'text-blue-500', label: 'Go Live' }
   };
 
   if (projectsWithDelivery.length === 0) {
@@ -88,7 +100,11 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents }) {
     <div className="space-y-6">
       {/* Legend */}
       <div className="flex flex-wrap gap-4 justify-end">
-        {Object.entries(statusConfig).map(([key, config]) => {
+        <div className="flex items-center gap-2">
+          <div className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-b-[8px] border-b-blue-500" />
+          <span className="text-xs text-slate-400">Go Live</span>
+        </div>
+        {Object.entries(statusConfig).filter(([key]) => key !== 'go_live').map(([key, config]) => {
           const Icon = config.icon;
           return (
             <div key={key} className="flex items-center gap-2">
@@ -130,7 +146,8 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents }) {
         {projectsWithDelivery.map((project, idx) => {
           const config = statusConfig[project.status];
           const Icon = config.icon;
-          const position = getDatePosition(project.deliveryDate);
+          const deliveryPosition = getDatePosition(project.deliveryDate);
+          const goLivePosition = project.goLiveDate ? getDatePosition(new Date(project.goLiveDate)) : null;
           
           return (
             <div key={project.id} className="relative">
@@ -142,10 +159,23 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents }) {
 
                 {/* Timeline Bar */}
                 <div className="flex-1 relative h-10 bg-slate-800/30 rounded border border-slate-700/50">
-                  {/* Delivery Marker */}
+                  {/* Go Live Marker (Blue Triangle) */}
+                  {goLivePosition !== null && (
+                    <div 
+                      className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex flex-col items-center"
+                      style={{ left: `${goLivePosition}%` }}
+                    >
+                      <div className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-b-[8px] border-b-blue-500" />
+                      <div className="text-xs text-slate-400 mt-1 whitespace-nowrap">
+                        {format(new Date(project.goLiveDate), 'dd/MM', { locale: ptBR })}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Delivery/End Marker */}
                   <div 
                     className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex flex-col items-center"
-                    style={{ left: `${position}%` }}
+                    style={{ left: `${deliveryPosition}%` }}
                   >
                     <Icon className={`w-5 h-5 ${config.color}`} />
                     <div className="text-xs text-slate-400 mt-1 whitespace-nowrap">
