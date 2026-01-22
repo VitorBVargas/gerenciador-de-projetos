@@ -1,9 +1,10 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
   TrendingUp,
   AlertTriangle,
@@ -18,6 +19,7 @@ import {
 import { cn } from "@/lib/utils";
 import { createPageUrl } from '../utils';
 import { Link } from 'react-router-dom';
+import ProjectsDeliveryTimeline from '../components/timeline/ProjectsDeliveryTimeline';
 
 const statusLabels = {
   nao_iniciado: 'Não Iniciado',
@@ -47,6 +49,8 @@ const statusColors = {
 };
 
 export default function ExecutiveStatus() {
+  const [activeTab, setActiveTab] = useState('overview');
+
   // Fetch all projects
   const { data: projects = [], isLoading } = useQuery({
     queryKey: ['projects'],
@@ -259,8 +263,21 @@ export default function ExecutiveStatus() {
         </div>
       </div>
 
-      {/* Status Cards */}
-      <div className="grid grid-cols-7 gap-3">
+      {/* Main Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="bg-slate-800 border border-slate-700">
+          <TabsTrigger value="overview" className="data-[state=active]:bg-blue-600">
+            Visão Geral
+          </TabsTrigger>
+          <TabsTrigger value="timeline" className="data-[state=active]:bg-blue-600">
+            Linha do Tempo de Entregas
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Overview Tab */}
+        <TabsContent value="overview" className="space-y-6">
+          {/* Status Cards */}
+          <div className="grid grid-cols-7 gap-3">
         <Card className="bg-slate-800/50 border-slate-700/50">
           <CardContent className="p-3 text-center">
             <div className="text-2xl font-bold text-white mb-0.5">{projects.length}</div>
@@ -292,9 +309,9 @@ export default function ExecutiveStatus() {
         })}
       </div>
 
-      {/* Projects Grid */}
-      <div>
-        <h2 className="text-xl font-bold text-white mb-4">Projetos Ativos</h2>
+          {/* Projects Grid */}
+          <div>
+            <h2 className="text-xl font-bold text-white mb-4">Projetos Ativos</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {projectsWithMetrics.map(project => (
             <Link 
@@ -378,31 +395,41 @@ export default function ExecutiveStatus() {
           ))}
         </div>
 
-        {projectsWithMetrics.length === 0 && (
-          <Card className="bg-slate-800/50 border-slate-700/50">
-            <CardContent className="py-12 text-center">
-              <LayoutDashboard className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-              <p className="text-slate-400">Nenhum projeto ativo no momento</p>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+            {projectsWithMetrics.length === 0 && (
+              <Card className="bg-slate-800/50 border-slate-700/50">
+                <CardContent className="py-12 text-center">
+                  <LayoutDashboard className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+                  <p className="text-slate-400">Nenhum projeto ativo no momento</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
 
-      {/* Completed Projects Summary */}
-      {statusCounts.concluido > 0 && (
-        <Card className="bg-slate-800/50 border-slate-700/50">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-purple-400" />
-              Projetos Concluídos
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-purple-400">{statusCounts.concluido}</div>
-            <div className="text-sm text-slate-400 mt-1">projetos finalizados com sucesso</div>
-          </CardContent>
-        </Card>
-      )}
+          {/* Completed Projects Summary */}
+          {statusCounts.concluido > 0 && (
+            <Card className="bg-slate-800/50 border-slate-700/50">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-purple-400" />
+                  Projetos Concluídos
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-purple-400">{statusCounts.concluido}</div>
+                <div className="text-sm text-slate-400 mt-1">projetos finalizados com sucesso</div>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        {/* Timeline Tab */}
+        <TabsContent value="timeline" className="space-y-6">
+          <ProjectsDeliveryTimeline 
+            projects={projects}
+            timelineEvents={allTimelineEvents}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
