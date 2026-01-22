@@ -17,14 +17,12 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  DollarSign,
-  TrendingUp
+  DollarSign
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 const navigation = [
   { name: 'Visão Geral', href: 'Dashboard', icon: LayoutDashboard },
-  { name: 'Status Executivo', href: 'ExecutiveStatus', icon: TrendingUp },
   { name: 'Equipe', href: 'Team', icon: Users },
   { name: 'Stakeholders', href: 'Stakeholders', icon: UserCircle },
   { name: 'Produtos', href: 'Products', icon: Package },
@@ -54,7 +52,7 @@ export default function Layout({ children, currentPageName }) {
   const urlParams = new URLSearchParams(window.location.search);
   const projectId = urlParams.get('project_id');
 
-  // Don't show sidebar on ProjectsList and ExecutiveStatus pages
+  // Don't show sidebar on ProjectsList page
   if (currentPageName === 'ProjectsList' || currentPageName === 'ExecutiveStatus') {
     return children;
   }
