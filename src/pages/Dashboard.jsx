@@ -236,6 +236,18 @@ export default function Dashboard() {
     atendimento: 'Atendimento'
   };
 
+  const verticalColors = {
+    arrecadacao: '#3b82f6',
+    compras: '#8b5cf6',
+    contabil: '#10b981',
+    pessoal: '#f59e0b',
+    educacao: '#ec4899',
+    iss: '#06b6d4',
+    parceiros: '#6366f1',
+    plataforma: '#14b8a6',
+    atendimento: '#f97316'
+  };
+
   const timelineProgressData = Object.entries(eventsByVertical)
     .map(([vertical, events]) => {
       const totalProgress = events.reduce((sum, event) => {
@@ -246,7 +258,8 @@ export default function Dashboard() {
       const avgProgress = events.length > 0 ? Math.round(totalProgress / events.length) : 0;
       return {
         name: verticalLabels[vertical] || vertical,
-        progress: avgProgress
+        progress: avgProgress,
+        color: verticalColors[vertical] || '#3b82f6'
       };
     })
     .filter(d => d.progress > 0)
@@ -439,8 +452,8 @@ export default function Dashboard() {
                     </div>
                     <div className="w-full bg-slate-700 rounded-full h-2.5">
                       <div
-                        className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
-                        style={{ width: `${item.progress}%` }}
+                        className="h-2.5 rounded-full transition-all duration-300"
+                        style={{ width: `${item.progress}%`, backgroundColor: item.color }}
                       />
                     </div>
                   </div>
