@@ -19,23 +19,29 @@ import { createPageUrl } from '../utils';
 import { Link } from 'react-router-dom';
 
 const statusLabels = {
-  planejamento: 'Planejamento',
-  em_andamento: 'Em Andamento',
+  nao_iniciado: 'Não Iniciado',
+  em_dia: 'Em Dia',
+  atencao: 'Atenção',
+  atrasado: 'Atrasado',
   pausado: 'Pausado',
   concluido: 'Concluído'
 };
 
 const statusIcons = {
-  planejamento: Clock,
-  em_andamento: PlayCircle,
+  nao_iniciado: Clock,
+  em_dia: CheckCircle2,
+  atencao: AlertTriangle,
+  atrasado: XCircle,
   pausado: Pause,
   concluido: CheckCircle2
 };
 
 const statusColors = {
-  planejamento: 'bg-blue-500',
-  em_andamento: 'bg-green-500',
-  pausado: 'bg-yellow-500',
+  nao_iniciado: 'bg-slate-500',
+  em_dia: 'bg-green-500',
+  atencao: 'bg-yellow-500',
+  atrasado: 'bg-red-500',
+  pausado: 'bg-orange-500',
   concluido: 'bg-purple-500'
 };
 
@@ -128,33 +134,82 @@ export default function ExecutiveStatus() {
     return Math.round(totalProgress / projectEvents.length);
   };
 
+  // Classify project status based on timeline and health
+  const classifyProjectStatus = (project) => {
+    // If project is completed
+    if (project.status === 'concluido') return 'concluido';
+    
+    const projectEvents = allTimelineEvents.filter(e => e.project_id === project.id);
+    
+    // Check if project hasn't started
+    const hasStartedEvents = projectEvents.some(e => 
+      e.status === 'em_andamento' || e.status === 'concluido' || e.status === 'atrasado'
+    );
+    if (!hasStartedEvents && projectEvents.length > 0) return 'nao_iniciado';
+    if (projectEvents.length === 0) return 'nao_iniciado';
+    
+    // Check for paused timeline events
+    const hasPausedEvents = projectEvents.some(e => e.status === 'pausado');
+    if (hasPausedEvents) return 'pausado';
+    
+    // Check for delayed events (past deadline)
+    const now = new Date();
+    const hasDelayedEvents = projectEvents.some(e => {
+      if (e.end_date) {
+        const endDate = new Date(e.end_date);
+        return endDate < now && e.status !== 'concluido';
+      }
+      return false;
+    });
+    if (hasDelayedEvents) return 'atrasado';
+    
+    // Check for attention (health < 60% AND events ending this week)
+    const healthScore = calculateHealthScore(project);
+    const oneWeekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const hasEventsThisWeek = projectEvents.some(e => {
+      if (e.end_date && e.status !== 'concluido') {
+        const endDate = new Date(e.end_date);
+        return endDate >= now && endDate <= oneWeekFromNow;
+      }
+      return false;
+    });
+    if (healthScore < 60 && hasEventsThisWeek) return 'atencao';
+    
+    // Default: Em dia
+    return 'em_dia';
+  };
+
   // Active projects (exclude completed)
   const activeProjects = projects.filter(p => p.status !== 'concluido');
 
   // Status counts
   const statusCounts = useMemo(() => {
     const counts = {
-      planejamento: 0,
-      em_andamento: 0,
+      nao_iniciado: 0,
+      em_dia: 0,
+      atencao: 0,
+      atrasado: 0,
       pausado: 0,
       concluido: 0
     };
     
-    projects.forEach(p => {
-      if (p.status && counts[p.status] !== undefined) {
-        counts[p.status]++;
+    projects.forEach(project => {
+      const status = classifyProjectStatus(project);
+      if (counts[status] !== undefined) {
+        counts[status]++;
       }
     });
     
     return counts;
-  }, [projects]);
+  }, [projects, allTimelineEvents]);
 
   // Calculate project with health status
   const projectsWithMetrics = useMemo(() => {
     return activeProjects.map(project => ({
       ...project,
       healthScore: calculateHealthScore(project),
-      progress: calculateProjectProgress(project)
+      progress: calculateProjectProgress(project),
+      dynamicStatus: classifyProjectStatus(project)
     })).sort((a, b) => {
       // Sort by health score (worst first)
       return a.healthScore - b.healthScore;
@@ -186,9 +241,13 @@ export default function ExecutiveStatus() {
   return (
     <div className="min-h-screen bg-slate-900 p-6 lg:p-8 space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-white">Status Executivo</h1>
-        <p className="text-slate-400 mt-1">Visão consolidada de todos os projetos</p>
+      <div className="space-y-2">
+        <h1 className="text-3xl font-bold text-white">Clientes Premium SC/MG</h1>
+        <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-slate-400">
+          <span><span className="text-slate-500">Gerente de Portfólio:</span> Leandro de Faveri</span>
+          <span><span className="text-slate-500">Coordenador:</span> Maxwell Santos</span>
+          <span><span className="text-slate-500">Gerentes de Projetos:</span> Vitor Vargas, Marcos Bergamaschi</span>
+        </div>
       </div>
 
       {/* Status Cards */}
@@ -242,8 +301,8 @@ export default function ExecutiveStatus() {
                 <CardContent className="space-y-4">
                   {/* Status */}
                   <div className="flex items-center gap-2">
-                    <div className={cn("w-2 h-2 rounded-full", statusColors[project.status])} />
-                    <span className="text-sm text-slate-400">{statusLabels[project.status]}</span>
+                    <div className={cn("w-2 h-2 rounded-full", statusColors[project.dynamicStatus])} />
+                    <span className="text-sm text-slate-400">{statusLabels[project.dynamicStatus]}</span>
                   </div>
 
                   {/* Progress */}
