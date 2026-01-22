@@ -497,7 +497,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="bg-slate-800/50 border-slate-700/50">
           <CardHeader>
-            <CardTitle className="text-white">Marcos do Projeto</CardTitle>
+            <CardTitle className="text-white">Etapas Principais</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {milestones.sort((a, b) => a.order - b.order).map((milestone) => (
