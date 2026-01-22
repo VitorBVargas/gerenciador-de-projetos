@@ -134,6 +134,13 @@ export default function Products() {
     }
   });
 
+  const toggleAcceptanceMutation = useMutation({
+    mutationFn: ({ id, value }) => base44.entities.Product.update(id, { implementation_accepted: value }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products', projectId] });
+    }
+  });
+
   const handleSave = (data) => {
     if (selectedProduct) {
       updateMutation.mutate({ id: selectedProduct.id, data });
@@ -156,6 +163,13 @@ export default function Products() {
     togglePasswordMutation.mutate({ 
       id: product.id, 
       value: !product.production_password 
+    });
+  };
+
+  const handleToggleAcceptance = (product) => {
+    toggleAcceptanceMutation.mutate({ 
+      id: product.id, 
+      value: !product.implementation_accepted 
     });
   };
 
@@ -224,14 +238,24 @@ export default function Products() {
                       <Card key={product.id} className="bg-slate-800 border-slate-700 hover:bg-slate-750 transition-all group">
                         <CardContent className="p-2">
                           <div className="flex items-start justify-between mb-1.5">
-                            <div 
-                              className={cn(
-                                "w-2 h-2 rounded-full mt-0.5 transition-all",
-                                product.production_password 
-                                  ? "bg-green-500 shadow-lg shadow-green-500/50 ring-2 ring-green-500/30" 
-                                  : "bg-slate-600"
-                              )}
-                            />
+                            <div className="flex items-center gap-1">
+                              <div 
+                                className={cn(
+                                  "w-2 h-2 rounded-full transition-all",
+                                  product.production_password 
+                                    ? "bg-green-500 shadow-lg shadow-green-500/50 ring-2 ring-green-500/30" 
+                                    : "bg-slate-600"
+                                )}
+                              />
+                              <div 
+                                className={cn(
+                                  "w-2 h-2 rounded-full transition-all",
+                                  product.implementation_accepted 
+                                    ? "bg-orange-500 shadow-lg shadow-orange-500/50 ring-2 ring-orange-500/30" 
+                                    : "bg-slate-600"
+                                )}
+                              />
+                            </div>
                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                               <Button
                                 size="icon"
@@ -262,21 +286,38 @@ export default function Products() {
                               <span className="text-slate-500">Chamado:</span> {product.ticket_number}
                             </p>
                           )}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleTogglePassword(product);
-                            }}
-                            className={cn(
-                              "w-full mt-1.5 px-2 py-1 rounded text-[10px] font-medium transition-all flex items-center justify-center gap-1",
-                              product.production_password
-                                ? "bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30"
-                                : "bg-slate-700/50 text-slate-400 border border-slate-600/50 hover:bg-slate-600/50"
-                            )}
-                          >
-                            {product.production_password && <Check className="w-3 h-3" />}
-                            Senha Liberada
-                          </button>
+                          <div className="space-y-1 mt-1.5">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleTogglePassword(product);
+                              }}
+                              className={cn(
+                                "w-full px-2 py-1 rounded text-[10px] font-medium transition-all flex items-center justify-center gap-1",
+                                product.production_password
+                                  ? "bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30"
+                                  : "bg-slate-700/50 text-slate-400 border border-slate-600/50 hover:bg-slate-600/50"
+                              )}
+                            >
+                              {product.production_password && <Check className="w-3 h-3" />}
+                              Senha Liberada
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleToggleAcceptance(product);
+                              }}
+                              className={cn(
+                                "w-full px-2 py-1 rounded text-[10px] font-medium transition-all flex items-center justify-center gap-1",
+                                product.implementation_accepted
+                                  ? "bg-orange-500/20 text-orange-400 border border-orange-500/30 hover:bg-orange-500/30"
+                                  : "bg-slate-700/50 text-slate-400 border border-slate-600/50 hover:bg-slate-600/50"
+                              )}
+                            >
+                              {product.implementation_accepted && <Check className="w-3 h-3" />}
+                              Aceite de Implantação
+                            </button>
+                          </div>
                         </CardContent>
                       </Card>
                     ))}
