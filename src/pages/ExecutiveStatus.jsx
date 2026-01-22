@@ -177,14 +177,14 @@ export default function ExecutiveStatus() {
 
   if (isLoading) {
     return (
-      <div className="p-6 lg:p-8 flex items-center justify-center min-h-screen">
+      <div className="min-h-screen bg-slate-900 p-6 lg:p-8 flex items-center justify-center">
         <div className="text-white">Carregando...</div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
+    <div className="min-h-screen bg-slate-900 p-6 lg:p-8 space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-white">Status Executivo</h1>
