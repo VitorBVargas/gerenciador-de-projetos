@@ -260,9 +260,9 @@ export default function ExecutiveStatus() {
       </div>
 
       {/* Status Cards */}
-      <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
+      <div className="grid grid-cols-7 gap-3">
         <Card className="bg-slate-800/50 border-slate-700/50">
-          <CardContent className="p-4 text-center">
+          <CardContent className="p-3 text-center">
             <div className="text-2xl font-bold text-white mb-0.5">{projects.length}</div>
             <div className="text-xs text-slate-400">Total</div>
           </CardContent>
@@ -280,9 +280,9 @@ export default function ExecutiveStatus() {
           };
           return (
             <Card key={status} className="bg-slate-800/50 border-slate-700/50">
-              <CardContent className="p-4 text-center">
-                <div className="flex items-center justify-center mb-2">
-                  <Icon className={cn("w-6 h-6", iconColorMap[status])} />
+              <CardContent className="p-3 text-center">
+                <div className="flex items-center justify-center mb-1">
+                  <Icon className={cn("w-5 h-5", iconColorMap[status])} />
                 </div>
                 <div className="text-2xl font-bold text-white mb-0.5">{count}</div>
                 <div className="text-xs text-slate-400">{statusLabels[status]}</div>
