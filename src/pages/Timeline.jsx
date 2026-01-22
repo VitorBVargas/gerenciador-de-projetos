@@ -7,7 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Plus, Calendar } from 'lucide-react';
 import TimelineEventModal from '../components/modals/TimelineEventModal';
 import GanttTimeline from '../components/timeline/GanttTimeline';
-import ProjectsDeliveryTimeline from '../components/timeline/ProjectsDeliveryTimeline';
+import ProjectVerticalDeliveryTimeline from '../components/timeline/ProjectVerticalDeliveryTimeline';
 import EmptyState from '../components/ui/EmptyState';
 import {
   AlertDialog,
@@ -56,11 +56,7 @@ export default function Timeline() {
     enabled: !!projectId
   });
 
-  // Fetch all timeline events for delivery timeline
-  const { data: allTimelineEvents = [] } = useQuery({
-    queryKey: ['allTimelineEvents'],
-    queryFn: () => base44.entities.TimelineEvent.list()
-  });
+
 
   const activeProject = projects.find(p => p.id === projectId);
 
@@ -253,9 +249,9 @@ export default function Timeline() {
 
         {/* Delivery Timeline Tab */}
         <TabsContent value="delivery" className="space-y-4">
-          <ProjectsDeliveryTimeline 
-            projects={projects} 
-            timelineEvents={allTimelineEvents}
+          <ProjectVerticalDeliveryTimeline 
+            projectId={projectId} 
+            timelineEvents={timelineEvents}
           />
         </TabsContent>
       </Tabs>
