@@ -460,12 +460,23 @@ export default function Homologation() {
                               <>
                                 {/* Renderizar seções importadas */}
                                 {Object.entries(importedBySection).map(([sectionName, sectionTasks], idx) => (
-                                  <div key={`imported-${idx}`}>
-                                    <div className="flex items-center justify-between mb-3">
-                                      <h3 className="text-cyan-400 font-semibold text-sm uppercase">
-                                        {sectionName}
-                                      </h3>
-                                    </div>
+                                 <div key={`imported-${idx}`}>
+                                   <div className="flex items-center justify-between mb-3 group/section">
+                                     <h3 className="text-cyan-400 font-semibold text-sm uppercase">
+                                       {sectionName}
+                                     </h3>
+                                     <Button
+                                       size="icon"
+                                       variant="ghost"
+                                       className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover/section:opacity-100 transition-opacity"
+                                       onClick={async () => {
+                                         await Promise.all(sectionTasks.map(t => deleteTaskMutation.mutate(t.id)));
+                                         toast.success(`Seção "${sectionName}" deletada`);
+                                       }}
+                                     >
+                                       <Trash2 className="w-3 h-3" />
+                                     </Button>
+                                   </div>
                                     <div className="space-y-2">
                                       {sectionTasks.map(task => (
                                         <div key={task.id} className="flex items-center gap-3 group">
@@ -496,39 +507,50 @@ export default function Homologation() {
                                 
                                 {/* Renderizar seções padrão se não tem tarefas importadas */}
                                 {!hasImportedTasks && defaultSections.length > 0 && getOrderedSections(product.id, defaultSections).map((section, displayIndex) => {
-                                  const sectionTasks = standardTasks.filter(task => 
-                                    section.tasks.some(t => t.toLowerCase() === task.title.toLowerCase())
-                                  );
-                                  
-                                  const totalSections = defaultSections.length;
-                                  
-                                  return (
-                                    <div key={displayIndex}>
-                                      <div className="flex items-center justify-between mb-3">
-                                        <h3 className="text-cyan-400 font-semibold text-sm uppercase">
-                                          {section.section}
-                                        </h3>
-                                        <div className="flex gap-1">
-                                          <Button
-                                            size="icon"
-                                            variant="ghost"
-                                            disabled={displayIndex === 0}
-                                            className="h-6 w-6 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/20 disabled:opacity-30"
-                                            onClick={() => moveSectionUp(product.id, displayIndex)}
-                                          >
-                                            <ChevronUp className="w-4 h-4" />
-                                          </Button>
-                                          <Button
-                                            size="icon"
-                                            variant="ghost"
-                                            disabled={displayIndex >= totalSections - 1}
-                                            className="h-6 w-6 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/20 disabled:opacity-30"
-                                            onClick={() => moveSectionDown(product.id, displayIndex, totalSections)}
-                                          >
-                                            <ChevronDown className="w-4 h-4" />
-                                          </Button>
-                                        </div>
-                                      </div>
+                                 const sectionTasks = standardTasks.filter(task => 
+                                   section.tasks.some(t => t.toLowerCase() === task.title.toLowerCase())
+                                 );
+
+                                 const totalSections = defaultSections.length;
+
+                                 return (
+                                   <div key={displayIndex}>
+                                     <div className="flex items-center justify-between mb-3 group/section">
+                                       <h3 className="text-cyan-400 font-semibold text-sm uppercase">
+                                         {section.section}
+                                       </h3>
+                                       <div className="flex gap-1">
+                                         <Button
+                                           size="icon"
+                                           variant="ghost"
+                                           disabled={displayIndex === 0}
+                                           className="h-6 w-6 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/20 disabled:opacity-30"
+                                           onClick={() => moveSectionUp(product.id, displayIndex)}
+                                         >
+                                           <ChevronUp className="w-4 h-4" />
+                                         </Button>
+                                         <Button
+                                           size="icon"
+                                           variant="ghost"
+                                           disabled={displayIndex >= totalSections - 1}
+                                           className="h-6 w-6 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/20 disabled:opacity-30"
+                                           onClick={() => moveSectionDown(product.id, displayIndex, totalSections)}
+                                         >
+                                           <ChevronDown className="w-4 h-4" />
+                                         </Button>
+                                         <Button
+                                           size="icon"
+                                           variant="ghost"
+                                           className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover/section:opacity-100 transition-opacity"
+                                           onClick={async () => {
+                                             await Promise.all(sectionTasks.map(t => deleteTaskMutation.mutate(t.id)));
+                                             toast.success(`Seção "${section.section}" deletada`);
+                                           }}
+                                         >
+                                           <Trash2 className="w-3 h-3" />
+                                         </Button>
+                                       </div>
+                                     </div>
                                       <div className="space-y-2">
                                         {sectionTasks.map(task => (
                                           <div key={task.id} className="flex items-center gap-3 group">
