@@ -12,7 +12,8 @@ import {
   Pause,
   XCircle,
   PlayCircle,
-  LayoutDashboard
+  LayoutDashboard,
+  ArrowLeft
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { createPageUrl } from '../utils';
@@ -241,35 +242,49 @@ export default function ExecutiveStatus() {
   return (
     <div className="min-h-screen bg-slate-900 p-6 lg:p-8 space-y-6">
       {/* Header */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold text-white">Clientes Premium SC/MG</h1>
-        <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-slate-400">
-          <span><span className="text-slate-500">Gerente de Portfólio:</span> Leandro de Faveri</span>
-          <span><span className="text-slate-500">Coordenador:</span> Maxwell Santos</span>
-          <span><span className="text-slate-500">Gerentes de Projetos:</span> Vitor Vargas, Marcos Bergamaschi</span>
+      <div className="space-y-4">
+        <Link to={createPageUrl('ProjectsList')}>
+          <button className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
+            <ArrowLeft className="w-5 h-5" />
+            <span className="text-sm">Voltar para Projetos</span>
+          </button>
+        </Link>
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold text-white">Clientes Premium SC/MG</h1>
+          <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-slate-400">
+            <span><span className="text-slate-500">Gerente de Portfólio:</span> Leandro de Faveri</span>
+            <span><span className="text-slate-500">Coordenador:</span> Maxwell Santos</span>
+            <span><span className="text-slate-500">Gerentes de Projetos:</span> Vitor Vargas, Marcos Bergamaschi</span>
+          </div>
         </div>
       </div>
 
       {/* Status Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
         <Card className="bg-slate-800/50 border-slate-700/50">
-          <CardContent className="p-6 text-center">
-            <div className="text-3xl font-bold text-white mb-1">{projects.length}</div>
-            <div className="text-sm text-slate-400">Total</div>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-white mb-0.5">{projects.length}</div>
+            <div className="text-xs text-slate-400">Total</div>
           </CardContent>
         </Card>
 
         {Object.entries(statusCounts).map(([status, count]) => {
           const Icon = statusIcons[status];
+          const iconColorMap = {
+            'nao_iniciado': 'text-slate-400',
+            'em_dia': 'text-green-400',
+            'atencao': 'text-yellow-400',
+            'atrasado': 'text-red-400',
+            'pausado': 'text-orange-400',
+            'concluido': 'text-purple-400'
+          };
           return (
             <Card key={status} className="bg-slate-800/50 border-slate-700/50">
-              <CardContent className="p-6 text-center">
+              <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center mb-2">
-                  <div className={cn("w-10 h-10 rounded-full flex items-center justify-center", statusColors[status] + '/20')}>
-                    <Icon className={cn("w-5 h-5", statusColors[status].replace('bg-', 'text-'))} />
-                  </div>
+                  <Icon className={cn("w-6 h-6", iconColorMap[status])} />
                 </div>
-                <div className="text-3xl font-bold text-white mb-1">{count}</div>
+                <div className="text-2xl font-bold text-white mb-0.5">{count}</div>
                 <div className="text-xs text-slate-400">{statusLabels[status]}</div>
               </CardContent>
             </Card>
