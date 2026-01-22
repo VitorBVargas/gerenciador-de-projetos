@@ -5,7 +5,7 @@ import { Star, Triangle, Circle } from 'lucide-react';
 import { format, addMonths, startOfMonth, endOfMonth, isBefore, isAfter, isWithinInterval } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
-export default function ProjectsDeliveryTimeline({ projects, timelineEvents }) {
+export default function ProjectsDeliveryTimeline({ projects, timelineEvents, products = [] }) {
   // Calculate timeline range (show 6 months from now)
   const timelineStart = useMemo(() => startOfMonth(new Date()), []);
   const timelineEnd = useMemo(() => endOfMonth(addMonths(new Date(), 5)), []);
@@ -14,6 +14,7 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents }) {
   const projectsWithDelivery = useMemo(() => {
     return projects.map(project => {
       const projectEvents = timelineEvents.filter(e => e.project_id === project.id);
+      const projectProducts = products.filter(p => p.project_id === project.id);
       
       // Find Go Live event (production migration or similar)
       const goLiveEvent = projectEvents.find(e => 
@@ -36,13 +37,23 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents }) {
         return latest;
       }, null);
 
-      // Determine status based on delivery date
+      // Verificar se todas as etapas do cronograma estão concluídas
+      const allEventsCompleted = projectEvents.length > 0 && 
+        projectEvents.every(e => e.status === 'concluido');
+      
+      // Verificar se há algum produto sem aceite
+      const hasProductWithoutAcceptance = projectProducts.some(p => !p.implementation_accepted);
+
+      // Determine status based on delivery date and conditions
       let status = 'pending';
       if (deliveryDate) {
         const now = new Date();
         const oneWeekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
         
-        if (deliveryDate < now) {
+        // Se todas as etapas concluídas e tem produto sem aceite -> Aguardando Aceite
+        if (allEventsCompleted && hasProductWithoutAcceptance) {
+          status = 'awaiting_release';
+        } else if (deliveryDate < now) {
           status = 'awaiting_release'; // Aguardando Aceite (laranja)
         } else if (deliveryDate <= oneWeekFromNow) {
           status = 'client_release'; // Liberação Cliente (azul)
@@ -58,7 +69,7 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents }) {
         status
       };
     }).filter(p => p.deliveryDate); // Only show projects with delivery dates
-  }, [projects, timelineEvents]);
+  }, [projects, timelineEvents, products]);
 
   // Generate months for the timeline
   const months = useMemo(() => {

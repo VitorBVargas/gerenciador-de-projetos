@@ -91,6 +91,11 @@ export default function ExecutiveStatus() {
     queryFn: () => base44.entities.Expense.list()
   });
 
+  const { data: allProducts = [] } = useQuery({
+    queryKey: ['allProducts'],
+    queryFn: () => base44.entities.Product.list()
+  });
+
   // Calculate health score for a project
   const calculateHealthScore = (project) => {
     let score = 100;
@@ -433,6 +438,7 @@ export default function ExecutiveStatus() {
           <ProjectsDeliveryTimeline 
             projects={projects}
             timelineEvents={allTimelineEvents}
+            products={allProducts}
           />
         </TabsContent>
 
