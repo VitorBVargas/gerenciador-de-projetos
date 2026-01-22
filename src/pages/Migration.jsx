@@ -275,21 +275,31 @@ export default function Migration() {
       }
 
       // Cria novas tarefas do Excel com suporte a Etapa/Sprint + Tarefa
-      const tasksToCreate = jsonData.map((row, index) => {
+      const tasksToCreate = [];
+      let currentEtapa = '';
+      let order = 0;
+      
+      for (const row of jsonData) {
         const etapa = row.Etapa || row.etapa || row['Nome da Etapa'] || row['nome da etapa'] || '';
         const tarefa = row.Tarefa || row.tarefa || row['Nome da Tarefa'] || row['nome da tarefa'] || '';
         
-        // Se tiver etapa, usa formato "||ETAPA||Tarefa", senão só o nome da tarefa
-        const title = etapa.trim() ? `||${etapa.trim()}||${tarefa.trim()}` : tarefa.trim();
+        // Se a linha tem Etapa, atualiza a etapa atual
+        if (etapa && etapa.trim()) {
+          currentEtapa = etapa.trim();
+        }
         
-        return {
-          title: title,
-          project_id: projectId,
-          product_id: product.id,
-          completed: false,
-          order: index
-        };
-      }).filter(t => t.title.trim() && t.title !== '||||');
+        // Se a linha tem Tarefa, cria a tarefa
+        if (tarefa && tarefa.trim()) {
+          const title = currentEtapa ? `||${currentEtapa}||${tarefa.trim()}` : tarefa.trim();
+          tasksToCreate.push({
+            title: title,
+            project_id: projectId,
+            product_id: product.id,
+            completed: false,
+            order: order++
+          });
+        }
+      }
 
       if (tasksToCreate.length > 0) {
         await base44.entities.MigrationTask.bulkCreate(tasksToCreate);
