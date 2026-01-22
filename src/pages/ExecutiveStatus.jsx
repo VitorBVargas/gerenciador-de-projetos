@@ -482,27 +482,11 @@ export default function ExecutiveStatus() {
                 }
               }
 
-              // Recorrente: começa no mês do Go Live e continua indefinidamente (ou até encerramento)
+              // Recorrente: entra apenas no mês do Go Live
               if (goLiveEvent?.end_date && project.recurring_value > 0) {
-                const goLiveDate = new Date(goLiveEvent.end_date);
-                
-                let currentMonth = new Date(goLiveDate.getFullYear(), goLiveDate.getMonth(), 1);
-                const projectionEnd = addMonths(now, 12);
-                
-                // Se tem data de encerramento, para lá. Senão, vai até o fim da projeção
-                const finalMonth = endEvent?.end_date 
-                  ? new Date(new Date(endEvent.end_date).getFullYear(), new Date(endEvent.end_date).getMonth(), 1)
-                  : projectionEnd;
-                
-                while (currentMonth < projectionEnd) {
-                  const monthKey = format(currentMonth, 'yyyy-MM');
-                  if (monthlyData[monthKey]) {
-                    // Só adiciona se estiver dentro do período ativo do projeto
-                    if (currentMonth <= finalMonth) {
-                      monthlyData[monthKey].recorrente += project.recurring_value;
-                    }
-                  }
-                  currentMonth = addMonths(currentMonth, 1);
+                const goLiveMonth = format(new Date(goLiveEvent.end_date), 'yyyy-MM');
+                if (monthlyData[goLiveMonth]) {
+                  monthlyData[goLiveMonth].recorrente += project.recurring_value;
                 }
               }
             });
