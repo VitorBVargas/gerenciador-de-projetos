@@ -268,11 +268,11 @@ export default function Migration() {
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
       const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
-      // Deleta todas as tarefas existentes
+      // Deleta todas as tarefas existentes (ignora erros se a tarefa já foi deletada)
       const existingTasks = tasks.filter(t => t.product_id === product.id);
-      for (const task of existingTasks) {
-        await base44.entities.MigrationTask.delete(task.id);
-      }
+      await Promise.all(existingTasks.map(task => 
+        base44.entities.MigrationTask.delete(task.id).catch(() => {})
+      ));
 
       // Cria novas tarefas do Excel com suporte a Etapa/Sprint + Tarefa
       const tasksToCreate = [];
