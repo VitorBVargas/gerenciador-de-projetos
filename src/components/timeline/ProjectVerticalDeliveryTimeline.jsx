@@ -26,20 +26,9 @@ export default function ProjectVerticalDeliveryTimeline({ projectId, timelineEve
   const verticalDeliveries = useMemo(() => {
     const projectEvents = timelineEvents.filter(e => e.project_id === projectId && e.end_date);
     
-    // Find Go Live date (event with "Go Live" in title)
-    const goLiveEvent = projectEvents.find(e => 
-      e.title && e.title.toLowerCase().includes('go live')
-    );
-    const goLiveDate = goLiveEvent ? new Date(goLiveEvent.end_date) : null;
-    
-    // Find the last date (end of project)
-    const lastDate = projectEvents.length > 0
-      ? new Date(Math.max(...projectEvents.map(e => new Date(e.end_date))))
-      : null;
-    
     const grouped = {};
     
-    // Group by vertical and add markers
+    // Group events by vertical
     projectEvents.forEach(event => {
       const vertical = event.vertical || 'outros';
       if (!grouped[vertical]) {
@@ -47,32 +36,41 @@ export default function ProjectVerticalDeliveryTimeline({ projectId, timelineEve
       }
     });
     
-    // Add Go Live marker to each vertical (if exists)
-    if (goLiveDate) {
-      Object.keys(grouped).forEach(vertical => {
+    // For each vertical, find its Go Live and last date
+    Object.keys(grouped).forEach(vertical => {
+      const verticalEvents = projectEvents.filter(e => (e.vertical || 'outros') === vertical);
+      
+      // Find Go Live for this vertical
+      const goLiveEvent = verticalEvents.find(e => 
+        e.title && e.title.toLowerCase().includes('go live')
+      );
+      
+      // Find last date for this vertical
+      const lastDate = verticalEvents.length > 0
+        ? new Date(Math.max(...verticalEvents.map(e => new Date(e.end_date))))
+        : null;
+      
+      // Add Go Live marker
+      if (goLiveEvent) {
         grouped[vertical].push({
           title: 'Go Live',
-          deliveryDate: goLiveDate,
+          deliveryDate: new Date(goLiveEvent.end_date),
           status: 'client_release',
           end_date: goLiveEvent.end_date
         });
-      });
-    }
-    
-    // Add last date marker to each vertical (if exists and different from go live)
-    if (lastDate) {
-      Object.keys(grouped).forEach(vertical => {
+      }
+      
+      // Add last date marker
+      if (lastDate) {
         grouped[vertical].push({
           title: 'Fim do Projeto',
           deliveryDate: lastDate,
           status: 'project_end',
           end_date: lastDate.toISOString()
         });
-      });
-    }
-    
-    // Sort events within each vertical by date
-    Object.keys(grouped).forEach(vertical => {
+      }
+      
+      // Sort by date
       grouped[vertical].sort((a, b) => a.deliveryDate - b.deliveryDate);
     });
     
