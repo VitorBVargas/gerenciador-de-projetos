@@ -266,7 +266,9 @@ export default function Migration() {
       const data = await file.arrayBuffer();
       const workbook = XLSX.read(data);
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet);
+      
+      // Lê os dados como array de arrays para pegar coluna A e B
+      const rawData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
       // Deleta todas as tarefas existentes (ignora erros se a tarefa já foi deletada)
       const existingTasks = tasks.filter(t => t.product_id === product.id);
@@ -274,23 +276,24 @@ export default function Migration() {
         base44.entities.MigrationTask.delete(task.id).catch(() => {})
       ));
 
-      // Cria novas tarefas do Excel com suporte a Etapa/Sprint + Tarefa
+      // Processa a planilha: Coluna A = tipo (Etapa/Tarefa), Coluna B = nome
       const tasksToCreate = [];
       let currentEtapa = '';
       let order = 0;
       
-      for (const row of jsonData) {
-        const etapa = row.Etapa || row.etapa || row['Nome da Etapa'] || row['nome da etapa'] || '';
-        const tarefa = row.Tarefa || row.tarefa || row['Nome da Tarefa'] || row['nome da tarefa'] || '';
+      for (const row of rawData) {
+        const colA = (row[0] || '').toString().trim().toLowerCase();
+        const colB = (row[1] || '').toString().trim();
         
-        // Se a linha tem Etapa, atualiza a etapa atual
-        if (etapa && etapa.trim()) {
-          currentEtapa = etapa.trim();
+        if (!colA || !colB) continue;
+        
+        // Se Coluna A = "Etapa", salva como etapa atual (seção azul)
+        if (colA === 'etapa') {
+          currentEtapa = colB;
         }
-        
-        // Se a linha tem Tarefa, cria a tarefa
-        if (tarefa && tarefa.trim()) {
-          const title = currentEtapa ? `||${currentEtapa}||${tarefa.trim()}` : tarefa.trim();
+        // Se Coluna A = "Tarefa", cria a tarefa (branca) dentro da etapa atual
+        else if (colA === 'tarefa') {
+          const title = currentEtapa ? `||${currentEtapa}||${colB}` : colB;
           tasksToCreate.push({
             title: title,
             project_id: projectId,
@@ -305,6 +308,8 @@ export default function Migration() {
         await base44.entities.MigrationTask.bulkCreate(tasksToCreate);
         toast.success(`${tasksToCreate.length} tarefas importadas com sucesso!`);
         queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
+      } else {
+        toast.error('Nenhuma tarefa encontrada. Verifique se a planilha tem "Etapa" e "Tarefa" na Coluna A.');
       }
     } catch (error) {
       toast.error('Erro ao importar tarefas. Verifique o formato do arquivo.');

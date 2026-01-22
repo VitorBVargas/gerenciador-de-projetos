@@ -248,35 +248,50 @@ export default function Homologation() {
       const data = await file.arrayBuffer();
       const workbook = XLSX.read(data);
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet);
+      
+      // Lê os dados como array de arrays para pegar coluna A e B
+      const rawData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
       // Deleta todas as tarefas existentes
       const existingTasks = tasks.filter(t => t.product_id === product.id);
-      for (const task of existingTasks) {
-        await base44.entities.HomologationTask.delete(task.id);
-      }
+      await Promise.all(existingTasks.map(task => 
+        base44.entities.HomologationTask.delete(task.id).catch(() => {})
+      ));
 
-      // Cria novas tarefas do Excel com suporte a Etapa/Sprint + Tarefa
-      const tasksToCreate = jsonData.map((row, index) => {
-        const etapa = row.Etapa || row.etapa || row['Nome da Etapa'] || row['nome da etapa'] || '';
-        const tarefa = row.Tarefa || row.tarefa || row['Nome da Tarefa'] || row['nome da tarefa'] || '';
+      // Processa a planilha: Coluna A = tipo (Etapa/Tarefa), Coluna B = nome
+      const tasksToCreate = [];
+      let currentEtapa = '';
+      let order = 0;
+      
+      for (const row of rawData) {
+        const colA = (row[0] || '').toString().trim().toLowerCase();
+        const colB = (row[1] || '').toString().trim();
         
-        // Se tiver etapa, usa formato "||ETAPA||Tarefa", senão só o nome da tarefa
-        const title = etapa.trim() ? `||${etapa.trim()}||${tarefa.trim()}` : tarefa.trim();
+        if (!colA || !colB) continue;
         
-        return {
-          title: title,
-          project_id: projectId,
-          product_id: product.id,
-          completed: false,
-          order: index
-        };
-      }).filter(t => t.title.trim() && t.title !== '||||');
+        // Se Coluna A = "Etapa", salva como etapa atual (seção azul)
+        if (colA === 'etapa') {
+          currentEtapa = colB;
+        }
+        // Se Coluna A = "Tarefa", cria a tarefa (branca) dentro da etapa atual
+        else if (colA === 'tarefa') {
+          const title = currentEtapa ? `||${currentEtapa}||${colB}` : colB;
+          tasksToCreate.push({
+            title: title,
+            project_id: projectId,
+            product_id: product.id,
+            completed: false,
+            order: order++
+          });
+        }
+      }
 
       if (tasksToCreate.length > 0) {
         await base44.entities.HomologationTask.bulkCreate(tasksToCreate);
         toast.success(`${tasksToCreate.length} tarefas importadas com sucesso!`);
         queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
+      } else {
+        toast.error('Nenhuma tarefa encontrada. Verifique se a planilha tem "Etapa" e "Tarefa" na Coluna A.');
       }
     } catch (error) {
       toast.error('Erro ao importar tarefas. Verifique o formato do arquivo.');
