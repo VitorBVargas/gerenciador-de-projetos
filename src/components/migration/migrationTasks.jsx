@@ -43,7 +43,7 @@ export const migrationTasksByProduct = {
   ]),
 
   // ISS - Livro Eletrônico
-  'Livro Eletronico': parseTasksIntoSections([
+  'Livro Eletrônico': parseTasksIntoSections([
     'ETAPA: CONFIGURAÇÕES E PARÂMETROS',
     'Extrair Competências', 'Extrair Indexadores', 'Extrair Lista de Serviços', 'Extrair CNAE',
     'Extrair Plano de Conta', 'Extrair Entidades Especiais',
