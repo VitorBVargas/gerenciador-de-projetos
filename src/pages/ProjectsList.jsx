@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Plus, FolderOpen, Trash2, Upload, Calendar, DollarSign } from 'lucide-react';
+import { Plus, FolderOpen, Trash2, Upload, Calendar, DollarSign, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { format } from 'date-fns';
@@ -114,13 +114,21 @@ export default function ProjectsList() {
             <h1 className="text-3xl font-bold text-white">Portifólio SC/MG</h1>
             <p className="text-slate-400 mt-1">{activeProjects.length} projeto(s) ativo(s)</p>
           </div>
-          <Button 
-            onClick={() => setImportModalOpen(true)}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            <Upload className="w-4 h-4 mr-2" />
-            Importar Projeto
-          </Button>
+          <div className="flex gap-3">
+            <Link to={createPageUrl('ExecutiveStatus')}>
+              <Button className="bg-purple-600 hover:bg-purple-700">
+                <TrendingUp className="w-4 h-4 mr-2" />
+                Status Executivo
+              </Button>
+            </Link>
+            <Button 
+              onClick={() => setImportModalOpen(true)}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Importar Projeto
+            </Button>
+          </div>
         </div>
 
         {/* Projects Grid */}
