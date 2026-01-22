@@ -11,6 +11,7 @@ import Team from './pages/Team';
 import Timeline from './pages/Timeline';
 import Trainings from './pages/Trainings';
 import Travels from './pages/Travels';
+import ExecutiveStatus from './pages/ExecutiveStatus';
 import __Layout from './Layout.jsx';
 
 
@@ -28,6 +29,7 @@ export const PAGES = {
     "Timeline": Timeline,
     "Trainings": Trainings,
     "Travels": Travels,
+    "ExecutiveStatus": ExecutiveStatus,
 }
 
 export const pagesConfig = {
