@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Plus, Calendar } from 'lucide-react';
 import TimelineEventModal from '../components/modals/TimelineEventModal';
 import GanttTimeline from '../components/timeline/GanttTimeline';
+import ProjectsDeliveryTimeline from '../components/timeline/ProjectsDeliveryTimeline';
 import EmptyState from '../components/ui/EmptyState';
 import {
   AlertDialog,
@@ -38,6 +39,7 @@ export default function Timeline() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [eventToDelete, setEventToDelete] = useState(null);
   const [activeTab, setActiveTab] = useState('');
+  const [mainTab, setMainTab] = useState('timeline');
 
   // Get project_id from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -52,6 +54,12 @@ export default function Timeline() {
     queryKey: ['timelineEvents', projectId],
     queryFn: () => projectId ? base44.entities.TimelineEvent.filter({ project_id: projectId }) : [],
     enabled: !!projectId
+  });
+
+  // Fetch all timeline events for delivery timeline
+  const { data: allTimelineEvents = [] } = useQuery({
+    queryKey: ['allTimelineEvents'],
+    queryFn: () => base44.entities.TimelineEvent.list()
   });
 
   const activeProject = projects.find(p => p.id === projectId);
@@ -169,66 +177,88 @@ export default function Timeline() {
         </Button>
       </div>
 
-      {/* Timeline */}
-      {timelineEvents.length > 0 ? (
-        usedVerticals.length > 0 ? (
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-            <TabsList className="bg-slate-800 border border-slate-700">
-              {usedVerticals.map(vertical => (
-                <TabsTrigger key={vertical} value={vertical} className="data-[state=active]:bg-blue-600">
-                  {verticalLabels[vertical] || vertical}
-                </TabsTrigger>
-              ))}
-            </TabsList>
+      {/* Main Tabs */}
+      <Tabs value={mainTab} onValueChange={setMainTab} className="space-y-4">
+        <TabsList className="bg-slate-800 border border-slate-700">
+          <TabsTrigger value="timeline" className="data-[state=active]:bg-blue-600">
+            Cronograma do Projeto
+          </TabsTrigger>
+          <TabsTrigger value="delivery" className="data-[state=active]:bg-blue-600">
+            Linha do Tempo de Entregas
+          </TabsTrigger>
+        </TabsList>
 
-            {usedVerticals.map(vertical => {
-              const verticalProgress = getVerticalProgress(vertical);
-              return (
-                <TabsContent key={vertical} value={vertical} className="space-y-4">
-                  {/* Barra de Progresso da Vertical */}
-                  <div className="flex items-center gap-4 bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
-                    <div className="text-sm text-slate-400 min-w-[140px]">
-                      Progresso {verticalLabels[vertical] || vertical}
-                    </div>
-                    <div className="flex-1">
-                      <Progress value={verticalProgress} className="h-3" />
-                    </div>
-                    <div className="text-lg font-bold text-white min-w-[50px] text-right">
-                      {verticalProgress}%
-                    </div>
-                  </div>
+        {/* Timeline Tab */}
+        <TabsContent value="timeline" className="space-y-4">
+          {timelineEvents.length > 0 ? (
+            usedVerticals.length > 0 ? (
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+                <TabsList className="bg-slate-800 border border-slate-700">
+                  {usedVerticals.map(vertical => (
+                    <TabsTrigger key={vertical} value={vertical} className="data-[state=active]:bg-blue-600">
+                      {verticalLabels[vertical] || vertical}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
 
-                  <GanttTimeline
-                    events={sortEvents(eventsByVertical[vertical])}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                    onStatusChange={handleStatusChange}
-                  />
-                </TabsContent>
-              );
-            })}
-          </Tabs>
-        ) : (
-          <GanttTimeline
-            events={sortEvents(timelineEvents)}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onStatusChange={handleStatusChange}
+                {usedVerticals.map(vertical => {
+                  const verticalProgress = getVerticalProgress(vertical);
+                  return (
+                    <TabsContent key={vertical} value={vertical} className="space-y-4">
+                      {/* Barra de Progresso da Vertical */}
+                      <div className="flex items-center gap-4 bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
+                        <div className="text-sm text-slate-400 min-w-[140px]">
+                          Progresso {verticalLabels[vertical] || vertical}
+                        </div>
+                        <div className="flex-1">
+                          <Progress value={verticalProgress} className="h-3" />
+                        </div>
+                        <div className="text-lg font-bold text-white min-w-[50px] text-right">
+                          {verticalProgress}%
+                        </div>
+                      </div>
+
+                      <GanttTimeline
+                        events={sortEvents(eventsByVertical[vertical])}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                        onStatusChange={handleStatusChange}
+                      />
+                    </TabsContent>
+                  );
+                })}
+              </Tabs>
+            ) : (
+              <GanttTimeline
+                events={sortEvents(timelineEvents)}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onStatusChange={handleStatusChange}
+              />
+            )
+          ) : (
+            <EmptyState
+              icon={Calendar}
+              title="Nenhuma etapa cadastrada"
+              description="Adicione as etapas do cronograma do projeto"
+              action={
+                <Button onClick={() => setModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Adicionar Etapa
+                </Button>
+              }
+            />
+          )}
+        </TabsContent>
+
+        {/* Delivery Timeline Tab */}
+        <TabsContent value="delivery" className="space-y-4">
+          <ProjectsDeliveryTimeline 
+            projects={projects} 
+            timelineEvents={allTimelineEvents}
           />
-        )
-      ) : (
-        <EmptyState
-          icon={Calendar}
-          title="Nenhuma etapa cadastrada"
-          description="Adicione as etapas do cronograma do projeto"
-          action={
-            <Button onClick={() => setModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
-              <Plus className="w-4 h-4 mr-2" />
-              Adicionar Etapa
-            </Button>
-          }
-        />
-      )}
+        </TabsContent>
+      </Tabs>
 
       {/* Modal */}
       <TimelineEventModal
