@@ -121,21 +121,17 @@ export default function Migration() {
     }
   };
 
-  // Criar tarefas padrão quando o produto for selecionado
-  const tasksInitializedRef = React.useRef(new Set());
-
   React.useEffect(() => {
-    if (selectedProduct && products.length > 0 && tasks.length >= 0) {
+    if (selectedProduct && products.length > 0) {
       const product = getCurrentProduct();
-      if (product && !tasksInitializedRef.current.has(product.id)) {
+      if (product) {
         const existingTasks = tasks.filter(t => t.product_id === product.id);
         if (existingTasks.length === 0) {
-          tasksInitializedRef.current.add(product.id);
           createDefaultTasks(product);
         }
       }
     }
-  }, [selectedProduct, products.length, tasks.length]);
+  }, [selectedProduct, products.length]);
 
   const handleAddTask = () => {
     if (!newTaskTitle.trim() || !selectedProduct) return;
