@@ -20,6 +20,9 @@ import { cn } from "@/lib/utils";
 import { createPageUrl } from '../utils';
 import { Link } from 'react-router-dom';
 import ProjectsDeliveryTimeline from '../components/timeline/ProjectsDeliveryTimeline';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { format, addMonths } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 const statusLabels = {
   nao_iniciado: 'Não Iniciado',
@@ -272,6 +275,9 @@ export default function ExecutiveStatus() {
           <TabsTrigger value="timeline" className="data-[state=active]:bg-blue-600">
             Linha do Tempo de Entregas
           </TabsTrigger>
+          <TabsTrigger value="financeiro" className="data-[state=active]:bg-blue-600">
+            Financeiro
+          </TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
@@ -428,6 +434,186 @@ export default function ExecutiveStatus() {
             projects={projects}
             timelineEvents={allTimelineEvents}
           />
+        </TabsContent>
+
+        {/* Financeiro Tab */}
+        <TabsContent value="financeiro" className="space-y-6">
+          {(() => {
+            // Calcular valores por mês
+            const monthlyData = {};
+            const now = new Date();
+            
+            // Gerar próximos 12 meses
+            for (let i = 0; i < 12; i++) {
+              const month = addMonths(now, i);
+              const key = format(month, 'yyyy-MM');
+              monthlyData[key] = {
+                month: format(month, 'MMM/yy', { locale: ptBR }),
+                implantacao: 0,
+                recorrente: 0
+              };
+            }
+
+            // Processar cada projeto
+            projects.forEach(project => {
+              const events = allTimelineEvents.filter(e => e.project_id === project.id);
+              
+              // Encontrar Go Live (primeiro evento de produção/operação)
+              const goLiveEvent = events.find(e => 
+                e.phase && (
+                  e.phase === 'migracao_producao' || 
+                  e.phase === 'operacao_assistida' ||
+                  e.title?.toLowerCase().includes('go live') ||
+                  e.title?.toLowerCase().includes('produção')
+                )
+              );
+              
+              // Encontrar data de encerramento (último evento)
+              const sortedEvents = events
+                .filter(e => e.end_date)
+                .sort((a, b) => new Date(b.end_date) - new Date(a.end_date));
+              const endEvent = sortedEvents[0];
+
+              // Implantação: acontece no mês do Go Live
+              if (goLiveEvent?.end_date && project.implementation_value > 0) {
+                const goLiveMonth = format(new Date(goLiveEvent.end_date), 'yyyy-MM');
+                if (monthlyData[goLiveMonth]) {
+                  monthlyData[goLiveMonth].implantacao += project.implementation_value;
+                }
+              }
+
+              // Recorrente: começa no mês do Go Live até o mês de encerramento
+              if (goLiveEvent?.end_date && project.recurring_value > 0) {
+                const goLiveDate = new Date(goLiveEvent.end_date);
+                const endDate = endEvent?.end_date ? new Date(endEvent.end_date) : addMonths(now, 12);
+                
+                let currentMonth = new Date(goLiveDate.getFullYear(), goLiveDate.getMonth(), 1);
+                const finalMonth = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+                
+                while (currentMonth <= finalMonth && currentMonth < addMonths(now, 12)) {
+                  const monthKey = format(currentMonth, 'yyyy-MM');
+                  if (monthlyData[monthKey]) {
+                    monthlyData[monthKey].recorrente += project.recurring_value;
+                  }
+                  currentMonth = addMonths(currentMonth, 1);
+                }
+              }
+            });
+
+            const chartData = Object.values(monthlyData);
+
+            return (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Gráfico de Implantação */}
+                <Card className="bg-slate-800/50 border-slate-700/50">
+                  <CardHeader>
+                    <CardTitle className="text-white">Receita de Implantação</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                        <XAxis 
+                          dataKey="month" 
+                          stroke="#94a3b8"
+                          style={{ fontSize: '12px' }}
+                        />
+                        <YAxis 
+                          stroke="#94a3b8"
+                          style={{ fontSize: '12px' }}
+                          tickFormatter={(value) => 
+                            new Intl.NumberFormat('pt-BR', {
+                              notation: 'compact',
+                              compactDisplay: 'short'
+                            }).format(value)
+                          }
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: '#1e293b',
+                            border: '1px solid #334155',
+                            borderRadius: '8px',
+                            color: '#fff'
+                          }}
+                          formatter={(value) =>
+                            new Intl.NumberFormat('pt-BR', {
+                              style: 'currency',
+                              currency: 'BRL'
+                            }).format(value)
+                          }
+                        />
+                        <Bar dataKey="implantacao" fill="#10b981" name="Implantação" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                    <div className="mt-4 text-center">
+                      <div className="text-2xl font-bold text-emerald-400">
+                        {new Intl.NumberFormat('pt-BR', {
+                          style: 'currency',
+                          currency: 'BRL',
+                          minimumFractionDigits: 0
+                        }).format(chartData.reduce((sum, d) => sum + d.implantacao, 0))}
+                      </div>
+                      <div className="text-sm text-slate-400">Total Implantação (12 meses)</div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Gráfico de Recorrente */}
+                <Card className="bg-slate-800/50 border-slate-700/50">
+                  <CardHeader>
+                    <CardTitle className="text-white">Receita Recorrente (MRR)</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                        <XAxis 
+                          dataKey="month" 
+                          stroke="#94a3b8"
+                          style={{ fontSize: '12px' }}
+                        />
+                        <YAxis 
+                          stroke="#94a3b8"
+                          style={{ fontSize: '12px' }}
+                          tickFormatter={(value) => 
+                            new Intl.NumberFormat('pt-BR', {
+                              notation: 'compact',
+                              compactDisplay: 'short'
+                            }).format(value)
+                          }
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: '#1e293b',
+                            border: '1px solid #334155',
+                            borderRadius: '8px',
+                            color: '#fff'
+                          }}
+                          formatter={(value) =>
+                            new Intl.NumberFormat('pt-BR', {
+                              style: 'currency',
+                              currency: 'BRL'
+                            }).format(value)
+                          }
+                        />
+                        <Bar dataKey="recorrente" fill="#3b82f6" name="Recorrente" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                    <div className="mt-4 text-center">
+                      <div className="text-2xl font-bold text-blue-400">
+                        {new Intl.NumberFormat('pt-BR', {
+                          style: 'currency',
+                          currency: 'BRL',
+                          minimumFractionDigits: 0
+                        }).format(chartData.reduce((sum, d) => sum + d.recorrente, 0))}
+                      </div>
+                      <div className="text-sm text-slate-400">Total Recorrente (12 meses)</div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            );
+          })()}
         </TabsContent>
       </Tabs>
     </div>
