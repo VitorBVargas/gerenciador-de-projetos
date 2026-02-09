@@ -516,7 +516,8 @@ export default function ExecutiveStatus() {
                         <div className="space-y-1">
                           {/* Reconhecimentos em lote (verticais) */}
                           {bulkRevenues.map((bulk, idx) => {
-                            const monthYear = new Date(bulk.recognition_month).toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
+                            const [year, month] = bulk.recognition_month.split('-');
+                            const monthYear = format(new Date(year, parseInt(month) - 1, 1), 'MMM/yy', { locale: ptBR });
                             return (
                               <div key={`bulk-${idx}`} className="text-xs text-purple-400">
                                 {new Intl.NumberFormat('pt-BR', { 
@@ -532,7 +533,8 @@ export default function ExecutiveStatus() {
                           {/* Reconhecimentos individuais */}
                           {individualRevenues.map(rev => {
                             const product = allProducts.find(p => p.id === rev.product_id);
-                            const monthYear = new Date(rev.recognition_month).toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
+                            const [year, month] = rev.recognition_month.split('-');
+                            const monthYear = format(new Date(year, parseInt(month) - 1, 1), 'MMM/yy', { locale: ptBR });
                             return (
                               <div key={rev.id} className="text-xs text-purple-400">
                                 {new Intl.NumberFormat('pt-BR', { 
