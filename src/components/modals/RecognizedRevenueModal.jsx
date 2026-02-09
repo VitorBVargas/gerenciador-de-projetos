@@ -106,7 +106,6 @@ export default function RecognizedRevenueModal({
                           e.preventDefault();
                           e.stopPropagation();
                           onRecognizeAll(vertical, verticalProducts);
-                          onClose();
                         }}
                         className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
                       >
