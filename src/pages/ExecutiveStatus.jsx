@@ -63,6 +63,8 @@ export default function ExecutiveStatus() {
   const [isRecognizeAllModalOpen, setIsRecognizeAllModalOpen] = useState(false);
   const [selectedVertical, setSelectedVertical] = useState(null);
   const [selectedVerticalProducts, setSelectedVerticalProducts] = useState([]);
+  const [selectedMonth, setSelectedMonth] = useState(null);
+  const [selectedMonthType, setSelectedMonthType] = useState(null);
   const queryClient = useQueryClient();
 
   // Fetch all projects
@@ -699,7 +701,18 @@ export default function ExecutiveStatus() {
                   </CardHeader>
                   <CardContent>
                     <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={chartData}>
+                      <BarChart 
+                        data={chartData}
+                        onClick={(data) => {
+                          if (data && data.activePayload && data.activePayload[0]) {
+                            const monthKey = Object.keys(monthlyData).find(
+                              key => monthlyData[key].month === data.activePayload[0].payload.month
+                            );
+                            setSelectedMonth(monthKey);
+                            setSelectedMonthType('implantacao');
+                          }
+                        }}
+                      >
                         <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                         <XAxis 
                           dataKey="month" 
@@ -730,8 +743,8 @@ export default function ExecutiveStatus() {
                             }).format(value)
                           }
                         />
-                        <Bar dataKey="implantacao" fill="#10b981" name="Implantação" />
-                        <Bar dataKey="reconhecido" fill="#a855f7" name="Reconhecido" />
+                        <Bar dataKey="implantacao" fill="#10b981" name="Implantação" cursor="pointer" />
+                        <Bar dataKey="reconhecido" fill="#a855f7" name="Reconhecido" cursor="pointer" />
                       </BarChart>
                     </ResponsiveContainer>
                     <div className="mt-4 text-center">
@@ -754,7 +767,18 @@ export default function ExecutiveStatus() {
                   </CardHeader>
                   <CardContent>
                     <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={chartData}>
+                      <BarChart 
+                        data={chartData}
+                        onClick={(data) => {
+                          if (data && data.activePayload && data.activePayload[0]) {
+                            const monthKey = Object.keys(monthlyData).find(
+                              key => monthlyData[key].month === data.activePayload[0].payload.month
+                            );
+                            setSelectedMonth(monthKey);
+                            setSelectedMonthType('recorrente');
+                          }
+                        }}
+                      >
                         <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                         <XAxis 
                           dataKey="month" 
@@ -785,7 +809,7 @@ export default function ExecutiveStatus() {
                             }).format(value)
                           }
                         />
-                        <Bar dataKey="recorrente" fill="#3b82f6" name="Recorrente" />
+                        <Bar dataKey="recorrente" fill="#3b82f6" name="Recorrente" cursor="pointer" />
                       </BarChart>
                     </ResponsiveContainer>
                     <div className="mt-4 text-center">
@@ -801,6 +825,98 @@ export default function ExecutiveStatus() {
                   </CardContent>
                 </Card>
               </div>
+            );
+          })()}
+
+          {/* Lista de produtos do mês selecionado */}
+          {selectedMonth && (() => {
+            // Encontrar produtos que têm Go Live no mês selecionado
+            const productsInMonth = [];
+            
+            projects.forEach(project => {
+              const events = allTimelineEvents.filter(e => e.project_id === project.id);
+              const goLiveEvent = events.find(e => 
+                e.phase && (
+                  e.phase === 'migracao_producao' || 
+                  e.phase === 'operacao_assistida' ||
+                  e.title?.toLowerCase().includes('go live') ||
+                  e.title?.toLowerCase().includes('produção')
+                )
+              );
+              
+              if (goLiveEvent?.end_date) {
+                const goLiveMonth = format(new Date(goLiveEvent.end_date), 'yyyy-MM');
+                
+                if (goLiveMonth === selectedMonth) {
+                  const projectProducts = allProducts.filter(p => p.project_id === project.id);
+                  
+                  // Encontrar último evento (data de encerramento)
+                  const sortedEvents = events
+                    .filter(e => e.end_date)
+                    .sort((a, b) => new Date(b.end_date) - new Date(a.end_date));
+                  const endDate = sortedEvents[0]?.end_date;
+                  
+                  projectProducts.forEach(product => {
+                    productsInMonth.push({
+                      product,
+                      project,
+                      endDate
+                    });
+                  });
+                }
+              }
+            });
+            
+            if (productsInMonth.length === 0) return null;
+            
+            const monthLabel = format(new Date(selectedMonth + '-01'), 'MMMM/yyyy', { locale: ptBR });
+            
+            return (
+              <Card className="bg-slate-800/50 border-slate-700/50">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-white">
+                      Produtos em {monthLabel} - {selectedMonthType === 'implantacao' ? 'Implantação' : 'Recorrente'}
+                    </CardTitle>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedMonth(null);
+                        setSelectedMonthType(null);
+                      }}
+                      className="text-slate-400 hover:text-white"
+                    >
+                      Fechar
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {productsInMonth.map(({ product, project, endDate }) => (
+                      <div 
+                        key={product.id}
+                        className="p-4 bg-slate-900/50 rounded-lg border border-slate-700/50 hover:border-slate-600 transition-colors"
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <div className="font-semibold text-white mb-1">{product.name}</div>
+                            <div className="text-sm text-slate-400">Projeto: {project.name}</div>
+                          </div>
+                          {endDate && (
+                            <div className="text-right">
+                              <div className="text-xs text-slate-500">Encerramento</div>
+                              <div className="text-sm text-white">
+                                {format(new Date(endDate), 'dd/MM/yyyy', { locale: ptBR })}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
             );
           })()}
         </TabsContent>
