@@ -471,6 +471,32 @@ export default function ExecutiveStatus() {
                   {/* Recognized Revenue Display */}
                   {project.totalRecognized > 0 && (() => {
                     const projectRevenues = allRecognizedRevenues.filter(r => r.project_id === project.id);
+                    
+                    // Agrupar por vertical_name + recognition_month + type
+                    const groupedRevenues = {};
+                    projectRevenues.forEach(rev => {
+                      if (rev.vertical_name) {
+                        const key = `${rev.vertical_name}_${rev.recognition_month}_${rev.type}`;
+                        if (!groupedRevenues[key]) {
+                          groupedRevenues[key] = {
+                            vertical_name: rev.vertical_name,
+                            recognition_month: rev.recognition_month,
+                            type: rev.type,
+                            amount: 0,
+                            count: 0
+                          };
+                        }
+                        groupedRevenues[key].amount += rev.amount;
+                        groupedRevenues[key].count += 1;
+                      }
+                    });
+                    
+                    // Revenues individuais (sem vertical_name)
+                    const individualRevenues = projectRevenues.filter(r => !r.vertical_name);
+                    
+                    // Revenues agrupados
+                    const bulkRevenues = Object.values(groupedRevenues);
+                    
                     return (
                       <div className="pt-3 border-t border-slate-700/50">
                         <div className="flex items-center justify-between mb-2">
@@ -488,7 +514,23 @@ export default function ExecutiveStatus() {
                           </button>
                         </div>
                         <div className="space-y-1">
-                          {projectRevenues.map(rev => {
+                          {/* Reconhecimentos em lote (verticais) */}
+                          {bulkRevenues.map((bulk, idx) => {
+                            const monthYear = new Date(bulk.recognition_month).toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
+                            return (
+                              <div key={`bulk-${idx}`} className="text-xs text-purple-400">
+                                {new Intl.NumberFormat('pt-BR', { 
+                                  style: 'currency', 
+                                  currency: 'BRL',
+                                  minimumFractionDigits: 0,
+                                  maximumFractionDigits: 0
+                                }).format(bulk.amount)} - {monthYear} - {bulk.vertical_name} (Todos)
+                              </div>
+                            );
+                          })}
+                          
+                          {/* Reconhecimentos individuais */}
+                          {individualRevenues.map(rev => {
                             const product = allProducts.find(p => p.id === rev.product_id);
                             const monthYear = new Date(rev.recognition_month).toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
                             return (

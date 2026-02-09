@@ -38,13 +38,15 @@ export default function RecognizeAllVerticalModal({
     }
     
     const amountPerProduct = parseFloat(formData.amount) / products.length;
+    const verticalLabel = verticalLabels[vertical] || vertical;
     
     const recognitions = products.map(product => ({
       project_id: project.id,
       product_id: product.id,
       amount: amountPerProduct,
       recognition_month: formData.recognition_month,
-      type: formData.type
+      type: formData.type,
+      vertical_name: verticalLabel
     }));
     
     onSave(recognitions);
