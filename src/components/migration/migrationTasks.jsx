@@ -440,7 +440,7 @@ export const getDefaultTasksForProduct = (productName) => {
   
   const normalizedInput = normalizeProductName(productName);
   
-  // Busca exata primeiro (considerando com e sem Cloud)
+  // Busca APENAS match exato (considerando com e sem Cloud)
   for (const [key, tasks] of Object.entries(migrationTasksByProduct)) {
     const normalizedKey = normalizeProductName(key);
     if (normalizedKey === normalizedInput) {
@@ -448,19 +448,7 @@ export const getDefaultTasksForProduct = (productName) => {
     }
   }
   
-  // Busca parcial - só se o input inteiro estiver contido na key
-  // Isso evita que "Cidadão Web Tributos" pegue "Tributos (Cloud)"
-  for (const [key, tasks] of Object.entries(migrationTasksByProduct)) {
-    const normalizedKey = normalizeProductName(key);
-    // Só aceita se o input está contido COMPLETAMENTE na key E começa no início ou após espaço
-    if (normalizedKey === normalizedInput || 
-        (normalizedKey.startsWith(normalizedInput + ' ') || 
-         normalizedKey.endsWith(' ' + normalizedInput))) {
-      return tasks;
-    }
-  }
-  
-  // Se não encontrou, retorna null (produto sem migração)
+  // Se não encontrou match exato, retorna null (produto sem migração)
   return null;
 };
 

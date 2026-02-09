@@ -417,7 +417,7 @@ export const getDefaultTasksForProduct = (productName) => {
   
   const normalizedInput = normalizeProductName(productName);
   
-  // Busca exata primeiro (considerando com e sem Cloud)
+  // Busca APENAS match exato (considerando com e sem Cloud)
   for (const [key, tasks] of Object.entries(homologationTasksByProduct)) {
     const normalizedKey = normalizeProductName(key);
     if (normalizedKey === normalizedInput) {
@@ -425,17 +425,7 @@ export const getDefaultTasksForProduct = (productName) => {
     }
   }
   
-  // Busca parcial - só se o input inteiro estiver contido na key
-  for (const [key, tasks] of Object.entries(homologationTasksByProduct)) {
-    const normalizedKey = normalizeProductName(key);
-    if (normalizedKey === normalizedInput || 
-        (normalizedKey.startsWith(normalizedInput + ' ') || 
-         normalizedKey.endsWith(' ' + normalizedInput))) {
-      return tasks;
-    }
-  }
-  
-  // Se não encontrou, retorna null (produto sem homologação)
+  // Se não encontrou match exato, retorna null (produto sem homologação)
   return null;
 };
 
