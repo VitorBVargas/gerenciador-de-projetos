@@ -605,7 +605,8 @@ export default function ExecutiveStatus() {
               monthlyData[key] = {
                 month: format(month, 'MMM/yy', { locale: ptBR }),
                 implantacao: 0,
-                recorrente: 0
+                recorrente: 0,
+                reconhecido: 0
               };
             }
 
@@ -646,7 +647,7 @@ export default function ExecutiveStatus() {
               }
             });
 
-            // Processar valores reconhecidos - subtrair dos gráficos e mover para mês reconhecido
+            // Processar valores reconhecidos - subtrair dos gráficos originais e adicionar na barra roxa do mês reconhecido
             allRecognizedRevenues.forEach(recognized => {
               const recognizedMonth = format(new Date(recognized.recognition_month), 'yyyy-MM');
               
@@ -664,7 +665,7 @@ export default function ExecutiveStatus() {
                 )
               );
               
-              // Subtrair do mês original (Go Live) e adicionar no mês reconhecido
+              // Subtrair do mês original (Go Live)
               if (goLiveEvent?.end_date) {
                 const originalMonth = format(new Date(goLiveEvent.end_date), 'yyyy-MM');
                 
@@ -676,15 +677,11 @@ export default function ExecutiveStatus() {
                     monthlyData[originalMonth].recorrente = Math.max(0, monthlyData[originalMonth].recorrente - recognized.amount);
                   }
                 }
-                
-                // Adicionar no mês reconhecido baseado no tipo
-                if (monthlyData[recognizedMonth]) {
-                  if (recognized.type === 'implantacao') {
-                    monthlyData[recognizedMonth].implantacao += recognized.amount;
-                  } else {
-                    monthlyData[recognizedMonth].recorrente += recognized.amount;
-                  }
-                }
+              }
+              
+              // Adicionar na barra roxa (reconhecido) do mês selecionado
+              if (monthlyData[recognizedMonth]) {
+                monthlyData[recognizedMonth].reconhecido += recognized.amount;
               }
             });
 
@@ -731,6 +728,7 @@ export default function ExecutiveStatus() {
                           }
                         />
                         <Bar dataKey="implantacao" fill="#10b981" name="Implantação" />
+                        <Bar dataKey="reconhecido" fill="#a855f7" name="Reconhecido" />
                       </BarChart>
                     </ResponsiveContainer>
                     <div className="mt-4 text-center">
@@ -739,7 +737,7 @@ export default function ExecutiveStatus() {
                           style: 'currency',
                           currency: 'BRL',
                           minimumFractionDigits: 0
-                        }).format(chartData.reduce((sum, d) => sum + d.implantacao, 0))}
+                        }).format(chartData.reduce((sum, d) => sum + d.implantacao + d.reconhecido, 0))}
                       </div>
                       <div className="text-sm text-slate-400">Total Implantação (12 meses)</div>
                     </div>
