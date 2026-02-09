@@ -26,6 +26,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { format, addMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import RecognizedRevenueModal from '../components/modals/RecognizedRevenueModal';
+import RecognizeAllVerticalModal from '../components/modals/RecognizeAllVerticalModal';
 import { toast } from 'sonner';
 
 const statusLabels = {
@@ -59,6 +60,9 @@ export default function ExecutiveStatus() {
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedProject, setSelectedProject] = useState(null);
   const [isRevenueModalOpen, setIsRevenueModalOpen] = useState(false);
+  const [isRecognizeAllModalOpen, setIsRecognizeAllModalOpen] = useState(false);
+  const [selectedVertical, setSelectedVertical] = useState(null);
+  const [selectedVerticalProducts, setSelectedVerticalProducts] = useState([]);
   const queryClient = useQueryClient();
 
   // Fetch all projects
@@ -115,6 +119,28 @@ export default function ExecutiveStatus() {
       setIsRevenueModalOpen(false);
       setSelectedProject(null);
       toast.success('Valor reconhecido registrado com sucesso!');
+    }
+  });
+
+  const deleteRecognizedRevenueMutation = useMutation({
+    mutationFn: (id) => base44.entities.RecognizedRevenue.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allRecognizedRevenues'] });
+      toast.success('Reconhecimento deletado com sucesso!');
+    }
+  });
+
+  const createBulkRecognizedRevenueMutation = useMutation({
+    mutationFn: async (recognitions) => {
+      return await base44.entities.RecognizedRevenue.bulkCreate(recognitions);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allRecognizedRevenues'] });
+      setIsRecognizeAllModalOpen(false);
+      setSelectedProject(null);
+      setSelectedVertical(null);
+      setSelectedVerticalProducts([]);
+      toast.success('Reconhecimentos criados com sucesso!');
     }
   });
 
@@ -432,21 +458,37 @@ export default function ExecutiveStatus() {
                   {/* Recognized Revenue Display */}
                   {project.totalRecognized > 0 && (
                     <div className="pt-3 border-t border-slate-700/50">
-                      <div className="text-xs text-slate-500">Reconhecido</div>
-                      <div className="text-sm text-purple-400 font-semibold">
-                        {new Intl.NumberFormat('pt-BR', { 
-                          style: 'currency', 
-                          currency: 'BRL',
-                          minimumFractionDigits: 0,
-                          maximumFractionDigits: 0
-                        }).format(project.totalRecognized)}
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-xs text-slate-500">Reconhecido</div>
+                          <div className="text-sm text-purple-400 font-semibold">
+                            {new Intl.NumberFormat('pt-BR', { 
+                              style: 'currency', 
+                              currency: 'BRL',
+                              minimumFractionDigits: 0,
+                              maximumFractionDigits: 0
+                            }).format(project.totalRecognized)}
+                          </div>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            const projectRevenues = allRecognizedRevenues.filter(r => r.project_id === project.id);
+                            if (projectRevenues.length > 0 && window.confirm('Deletar todos os reconhecimentos deste projeto?')) {
+                              projectRevenues.forEach(r => deleteRecognizedRevenueMutation.mutate(r.id));
+                            }
+                          }}
+                          className="text-xs text-red-400 hover:text-red-300"
+                        >
+                          Limpar
+                        </button>
                       </div>
                     </div>
                   )}
                 </CardContent>
                 </Link>
                 
-                {/* Floating Button */}
+                {/* Floating Button - Moved lower to avoid health score */}
                 <Button
                   size="icon"
                   onClick={(e) => {
@@ -454,7 +496,7 @@ export default function ExecutiveStatus() {
                     setSelectedProject(project);
                     setIsRevenueModalOpen(true);
                   }}
-                  className="absolute top-2 right-2 h-8 w-8 bg-purple-600 hover:bg-purple-700 z-10"
+                  className="absolute top-16 right-2 h-8 w-8 bg-purple-600 hover:bg-purple-700 z-10"
                 >
                   <DollarSign className="w-4 h-4" />
                 </Button>
@@ -576,22 +618,22 @@ export default function ExecutiveStatus() {
               if (goLiveEvent?.end_date) {
                 const originalMonth = format(new Date(goLiveEvent.end_date), 'yyyy-MM');
                 
-                // Subtrair do mês original (pode ser implantação ou recorrente, subtraímos proporcionalmente)
+                // Subtrair do mês original baseado no tipo
                 if (monthlyData[originalMonth]) {
-                  // Se o valor reconhecido for menor que implantação, subtrair de implantação
-                  if (monthlyData[originalMonth].implantacao >= recognized.amount) {
-                    monthlyData[originalMonth].implantacao -= recognized.amount;
+                  if (recognized.type === 'implantacao') {
+                    monthlyData[originalMonth].implantacao = Math.max(0, monthlyData[originalMonth].implantacao - recognized.amount);
                   } else {
-                    // Senão, subtrair o que puder da implantação e o resto da recorrente
-                    const remaining = recognized.amount - monthlyData[originalMonth].implantacao;
-                    monthlyData[originalMonth].implantacao = 0;
-                    monthlyData[originalMonth].recorrente = Math.max(0, monthlyData[originalMonth].recorrente - remaining);
+                    monthlyData[originalMonth].recorrente = Math.max(0, monthlyData[originalMonth].recorrente - recognized.amount);
                   }
                 }
                 
-                // Adicionar no mês reconhecido
+                // Adicionar no mês reconhecido baseado no tipo
                 if (monthlyData[recognizedMonth]) {
-                  monthlyData[recognizedMonth].implantacao += recognized.amount;
+                  if (recognized.type === 'implantacao') {
+                    monthlyData[recognizedMonth].implantacao += recognized.amount;
+                  } else {
+                    monthlyData[recognizedMonth].recorrente += recognized.amount;
+                  }
                 }
               }
             });
@@ -715,16 +757,36 @@ export default function ExecutiveStatus() {
 
       {/* Recognized Revenue Modal */}
       {selectedProject && (
-        <RecognizedRevenueModal
-          isOpen={isRevenueModalOpen}
-          onClose={() => {
-            setIsRevenueModalOpen(false);
-            setSelectedProject(null);
-          }}
-          onSave={(data) => createRecognizedRevenueMutation.mutate(data)}
-          project={selectedProject}
-          products={allProducts.filter(p => p.project_id === selectedProject.id)}
-        />
+        <>
+          <RecognizedRevenueModal
+            isOpen={isRevenueModalOpen}
+            onClose={() => {
+              setIsRevenueModalOpen(false);
+              setSelectedProject(null);
+            }}
+            onSave={(data) => createRecognizedRevenueMutation.mutate(data)}
+            onRecognizeAll={(vertical, products) => {
+              setSelectedVertical(vertical);
+              setSelectedVerticalProducts(products);
+              setIsRecognizeAllModalOpen(true);
+            }}
+            project={selectedProject}
+            products={allProducts.filter(p => p.project_id === selectedProject.id)}
+          />
+          
+          <RecognizeAllVerticalModal
+            isOpen={isRecognizeAllModalOpen}
+            onClose={() => {
+              setIsRecognizeAllModalOpen(false);
+              setSelectedVertical(null);
+              setSelectedVerticalProducts([]);
+            }}
+            onSave={(recognitions) => createBulkRecognizedRevenueMutation.mutate(recognitions)}
+            project={selectedProject}
+            vertical={selectedVertical}
+            products={selectedVerticalProducts}
+          />
+        </>
       )}
     </div>
   );

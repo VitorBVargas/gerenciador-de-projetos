@@ -4,22 +4,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CheckCircle2 } from 'lucide-react';
 
 export default function RecognizedRevenueModal({ 
   isOpen, 
   onClose, 
   onSave,
+  onRecognizeAll,
   project,
   products = []
 }) {
   const [formData, setFormData] = useState({
     amount: '',
     recognition_month: '',
-    product_id: ''
+    product_id: '',
+    type: 'implantacao'
   });
 
   const handleSave = () => {
-    if (!formData.amount || !formData.recognition_month || !formData.product_id) {
+    if (!formData.amount || !formData.recognition_month || !formData.product_id || !formData.type) {
       return;
     }
     
@@ -29,7 +32,7 @@ export default function RecognizedRevenueModal({
       amount: parseFloat(formData.amount)
     });
     
-    setFormData({ amount: '', recognition_month: '', product_id: '' });
+    setFormData({ amount: '', recognition_month: '', product_id: '', type: 'implantacao' });
   };
 
   // Agrupar produtos por vertical
@@ -94,8 +97,22 @@ export default function RecognizedRevenueModal({
               <SelectContent className="bg-slate-800 border-slate-700">
                 {Object.entries(productsByVertical).map(([vertical, verticalProducts]) => (
                   <React.Fragment key={vertical}>
-                    <div className="px-2 py-1.5 text-xs font-semibold text-cyan-400 uppercase">
-                      {verticalLabels[vertical] || vertical}
+                    <div className="px-2 py-1.5 flex items-center justify-between group">
+                      <span className="text-xs font-semibold text-cyan-400 uppercase">
+                        {verticalLabels[vertical] || vertical}
+                      </span>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          onRecognizeAll(vertical, verticalProducts);
+                          onClose();
+                        }}
+                        className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <CheckCircle2 className="w-3 h-3" />
+                        Todos
+                      </button>
                     </div>
                     {verticalProducts.map(product => (
                       <SelectItem key={product.id} value={product.id}>
@@ -107,6 +124,22 @@ export default function RecognizedRevenueModal({
               </SelectContent>
             </Select>
           </div>
+
+          <div className="space-y-2">
+            <Label>Tipo de Receita</Label>
+            <Select
+              value={formData.type}
+              onValueChange={(value) => setFormData({ ...formData, type: value })}
+            >
+              <SelectTrigger className="bg-slate-700 border-slate-600">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-800 border-slate-700">
+                <SelectItem value="implantacao">Implantação</SelectItem>
+                <SelectItem value="recorrente">Recorrente</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <DialogFooter>
@@ -115,7 +148,7 @@ export default function RecognizedRevenueModal({
           </Button>
           <Button 
             onClick={handleSave}
-            disabled={!formData.amount || !formData.recognition_month || !formData.product_id}
+            disabled={!formData.amount || !formData.recognition_month || !formData.product_id || !formData.type}
             className="bg-blue-600 hover:bg-blue-700"
           >
             Salvar
