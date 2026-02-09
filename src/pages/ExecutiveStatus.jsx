@@ -651,7 +651,8 @@ export default function ExecutiveStatus() {
 
             // Processar valores reconhecidos - subtrair dos gráficos originais e adicionar na barra roxa do mês reconhecido
             allRecognizedRevenues.forEach(recognized => {
-              const recognizedMonth = format(new Date(recognized.recognition_month), 'yyyy-MM');
+              // Extrair mês diretamente da string (formato YYYY-MM-DD)
+              const recognizedMonth = recognized.recognition_month.substring(0, 7); // YYYY-MM
               
               // Encontrar o projeto correspondente
               const project = projects.find(p => p.id === recognized.project_id);
