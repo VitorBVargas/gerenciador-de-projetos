@@ -20,19 +20,35 @@ export default function RecognizedRevenueModal({
     product_id: '',
     type: 'implantacao'
   });
+  
+  const [isAllSelected, setIsAllSelected] = useState(false);
+  const [selectedVertical, setSelectedVertical] = useState(null);
 
   const handleSave = () => {
-    if (!formData.amount || !formData.recognition_month || !formData.product_id || !formData.type) {
+    if (!formData.amount || !formData.recognition_month || !formData.type) {
       return;
     }
     
-    onSave({
-      ...formData,
-      project_id: project.id,
-      amount: parseFloat(formData.amount)
-    });
+    if (isAllSelected && selectedVertical) {
+      // Reconhecer todos os produtos da vertical
+      const verticalProducts = productsByVertical[selectedVertical];
+      onRecognizeAll(selectedVertical, verticalProducts, {
+        amount: parseFloat(formData.amount),
+        recognition_month: formData.recognition_month,
+        type: formData.type
+      });
+    } else if (formData.product_id) {
+      // Reconhecer produto individual
+      onSave({
+        ...formData,
+        project_id: project.id,
+        amount: parseFloat(formData.amount)
+      });
+    }
     
     setFormData({ amount: '', recognition_month: '', product_id: '', type: 'implantacao' });
+    setIsAllSelected(false);
+    setSelectedVertical(null);
   };
 
   // Agrupar produtos por vertical
@@ -65,31 +81,21 @@ export default function RecognizedRevenueModal({
         
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label>Valor Reconhecido</Label>
-            <Input
-              type="number"
-              placeholder="R$ 0,00"
-              value={formData.amount}
-              onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-              className="bg-slate-700 border-slate-600"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Mês do Reconhecimento</Label>
-            <Input
-              type="month"
-              value={formData.recognition_month}
-              onChange={(e) => setFormData({ ...formData, recognition_month: e.target.value + '-01' })}
-              className="bg-slate-700 border-slate-600"
-            />
-          </div>
-
-          <div className="space-y-2">
             <Label>Produto Reconhecido</Label>
             <Select
-              value={formData.product_id}
-              onValueChange={(value) => setFormData({ ...formData, product_id: value })}
+              value={isAllSelected ? `all_${selectedVertical}` : formData.product_id}
+              onValueChange={(value) => {
+                if (value.startsWith('all_')) {
+                  const vertical = value.replace('all_', '');
+                  setIsAllSelected(true);
+                  setSelectedVertical(vertical);
+                  setFormData({ ...formData, product_id: '' });
+                } else {
+                  setIsAllSelected(false);
+                  setSelectedVertical(null);
+                  setFormData({ ...formData, product_id: value });
+                }
+              }}
             >
               <SelectTrigger className="bg-slate-700 border-slate-600">
                 <SelectValue placeholder="Selecione um produto" />
@@ -105,7 +111,9 @@ export default function RecognizedRevenueModal({
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          onRecognizeAll(vertical, verticalProducts);
+                          setIsAllSelected(true);
+                          setSelectedVertical(vertical);
+                          setFormData({ ...formData, product_id: '' });
                         }}
                         className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
                       >
@@ -113,6 +121,9 @@ export default function RecognizedRevenueModal({
                         Todos
                       </button>
                     </div>
+                    <SelectItem value={`all_${vertical}`} className="font-semibold text-blue-400">
+                      {verticalLabels[vertical]} - Todos
+                    </SelectItem>
                     {verticalProducts.map(product => (
                       <SelectItem key={product.id} value={product.id}>
                         {product.name}
@@ -122,6 +133,27 @@ export default function RecognizedRevenueModal({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Valor Reconhecido {isAllSelected && '(Total)'}</Label>
+            <Input
+              type="number"
+              placeholder="R$ 0,00"
+              value={formData.amount}
+              onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+              className="bg-slate-700 border-slate-600"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Mês do Reconhecimento</Label>
+            <Input
+              type="month"
+              value={formData.recognition_month ? formData.recognition_month.substring(0, 7) : ''}
+              onChange={(e) => setFormData({ ...formData, recognition_month: e.target.value + '-01' })}
+              className="bg-slate-700 border-slate-600"
+            />
           </div>
 
           <div className="space-y-2">
@@ -147,7 +179,7 @@ export default function RecognizedRevenueModal({
           </Button>
           <Button 
             onClick={handleSave}
-            disabled={!formData.amount || !formData.recognition_month || !formData.product_id || !formData.type}
+            disabled={!formData.amount || !formData.recognition_month || (!formData.product_id && !isAllSelected) || !formData.type}
             className="bg-blue-600 hover:bg-blue-700"
           >
             Salvar
