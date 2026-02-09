@@ -1,10 +1,11 @@
 import React, { useMemo, useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import { 
   TrendingUp,
   AlertTriangle,
@@ -14,7 +15,8 @@ import {
   XCircle,
   PlayCircle,
   LayoutDashboard,
-  ArrowLeft
+  ArrowLeft,
+  DollarSign
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { createPageUrl } from '../utils';
@@ -23,6 +25,8 @@ import ProjectsDeliveryTimeline from '../components/timeline/ProjectsDeliveryTim
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { format, addMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import RecognizedRevenueModal from '../components/modals/RecognizedRevenueModal';
+import { toast } from 'sonner';
 
 const statusLabels = {
   nao_iniciado: 'Não Iniciado',
@@ -53,6 +57,9 @@ const statusColors = {
 
 export default function ExecutiveStatus() {
   const [activeTab, setActiveTab] = useState('overview');
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [isRevenueModalOpen, setIsRevenueModalOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   // Fetch all projects
   const { data: projects = [], isLoading } = useQuery({
@@ -94,6 +101,21 @@ export default function ExecutiveStatus() {
   const { data: allProducts = [] } = useQuery({
     queryKey: ['allProducts'],
     queryFn: () => base44.entities.Product.list()
+  });
+
+  const { data: allRecognizedRevenues = [] } = useQuery({
+    queryKey: ['allRecognizedRevenues'],
+    queryFn: () => base44.entities.RecognizedRevenue.list()
+  });
+
+  const createRecognizedRevenueMutation = useMutation({
+    mutationFn: (data) => base44.entities.RecognizedRevenue.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allRecognizedRevenues'] });
+      setIsRevenueModalOpen(false);
+      setSelectedProject(null);
+      toast.success('Valor reconhecido registrado com sucesso!');
+    }
   });
 
   // Calculate health score for a project
@@ -218,16 +240,22 @@ export default function ExecutiveStatus() {
 
   // Calculate project with health status
   const projectsWithMetrics = useMemo(() => {
-    return activeProjects.map(project => ({
-      ...project,
-      healthScore: calculateHealthScore(project),
-      progress: calculateProjectProgress(project),
-      dynamicStatus: classifyProjectStatus(project)
-    })).sort((a, b) => {
+    return activeProjects.map(project => {
+      const recognizedRevenues = allRecognizedRevenues.filter(r => r.project_id === project.id);
+      const totalRecognized = recognizedRevenues.reduce((sum, r) => sum + (r.amount || 0), 0);
+      
+      return {
+        ...project,
+        healthScore: calculateHealthScore(project),
+        progress: calculateProjectProgress(project),
+        dynamicStatus: classifyProjectStatus(project),
+        totalRecognized
+      };
+    }).sort((a, b) => {
       // Sort by health score (worst first)
       return a.healthScore - b.healthScore;
     });
-  }, [activeProjects, allTimelineEvents, allHomologationTasks, allMigrationTasks, allRisks, allExpenses]);
+  }, [activeProjects, allTimelineEvents, allHomologationTasks, allMigrationTasks, allRisks, allExpenses, allRecognizedRevenues]);
 
   const getHealthColor = (score) => {
     if (score >= 80) return 'text-green-400';
@@ -400,9 +428,38 @@ export default function ExecutiveStatus() {
                       </div>
                     )}
                   </div>
+
+                  {/* Recognized Revenue Display */}
+                  {project.totalRecognized > 0 && (
+                    <div className="pt-3 border-t border-slate-700/50">
+                      <div className="text-xs text-slate-500">Reconhecido</div>
+                      <div className="text-sm text-purple-400 font-semibold">
+                        {new Intl.NumberFormat('pt-BR', { 
+                          style: 'currency', 
+                          currency: 'BRL',
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 0
+                        }).format(project.totalRecognized)}
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </Link>
+            
+            {/* Floating Button */}
+            <Button
+              size="icon"
+              onClick={(e) => {
+                e.preventDefault();
+                setSelectedProject(project);
+                setIsRevenueModalOpen(true);
+              }}
+              className="absolute top-2 right-2 h-8 w-8 bg-purple-600 hover:bg-purple-700 z-10"
+            >
+              <DollarSign className="w-4 h-4" />
+            </Button>
+          </div>
           ))}
         </div>
 
@@ -493,6 +550,48 @@ export default function ExecutiveStatus() {
                 const goLiveMonth = format(new Date(goLiveEvent.end_date), 'yyyy-MM');
                 if (monthlyData[goLiveMonth]) {
                   monthlyData[goLiveMonth].recorrente += project.recurring_value;
+                }
+              }
+            });
+
+            // Processar valores reconhecidos - subtrair dos gráficos e mover para mês reconhecido
+            allRecognizedRevenues.forEach(recognized => {
+              const recognizedMonth = format(new Date(recognized.recognition_month), 'yyyy-MM');
+              
+              // Encontrar o projeto correspondente
+              const project = projects.find(p => p.id === recognized.project_id);
+              if (!project) return;
+              
+              const events = allTimelineEvents.filter(e => e.project_id === project.id);
+              const goLiveEvent = events.find(e => 
+                e.phase && (
+                  e.phase === 'migracao_producao' || 
+                  e.phase === 'operacao_assistida' ||
+                  e.title?.toLowerCase().includes('go live') ||
+                  e.title?.toLowerCase().includes('produção')
+                )
+              );
+              
+              // Subtrair do mês original (Go Live) e adicionar no mês reconhecido
+              if (goLiveEvent?.end_date) {
+                const originalMonth = format(new Date(goLiveEvent.end_date), 'yyyy-MM');
+                
+                // Subtrair do mês original (pode ser implantação ou recorrente, subtraímos proporcionalmente)
+                if (monthlyData[originalMonth]) {
+                  // Se o valor reconhecido for menor que implantação, subtrair de implantação
+                  if (monthlyData[originalMonth].implantacao >= recognized.amount) {
+                    monthlyData[originalMonth].implantacao -= recognized.amount;
+                  } else {
+                    // Senão, subtrair o que puder da implantação e o resto da recorrente
+                    const remaining = recognized.amount - monthlyData[originalMonth].implantacao;
+                    monthlyData[originalMonth].implantacao = 0;
+                    monthlyData[originalMonth].recorrente = Math.max(0, monthlyData[originalMonth].recorrente - remaining);
+                  }
+                }
+                
+                // Adicionar no mês reconhecido
+                if (monthlyData[recognizedMonth]) {
+                  monthlyData[recognizedMonth].implantacao += recognized.amount;
                 }
               }
             });
@@ -613,6 +712,20 @@ export default function ExecutiveStatus() {
           })()}
         </TabsContent>
       </Tabs>
+
+      {/* Recognized Revenue Modal */}
+      {selectedProject && (
+        <RecognizedRevenueModal
+          isOpen={isRevenueModalOpen}
+          onClose={() => {
+            setIsRevenueModalOpen(false);
+            setSelectedProject(null);
+          }}
+          onSave={(data) => createRecognizedRevenueMutation.mutate(data)}
+          project={selectedProject}
+          products={allProducts.filter(p => p.project_id === selectedProject.id)}
+        />
+      )}
     </div>
   );
 }
