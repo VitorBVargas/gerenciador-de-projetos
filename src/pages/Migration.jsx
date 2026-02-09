@@ -518,7 +518,7 @@ export default function Migration() {
                                      </Button>
                                    </div>
                                     <div className="space-y-2">
-                                      {sectionTasks.map(task => (
+                                      {uniqueTasks.map(task => (
                                         <div key={task.id} className="flex items-center gap-3 group">
                                           <Checkbox
                                             checked={task.completed}
@@ -547,11 +547,31 @@ export default function Migration() {
                                 
                                 {/* Renderizar seções padrão */}
                                 {hasStandardSections && getOrderedSections(product.id, defaultSections).map((section, displayIndex) => {
-                                 const sectionTasks = standardTasks.filter(task => 
-                                   section.tasks.some(t => t.toLowerCase() === task.title.toLowerCase())
-                                 );
+                                const sectionTasks = standardTasks.filter(task => 
+                                  section.tasks.some(t => t.toLowerCase() === task.title.toLowerCase())
+                                );
 
-                                 if (sectionTasks.length === 0) return null;
+                                // Remover duplicados, mantendo o que está marcado
+                                const uniqueTasks = [];
+                                const seenTitles = new Map();
+
+                                for (const task of sectionTasks) {
+                                  const titleLower = task.title.toLowerCase();
+                                  if (!seenTitles.has(titleLower)) {
+                                    seenTitles.set(titleLower, task);
+                                    uniqueTasks.push(task);
+                                  } else {
+                                    // Se já existe, mantém o marcado
+                                    const existing = seenTitles.get(titleLower);
+                                    if (task.completed && !existing.completed) {
+                                      const idx = uniqueTasks.indexOf(existing);
+                                      uniqueTasks[idx] = task;
+                                      seenTitles.set(titleLower, task);
+                                    }
+                                  }
+                                }
+
+                                if (uniqueTasks.length === 0) return null;
 
                                  const totalSections = defaultSections.length;
 
