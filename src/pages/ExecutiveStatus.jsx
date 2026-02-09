@@ -390,9 +390,22 @@ export default function ExecutiveStatus() {
                     <CardTitle className="text-lg text-white group-hover:text-blue-400 transition-colors">
                       {project.name}
                     </CardTitle>
-                    <Badge className={cn("border", getHealthBg(project.healthScore))}>
-                      <span className={getHealthColor(project.healthScore)}>{project.healthScore}</span>
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge className={cn("border", getHealthBg(project.healthScore))}>
+                        <span className={getHealthColor(project.healthScore)}>{project.healthScore}</span>
+                      </Badge>
+                      <Button
+                        size="icon"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setSelectedProject(project);
+                          setIsRevenueModalOpen(true);
+                        }}
+                        className="h-8 w-8 bg-purple-600 hover:bg-purple-700 shrink-0"
+                      >
+                        <DollarSign className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -456,50 +469,45 @@ export default function ExecutiveStatus() {
                   </div>
 
                   {/* Recognized Revenue Display */}
-                  {project.totalRecognized > 0 && (
-                    <div className="pt-3 border-t border-slate-700/50">
-                      <div className="flex items-center justify-between">
-                        <div>
+                  {project.totalRecognized > 0 && (() => {
+                    const projectRevenues = allRecognizedRevenues.filter(r => r.project_id === project.id);
+                    return (
+                      <div className="pt-3 border-t border-slate-700/50">
+                        <div className="flex items-center justify-between mb-2">
                           <div className="text-xs text-slate-500">Reconhecido</div>
-                          <div className="text-sm text-purple-400 font-semibold">
-                            {new Intl.NumberFormat('pt-BR', { 
-                              style: 'currency', 
-                              currency: 'BRL',
-                              minimumFractionDigits: 0,
-                              maximumFractionDigits: 0
-                            }).format(project.totalRecognized)}
-                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              if (projectRevenues.length > 0 && window.confirm('Deletar todos os reconhecimentos deste projeto?')) {
+                                projectRevenues.forEach(r => deleteRecognizedRevenueMutation.mutate(r.id));
+                              }
+                            }}
+                            className="text-xs text-red-400 hover:text-red-300"
+                          >
+                            Limpar
+                          </button>
                         </div>
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            const projectRevenues = allRecognizedRevenues.filter(r => r.project_id === project.id);
-                            if (projectRevenues.length > 0 && window.confirm('Deletar todos os reconhecimentos deste projeto?')) {
-                              projectRevenues.forEach(r => deleteRecognizedRevenueMutation.mutate(r.id));
-                            }
-                          }}
-                          className="text-xs text-red-400 hover:text-red-300"
-                        >
-                          Limpar
-                        </button>
+                        <div className="space-y-1">
+                          {projectRevenues.map(rev => {
+                            const product = allProducts.find(p => p.id === rev.product_id);
+                            const monthYear = new Date(rev.recognition_month).toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
+                            return (
+                              <div key={rev.id} className="text-xs text-purple-400">
+                                {new Intl.NumberFormat('pt-BR', { 
+                                  style: 'currency', 
+                                  currency: 'BRL',
+                                  minimumFractionDigits: 0,
+                                  maximumFractionDigits: 0
+                                }).format(rev.amount)} - {monthYear} - {product?.name || 'N/A'}
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
                 </CardContent>
                 </Link>
-                
-                {/* Floating Button - Moved lower to avoid health score */}
-                <Button
-                  size="icon"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setSelectedProject(project);
-                    setIsRevenueModalOpen(true);
-                  }}
-                  className="absolute top-16 right-2 h-8 w-8 bg-purple-600 hover:bg-purple-700 z-10"
-                >
-                  <DollarSign className="w-4 h-4" />
-                </Button>
               </Card>
             </div>
           ))}
