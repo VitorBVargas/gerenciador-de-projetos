@@ -241,11 +241,34 @@ export default function Migration() {
         base44.entities.MigrationTask.delete(task.id)
       ));
       
-      // Aguarda um pouco para garantir que as deleções foram processadas
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Invalida cache antes de recriar
+      await queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
       
-      // Recria as tarefas padrão
-      await createDefaultTasks(product);
+      // Aguarda para garantir que as deleções foram processadas
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Recria as tarefas padrão diretamente (sem verificar se existem)
+      const defaultSections = getDefaultTasksForProduct(product.name);
+      if (defaultSections) {
+        const tasksToCreate = [];
+        let order = 0;
+
+        for (const section of defaultSections) {
+          for (const taskTitle of section.tasks) {
+            tasksToCreate.push({
+              title: taskTitle,
+              project_id: projectId,
+              product_id: product.id,
+              completed: false,
+              order: order++
+            });
+          }
+        }
+
+        if (tasksToCreate.length > 0) {
+          await base44.entities.MigrationTask.bulkCreate(tasksToCreate);
+        }
+      }
       
       toast.success('Tarefas zeradas e recriadas com sucesso!');
     } catch (error) {
