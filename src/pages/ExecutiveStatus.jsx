@@ -815,10 +815,36 @@ export default function ExecutiveStatus() {
               setSelectedProject(null);
             }}
             onSave={(data) => createRecognizedRevenueMutation.mutate(data)}
-            onRecognizeAll={(vertical, products) => {
-              setSelectedVertical(vertical);
-              setSelectedVerticalProducts(products);
-              setIsRecognizeAllModalOpen(true);
+            onRecognizeAll={(vertical, products, data) => {
+              if (data) {
+                // Criar reconhecimentos diretamente
+                const verticalLabel = {
+                  arrecadacao: 'Arrecadação',
+                  compras: 'Compras/Contratos',
+                  contabil: 'Contábil',
+                  pessoal: 'Pessoal',
+                  educacao: 'Educação',
+                  iss: 'ISS',
+                  parceiros: 'Parceiros',
+                  plataforma: 'Plataforma',
+                  atendimento: 'Atendimento',
+                  outros: 'Outros'
+                }[vertical] || vertical;
+                
+                const amountPerProduct = data.amount / products.length;
+                
+                const recognitions = products.map(product => ({
+                  project_id: selectedProject.id,
+                  product_id: product.id,
+                  amount: amountPerProduct,
+                  recognition_month: data.recognition_month,
+                  type: data.type,
+                  vertical_name: verticalLabel
+                }));
+                
+                createBulkRecognizedRevenueMutation.mutate(recognitions);
+                setIsRevenueModalOpen(false);
+              }
             }}
             project={selectedProject}
             products={allProducts.filter(p => p.project_id === selectedProject.id)}
