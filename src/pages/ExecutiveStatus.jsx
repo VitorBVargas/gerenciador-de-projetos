@@ -354,11 +354,11 @@ export default function ExecutiveStatus() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {projectsWithMetrics.map(project => (
             <div key={project.id} className="relative">
-              <Link 
-                to={createPageUrl(`Dashboard?project_id=${project.id}`)}
-                className="block"
-              >
-                <Card className="bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 transition-all h-full group">
+              <Card className="bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 transition-all h-full group">
+                <Link 
+                  to={createPageUrl(`Dashboard?project_id=${project.id}`)}
+                  className="block"
+                >
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-3">
                     <CardTitle className="text-lg text-white group-hover:text-blue-400 transition-colors">
@@ -444,21 +444,21 @@ export default function ExecutiveStatus() {
                     </div>
                   )}
                 </CardContent>
-                </Card>
-              </Link>
-              
-              {/* Floating Button */}
-              <Button
-                size="icon"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setSelectedProject(project);
-                  setIsRevenueModalOpen(true);
-                }}
-                className="absolute top-2 right-2 h-8 w-8 bg-purple-600 hover:bg-purple-700 z-10"
-              >
-                <DollarSign className="w-4 h-4" />
-              </Button>
+                </Link>
+                
+                {/* Floating Button */}
+                <Button
+                  size="icon"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setSelectedProject(project);
+                    setIsRevenueModalOpen(true);
+                  }}
+                  className="absolute top-2 right-2 h-8 w-8 bg-purple-600 hover:bg-purple-700 z-10"
+                >
+                  <DollarSign className="w-4 h-4" />
+                </Button>
+              </Card>
             </div>
           ))}
         </div>
