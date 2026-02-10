@@ -122,16 +122,16 @@ export default function Migration() {
   };
 
   React.useEffect(() => {
-    if (selectedProduct && products.length > 0) {
+    if (selectedProduct && products.length > 0 && tasks.length >= 0) {
       const product = getCurrentProduct();
       if (product) {
         const existingTasks = tasks.filter(t => t.product_id === product.id);
-        if (existingTasks.length === 0) {
+        if (existingTasks.length === 0 && productHasMigration(product.name)) {
           createDefaultTasks(product);
         }
       }
     }
-  }, [selectedProduct, products.length]);
+  }, [selectedProduct, products.length, tasks.length]);
 
   const handleAddTask = () => {
     if (!newTaskTitle.trim() || !selectedProduct) return;
@@ -522,51 +522,72 @@ export default function Migration() {
                             return (
                               <>
                                 {/* Renderizar seções importadas */}
-                                {Object.entries(importedBySection).map(([sectionName, sectionTasks], idx) => (
-                                 <div key={`imported-${idx}`}>
-                                   <div className="flex items-center justify-between mb-3 group/section">
-                                     <h3 className="text-cyan-400 font-semibold text-sm uppercase">
-                                       {sectionName}
-                                     </h3>
-                                     <Button
-                                       size="icon"
-                                       variant="ghost"
-                                       className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover/section:opacity-100 transition-opacity"
-                                       onClick={async () => {
-                                         await Promise.all(sectionTasks.map(t => deleteTaskMutation.mutate(t.id)));
-                                         toast.success(`Seção "${sectionName}" deletada`);
-                                       }}
-                                     >
-                                       <Trash2 className="w-3 h-3" />
-                                     </Button>
-                                   </div>
-                                    <div className="space-y-2">
-                                      {uniqueTasks.map(task => (
-                                        <div key={task.id} className="flex items-center gap-3 group">
-                                          <Checkbox
-                                            checked={task.completed}
-                                            onCheckedChange={() => handleToggleTask(task)}
-                                            className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
-                                          />
-                                          <span className={cn(
-                                            "flex-1 text-sm",
-                                            task.completed ? "text-slate-500 line-through" : "text-white"
-                                          )}>
-                                            {task.displayTitle}
-                                          </span>
-                                          <Button
-                                            size="icon"
-                                            variant="ghost"
-                                            className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity"
-                                            onClick={() => deleteTaskMutation.mutate(task.id)}
-                                          >
-                                            <Trash2 className="w-3 h-3" />
-                                          </Button>
-                                        </div>
-                                      ))}
+                                {Object.entries(importedBySection).map(([sectionName, sectionTasks], idx) => {
+                                  // Remover duplicados nas seções importadas
+                                  const uniqueImportedTasks = [];
+                                  const seenTitles = new Map();
+                                  
+                                  for (const task of sectionTasks) {
+                                    const titleLower = task.displayTitle.toLowerCase();
+                                    if (!seenTitles.has(titleLower)) {
+                                      seenTitles.set(titleLower, task);
+                                      uniqueImportedTasks.push(task);
+                                    } else {
+                                      const existing = seenTitles.get(titleLower);
+                                      if (task.completed && !existing.completed) {
+                                        const idx = uniqueImportedTasks.indexOf(existing);
+                                        uniqueImportedTasks[idx] = task;
+                                        seenTitles.set(titleLower, task);
+                                      }
+                                    }
+                                  }
+                                  
+                                  return (
+                                    <div key={`imported-${idx}`}>
+                                      <div className="flex items-center justify-between mb-3 group/section">
+                                        <h3 className="text-cyan-400 font-semibold text-sm uppercase">
+                                          {sectionName}
+                                        </h3>
+                                        <Button
+                                          size="icon"
+                                          variant="ghost"
+                                          className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover/section:opacity-100 transition-opacity"
+                                          onClick={async () => {
+                                            await Promise.all(sectionTasks.map(t => deleteTaskMutation.mutate(t.id)));
+                                            toast.success(`Seção "${sectionName}" deletada`);
+                                          }}
+                                        >
+                                          <Trash2 className="w-3 h-3" />
+                                        </Button>
+                                      </div>
+                                      <div className="space-y-2">
+                                        {uniqueImportedTasks.map(task => (
+                                          <div key={task.id} className="flex items-center gap-3 group">
+                                            <Checkbox
+                                              checked={task.completed}
+                                              onCheckedChange={() => handleToggleTask(task)}
+                                              className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                                            />
+                                            <span className={cn(
+                                              "flex-1 text-sm",
+                                              task.completed ? "text-slate-500 line-through" : "text-white"
+                                            )}>
+                                              {task.displayTitle}
+                                            </span>
+                                            <Button
+                                              size="icon"
+                                              variant="ghost"
+                                              className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity"
+                                              onClick={() => deleteTaskMutation.mutate(task.id)}
+                                            >
+                                              <Trash2 className="w-3 h-3" />
+                                            </Button>
+                                          </div>
+                                        ))}
+                                      </div>
                                     </div>
-                                  </div>
-                                ))}
+                                  );
+                                })}
                                 
                                 {/* Renderizar seções padrão */}
                                 {hasStandardSections && getOrderedSections(product.id, defaultSections).map((section, displayIndex) => {
@@ -637,7 +658,7 @@ export default function Migration() {
                                        </div>
                                      </div>
                                       <div className="space-y-2">
-                                        {sectionTasks.map(task => (
+                                        {uniqueTasks.map(task => (
                                           <div
                                             key={task.id}
                                             className="flex items-center gap-3 group"
