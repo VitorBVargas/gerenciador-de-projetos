@@ -56,14 +56,15 @@ export default function HomologationProgressChart({ products, tasks }) {
       
       return acc;
     }, {})
-  ).map(([vertical, data]) => ({
+  )
+  .filter(([vertical, data]) => data.totalTasks > 0) // Só verticais com tarefas
+  .map(([vertical, data]) => ({
     vertical,
     name: verticalLabels[vertical] || vertical,
-    progress: data.totalTasks > 0 
-      ? Math.round((data.completedTasks / data.totalTasks) * 100) 
-      : 0,
+    progress: Math.round((data.completedTasks / data.totalTasks) * 100),
     color: verticalColors[vertical] || '#64748b'
-  })).sort((a, b) => b.progress - a.progress);
+  }))
+  .sort((a, b) => b.progress - a.progress);
 
   if (dataByVertical.length === 0) {
     return (
