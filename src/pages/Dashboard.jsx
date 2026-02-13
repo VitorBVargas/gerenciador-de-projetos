@@ -37,6 +37,12 @@ import { Sparkles } from 'lucide-react';
 
 export default function Dashboard() {
   const queryClient = useQueryClient();
+  
+  // Get project_id from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const projectId = urlParams.get('project_id');
+  const isNewProject = urlParams.get('isNewProject') === 'true';
+
   const [projectModalOpen, setProjectModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [importModalOpen, setImportModalOpen] = useState(false);
@@ -44,11 +50,6 @@ export default function Dashboard() {
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [isAIWelcomeOpen, setIsAIWelcomeOpen] = useState(isNewProject);
   const [hasShownInsights, setHasShownInsights] = useState(false);
-
-  // Get project_id from URL
-  const urlParams = new URLSearchParams(window.location.search);
-  const projectId = urlParams.get('project_id');
-  const isNewProject = urlParams.get('isNewProject') === 'true';
 
   // Fetch all data
   const { data: projects = [] } = useQuery({
