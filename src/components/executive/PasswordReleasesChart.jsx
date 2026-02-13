@@ -7,7 +7,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
 import { format, addMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
-export default function PasswordReleasesChart({ products, visibleCharts = {}, onVisibilityChange }) {
+export default function PasswordReleasesChart({ products, projects = [], visibleCharts = {}, onVisibilityChange }) {
   const [selectedMonth, setSelectedMonth] = useState(null);
 
   const chartData = useMemo(() => {
