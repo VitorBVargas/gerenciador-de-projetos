@@ -338,7 +338,15 @@ export default function ExecutiveStatus() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 p-6 lg:p-8 space-y-6">
+    <div className="min-h-screen bg-slate-950 p-6 lg:p-8 space-y-6 relative">
+      {/* Botão flutuante da IA */}
+      <button
+        onClick={() => setIsAIModalOpen(true)}
+        className="fixed bottom-8 right-8 w-14 h-14 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all z-50"
+        title="Abrir Assistente IA"
+      >
+        <Sparkles className="w-6 h-6" />
+      </button>
       {/* Header */}
       <div className="space-y-4">
         <Link to={createPageUrl('ProjectsList')}>
@@ -372,15 +380,7 @@ export default function ExecutiveStatus() {
         </TabsList>
 
         {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-6 relative">
-          {/* Botão flutuante da IA */}
-          <button
-            onClick={() => setIsAIModalOpen(true)}
-            className="fixed bottom-8 right-8 w-14 h-14 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all z-40"
-            title="Abrir Assistente IA"
-          >
-            <Sparkles className="w-6 h-6" />
-          </button>
+        <TabsContent value="overview" className="space-y-6">
           {/* Status Cards - Primeira linha com cronograma */}
           <div className="grid grid-cols-6 gap-2">
             <Card className="bg-slate-800 border-slate-600">
