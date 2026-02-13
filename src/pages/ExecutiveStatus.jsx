@@ -68,10 +68,13 @@ export default function ExecutiveStatus() {
   const queryClient = useQueryClient();
 
   // Fetch all projects
-  const { data: projects = [], isLoading } = useQuery({
+  const { data: allProjectsData = [], isLoading } = useQuery({
     queryKey: ['projects'],
     queryFn: () => base44.entities.Project.list('-created_date')
   });
+  
+  // Filter out completed projects from overview cards
+  const projects = allProjectsData.filter(p => p.status !== 'concluido');
 
   // Fetch all timeline events
   const { data: allTimelineEvents = [] } = useQuery({
@@ -256,7 +259,7 @@ export default function ExecutiveStatus() {
       concluido: 0
     };
     
-    projects.forEach(project => {
+    allProjectsData.forEach(project => {
       const status = classifyProjectStatus(project);
       if (counts[status] !== undefined) {
         counts[status]++;
@@ -347,7 +350,7 @@ export default function ExecutiveStatus() {
           <div className="grid grid-cols-7 gap-3">
         <Card className="bg-slate-800/50 border-slate-700/50">
           <CardContent className="p-4 text-center flex flex-col items-center justify-center h-full">
-            <div className="text-2xl font-bold text-white mb-0.5">{projects.length}</div>
+            <div className="text-2xl font-bold text-white mb-0.5">{allProjectsData.length}</div>
             <div className="text-xs text-slate-400">Total</div>
           </CardContent>
         </Card>
@@ -589,7 +592,7 @@ export default function ExecutiveStatus() {
         {/* Timeline Tab */}
         <TabsContent value="timeline" className="space-y-6">
           <ProjectsDeliveryTimeline 
-            projects={projects}
+            projects={allProjectsData}
             timelineEvents={allTimelineEvents}
             products={allProducts}
           />
@@ -614,7 +617,7 @@ export default function ExecutiveStatus() {
               };
             }
 
-            // Processar cada projeto
+            // Processar cada projeto ativo
             projects.forEach(project => {
               const events = allTimelineEvents.filter(e => e.project_id === project.id);
               
@@ -657,7 +660,7 @@ export default function ExecutiveStatus() {
               const recognizedMonth = recognized.recognition_month.substring(0, 7); // YYYY-MM
               
               // Encontrar o projeto correspondente
-              const project = projects.find(p => p.id === recognized.project_id);
+              const project = allProjectsData.find(p => p.id === recognized.project_id);
               if (!project) return;
               
               const events = allTimelineEvents.filter(e => e.project_id === project.id);
@@ -882,7 +885,7 @@ export default function ExecutiveStatus() {
                     <div className="space-y-3">
                       {recognizedInMonth.map((recognized) => {
                         const product = allProducts.find(p => p.id === recognized.product_id);
-                        const project = projects.find(p => p.id === recognized.project_id);
+                        const project = allProjectsData.find(p => p.id === recognized.project_id);
                         
                         return (
                           <div 
@@ -922,7 +925,7 @@ export default function ExecutiveStatus() {
             // Se clicou na barra normal (implantação ou recorrente do mês)
             const productsInMonth = [];
             
-            projects.forEach(project => {
+            allProjectsData.forEach(project => {
               const events = allTimelineEvents.filter(e => e.project_id === project.id);
               const goLiveEvent = events.find(e => 
                 e.phase && (
