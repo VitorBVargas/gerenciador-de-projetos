@@ -91,6 +91,10 @@ export default function Travels() {
   const [travelToDelete, setTravelToDelete] = useState(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [viewMode, setViewMode] = useState('calendar'); // calendar or list
+  const [dragStart, setDragStart] = useState(null);
+  const [dragEnd, setDragEnd] = useState(null);
+  const [dragMember, setDragMember] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     start_date: '',
@@ -198,9 +202,9 @@ export default function Travels() {
     }
   };
 
-  // Calendar calculations
+  // Calendar calculations - show 6 months ahead
   const monthStart = startOfMonth(currentMonth);
-  const monthEnd = endOfMonth(currentMonth);
+  const monthEnd = endOfMonth(addMonths(currentMonth, 5));
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
   // Get travels for a specific day
@@ -224,6 +228,49 @@ export default function Travels() {
   }, [teamMembers]);
 
   const verticals = Object.keys(membersByVertical).sort();
+
+  // Handle drag selection
+  const handleMouseDown = (day, member) => {
+    setIsDragging(true);
+    setDragStart(day);
+    setDragEnd(day);
+    setDragMember(member);
+  };
+
+  const handleMouseEnter = (day) => {
+    if (isDragging) {
+      setDragEnd(day);
+    }
+  };
+
+  const handleMouseUp = () => {
+    if (isDragging && dragStart && dragEnd && dragMember) {
+      // Determine start and end dates
+      const start = dragStart < dragEnd ? dragStart : dragEnd;
+      const end = dragStart < dragEnd ? dragEnd : dragStart;
+      
+      // Open modal with pre-filled dates
+      setFormData({
+        ...formData,
+        start_date: format(start, 'yyyy-MM-dd'),
+        end_date: format(end, 'yyyy-MM-dd'),
+        attendees: [dragMember.name]
+      });
+      setModalOpen(true);
+    }
+    setIsDragging(false);
+    setDragStart(null);
+    setDragEnd(null);
+    setDragMember(null);
+  };
+
+  // Check if day is in drag selection
+  const isInDragRange = (day) => {
+    if (!isDragging || !dragStart || !dragEnd) return false;
+    const start = dragStart < dragEnd ? dragStart : dragEnd;
+    const end = dragStart < dragEnd ? dragEnd : dragStart;
+    return day >= start && day <= end;
+  };
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
@@ -282,7 +329,7 @@ export default function Travels() {
               description="Adicione membros à equipe para visualizar o calendário de viagens"
             />
           ) : (
-            <>
+            <div onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}>
               {/* Month Navigation */}
               <Card className="bg-slate-800/50 border-slate-700/50">
                 <CardHeader className="border-b border-slate-700/50">
@@ -296,7 +343,7 @@ export default function Travels() {
                       <ChevronLeft className="w-5 h-5" />
                     </Button>
                     <CardTitle className="text-xl text-white">
-                      {format(currentMonth, "MMMM 'de' yyyy", { locale: ptBR })}
+                      {format(currentMonth, "MMMM 'de' yyyy", { locale: ptBR })} - {format(addMonths(currentMonth, 5), "MMMM 'de' yyyy", { locale: ptBR })}
                     </CardTitle>
                     <Button
                       variant="ghost"
@@ -313,11 +360,11 @@ export default function Travels() {
                     <table className="w-full border-collapse">
                       <thead>
                         <tr className="border-b border-slate-700/50">
-                          <th className="sticky left-0 z-10 bg-slate-800/50 px-4 py-3 text-left text-sm font-semibold text-slate-400 min-w-[200px]">
+                          <th className="sticky left-0 z-20 bg-slate-800/95 px-4 py-3 text-left text-sm font-semibold text-slate-400 min-w-[200px] border-r border-slate-700/50">
                             Implantador
                           </th>
                           {daysInMonth.map(day => (
-                            <th key={day.toString()} className="px-2 py-3 text-center text-xs font-medium text-slate-400 min-w-[40px]">
+                            <th key={day.toString()} className="px-2 py-3 text-center text-xs font-medium text-slate-400 min-w-[40px] border-r border-slate-700/20">
                               <div>{format(day, 'dd')}</div>
                               <div className="text-[10px] text-slate-500">{format(day, 'EEE', { locale: ptBR })}</div>
                             </th>
@@ -328,25 +375,31 @@ export default function Travels() {
                         {verticals.map(vertical => (
                           <React.Fragment key={vertical}>
                             <tr className="bg-slate-700/30">
-                              <td colSpan={daysInMonth.length + 1} className="sticky left-0 z-10 px-4 py-2 text-sm font-semibold text-cyan-400 bg-slate-700/30">
+                              <td colSpan={daysInMonth.length + 1} className="sticky left-0 z-20 px-4 py-2 text-sm font-semibold text-cyan-400 bg-slate-700/30">
                                 {verticalLabels[vertical] || vertical}
                               </td>
                             </tr>
                             {membersByVertical[vertical].map(member => (
                               <tr key={member.id} className="border-b border-slate-700/30 hover:bg-slate-700/20">
-                                <td className="sticky left-0 z-10 bg-slate-800/90 px-4 py-3 text-sm text-white border-r border-slate-700/50">
+                                <td className="sticky left-0 z-20 bg-slate-800/95 px-4 py-3 text-sm text-white border-r border-slate-700/50">
                                   {member.name}
                                 </td>
                                 {daysInMonth.map(day => {
                                   const dayTravels = getTravelsForDay(day).filter(t => 
                                     t.attendees?.includes(member.name)
                                   );
-                                  const travel = dayTravels[0]; // First travel for this day
+                                  const travel = dayTravels[0];
+                                  const isInRange = isInDragRange(day) && dragMember?.id === member.id;
                                   
                                   return (
                                     <td 
                                       key={day.toString()} 
-                                      className="px-1 py-2 text-center border-r border-slate-700/20"
+                                      className={cn(
+                                        "px-1 py-2 text-center border-r border-slate-700/20 cursor-pointer select-none",
+                                        isInRange && "bg-blue-500/30"
+                                      )}
+                                      onMouseDown={() => handleMouseDown(day, member)}
+                                      onMouseEnter={() => handleMouseEnter(day)}
                                     >
                                       {travel && (
                                         <div 
@@ -354,7 +407,10 @@ export default function Travels() {
                                             "w-8 h-8 mx-auto rounded-full flex items-center justify-center cursor-pointer transition-transform hover:scale-110",
                                             travelTypeColors[travel.travel_type]
                                           )}
-                                          onClick={() => handleEdit(travel)}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleEdit(travel);
+                                          }}
                                           title={`${travel.title} - ${travel.location || 'Sem local'}`}
                                         >
                                           {React.createElement(travelTypeIcons[travel.travel_type], { 
@@ -374,7 +430,7 @@ export default function Travels() {
                   </div>
                 </CardContent>
               </Card>
-            </>
+            </div>
           )}
         </>
       ) : (
