@@ -67,7 +67,19 @@ export default function ExecutiveStatus() {
   const [selectedVerticalProducts, setSelectedVerticalProducts] = useState([]);
   const [selectedMonth, setSelectedMonth] = useState(null);
   const [selectedMonthType, setSelectedMonthType] = useState(null);
+  const [visibleCharts, setVisibleCharts] = useState({
+    implantacao: true,
+    recorrente: true,
+    password: true
+  });
   const queryClient = useQueryClient();
+
+  const handleChartVisibility = (chart, visible) => {
+    setVisibleCharts(prev => ({
+      ...prev,
+      [chart]: visible
+    }));
+  };
 
   // Fetch all projects
   const { data: allProjectsData = [], isLoading } = useQuery({
@@ -362,8 +374,22 @@ export default function ExecutiveStatus() {
           <div className="grid grid-cols-7 gap-3">
         <Card className="bg-slate-800 border-slate-600">
           <CardContent className="p-4 text-center flex flex-col items-center justify-center h-full">
+            <div className="text-2xl font-bold text-white mb-0.5">{allTimelineEvents.length}</div>
+            <div className="text-xs text-slate-300">Total Cronogramas</div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-slate-800 border-slate-600">
+          <CardContent className="p-4 text-center flex flex-col items-center justify-center h-full">
             <div className="text-2xl font-bold text-white mb-0.5">{allProjectsData.length}</div>
-            <div className="text-xs text-slate-300">Total</div>
+            <div className="text-xs text-slate-300">Total Programas</div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-slate-800 border-slate-600">
+          <CardContent className="p-4 text-center flex flex-col items-center justify-center h-full">
+            <div className="text-2xl font-bold text-white mb-0.5">{allProducts.filter(p => p.status === 'em_producao').length}</div>
+            <div className="text-xs text-slate-300">Produtos em Produção</div>
           </CardContent>
         </Card>
 
@@ -747,6 +773,7 @@ export default function ExecutiveStatus() {
             return (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Gráfico de Implantação */}
+                {visibleCharts.implantacao !== false && (
                 <Card className="bg-slate-800 border-slate-600">
                   <CardHeader>
                     <CardTitle className="text-white">Receita de Implantação</CardTitle>
@@ -825,10 +852,12 @@ export default function ExecutiveStatus() {
                       <div className="text-sm text-slate-400">Total Implantação (12 meses)</div>
                     </div>
                   </CardContent>
-                </Card>
+                  </Card>
+                  )}
 
-                {/* Gráfico de Recorrente */}
-                <Card className="bg-slate-800 border-slate-600">
+                  {/* Gráfico de Recorrente */}
+                  {visibleCharts.recorrente !== false && (
+                  <Card className="bg-slate-800 border-slate-600">
                   <CardHeader>
                     <CardTitle className="text-white">Receita Recorrente (MRR)</CardTitle>
                   </CardHeader>
@@ -890,13 +919,18 @@ export default function ExecutiveStatus() {
                       <div className="text-sm text-slate-400">Total Recorrente (12 meses)</div>
                     </div>
                   </CardContent>
-                </Card>
-              </div>
-            );
-          })()}
+                  </Card>
+                  )}
+                  </div>
+                  );
+                  })()}
 
-          {/* Gráfico de Senhas Liberadas */}
-          <PasswordReleasesChart products={allProducts} />
+          {/* Controles e Gráficos de Faturamento */}
+          <PasswordReleasesChart 
+            products={allProducts}
+            visibleCharts={visibleCharts}
+            onVisibilityChange={handleChartVisibility}
+          />
 
           {/* Lista de produtos do mês selecionado */}
           {selectedMonth && (() => {

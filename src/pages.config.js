@@ -57,11 +57,11 @@ import ProjectsList from './pages/ProjectsList';
 import Reports from './pages/Reports';
 import Risks from './pages/Risks';
 import Stakeholders from './pages/Stakeholders';
+import StatusReports from './pages/StatusReports';
 import Team from './pages/Team';
 import Timeline from './pages/Timeline';
 import Trainings from './pages/Trainings';
 import Travels from './pages/Travels';
-import StatusReports from './pages/StatusReports';
 import __Layout from './Layout.jsx';
 
 
@@ -76,11 +76,11 @@ export const PAGES = {
     "Reports": Reports,
     "Risks": Risks,
     "Stakeholders": Stakeholders,
+    "StatusReports": StatusReports,
     "Team": Team,
     "Timeline": Timeline,
     "Trainings": Trainings,
     "Travels": Travels,
-    "StatusReports": StatusReports,
 }
 
 export const pagesConfig = {

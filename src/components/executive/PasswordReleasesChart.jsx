@@ -2,11 +2,12 @@ import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { format, addMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
-export default function PasswordReleasesChart({ products }) {
+export default function PasswordReleasesChart({ products, visibleCharts = {}, onVisibilityChange }) {
   const [selectedMonth, setSelectedMonth] = useState(null);
 
   const chartData = useMemo(() => {
@@ -68,6 +69,47 @@ export default function PasswordReleasesChart({ products }) {
 
   return (
     <>
+      {/* Controles de Visibilidade */}
+      <div className="bg-slate-800 border border-slate-600 rounded-lg p-4 space-y-3">
+        <h3 className="text-white font-semibold text-sm">Gráficos do Financeiro</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="implantacao-chart"
+              checked={visibleCharts?.implantacao !== false}
+              onCheckedChange={(checked) => onVisibilityChange?.('implantacao', checked)}
+              className="border-slate-600"
+            />
+            <label htmlFor="implantacao-chart" className="text-sm text-slate-300 cursor-pointer">
+              Receita de Implantação
+            </label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="recorrente-chart"
+              checked={visibleCharts?.recorrente !== false}
+              onCheckedChange={(checked) => onVisibilityChange?.('recorrente', checked)}
+              className="border-slate-600"
+            />
+            <label htmlFor="recorrente-chart" className="text-sm text-slate-300 cursor-pointer">
+              Receita Recorrente
+            </label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="password-chart"
+              checked={visibleCharts?.password !== false}
+              onCheckedChange={(checked) => onVisibilityChange?.('password', checked)}
+              className="border-slate-600"
+            />
+            <label htmlFor="password-chart" className="text-sm text-slate-300 cursor-pointer">
+              Senhas de Produção
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {visibleCharts?.password !== false && (
       <Card className="bg-slate-800 border-slate-600">
         <CardHeader>
           <CardTitle className="text-white">Senhas de Produção Liberadas</CardTitle>
