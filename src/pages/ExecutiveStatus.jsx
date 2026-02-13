@@ -284,7 +284,7 @@ export default function ExecutiveStatus() {
     return 'em_dia';
   };
 
-  // Status counts - count cronogramas (project + vertical combinations)
+  // Status counts - count cronogramas (project_id + vertical combinations)
   const statusData = useMemo(() => {
     const counts = {
       nao_iniciado: 0,
@@ -304,66 +304,82 @@ export default function ExecutiveStatus() {
       concluido: []
     };
     
-    // Agrupar TimelineEvents por (project_id + vertical) - usando Set para evitar duplicatas
+    // Agrupar TimelineEvents por (project_id + vertical)
     const cronogramaMap = new Map();
     
     allTimelineEvents.forEach(event => {
       const key = event.vertical ? `${event.project_id}|${event.vertical}` : event.project_id;
       
       if (!cronogramaMap.has(key)) {
+        const project = allProjectsData.find(p => p.id === event.project_id);
         cronogramaMap.set(key, {
           project_id: event.project_id,
           vertical: event.vertical || null,
-          title: event.vertical || allProjectsData.find(p => p.id === event.project_id)?.name || 'Sem nome',
+          title: event.vertical || project?.name || 'Sem nome',
+          projectName: project?.name || 'Sem nome',
           events: []
         });
       }
       cronogramaMap.get(key).events.push(event);
     });
     
-    // Calcular status para cada cronograma
+    // Classificar status de cada cronograma baseado em seus TimelineEvents
     const now = new Date();
     
     cronogramaMap.forEach(cronograma => {
-      let status = 'em_dia';
       const events = cronograma.events;
+      let status = 'nao_iniciado'; // padrão se não tiver eventos
       
-      if (events.length === 0) {
-        status = 'nao_iniciado';
-      } else if (events.every(e => e.status === 'concluido')) {
-        status = 'concluido';
-      } else if (events.some(e => e.status === 'pausado')) {
-        status = 'pausado';
-      } else if (events.some(e => {
-        if (e.end_date) {
-          const endDate = new Date(e.end_date);
-          return endDate < now && e.status !== 'concluido';
+      if (events.length > 0) {
+        // 1. Se TODOS os eventos estão concluídos
+        if (events.every(e => e.status === 'concluido')) {
+          status = 'concluido';
         }
-        return false;
-      })) {
-        status = 'atrasado';
-      } else if (events.some(e => {
-        if (e.end_date && e.status === 'nao_iniciado') {
-          const endDate = new Date(e.end_date);
-          return endDate >= now && endDate <= new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+        // 2. Se TEM algum evento pausado
+        else if (events.some(e => e.status === 'pausado')) {
+          status = 'pausado';
         }
-        return false;
-      })) {
-        status = 'atencao';
+        // 3. Se TEM algum evento atrasado (passou do deadline sem estar concluído)
+        else if (events.some(e => {
+          if (e.end_date && e.status !== 'concluido') {
+            const endDate = new Date(e.end_date);
+            return endDate < now;
+          }
+          return false;
+        })) {
+          status = 'atrasado';
+        }
+        // 4. Se TEM algum evento em atenção (próximo de vencer)
+        else if (events.some(e => {
+          if (e.end_date && e.status !== 'concluido') {
+            const endDate = new Date(e.end_date);
+            const daysUntil = (endDate - now) / (1000 * 60 * 60 * 24);
+            return daysUntil >= 0 && daysUntil <= 7; // próximos 7 dias
+          }
+          return false;
+        })) {
+          status = 'atencao';
+        }
+        // 5. Se NENHUM evento foi iniciado
+        else if (events.every(e => e.status === 'nao_iniciado')) {
+          status = 'nao_iniciado';
+        }
+        // 6. Senão está em dia
+        else {
+          status = 'em_dia';
+        }
       }
       
       counts[status]++;
       cronogramasByStatus[status].push(cronograma);
     });
     
-    console.log('=== CRONOGRAMAS DEBUG ===');
-    console.log('Total cronogramas únicos:', cronogramaMap.size);
-    console.log('Status counts:', counts);
+    console.log('=== CRONOGRAMAS EXECUTIVO ===');
+    console.log('Total cronogramas:', cronogramaMap.size);
+    console.log('Contagem por status:', counts);
+    console.log('Detalhe:');
     cronogramaMap.forEach((cron, key) => {
-      console.log(`${key} => ${cron.title} (${cron.events.length} eventos)`);
-      cron.events.forEach(e => {
-        console.log(`  - ${e.title}: ${e.status}, end_date: ${e.end_date}`);
-      });
+      console.log(`${cron.projectName} + ${cron.vertical || '(sem vertical)'} = cronograma`);
     });
     
     return { counts, cronogramasByStatus };
