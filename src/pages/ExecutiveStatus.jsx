@@ -322,7 +322,7 @@ export default function ExecutiveStatus() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 p-6 lg:p-8 space-y-6">
+    <div className="min-h-screen bg-slate-950 p-6 lg:p-8 space-y-6">
       {/* Header */}
       <div className="space-y-4">
         <Link to={createPageUrl('ProjectsList')}>
@@ -359,10 +359,10 @@ export default function ExecutiveStatus() {
         <TabsContent value="overview" className="space-y-6">
           {/* Status Cards */}
           <div className="grid grid-cols-7 gap-3">
-        <Card className="bg-slate-800/50 border-slate-700/50">
+        <Card className="bg-slate-800 border-slate-600">
           <CardContent className="p-4 text-center flex flex-col items-center justify-center h-full">
             <div className="text-2xl font-bold text-white mb-0.5">{allProjectsData.length}</div>
-            <div className="text-xs text-slate-400">Total</div>
+            <div className="text-xs text-slate-300">Total</div>
           </CardContent>
         </Card>
 
@@ -383,13 +383,13 @@ export default function ExecutiveStatus() {
             return (
               <Tooltip key={status} delayDuration={200}>
                 <TooltipTrigger asChild>
-                  <Card className="bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 cursor-pointer transition-colors">
+                  <Card className="bg-slate-800 border-slate-600 hover:bg-slate-700 cursor-pointer transition-colors">
                     <CardContent className="p-4 text-center flex flex-col items-center justify-center h-full">
                       <div className="flex items-center justify-center mb-1">
                         <Icon className={cn("w-5 h-5", iconColorMap[status])} />
                       </div>
                       <div className="text-2xl font-bold text-white mb-0.5">{count}</div>
-                      <div className="text-xs text-slate-400">{statusLabels[status]}</div>
+                      <div className="text-xs text-slate-300">{statusLabels[status]}</div>
                     </CardContent>
                   </Card>
                 </TooltipTrigger>
@@ -425,7 +425,7 @@ export default function ExecutiveStatus() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {projectsWithMetrics.map(project => (
             <div key={project.id} className="relative">
-              <Card className="bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 transition-all h-full group">
+              <Card className="bg-slate-800 border-slate-600 hover:bg-slate-700 transition-all h-full group">
                 <Link 
                   to={createPageUrl(`Dashboard?project_id=${project.id}`)}
                   className="block"
@@ -456,30 +456,30 @@ export default function ExecutiveStatus() {
                 <CardContent className="space-y-4">
                   {/* Status */}
                   <div className="flex items-center gap-2">
-                    <div className={cn("w-2 h-2 rounded-full", statusColors[project.dynamicStatus])} />
-                    <span className="text-sm text-slate-400">{statusLabels[project.dynamicStatus]}</span>
+                    <div className={cn("w-2.5 h-2.5 rounded-full", statusColors[project.dynamicStatus])} />
+                    <span className="text-sm text-slate-300 font-medium">{statusLabels[project.dynamicStatus]}</span>
                   </div>
 
                   {/* Progress */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-slate-400">Progresso Geral</span>
-                      <span className="text-white font-semibold">{project.progress}%</span>
+                      <span className="text-slate-300 font-medium">Progresso Geral</span>
+                      <span className="text-white font-bold">{project.progress}%</span>
                     </div>
-                    <Progress value={project.progress} className="h-2" />
+                    <Progress value={project.progress} className="h-3 bg-slate-700" />
                   </div>
 
                   {/* Metrics */}
-                  <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-700/50">
+                  <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-600">
                     {project.manager && (
                       <div>
-                        <div className="text-xs text-slate-500">Gerente</div>
+                        <div className="text-xs text-slate-400 font-medium">Gerente</div>
                         <div className="text-sm text-white truncate">{project.manager}</div>
                       </div>
                     )}
                     {project.deadline && (
                       <div>
-                        <div className="text-xs text-slate-500">Prazo</div>
+                        <div className="text-xs text-slate-400 font-medium">Prazo</div>
                         <div className="text-sm text-white">
                           {new Date(project.deadline).toLocaleDateString('pt-BR')}
                         </div>
@@ -487,8 +487,8 @@ export default function ExecutiveStatus() {
                     )}
                     {project.implementation_value > 0 && (
                       <div>
-                        <div className="text-xs text-slate-500">Implantação</div>
-                        <div className="text-sm text-emerald-400">
+                        <div className="text-xs text-slate-400 font-medium">Implantação</div>
+                        <div className="text-sm text-emerald-400 font-semibold">
                           {new Intl.NumberFormat('pt-BR', { 
                             style: 'currency', 
                             currency: 'BRL',
@@ -500,8 +500,8 @@ export default function ExecutiveStatus() {
                     )}
                     {project.recurring_value > 0 && (
                       <div>
-                        <div className="text-xs text-slate-500">Recorrente</div>
-                        <div className="text-sm text-emerald-400">
+                        <div className="text-xs text-slate-400 font-medium">Recorrente</div>
+                        <div className="text-sm text-emerald-400 font-semibold">
                           {new Intl.NumberFormat('pt-BR', { 
                             style: 'currency', 
                             currency: 'BRL',
@@ -543,9 +543,9 @@ export default function ExecutiveStatus() {
                     const bulkRevenues = Object.values(groupedRevenues);
                     
                     return (
-                      <div className="pt-3 border-t border-slate-700/50">
+                      <div className="pt-3 border-t border-slate-600">
                         <div className="flex items-center justify-between mb-2">
-                          <div className="text-xs text-slate-500">Reconhecido</div>
+                          <div className="text-xs text-slate-400 font-medium">Reconhecido</div>
                           <button
                             onClick={(e) => {
                               e.preventDefault();
@@ -603,10 +603,10 @@ export default function ExecutiveStatus() {
         </div>
 
             {projectsWithMetrics.length === 0 && (
-              <Card className="bg-slate-800/50 border-slate-700/50">
+              <Card className="bg-slate-800 border-slate-600">
                 <CardContent className="py-12 text-center">
-                  <LayoutDashboard className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-                  <p className="text-slate-400">Nenhum projeto ativo no momento</p>
+                  <LayoutDashboard className="w-12 h-12 text-slate-500 mx-auto mb-3" />
+                  <p className="text-slate-300">Nenhum projeto ativo no momento</p>
                 </CardContent>
               </Card>
             )}
@@ -614,7 +614,7 @@ export default function ExecutiveStatus() {
 
           {/* Completed Projects Summary */}
           {statusData.counts.concluido > 0 && (
-            <Card className="bg-slate-800/50 border-slate-700/50">
+            <Card className="bg-slate-800 border-slate-600">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
                   <CheckCircle2 className="w-5 h-5 text-purple-400" />
@@ -623,8 +623,8 @@ export default function ExecutiveStatus() {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-purple-400 mb-3">{statusData.counts.concluido}</div>
-                <div className="text-sm text-slate-400 mb-4">projetos finalizados com sucesso</div>
-                <div className="space-y-2 pt-3 border-t border-slate-700/50">
+                <div className="text-sm text-slate-300 mb-4">projetos finalizados com sucesso</div>
+                <div className="space-y-2 pt-3 border-t border-slate-600">
                   {statusData.projectsByStatus.concluido.map(project => (
                     <div key={project.id} className="flex items-center gap-2 text-sm">
                       <div className="w-1.5 h-1.5 rounded-full bg-purple-400 flex-shrink-0" />
@@ -746,7 +746,7 @@ export default function ExecutiveStatus() {
             return (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Gráfico de Implantação */}
-                <Card className="bg-slate-800/50 border-slate-700/50">
+                <Card className="bg-slate-800 border-slate-600">
                   <CardHeader>
                     <CardTitle className="text-white">Receita de Implantação</CardTitle>
                   </CardHeader>
@@ -827,7 +827,7 @@ export default function ExecutiveStatus() {
                 </Card>
 
                 {/* Gráfico de Recorrente */}
-                <Card className="bg-slate-800/50 border-slate-700/50">
+                <Card className="bg-slate-800 border-slate-600">
                   <CardHeader>
                     <CardTitle className="text-white">Receita Recorrente (MRR)</CardTitle>
                   </CardHeader>
@@ -910,7 +910,7 @@ export default function ExecutiveStatus() {
               if (recognizedInMonth.length === 0) return null;
               
               return (
-                <Card className="bg-slate-800/50 border-slate-700/50">
+                <Card className="bg-slate-800 border-slate-600">
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-white">
@@ -1010,7 +1010,7 @@ export default function ExecutiveStatus() {
             if (productsInMonth.length === 0) return null;
             
             return (
-              <Card className="bg-slate-800/50 border-slate-700/50">
+              <Card className="bg-slate-800 border-slate-600">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-white">
