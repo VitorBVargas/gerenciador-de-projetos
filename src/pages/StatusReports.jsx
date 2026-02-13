@@ -161,6 +161,40 @@ Seja específico, objetivo e acionável.`
     }
   };
 
+  const analyzeLastSevenDays = async () => {
+    if (!conversation) return;
+    
+    setIsAnalyzingWeek(true);
+    setSending(true);
+    try {
+      const today = new Date();
+      const sevenDaysAgo = new Date(today);
+      sevenDaysAgo.setDate(today.getDate() - 7);
+
+      await base44.agents.addMessage(conversation, {
+        role: 'user',
+        content: `Faça uma análise inteligente do projeto referente aos últimos 7 dias corridos (de ${format(sevenDaysAgo, 'dd/MM/yyyy')} a ${format(today, 'dd/MM/yyyy')}).
+
+Analise:
+1. **Evolução do Cronograma**: Quais etapas avançaram ou tiveram atrasos
+2. **Tarefas em Andamento**: Progresso em migrações e homologações
+3. **Marcos Alcançados**: Quais foram atingidos neste período
+4. **Riscos e Bloqueadores**: Novos riscos ou problemas identificados
+5. **Recomendações**: Ações prioritárias para a próxima semana
+
+Seja específico e acionável.`
+      });
+
+      // Aguardar resposta
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    } catch (error) {
+      console.error('Erro ao analisar semana:', error);
+    } finally {
+      setIsAnalyzingWeek(false);
+      setSending(false);
+    }
+  };
+
   const parseReportSections = (content) => {
     const sections = {
       summary: '',
