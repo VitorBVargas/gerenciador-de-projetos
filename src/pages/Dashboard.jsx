@@ -28,6 +28,7 @@ import ProjectHealthScore from '../components/dashboard/ProjectHealthScore.jsx';
 import ProjectModal from '../components/modals/ProjectModal.jsx';
 import ExcelImporter from '../components/import/ExcelImporter.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
+import ProjectInsightsModal from '../components/dashboard/ProjectInsightsModal.jsx';
 import { Checkbox } from "@/components/ui/checkbox";
 
 export default function Dashboard() {
@@ -35,6 +36,8 @@ export default function Dashboard() {
   const [projectModalOpen, setProjectModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [importModalOpen, setImportModalOpen] = useState(false);
+  const [insightsModalOpen, setInsightsModalOpen] = useState(false);
+  const [hasShownInsights, setHasShownInsights] = useState(false);
 
   // Get project_id from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -109,6 +112,14 @@ export default function Dashboard() {
 
   // Active project
   const activeProject = projects.find(p => p.id === projectId);
+
+  // Mostrar insights automaticamente quando entrar no projeto
+  useEffect(() => {
+    if (projectId && activeProject && !hasShownInsights) {
+      setHasShownInsights(true);
+      setInsightsModalOpen(true);
+    }
+  }, [projectId, activeProject, hasShownInsights]);
 
   // Mutations
   const createProjectMutation = useMutation({
@@ -580,6 +591,13 @@ export default function Dashboard() {
         open={importModalOpen}
         onOpenChange={setImportModalOpen}
         onSuccess={handleImportSuccess}
+      />
+
+      {/* Project Insights Modal */}
+      <ProjectInsightsModal
+        open={insightsModalOpen}
+        onClose={() => setInsightsModalOpen(false)}
+        projectId={projectId}
       />
     </div>
   );
