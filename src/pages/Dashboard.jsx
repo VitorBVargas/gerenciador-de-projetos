@@ -31,6 +31,7 @@ import ExcelImporter from '../components/import/ExcelImporter.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
 import ProjectInsightsModal from '../components/dashboard/ProjectInsightsModal.jsx';
 import AIAssistantModal from '../components/modals/AIAssistantModal.jsx';
+import AIWelcomeModal from '../components/modals/AIWelcomeModal.jsx';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Sparkles } from 'lucide-react';
 
@@ -41,11 +42,13 @@ export default function Dashboard() {
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [insightsModalOpen, setInsightsModalOpen] = useState(false);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+  const [isAIWelcomeOpen, setIsAIWelcomeOpen] = useState(isNewProject);
   const [hasShownInsights, setHasShownInsights] = useState(false);
 
   // Get project_id from URL
   const urlParams = new URLSearchParams(window.location.search);
   const projectId = urlParams.get('project_id');
+  const isNewProject = urlParams.get('isNewProject') === 'true';
 
   // Fetch all data
   const { data: projects = [] } = useQuery({
@@ -631,6 +634,13 @@ export default function Dashboard() {
         isOpen={isAIModalOpen}
         onClose={() => setIsAIModalOpen(false)}
         projectId={projectId}
+      />
+
+      {/* AI Welcome Modal */}
+      <AIWelcomeModal 
+        isOpen={isAIWelcomeOpen}
+        onClose={() => setIsAIWelcomeOpen(false)}
+        projectName={activeProject?.name || 'Seu Projeto'}
       />
     </div>
   );

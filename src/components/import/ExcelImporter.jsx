@@ -821,10 +821,9 @@ const processProductsSheet = (workbook) => {
       setStatus('Importação concluída com sucesso!');
       setSuccess(true);
 
-      // Wait a bit and close
+      // Redirecionar para o projeto com novo flag
       setTimeout(() => {
-        onSuccess?.();
-        handleClose();
+        window.location.href = `/dashboard?project_id=${project.id}&isNewProject=true`;
       }, 2000);
 
     } catch (err) {
