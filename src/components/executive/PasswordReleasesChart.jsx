@@ -64,9 +64,19 @@ export default function PasswordReleasesChart({ products, visibleCharts = {}, on
       if (!product.production_password) return false;
       const releaseDate = product.created_date || new Date().toISOString();
       const releaseMonth = format(new Date(releaseDate), 'yyyy-MM');
-      return releaseMonth === selectedMonth;
+      
+      if (releaseMonth !== selectedMonth) return false;
+      
+      // Filtrar por tipo se selecionado
+      if (selectedType === 'released') {
+        return !product.password_grace_period_until;
+      } else if (selectedType === 'grace_period') {
+        return product.password_grace_period_until;
+      }
+      
+      return true;
     });
-  }, [selectedMonth, products]);
+  }, [selectedMonth, products, selectedType]);
 
   return (
     <>
