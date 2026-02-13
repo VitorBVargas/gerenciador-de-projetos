@@ -15,7 +15,7 @@ export default function ProjectInsightsModal({ open, onClose, projectId }) {
     if (open && projectId) {
       fetchInsights();
     }
-  }, [open, projectId]);
+  }, [open]);
 
   const fetchInsights = async () => {
     setLoading(true);
