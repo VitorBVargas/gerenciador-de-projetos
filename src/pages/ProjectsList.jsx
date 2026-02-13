@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, FolderOpen, Trash2, Upload, Calendar, DollarSign, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
@@ -102,8 +103,73 @@ export default function ProjectsList() {
     setImportModalOpen(false);
   };
 
-  // Filter out 100% completed projects
+  // Filter projects by status
   const activeProjects = projects.filter(p => p.status !== 'concluido');
+  const completedProjects = projects.filter(p => p.status === 'concluido');
+
+  const renderProjectCard = (project) => (
+    <Card 
+      key={project.id} 
+      className={`bg-slate-800/50 border-slate-700 hover:bg-slate-800 transition-all group ${
+        deletingProjectId === project.id ? 'opacity-50 pointer-events-none' : ''
+      }`}
+    >
+      <CardHeader>
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <CardTitle className="text-white text-lg mb-2">
+              {deletingProjectId === project.id ? 'Excluindo...' : project.name}
+            </CardTitle>
+          </div>
+          {deletingProjectId !== project.id && (
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleDelete(project);
+              }}
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {project.manager && (
+          <div className="text-sm text-slate-400">
+            <span className="text-slate-500">Gerente:</span> {project.manager}
+          </div>
+        )}
+        
+        {project.deadline && (
+          <div className="flex items-center gap-2 text-sm text-slate-400">
+            <Calendar className="w-4 h-4" />
+            <span>Prazo: {format(new Date(project.deadline), 'dd/MM/yyyy', { locale: ptBR })}</span>
+          </div>
+        )}
+
+        {project.value && (
+          <div className="flex items-center gap-2 text-sm text-slate-400">
+            <DollarSign className="w-4 h-4" />
+            <span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(project.value)}</span>
+          </div>
+        )}
+
+        <Link to={createPageUrl(`Dashboard?project_id=${project.id}`)}>
+          <Button 
+            className="w-full bg-blue-600 hover:bg-blue-700 mt-4"
+            disabled={deletingProjectId === project.id}
+          >
+            <FolderOpen className="w-4 h-4 mr-2" />
+            Abrir Projeto
+          </Button>
+        </Link>
+      </CardContent>
+    </Card>
+  );
 
   return (
     <div className="min-h-screen bg-slate-900">
@@ -131,10 +197,41 @@ export default function ProjectsList() {
           </div>
         </div>
 
-        {/* Projects Grid */}
-        {activeProjects.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {activeProjects.map((project) => (
+        {/* Tabs */}
+        <Tabs defaultValue="active" className="w-full">
+          <TabsList className="bg-slate-800 border-slate-700">
+            <TabsTrigger value="active" className="data-[state=active]:bg-slate-700">
+              Ativos ({activeProjects.length})
+            </TabsTrigger>
+            <TabsTrigger value="completed" className="data-[state=active]:bg-slate-700">
+              Concluídos ({completedProjects.length})
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="active" className="mt-6">
+            {activeProjects.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {activeProjects.map(renderProjectCard)}
+              </div>
+            ) : (
+              <Card className="bg-slate-800/50 border-slate-700">
+                <CardContent className="py-16 text-center">
+                  <Upload className="w-16 h-16 mx-auto mb-4 text-slate-600" />
+                  <h3 className="text-xl font-semibold text-white mb-2">Nenhum projeto ativo</h3>
+                  <p className="text-slate-400 mb-6">Importe um projeto do Excel para começar</p>
+                  <Button onClick={() => setImportModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+                    <Upload className="w-4 h-4 mr-2" />
+                    Importar Primeiro Projeto
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="completed" className="mt-6">
+            {completedProjects.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {completedProjects.map((project) => (
               <Card 
                 key={project.id} 
                 className={`bg-slate-800/50 border-slate-700 hover:bg-slate-800 transition-all group ${
@@ -195,22 +292,19 @@ export default function ProjectsList() {
                     </Button>
                   </Link>
                 </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card className="bg-slate-800/50 border-slate-700">
+                <CardContent className="py-16 text-center">
+                  <h3 className="text-xl font-semibold text-white mb-2">Nenhum projeto concluído</h3>
+                  <p className="text-slate-400">Os projetos concluídos aparecerão aqui</p>
+                </CardContent>
               </Card>
-            ))}
-          </div>
-        ) : (
-          <Card className="bg-slate-800/50 border-slate-700">
-            <CardContent className="py-16 text-center">
-              <Upload className="w-16 h-16 mx-auto mb-4 text-slate-600" />
-              <h3 className="text-xl font-semibold text-white mb-2">Nenhum projeto ativo</h3>
-              <p className="text-slate-400 mb-6">Importe um projeto do Excel para começar</p>
-              <Button onClick={() => setImportModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
-                <Upload className="w-4 h-4 mr-2" />
-                Importar Primeiro Projeto
-              </Button>
-            </CardContent>
-          </Card>
-        )}
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Import Modal */}

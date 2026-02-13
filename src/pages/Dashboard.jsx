@@ -309,6 +309,14 @@ export default function Dashboard() {
           <h1 className="text-2xl lg:text-3xl font-bold text-white">Visão Geral</h1>
           <p className="text-slate-400 mt-1">Acompanhe o progresso do seu projeto</p>
         </div>
+        {activeProject && (
+          <Button 
+            onClick={handleEditProject}
+            className="bg-slate-700 hover:bg-slate-600"
+          >
+            Editar Projeto
+          </Button>
+        )}
       </div>
 
       {/* Project Info Row */}
