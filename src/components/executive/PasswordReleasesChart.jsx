@@ -70,43 +70,41 @@ export default function PasswordReleasesChart({ products, visibleCharts = {}, on
   return (
     <>
       {/* Controles de Visibilidade */}
-      <div className="bg-slate-800 border border-slate-600 rounded-lg p-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-white font-semibold text-sm">Gráficos do Financeiro</h3>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5">
-              <Checkbox
-                id="implantacao-chart"
-                checked={visibleCharts?.implantacao !== false}
-                onCheckedChange={(checked) => onVisibilityChange?.('implantacao', checked)}
-                className="border-slate-600 h-4 w-4"
-              />
-              <label htmlFor="implantacao-chart" className="text-xs text-slate-300 cursor-pointer">
-                Implantação
-              </label>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Checkbox
-                id="recorrente-chart"
-                checked={visibleCharts?.recorrente !== false}
-                onCheckedChange={(checked) => onVisibilityChange?.('recorrente', checked)}
-                className="border-slate-600 h-4 w-4"
-              />
-              <label htmlFor="recorrente-chart" className="text-xs text-slate-300 cursor-pointer">
-                Recorrente
-              </label>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Checkbox
-                id="password-chart"
-                checked={visibleCharts?.password !== false}
-                onCheckedChange={(checked) => onVisibilityChange?.('password', checked)}
-                className="border-slate-600 h-4 w-4"
-              />
-              <label htmlFor="password-chart" className="text-xs text-slate-300 cursor-pointer">
-                Senhas de Produção
-              </label>
-            </div>
+      <div className="bg-slate-800 border border-slate-600 rounded-lg p-4 flex items-center justify-between">
+        <h3 className="text-white font-semibold text-sm">Gráficos do Financeiro</h3>
+        <div className="flex items-center gap-4 ml-auto pl-4">
+          <div className="flex items-center gap-1.5">
+            <Checkbox
+              id="implantacao-chart"
+              checked={visibleCharts?.implantacao !== false}
+              onCheckedChange={(checked) => onVisibilityChange?.('implantacao', checked)}
+              className="border-slate-600"
+            />
+            <label htmlFor="implantacao-chart" className="text-xs text-slate-300 cursor-pointer whitespace-nowrap">
+              Implantação
+            </label>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Checkbox
+              id="recorrente-chart"
+              checked={visibleCharts?.recorrente !== false}
+              onCheckedChange={(checked) => onVisibilityChange?.('recorrente', checked)}
+              className="border-slate-600"
+            />
+            <label htmlFor="recorrente-chart" className="text-xs text-slate-300 cursor-pointer whitespace-nowrap">
+              Recorrente
+            </label>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Checkbox
+              id="password-chart"
+              checked={visibleCharts?.password !== false}
+              onCheckedChange={(checked) => onVisibilityChange?.('password', checked)}
+              className="border-slate-600"
+            />
+            <label htmlFor="password-chart" className="text-xs text-slate-300 cursor-pointer whitespace-nowrap">
+              Senhas de Produção
+            </label>
           </div>
         </div>
       </div>
