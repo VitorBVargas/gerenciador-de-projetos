@@ -62,25 +62,9 @@ export default function PasswordReleasesChart({ products, visibleCharts = {}, on
   const releasedProducts = useMemo(() => {
     if (!selectedMonth) return [];
 
-    return products.filter(product => {
-      if (!product.production_password) return false;
-      
-      // Filtrar por tipo selecionado
-      if (selectedType === 'released') {
-        // Produtos liberados SEM carência contam no mês atual
-        if (product.password_grace_period_until) return false;
-        const currentMonth = format(new Date(), 'yyyy-MM');
-        return currentMonth === selectedMonth;
-      } else if (selectedType === 'grace_period') {
-        // Produtos COM carência aparecem até o mês em que termina
-        if (!product.password_grace_period_until) return false;
-        const graceMonth = format(new Date(product.password_grace_period_until), 'yyyy-MM');
-        return graceMonth === selectedMonth;
-      }
-      
-      return false;
-    });
-  }, [selectedMonth, products, selectedType]);
+    const dataItem = chartData.find(item => item.vertical === selectedMonth);
+    return dataItem?.products || [];
+  }, [selectedMonth, chartData]);
 
   return (
     <>
