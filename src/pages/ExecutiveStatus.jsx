@@ -284,10 +284,7 @@ export default function ExecutiveStatus() {
     return 'em_dia';
   };
 
-  // Active projects
-  const activeProjects = projects;
-
-  // Status counts - count Projects by their status
+  // Status counts - count cronogramas (project + vertical combinations)
   const statusData = useMemo(() => {
     const counts = {
       nao_iniciado: 0,
@@ -298,7 +295,7 @@ export default function ExecutiveStatus() {
       concluido: 0
     };
     
-    const projectsByStatus = {
+    const cronogramasByStatus = {
       nao_iniciado: [],
       em_dia: [],
       atencao: [],
@@ -307,17 +304,60 @@ export default function ExecutiveStatus() {
       concluido: []
     };
     
-    const now = new Date();
+    // Agrupar TimelineEvents por (project_id + vertical)
+    const cronogramas = {};
     
-    // Classify each project by its status
-    activeProjects.forEach(project => {
-      const status = classifyProjectStatus(project);
-      counts[status]++;
-      projectsByStatus[status].push(project);
+    allTimelineEvents.forEach(event => {
+      const key = event.vertical ? `${event.project_id}|${event.vertical}` : event.project_id;
+      
+      if (!cronogramas[key]) {
+        cronogramas[key] = {
+          project_id: event.project_id,
+          vertical: event.vertical || null,
+          title: event.vertical || allProjectsData.find(p => p.id === event.project_id)?.name || 'Sem nome',
+          events: []
+        };
+      }
+      cronogramas[key].events.push(event);
     });
     
-    return { counts, projectsByStatus };
-  }, [activeProjects, allTimelineEvents]);
+    // Calcular status para cada cronograma
+    const now = new Date();
+    
+    Object.values(cronogramas).forEach(cronograma => {
+      let status = 'em_dia';
+      const events = cronograma.events;
+      
+      if (events.length === 0) {
+        status = 'nao_iniciado';
+      } else if (events.every(e => e.status === 'concluido')) {
+        status = 'concluido';
+      } else if (events.some(e => e.status === 'pausado')) {
+        status = 'pausado';
+      } else if (events.some(e => {
+        if (e.end_date) {
+          const endDate = new Date(e.end_date);
+          return endDate < now && e.status !== 'concluido';
+        }
+        return false;
+      })) {
+        status = 'atrasado';
+      } else if (events.some(e => {
+        if (e.end_date && e.status === 'nao_iniciado') {
+          const endDate = new Date(e.end_date);
+          return endDate >= now && endDate <= new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+        }
+        return false;
+      })) {
+        status = 'atencao';
+      }
+      
+      counts[status]++;
+      cronogramasByStatus[status].push(cronograma);
+    });
+    
+    return { counts, cronogramasByStatus };
+  }, [allTimelineEvents, allProjectsData]);
 
   // Calculate project with health status
   const projectsWithMetrics = useMemo(() => {
