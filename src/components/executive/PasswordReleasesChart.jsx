@@ -147,8 +147,9 @@ export default function PasswordReleasesChart({ products, visibleCharts = {}, on
           <CardContent>
             <div className="space-y-2">
               {/* Cabeçalho */}
-              <div className="grid grid-cols-3 gap-4 px-4 py-2 border-b border-slate-700 text-xs text-slate-400 font-semibold">
+              <div className="grid grid-cols-4 gap-4 px-4 py-2 border-b border-slate-700 text-xs text-slate-400 font-semibold">
                 <div>Produto</div>
+                <div>Projeto</div>
                 <div>Status</div>
                 <div>Fim da Carência</div>
               </div>
@@ -157,13 +158,14 @@ export default function PasswordReleasesChart({ products, visibleCharts = {}, on
               {releasedProducts.map((product) => (
                 <div
                   key={product.id}
-                  className={`grid grid-cols-3 gap-4 items-center p-4 rounded-lg border transition-colors ${
+                  className={`grid grid-cols-4 gap-4 items-center p-4 rounded-lg border transition-colors ${
                     product.password_grace_period_until
                       ? 'bg-amber-900/20 border-amber-700/50 hover:border-amber-600'
                       : 'bg-emerald-900/20 border-emerald-700/50 hover:border-emerald-600'
                   }`}
                 >
                   <div className="font-semibold text-white">{product.name}</div>
+                  <div className="text-sm text-slate-300">{product.project_id}</div>
                   <div>
                     <Badge className={
                       product.password_grace_period_until
