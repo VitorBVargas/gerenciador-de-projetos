@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { createPageUrl } from '../utils';
 import { Link } from 'react-router-dom';
 import ProjectsDeliveryTimeline from '../components/timeline/ProjectsDeliveryTimeline';
+import PasswordReleasesChart from '../components/executive/PasswordReleasesChart';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { format, addMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -648,6 +649,9 @@ export default function ExecutiveStatus() {
 
         {/* Financeiro Tab */}
         <TabsContent value="financeiro" className="space-y-6">
+          {/* Gráfico de Senhas Liberadas */}
+          <PasswordReleasesChart products={allProducts} />
+
           {(() => {
             // Calcular valores por mês
             const monthlyData = {};

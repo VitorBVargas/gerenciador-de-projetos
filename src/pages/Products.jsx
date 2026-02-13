@@ -265,7 +265,9 @@ export default function Products() {
                                 className={cn(
                                   "w-2 h-2 rounded-full transition-all",
                                   product.production_password 
-                                    ? "bg-green-500 shadow-lg shadow-green-500/50 ring-2 ring-green-500/30" 
+                                    ? product.password_grace_period_until
+                                      ? "bg-amber-500 shadow-lg shadow-amber-500/50 ring-2 ring-amber-500/30"
+                                      : "bg-green-500 shadow-lg shadow-green-500/50 ring-2 ring-green-500/30" 
                                     : "bg-slate-600"
                                 )}
                               />
