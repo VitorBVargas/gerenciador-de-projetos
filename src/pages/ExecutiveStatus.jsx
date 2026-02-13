@@ -805,12 +805,6 @@ Seja conciso, profissional e em português.`;
 
         {/* Financeiro Tab */}
         <TabsContent value="financeiro" className="space-y-6">
-          {/* Controles de Visibilidade */}
-          <PasswordReleasesChart 
-            products={allProducts}
-            visibleCharts={visibleCharts}
-            onVisibilityChange={handleChartVisibility}
-          />
 
            {(() => {
             // Calcular valores por mês
