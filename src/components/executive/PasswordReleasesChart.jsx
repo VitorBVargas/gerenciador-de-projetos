@@ -32,6 +32,13 @@ export default function PasswordReleasesChart({ products, visibleCharts = {}, on
       if (product.production_password) {
         // Se tem carência até uma data
         if (product.password_grace_period_until) {
+          // Mostrar "Com Carência" até o mês em que termina
+          const graceMonth = format(new Date(product.password_grace_period_until), 'yyyy-MM');
+          if (monthlyData[graceMonth]) {
+            monthlyData[graceMonth].comCarencia += 1;
+            monthlyData[graceMonth].products.push(product);
+          }
+          
           // Contar no mês SEGUINTE ao fim da carência
           const gracePeriodDate = new Date(product.password_grace_period_until);
           const nextMonthAfterGrace = addMonths(gracePeriodDate, 1);
@@ -40,12 +47,6 @@ export default function PasswordReleasesChart({ products, visibleCharts = {}, on
           if (monthlyData[countMonth]) {
             monthlyData[countMonth].liberadas += 1;
             monthlyData[countMonth].products.push(product);
-          }
-          
-          // Mostrar "Com Carência" até o mês em que termina
-          const graceMonth = format(new Date(product.password_grace_period_until), 'yyyy-MM');
-          if (monthlyData[graceMonth]) {
-            monthlyData[graceMonth].comCarencia += 1;
           }
         } else {
           // Senha liberada SEM carência: contar no mês atual
