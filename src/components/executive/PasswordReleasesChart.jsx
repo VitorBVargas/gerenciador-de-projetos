@@ -145,7 +145,7 @@ export default function PasswordReleasesChart({ products, visibleCharts = {}, on
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-white">
-                Senhas Liberadas em {format(new Date(selectedMonth + '-01'), 'MMMM/yyyy', { locale: ptBR })}
+                {selectedType === 'grace_period' ? 'Com Carência' : 'Liberadas'} em {format(new Date(selectedMonth + '-01'), 'MMMM/yyyy', { locale: ptBR })}
               </CardTitle>
               <Button
                 variant="ghost"
