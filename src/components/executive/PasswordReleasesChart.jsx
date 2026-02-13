@@ -149,34 +149,39 @@ export default function PasswordReleasesChart({ products, visibleCharts = {}, on
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
+            <div className="space-y-2">
+              {/* Cabeçalho */}
+              <div className="grid grid-cols-3 gap-4 px-4 py-2 border-b border-slate-700 text-xs text-slate-400 font-semibold">
+                <div>Produto</div>
+                <div>Status</div>
+                <div>Fim da Carência</div>
+              </div>
+              
+              {/* Lista de produtos */}
               {releasedProducts.map((product) => (
                 <div
                   key={product.id}
-                  className={`p-4 rounded-lg border transition-colors ${
+                  className={`grid grid-cols-3 gap-4 items-center p-4 rounded-lg border transition-colors ${
                     product.password_grace_period_until
                       ? 'bg-amber-900/20 border-amber-700/50 hover:border-amber-600'
                       : 'bg-emerald-900/20 border-emerald-700/50 hover:border-emerald-600'
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Badge className={
-                          product.password_grace_period_until
-                            ? "bg-amber-600 text-white text-xs"
-                            : "bg-emerald-600 text-white text-xs"
-                        }>
-                          {product.password_grace_period_until ? 'Com Carência' : 'Liberada'}
-                        </Badge>
-                        <div className="font-semibold text-white">{product.name}</div>
-                      </div>
-                      {product.password_grace_period_until && (
-                        <div className="text-sm text-amber-400 mt-1">
-                          Carência até: {format(new Date(product.password_grace_period_until), 'dd/MM/yyyy', { locale: ptBR })}
-                        </div>
-                      )}
-                    </div>
+                  <div className="font-semibold text-white">{product.name}</div>
+                  <div>
+                    <Badge className={
+                      product.password_grace_period_until
+                        ? "bg-amber-600 text-white text-xs"
+                        : "bg-emerald-600 text-white text-xs"
+                    }>
+                      {product.password_grace_period_until ? 'Com Carência' : 'Liberada'}
+                    </Badge>
+                  </div>
+                  <div className="text-sm text-slate-300">
+                    {product.password_grace_period_until 
+                      ? format(new Date(product.password_grace_period_until), 'dd/MM/yyyy', { locale: ptBR })
+                      : '-'
+                    }
                   </div>
                 </div>
               ))}
