@@ -78,7 +78,25 @@ export default function ExecutiveStatus() {
     recorrente: true,
     password: true
   });
+  const [isAnalyzingPortfolio, setIsAnalyzingPortfolio] = useState(false);
+  const [conversation, setConversation] = useState(null);
   const queryClient = useQueryClient();
+
+  // Inicializar conversa IA
+  useEffect(() => {
+    const initConversation = async () => {
+      try {
+        const conv = await base44.agents.createConversation({
+          agent_name: 'ia_projetos_betha',
+          metadata: { type: 'executive' }
+        });
+        setConversation(conv);
+      } catch (error) {
+        console.error('Erro ao criar conversa:', error);
+      }
+    };
+    initConversation();
+  }, []);
 
   // Check if it's the first time accessing ExecutiveStatus today
   useEffect(() => {
@@ -97,6 +115,51 @@ export default function ExecutiveStatus() {
       ...prev,
       [chart]: visible
     }));
+  };
+
+  const analyzePortfolioStatus = async () => {
+    if (!conversation) return;
+    
+    setIsAnalyzingPortfolio(true);
+    try {
+      const completedCount = allProjectsData.filter(p => p.status === 'concluido').length;
+      const releasedPasswords = allProducts.filter(p => p.production_password).length;
+      const totalRecognized = allRecognizedRevenues.reduce((sum, r) => sum + (r.amount || 0), 0);
+
+      await base44.agents.addMessage(conversation, {
+        role: 'user',
+        content: `Faça uma análise inteligente do status atual do portfólio de clientes Premium SC/MG.
+
+Dados do Portfólio:
+- Projetos concluídos: ${completedCount}
+- Projetos ativos: ${projects.length}
+- Produtos em implantação: ${allProducts.filter(p => {
+          const project = allProjectsData.find(proj => proj.id === p.project_id);
+          return project && project.status !== 'concluido';
+        }).length}
+- Licenças de produção liberadas: ${releasedPasswords}
+- Total reconhecido em receita: R$ ${totalRecognized.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}
+- Cronogramas em dia: ${statusData.counts.em_dia}
+- Cronogramas com atenção: ${statusData.counts.atencao}
+- Cronogramas atrasados: ${statusData.counts.atrasado}
+- Cronogramas concluídos: ${statusData.counts.concluido}
+
+Analise:
+1. **Status Geral**: Como está a saúde do portfólio
+2. **Avanços**: Quais foram os principais avanços (projetos concluídos, licenças, receita)
+3. **Atenção**: Cronogramas ou projetos que precisam atenção imediata
+4. **Próximas Prioridades**: O que deve ser focado
+5. **Métricas**: Resumo das principais métricas
+
+Seja conciso e executivo.`
+      });
+
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    } catch (error) {
+      console.error('Erro ao analisar portfólio:', error);
+    } finally {
+      setIsAnalyzingPortfolio(false);
+    }
   };
 
   // Fetch all projects
