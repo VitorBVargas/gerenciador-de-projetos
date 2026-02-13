@@ -69,22 +69,29 @@ export default function PasswordReleasesChart({ products, visibleCharts = {}, on
   return (
     <>
       {visibleCharts?.password !== false && (
-      <Card className="bg-slate-800 border-slate-600">
+      <Card className="bg-slate-800/50 border-slate-700/50">
         <CardHeader>
-          <CardTitle className="text-white">Senhas de Produção Liberadas</CardTitle>
+          <CardTitle className="text-white">Senhas de Produção Liberadas por Vertical</CardTitle>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={chartData}>
+          <ResponsiveContainer width="100%" height={Math.max(300, chartData.length * 60)}>
+            <BarChart 
+              data={chartData}
+              layout="vertical"
+              margin={{ top: 5, right: 30, left: 120, bottom: 5 }}
+            >
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
               <XAxis
-                dataKey="month"
+                type="number"
                 stroke="#94a3b8"
-                style={{ fontSize: '12px' }}
+                tick={{ fill: '#94a3b8' }}
               />
               <YAxis
+                type="category"
+                dataKey="name"
                 stroke="#94a3b8"
-                style={{ fontSize: '12px' }}
+                tick={{ fill: '#94a3b8' }}
+                width={110}
               />
               <RechartsTooltip
                 contentStyle={{
@@ -96,24 +103,20 @@ export default function PasswordReleasesChart({ products, visibleCharts = {}, on
               />
               <Legend />
               <Bar
-                dataKey="released"
+                dataKey="liberadas"
                 fill="#10b981"
                 name="Liberadas"
                 cursor="pointer"
-                onClick={(data) => {
-                  setSelectedMonth(data.raw_key);
-                  setSelectedType('released');
-                }}
+                onClick={(data) => setSelectedMonth(data.vertical)}
+                stackId="a"
               />
               <Bar
-                dataKey="grace_period"
+                dataKey="comCarencia"
                 fill="#f59e0b"
                 name="Com Carência"
                 cursor="pointer"
-                onClick={(data) => {
-                  setSelectedMonth(data.raw_key);
-                  setSelectedType('grace_period');
-                }}
+                onClick={(data) => setSelectedMonth(data.vertical)}
+                stackId="a"
               />
             </BarChart>
           </ResponsiveContainer>
@@ -127,13 +130,13 @@ export default function PasswordReleasesChart({ products, visibleCharts = {}, on
         </Card>
         )}
 
-        {/* Lista de senhas liberadas no mês selecionado */}
+        {/* Lista de senhas liberadas por vertical */}
         {selectedMonth && releasedProducts.length > 0 && (
         <Card className="bg-slate-800 border-slate-600">
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-white">
-                {selectedType === 'grace_period' ? 'Com Carência' : 'Liberadas'} em {format(new Date(selectedMonth + '-01'), 'MMMM/yyyy', { locale: ptBR })}
+                Senhas em {chartData.find(d => d.vertical === selectedMonth)?.name}
               </CardTitle>
               <Button
                 variant="ghost"
