@@ -275,97 +275,107 @@ export default function Travels() {
 
       {viewMode === 'calendar' ? (
         <>
-          {/* Month Navigation */}
-          <Card className="bg-slate-800/50 border-slate-700/50">
-            <CardHeader className="border-b border-slate-700/50">
-              <div className="flex items-center justify-between">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-                  className="text-slate-400 hover:text-white hover:bg-slate-700"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </Button>
-                <CardTitle className="text-xl text-white">
-                  {format(currentMonth, "MMMM 'de' yyyy", { locale: ptBR })}
-                </CardTitle>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-                  className="text-slate-400 hover:text-white hover:bg-slate-700"
-                >
-                  <ChevronRight className="w-5 h-5" />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-700/50">
-                      <th className="sticky left-0 z-10 bg-slate-800/50 px-4 py-3 text-left text-sm font-semibold text-slate-400 min-w-[200px]">
-                        Implantador
-                      </th>
-                      {daysInMonth.map(day => (
-                        <th key={day.toString()} className="px-2 py-3 text-center text-xs font-medium text-slate-400 min-w-[40px]">
-                          <div>{format(day, 'dd')}</div>
-                          <div className="text-[10px] text-slate-500">{format(day, 'EEE', { locale: ptBR })}</div>
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {verticals.map(vertical => (
-                      <React.Fragment key={vertical}>
-                        <tr className="bg-slate-700/30">
-                          <td colSpan={daysInMonth.length + 1} className="sticky left-0 z-10 px-4 py-2 text-sm font-semibold text-cyan-400 bg-slate-700/30">
-                            {verticalLabels[vertical] || vertical}
-                          </td>
+          {teamMembers.length === 0 ? (
+            <EmptyState
+              icon={Plane}
+              title="Nenhum membro da equipe cadastrado"
+              description="Adicione membros à equipe para visualizar o calendário de viagens"
+            />
+          ) : (
+            <>
+              {/* Month Navigation */}
+              <Card className="bg-slate-800/50 border-slate-700/50">
+                <CardHeader className="border-b border-slate-700/50">
+                  <div className="flex items-center justify-between">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+                      className="text-slate-400 hover:text-white hover:bg-slate-700"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </Button>
+                    <CardTitle className="text-xl text-white">
+                      {format(currentMonth, "MMMM 'de' yyyy", { locale: ptBR })}
+                    </CardTitle>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+                      className="text-slate-400 hover:text-white hover:bg-slate-700"
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-700/50">
+                          <th className="sticky left-0 z-10 bg-slate-800/50 px-4 py-3 text-left text-sm font-semibold text-slate-400 min-w-[200px]">
+                            Implantador
+                          </th>
+                          {daysInMonth.map(day => (
+                            <th key={day.toString()} className="px-2 py-3 text-center text-xs font-medium text-slate-400 min-w-[40px]">
+                              <div>{format(day, 'dd')}</div>
+                              <div className="text-[10px] text-slate-500">{format(day, 'EEE', { locale: ptBR })}</div>
+                            </th>
+                          ))}
                         </tr>
-                        {membersByVertical[vertical].map(member => (
-                          <tr key={member.id} className="border-b border-slate-700/30 hover:bg-slate-700/20">
-                            <td className="sticky left-0 z-10 bg-slate-800/90 px-4 py-3 text-sm text-white border-r border-slate-700/50">
-                              {member.name}
-                            </td>
-                            {daysInMonth.map(day => {
-                              const dayTravels = getTravelsForDay(day).filter(t => 
-                                t.attendees?.includes(member.name)
-                              );
-                              const travel = dayTravels[0]; // First travel for this day
-                              
-                              return (
-                                <td 
-                                  key={day.toString()} 
-                                  className="px-1 py-2 text-center border-r border-slate-700/20"
-                                >
-                                  {travel && (
-                                    <div 
-                                      className={cn(
-                                        "w-8 h-8 mx-auto rounded-full flex items-center justify-center cursor-pointer transition-transform hover:scale-110",
-                                        travelTypeColors[travel.travel_type]
-                                      )}
-                                      onClick={() => handleEdit(travel)}
-                                      title={`${travel.title} - ${travel.location || 'Sem local'}`}
-                                    >
-                                      {React.createElement(travelTypeIcons[travel.travel_type], { 
-                                        className: "w-4 h-4 text-white" 
-                                      })}
-                                    </div>
-                                  )}
+                      </thead>
+                      <tbody>
+                        {verticals.map(vertical => (
+                          <React.Fragment key={vertical}>
+                            <tr className="bg-slate-700/30">
+                              <td colSpan={daysInMonth.length + 1} className="sticky left-0 z-10 px-4 py-2 text-sm font-semibold text-cyan-400 bg-slate-700/30">
+                                {verticalLabels[vertical] || vertical}
+                              </td>
+                            </tr>
+                            {membersByVertical[vertical].map(member => (
+                              <tr key={member.id} className="border-b border-slate-700/30 hover:bg-slate-700/20">
+                                <td className="sticky left-0 z-10 bg-slate-800/90 px-4 py-3 text-sm text-white border-r border-slate-700/50">
+                                  {member.name}
                                 </td>
-                              );
-                            })}
-                          </tr>
+                                {daysInMonth.map(day => {
+                                  const dayTravels = getTravelsForDay(day).filter(t => 
+                                    t.attendees?.includes(member.name)
+                                  );
+                                  const travel = dayTravels[0]; // First travel for this day
+                                  
+                                  return (
+                                    <td 
+                                      key={day.toString()} 
+                                      className="px-1 py-2 text-center border-r border-slate-700/20"
+                                    >
+                                      {travel && (
+                                        <div 
+                                          className={cn(
+                                            "w-8 h-8 mx-auto rounded-full flex items-center justify-center cursor-pointer transition-transform hover:scale-110",
+                                            travelTypeColors[travel.travel_type]
+                                          )}
+                                          onClick={() => handleEdit(travel)}
+                                          title={`${travel.title} - ${travel.location || 'Sem local'}`}
+                                        >
+                                          {React.createElement(travelTypeIcons[travel.travel_type], { 
+                                            className: "w-4 h-4 text-white" 
+                                          })}
+                                        </div>
+                                      )}
+                                    </td>
+                                  );
+                                })}
+                              </tr>
+                            ))}
+                          </React.Fragment>
                         ))}
-                      </React.Fragment>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
         </>
       ) : (
         // List View
