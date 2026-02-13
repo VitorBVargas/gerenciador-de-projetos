@@ -392,12 +392,30 @@ export default function Dashboard() {
                           </div>
                         )}
                         {activeProject.recurring_value > 0 && (
-                          <div className="text-slate-400">
-                            <span className="text-slate-500">Recorrente:</span> <span className="text-emerald-400">
-                              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(activeProject.recurring_value)}
-                            </span>
-                          </div>
-                        )}
+                           <div className="text-slate-400">
+                             <span className="text-slate-500">Recorrente:</span> <span className="text-emerald-400">
+                               {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(activeProject.recurring_value)}
+                             </span>
+                           </div>
+                         )}
+                         {products.length > 0 && (
+                           <>
+                             {products.reduce((sum, p) => sum + (p.implementation_value || 0), 0) > 0 && (
+                               <div className="text-slate-400">
+                                 <span className="text-slate-500">Total Implantação (Produtos):</span> <span className="text-emerald-400">
+                                   {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(products.reduce((sum, p) => sum + (p.implementation_value || 0), 0))}
+                                 </span>
+                               </div>
+                             )}
+                             {products.reduce((sum, p) => sum + (p.inclusion_value || 0), 0) > 0 && (
+                               <div className="text-slate-400">
+                                 <span className="text-slate-500">Total Inclusão (Produtos):</span> <span className="text-emerald-400">
+                                   {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(products.reduce((sum, p) => sum + (p.inclusion_value || 0), 0))}
+                                 </span>
+                               </div>
+                             )}
+                           </>
+                         )}
                         {activeProject.deadline && (
                           <div className="text-slate-400">
                             <span className="text-slate-500">Prazo:</span> <span className={cn(
