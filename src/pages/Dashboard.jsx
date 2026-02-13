@@ -121,19 +121,7 @@ export default function Dashboard() {
   // Active project
   const activeProject = projects.find(p => p.id === projectId);
 
-  // Mostrar insights automaticamente apenas na primeira vez
-  useEffect(() => {
-    if (projectId && activeProject) {
-      const key = `insights_shown_${projectId}`;
-      const alreadyShown = localStorage.getItem(key);
-      
-      if (!alreadyShown && !hasShownInsights) {
-        setHasShownInsights(true);
-        setInsightsModalOpen(true);
-        localStorage.setItem(key, 'true');
-      }
-    }
-  }, [projectId, activeProject, hasShownInsights]);
+
 
   // Mutations
   const createProjectMutation = useMutation({
@@ -349,8 +337,16 @@ export default function Dashboard() {
               Editar Projeto
             </Button>
             <Button 
-              onClick={() => setIsAIModalOpen(true)}
+              onClick={() => setInsightsModalOpen(true)}
               className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+              title="Análise Inteligente"
+            >
+              <Sparkles className="w-5 h-5 mr-2" />
+              Análise Inteligente
+            </Button>
+            <Button 
+              onClick={() => setIsAIModalOpen(true)}
+              className="bg-slate-700 hover:bg-slate-600"
               size="icon"
               title="Assistente IA"
             >
