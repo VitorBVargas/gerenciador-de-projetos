@@ -284,8 +284,8 @@ export default function ExecutiveStatus() {
     return 'em_dia';
   };
 
-  // Active projects (exclude completed)
-  const activeProjects = projects.filter(p => p.status !== 'concluido');
+  // Active projects
+  const activeProjects = projects;
 
   // Status counts - count Projects by their status
   const statusData = useMemo(() => {
