@@ -370,80 +370,79 @@ export default function ExecutiveStatus() {
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
-          {/* Status Cards - Primeira linha */}
-          <div className="grid grid-cols-7 gap-3">
-        <Card className="bg-slate-800 border-slate-600">
-          <CardContent className="p-4 text-center flex flex-col items-center justify-center h-full">
-            <div className="text-2xl font-bold text-white mb-0.5">{allProjectsData.length}</div>
-            <div className="text-xs text-slate-300">Total</div>
-          </CardContent>
-        </Card>
+          {/* Status Cards - Primeira linha com cronograma */}
+          <div className="grid grid-cols-6 gap-2">
+            <Card className="bg-slate-800 border-slate-600">
+              <CardContent className="p-3 text-center flex flex-col items-center justify-center h-full">
+                <div className="text-xl font-bold text-white mb-0.5">{allProjectsData.length}</div>
+                <div className="text-xs text-slate-300">Total</div>
+              </CardContent>
+            </Card>
 
-        <TooltipProvider>
-          {Object.entries(statusData.counts).map(([status, count]) => {
-            const Icon = statusIcons[status];
-            const iconColorMap = {
-              'nao_iniciado': 'text-slate-400',
-              'em_dia': 'text-green-400',
-              'atencao': 'text-yellow-400',
-              'atrasado': 'text-red-400',
-              'pausado': 'text-orange-400',
-              'concluido': 'text-purple-400'
-            };
-            
-            const projectsInStatus = statusData.projectsByStatus[status] || [];
-            
-            return (
-              <Tooltip key={status} delayDuration={200}>
-                <TooltipTrigger asChild>
-                  <Card className="bg-slate-800 border-slate-600 hover:bg-slate-700 cursor-pointer transition-colors">
-                    <CardContent className="p-4 text-center flex flex-col items-center justify-center h-full">
-                      <div className="flex items-center justify-center mb-1">
-                        <Icon className={cn("w-5 h-5", iconColorMap[status])} />
-                      </div>
-                      <div className="text-2xl font-bold text-white mb-0.5">{count}</div>
-                      <div className="text-xs text-slate-300">{statusLabels[status]}</div>
-                    </CardContent>
-                  </Card>
-                </TooltipTrigger>
-                {projectsInStatus.length > 0 && (
-                  <TooltipContent 
-                    side="bottom" 
-                    className="bg-slate-800 border-slate-700 p-3 max-w-xs max-h-64 overflow-y-auto"
-                  >
-                    <div className="space-y-1">
-                      <div className="text-xs font-semibold text-slate-400 mb-2">
-                        {statusLabels[status]} ({projectsInStatus.length})
-                      </div>
-                      {projectsInStatus.map(project => (
-                        <div 
-                          key={project.id} 
-                          className="text-sm text-white py-1 border-b border-slate-700/50 last:border-0"
-                        >
-                          {project.name}
+            <TooltipProvider>
+              {Object.entries(statusData.counts).filter(([status]) => status !== 'concluido').map(([status, count]) => {
+                const Icon = statusIcons[status];
+                const iconColorMap = {
+                  'nao_iniciado': 'text-slate-400',
+                  'em_dia': 'text-green-400',
+                  'atencao': 'text-yellow-400',
+                  'atrasado': 'text-red-400',
+                  'pausado': 'text-orange-400'
+                };
+                
+                const projectsInStatus = statusData.projectsByStatus[status] || [];
+                
+                return (
+                  <Tooltip key={status} delayDuration={200}>
+                    <TooltipTrigger asChild>
+                      <Card className="bg-slate-800 border-slate-600 hover:bg-slate-700 cursor-pointer transition-colors">
+                        <CardContent className="p-3 text-center flex flex-col items-center justify-center h-full">
+                          <div className="flex items-center justify-center mb-1">
+                            <Icon className={cn("w-4 h-4", iconColorMap[status])} />
+                          </div>
+                          <div className="text-xl font-bold text-white mb-0.5">{count}</div>
+                          <div className="text-xs text-slate-300">{statusLabels[status]}</div>
+                        </CardContent>
+                      </Card>
+                    </TooltipTrigger>
+                    {projectsInStatus.length > 0 && (
+                      <TooltipContent 
+                        side="bottom" 
+                        className="bg-slate-800 border-slate-700 p-3 max-w-xs max-h-64 overflow-y-auto"
+                      >
+                        <div className="space-y-1">
+                          <div className="text-xs font-semibold text-slate-400 mb-2">
+                            {statusLabels[status]} ({projectsInStatus.length})
+                          </div>
+                          {projectsInStatus.map(project => (
+                            <div 
+                              key={project.id} 
+                              className="text-sm text-white py-1 border-b border-slate-700/50 last:border-0"
+                            >
+                              {project.name}
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  </TooltipContent>
-                )}
-              </Tooltip>
-            );
-          })}
-        </TooltipProvider>
-      </div>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                );
+              })}
+            </TooltipProvider>
+          </div>
 
           {/* Status Cards - Segunda linha com dados adicionais */}
           <div className="grid grid-cols-2 gap-3">
             <Card className="bg-slate-800 border-slate-600">
-              <CardContent className="p-4 text-center flex flex-col items-center justify-center h-full">
-                <div className="text-2xl font-bold text-white mb-0.5">{projects.length}</div>
+              <CardContent className="p-3 text-center flex flex-col items-center justify-center h-full">
+                <div className="text-lg font-bold text-white mb-0.5">{projects.length}</div>
                 <div className="text-xs text-slate-300">Total Programas</div>
               </CardContent>
             </Card>
 
             <Card className="bg-slate-800 border-slate-600">
-              <CardContent className="p-4 text-center flex flex-col items-center justify-center h-full">
-                <div className="text-2xl font-bold text-white mb-0.5">
+              <CardContent className="p-3 text-center flex flex-col items-center justify-center h-full">
+                <div className="text-lg font-bold text-white mb-0.5">
                   {allProducts.filter(p => p.status === 'em_homologacao' || p.status === 'homologado').length}
                 </div>
                 <div className="text-xs text-slate-300">Produtos em Implantação</div>
