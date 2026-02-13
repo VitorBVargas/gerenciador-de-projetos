@@ -397,14 +397,13 @@ export default function ExecutiveStatus() {
 
   // Generate weekly summary when ready
   useEffect(() => {
-    if (isWeeklySummaryOpen && allTimelineEvents.length > 0 && projects.length > 0) {
+    if (isWeeklySummaryOpen && !weeklySummary && allTimelineEvents.length > 0) {
       generateWeeklySummary();
     }
-  }, [isWeeklySummaryOpen, allTimelineEvents, projects, allProducts, allRecognizedRevenues]);
+  }, [isWeeklySummaryOpen, weeklySummary, allTimelineEvents]);
 
   const generateWeeklySummary = async () => {
     try {
-      const completedProjects = allProjectsData.filter(p => p.status === 'concluido');
       const thisWeek = new Date();
       const weekAgo = new Date(thisWeek.getTime() - 7 * 24 * 60 * 60 * 1000);
       
@@ -430,17 +429,59 @@ export default function ExecutiveStatus() {
       });
       const totalRevenueThisWeek = revenuesThisWeek.reduce((sum, r) => sum + (r.amount || 0), 0);
 
+      // Contar cronogramas por status manualmente (sem depender de statusData)
+      const cronogramasMae = {};
+      const now = new Date();
+      
+      allTimelineEvents.forEach(event => {
+        const key = event.vertical ? `${event.project_id}|${event.vertical}` : event.project_id;
+        if (!cronogramasMae[key]) {
+          cronogramasMae[key] = { events: [] };
+        }
+        cronogramasMae[key].events.push(event);
+      });
+
+      const statusCounts = {
+        em_dia: 0,
+        atencao: 0,
+        atrasado: 0
+      };
+
+      Object.values(cronogramasMae).forEach(cronograma => {
+        const events = cronograma.events;
+        
+        if (events.some(e => {
+          if (e.end_date) {
+            const endDate = new Date(e.end_date);
+            return endDate < now && e.status !== 'concluido';
+          }
+          return false;
+        })) {
+          statusCounts.atrasado++;
+        } else if (events.some(e => {
+          if (e.end_date && e.status === 'nao_iniciado') {
+            const endDate = new Date(e.end_date);
+            return endDate >= now && endDate <= new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+          }
+          return false;
+        })) {
+          statusCounts.atencao++;
+        } else {
+          statusCounts.em_dia++;
+        }
+      });
+
       // Usar IA para gerar resumo
       const summaryPrompt = `
 Gere um resumo executivo semanal BREVE e DIRETO da situação do portfólio Betha.
 
 DADOS DA SEMANA:
-- Total de projetos ativos: ${projects.length}
+- Total de projetos ativos: ${allProjectsData.filter(p => p.status !== 'concluido').length}
 - Projetos concluídos esta semana: ${completedThisWeek.length}
 ${completedThisWeek.length > 0 ? `  Projetos: ${completedThisWeek.map(p => p.name).join(', ')}` : ''}
 - Licenças de produção liberadas: ${licensesReleasedThisWeek.length}
 - Valores reconhecidos: R$ ${totalRevenueThisWeek.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}
-- Status dos cronogramas: ${statusData.counts.em_dia} em dia, ${statusData.counts.atencao} em atenção, ${statusData.counts.atrasado} atrasados
+- Status dos cronogramas: ${statusCounts.em_dia} em dia, ${statusCounts.atencao} em atenção, ${statusCounts.atrasado} atrasados
 
 Forneça:
 1. Uma frase de abertura sobre a semana
@@ -456,6 +497,7 @@ Seja conciso, profissional e em português.`;
       setWeeklySummary(response);
     } catch (err) {
       console.error('Erro ao gerar resumo semanal:', err);
+      setWeeklySummary('Resumo semanal indisponível no momento.');
     }
   };
 
