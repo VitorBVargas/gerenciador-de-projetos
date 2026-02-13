@@ -114,6 +114,7 @@ export default function PasswordReleasesChart({ products, visibleCharts = {}, on
                 cursor="pointer"
                 onClick={(data) => {
                   setSelectedMonth(data.raw_key);
+                  setSelectedType('released');
                 }}
               />
               <Bar
@@ -123,6 +124,7 @@ export default function PasswordReleasesChart({ products, visibleCharts = {}, on
                 cursor="pointer"
                 onClick={(data) => {
                   setSelectedMonth(data.raw_key);
+                  setSelectedType('grace_period');
                 }}
               />
             </BarChart>
