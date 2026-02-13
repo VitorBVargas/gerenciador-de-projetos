@@ -105,8 +105,15 @@ export default function ExecutiveStatus() {
     queryFn: () => base44.entities.Project.list('-created_date')
   });
   
-  // Filter out completed projects from overview cards
+  // Filter out completed projects from overview
   const projects = allProjectsData.filter(p => p.status !== 'concluido');
+  
+  // Debug log
+  useEffect(() => {
+    console.log('Total projects:', allProjectsData.length);
+    console.log('Active projects:', projects.length);
+    console.log('Projects:', allProjectsData.map(p => ({ name: p.name, status: p.status, id: p.id })));
+  }, [allProjectsData, projects]);
 
   // Fetch all timeline events
   const { data: allTimelineEvents = [] } = useQuery({
