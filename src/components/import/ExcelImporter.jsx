@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Upload, FileSpreadsheet, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import * as XLSX from 'xlsx';
 import { base44 } from '@/api/base44Client';
+import { syncProjectCronogramas, deleteProjectCronogramas, completeProjectCronogramas } from '../../functions/syncProjectCronogramas';
 
 const verticalMapping = {
   'gerenciamento': 'gerenciamento',
