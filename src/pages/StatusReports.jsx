@@ -405,7 +405,13 @@ Seja específico e acionável.`
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={generateWeeklyReport}
+                  onClick={() => {
+                    if (!conversation) {
+                      initConversation().then(() => generateWeeklyReport());
+                    } else {
+                      generateWeeklyReport();
+                    }
+                  }}
                   disabled={generatingReport || sending}
                   className="border-slate-600 text-slate-300 hover:bg-slate-700"
                 >
