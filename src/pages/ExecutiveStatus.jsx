@@ -622,8 +622,16 @@ export default function ExecutiveStatus() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-purple-400">{statusData.counts.concluido}</div>
-                <div className="text-sm text-slate-400 mt-1">projetos finalizados com sucesso</div>
+                <div className="text-3xl font-bold text-purple-400 mb-3">{statusData.counts.concluido}</div>
+                <div className="text-sm text-slate-400 mb-4">projetos finalizados com sucesso</div>
+                <div className="space-y-2 pt-3 border-t border-slate-700/50">
+                  {statusData.projectsByStatus.concluido.map(project => (
+                    <div key={project.id} className="flex items-center gap-2 text-sm">
+                      <div className="w-1.5 h-1.5 rounded-full bg-purple-400 flex-shrink-0" />
+                      <span className="text-white">{project.name}</span>
+                    </div>
+                  ))}
+                </div>
               </CardContent>
             </Card>
           )}
