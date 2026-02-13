@@ -613,7 +613,7 @@ export default function ExecutiveStatus() {
           </div>
 
           {/* Completed Projects Summary */}
-          {statusCounts.concluido > 0 && (
+          {statusData.counts.concluido > 0 && (
             <Card className="bg-slate-800/50 border-slate-700/50">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
@@ -622,7 +622,7 @@ export default function ExecutiveStatus() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-purple-400">{statusCounts.concluido}</div>
+                <div className="text-3xl font-bold text-purple-400">{statusData.counts.concluido}</div>
                 <div className="text-sm text-slate-400 mt-1">projetos finalizados com sucesso</div>
               </CardContent>
             </Card>
