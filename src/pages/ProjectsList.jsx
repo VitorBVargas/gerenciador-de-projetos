@@ -62,6 +62,8 @@ export default function ProjectsList() {
 
   const deleteMutation = useMutation({
     mutationFn: async (projectId) => {
+      // Deleta cronogramas primeiro
+      await deleteProjectCronogramas(projectId);
       // Deleta o projeto - as entidades relacionadas serão limpas automaticamente
       await base44.entities.Project.delete(projectId);
       return projectId;
