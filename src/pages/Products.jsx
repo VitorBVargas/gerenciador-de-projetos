@@ -17,6 +17,7 @@ import {
 import { cn } from "@/lib/utils";
 import ProductModal from '../components/modals/ProductModal';
 import EmptyState from '../components/ui/EmptyState';
+import PasswordGracePeriodModal from '../components/modals/PasswordGracePeriodModal';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -83,6 +84,8 @@ export default function Products() {
   const [productToDelete, setProductToDelete] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
+  const [productForPassword, setProductForPassword] = useState(null);
 
   // Get project_id from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -160,10 +163,29 @@ export default function Products() {
   };
 
   const handleTogglePassword = (product) => {
-    togglePasswordMutation.mutate({ 
-      id: product.id, 
-      value: !product.production_password 
-    });
+    if (!product.production_password) {
+      // Se vai ativar, abre o modal
+      setProductForPassword(product);
+      setPasswordModalOpen(true);
+    } else {
+      // Se vai desativar, faz direto
+      togglePasswordMutation.mutate({ 
+        id: product.id, 
+        value: false,
+        password_grace_period_until: null
+      });
+    }
+  };
+
+  const handlePasswordModalSave = (data) => {
+    if (productForPassword) {
+      togglePasswordMutation.mutate({ 
+        id: productForPassword.id, 
+        ...data
+      });
+      setPasswordModalOpen(false);
+      setProductForPassword(null);
+    }
   };
 
   const handleToggleAcceptance = (product) => {
@@ -370,6 +392,14 @@ export default function Products() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Password Grace Period Modal */}
+      <PasswordGracePeriodModal
+        open={passwordModalOpen}
+        onOpenChange={setPasswordModalOpen}
+        onSave={handlePasswordModalSave}
+        isLoading={togglePasswordMutation.isPending}
+      />
     </div>
   );
 }
