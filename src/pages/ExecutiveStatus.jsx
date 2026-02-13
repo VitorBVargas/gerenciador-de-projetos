@@ -99,26 +99,6 @@ export default function ExecutiveStatus() {
     }));
   };
 
-  const handleResyncCronogramas = async () => {
-    try {
-      const { syncProjectCronogramas } = await import('../functions/syncProjectCronogramas');
-      
-      // Re-sincronizar todos os projetos
-      for (const project of projects) {
-        await syncProjectCronogramas(project.id);
-      }
-      
-      // Invalidar queries para recarregar dados
-      queryClient.invalidateQueries({ queryKey: ['allCronogramas'] });
-      queryClient.invalidateQueries({ queryKey: ['allTimelineEvents'] });
-      
-      toast.success('Cronogramas re-sincronizados com sucesso!');
-    } catch (err) {
-      console.error('Erro ao re-sincronizar:', err);
-      toast.error('Erro ao re-sincronizar cronogramas');
-    }
-  };
-
   // Fetch all projects
   const { data: allProjectsData = [], isLoading } = useQuery({
     queryKey: ['projects'],
