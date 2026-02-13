@@ -34,18 +34,19 @@ export default function ProjectInsightsModal({ open, onClose, projectId }) {
       // Enviar mensagem solicitando análise
       await base44.agents.addMessage(conv, {
         role: 'user',
-        content: `VOCÊ ESTÁ ANALISANDO O PROJETO COM ID: ${projectId}
+        content: `Analise SOMENTE o projeto com ID: ${projectId}
 
-Baseado neste projeto específico, forneça:
-1. Atualize automaticamente o cronograma baseado nas datas de hoje
-2. Status geral do projeto
-3. Top 5 pontos de atenção prioritários
-4. Próximas ações recomendadas
-5. Alertas de prazos nos próximos 7 dias
-6. Riscos críticos não mitigados
+Você TEM o ID do projeto. NÃO peça "para qual projeto", NÃO peça "qual ID", NÃO peça confirmação.
+COMECE A ANÁLISE IMEDIATAMENTE usando o ID ${projectId}.
 
-IMPORTANTE: Você já tem o ID do projeto (${projectId}). NÃO peça confirmação do projeto. Use esse ID para fazer a análise.
-Seja específico e acionável.`
+Forneça:
+1. Status geral do projeto
+2. Top 5 pontos de atenção prioritários
+3. Próximas ações recomendadas
+4. Alertas de prazos nos próximos 7 dias
+5. Riscos críticos não mitigados
+
+Seja direto, específico e acionável. ANÁLISE RÁPIDA.`
       });
 
       // Aguardar resposta com retry
