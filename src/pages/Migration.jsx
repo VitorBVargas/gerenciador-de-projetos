@@ -46,6 +46,7 @@ export default function Migration() {
   const [sectionOrder, setSectionOrder] = useState({});
   const [isResetting, setIsResetting] = useState(false);
   const fileInputRef = React.useRef(null);
+  const creatingTasksRef = React.useRef(new Set());
 
   // Get project_id from URL
   const urlParams = new URLSearchParams(window.location.search);
