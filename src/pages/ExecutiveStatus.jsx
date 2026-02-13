@@ -70,12 +70,26 @@ export default function ExecutiveStatus() {
   const [selectedMonth, setSelectedMonth] = useState(null);
   const [selectedMonthType, setSelectedMonthType] = useState(null);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+  const [isWeeklySummaryOpen, setIsWeeklySummaryOpen] = useState(false);
+  const [weeklySummary, setWeeklySummary] = useState(null);
   const [visibleCharts, setVisibleCharts] = useState({
     implantacao: true,
     recorrente: true,
     password: true
   });
   const queryClient = useQueryClient();
+
+  // Check if it's the first time accessing ExecutiveStatus today
+  useEffect(() => {
+    const lastVisitKey = 'executiveStatus_lastVisit';
+    const today = new Date().toDateString();
+    const lastVisit = localStorage.getItem(lastVisitKey);
+
+    if (lastVisit !== today) {
+      localStorage.setItem(lastVisitKey, today);
+      setIsWeeklySummaryOpen(true);
+    }
+  }, []);
 
   const handleChartVisibility = (chart, visible) => {
     setVisibleCharts(prev => ({
