@@ -370,26 +370,12 @@ export default function ExecutiveStatus() {
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
-          {/* Status Cards */}
+          {/* Status Cards - Primeira linha */}
           <div className="grid grid-cols-7 gap-3">
         <Card className="bg-slate-800 border-slate-600">
           <CardContent className="p-4 text-center flex flex-col items-center justify-center h-full">
-            <div className="text-2xl font-bold text-white mb-0.5">{allTimelineEvents.length}</div>
-            <div className="text-xs text-slate-300">Total Cronogramas</div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-slate-800 border-slate-600">
-          <CardContent className="p-4 text-center flex flex-col items-center justify-center h-full">
             <div className="text-2xl font-bold text-white mb-0.5">{allProjectsData.length}</div>
-            <div className="text-xs text-slate-300">Total Programas</div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-slate-800 border-slate-600">
-          <CardContent className="p-4 text-center flex flex-col items-center justify-center h-full">
-            <div className="text-2xl font-bold text-white mb-0.5">{allProducts.filter(p => p.status === 'em_producao').length}</div>
-            <div className="text-xs text-slate-300">Produtos em Produção</div>
+            <div className="text-xs text-slate-300">Total</div>
           </CardContent>
         </Card>
 
@@ -446,7 +432,38 @@ export default function ExecutiveStatus() {
         </TooltipProvider>
       </div>
 
-          {/* Projects Grid */}
+          {/* Status Cards - Segunda linha com dados adicionais */}
+          <div className="grid grid-cols-3 gap-3">
+            <Card className="bg-slate-800 border-slate-600">
+              <CardContent className="p-4 text-center flex flex-col items-center justify-center h-full">
+                <div className="text-2xl font-bold text-white mb-0.5">
+                  {allTimelineEvents.filter(e => {
+                    const project = allProjectsData.find(p => p.id === e.project_id);
+                    return project && project.status !== 'concluido';
+                  }).length}
+                </div>
+                <div className="text-xs text-slate-300">Total Cronogramas</div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-slate-800 border-slate-600">
+              <CardContent className="p-4 text-center flex flex-col items-center justify-center h-full">
+                <div className="text-2xl font-bold text-white mb-0.5">{projects.length}</div>
+                <div className="text-xs text-slate-300">Total Programas</div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-slate-800 border-slate-600">
+              <CardContent className="p-4 text-center flex flex-col items-center justify-center h-full">
+                <div className="text-2xl font-bold text-white mb-0.5">
+                  {allProducts.filter(p => p.status !== 'pendente' && p.status !== 'em_producao').length}
+                </div>
+                <div className="text-xs text-slate-300">Produtos em Implantação</div>
+              </CardContent>
+            </Card>
+          </div>
+
+           {/* Projects Grid */}
           <div>
             <h2 className="text-xl font-bold text-white mb-4">Projetos Ativos</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
