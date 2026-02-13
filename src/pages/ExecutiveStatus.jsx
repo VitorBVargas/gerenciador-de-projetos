@@ -29,6 +29,8 @@ import { format, addMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import RecognizedRevenueModal from '../components/modals/RecognizedRevenueModal';
 import RecognizeAllVerticalModal from '../components/modals/RecognizeAllVerticalModal';
+import AIAssistantModal from '../components/modals/AIAssistantModal';
+import { Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 
 const statusLabels = {
@@ -67,6 +69,7 @@ export default function ExecutiveStatus() {
   const [selectedVerticalProducts, setSelectedVerticalProducts] = useState([]);
   const [selectedMonth, setSelectedMonth] = useState(null);
   const [selectedMonthType, setSelectedMonthType] = useState(null);
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [visibleCharts, setVisibleCharts] = useState({
     implantacao: true,
     recorrente: true,
@@ -369,7 +372,15 @@ export default function ExecutiveStatus() {
         </TabsList>
 
         {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-6">
+        <TabsContent value="overview" className="space-y-6 relative">
+          {/* Botão flutuante da IA */}
+          <button
+            onClick={() => setIsAIModalOpen(true)}
+            className="fixed bottom-8 right-8 w-14 h-14 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all z-40"
+            title="Abrir Assistente IA"
+          >
+            <Sparkles className="w-6 h-6" />
+          </button>
           {/* Status Cards - Primeira linha com cronograma */}
           <div className="grid grid-cols-6 gap-2">
             <Card className="bg-slate-800 border-slate-600">
@@ -1104,6 +1115,12 @@ export default function ExecutiveStatus() {
           })()}
         </TabsContent>
       </Tabs>
+
+      {/* AI Assistant Modal */}
+      <AIAssistantModal 
+        isOpen={isAIModalOpen}
+        onClose={() => setIsAIModalOpen(false)}
+      />
 
       {/* Recognized Revenue Modal */}
       {selectedProject && (
