@@ -306,11 +306,21 @@ export default function Products() {
                             </p>
                           )}
                           {product.ticket_number && (
-                            <p className="text-[10px] text-slate-400 truncate">
-                              <span className="text-slate-500">Chamado:</span> {product.ticket_number}
-                            </p>
-                          )}
-                          <div className="space-y-1 mt-1.5">
+                             <p className="text-[10px] text-slate-400 truncate">
+                               <span className="text-slate-500">Chamado:</span> {product.ticket_number}
+                             </p>
+                           )}
+                           {(product.implementation_value > 0 || product.inclusion_value > 0) && (
+                             <div className="text-[10px] text-slate-300 space-y-0.5 mt-1 pt-1 border-t border-slate-700">
+                               {product.implementation_value > 0 && (
+                                 <p><span className="text-slate-500">Impl:</span> {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(product.implementation_value)}</p>
+                               )}
+                               {product.inclusion_value > 0 && (
+                                 <p><span className="text-slate-500">Incl:</span> {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(product.inclusion_value)}</p>
+                               )}
+                             </div>
+                           )}
+                           <div className="space-y-1 mt-1.5">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
