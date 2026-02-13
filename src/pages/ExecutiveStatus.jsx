@@ -356,9 +356,14 @@ export default function ExecutiveStatus() {
       cronogramasByStatus[status].push(cronograma);
     });
     
-    console.log('Cronogramas agrupados:', cronogramaMap.size);
+    console.log('=== CRONOGRAMAS DEBUG ===');
+    console.log('Total cronogramas únicos:', cronogramaMap.size);
+    console.log('Status counts:', counts);
     cronogramaMap.forEach((cron, key) => {
-      console.log(key, '-', cron.title, '- eventos:', cron.events.length);
+      console.log(`${key} => ${cron.title} (${cron.events.length} eventos)`);
+      cron.events.forEach(e => {
+        console.log(`  - ${e.title}: ${e.status}, end_date: ${e.end_date}`);
+      });
     });
     
     return { counts, cronogramasByStatus };
