@@ -169,12 +169,12 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents, pro
                 </div>
 
                 {/* Timeline Bar */}
-                <div className="flex-1 relative h-10 bg-slate-800/30 rounded border border-slate-700/50 min-w-[800px]">
+                <div className="flex-1 relative h-16 bg-slate-800/30 rounded border border-slate-700/50 min-w-[800px]">
                   {/* Go Live Marker (Blue Triangle) */}
                   {goLivePosition !== null && goLivePosition >= 0 && goLivePosition <= 100 && (
                     <div 
-                      className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex flex-col items-center z-10"
-                      style={{ left: `${goLivePosition}%` }}
+                      className="absolute top-1 flex flex-col items-center z-10"
+                      style={{ left: `${goLivePosition}%`, transform: 'translateX(-50%)' }}
                     >
                       <div className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-b-[8px] border-b-blue-500" />
                       <div className="text-xs text-slate-400 mt-1 whitespace-nowrap">
@@ -186,8 +186,8 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents, pro
                   {/* Delivery/End Marker */}
                   {deliveryPosition >= 0 && deliveryPosition <= 100 && (
                     <div 
-                      className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex flex-col items-center z-10"
-                      style={{ left: `${deliveryPosition}%` }}
+                      className="absolute bottom-1 flex flex-col items-center z-10"
+                      style={{ left: `${deliveryPosition}%`, transform: 'translateX(-50%)' }}
                     >
                       <Icon className={`w-5 h-5 ${config.color}`} />
                       <div className="text-xs text-slate-400 mt-1 whitespace-nowrap">
