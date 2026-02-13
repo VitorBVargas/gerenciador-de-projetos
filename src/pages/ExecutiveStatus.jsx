@@ -115,6 +115,12 @@ export default function ExecutiveStatus() {
     console.log('Projects:', allProjectsData.map(p => ({ name: p.name, status: p.status, id: p.id })));
   }, [allProjectsData, projects]);
 
+  // Fetch all cronogramas
+  const { data: allCronogramas = [] } = useQuery({
+    queryKey: ['allCronogramas'],
+    queryFn: () => base44.entities.Cronograma.list()
+  });
+
   // Fetch all timeline events
   const { data: allTimelineEvents = [] } = useQuery({
     queryKey: ['allTimelineEvents'],
