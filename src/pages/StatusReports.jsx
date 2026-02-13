@@ -20,6 +20,7 @@ export default function StatusReports() {
   const [userMessage, setUserMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [isAnalyzingWeek, setIsAnalyzingWeek] = useState(false);
+  const [conversationInitialized, setConversationInitialized] = useState(false);
 
   const urlParams = new URLSearchParams(window.location.search);
   const projectId = urlParams.get('project_id');
