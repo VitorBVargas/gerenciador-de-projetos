@@ -848,6 +848,29 @@ Seja conciso, profissional e em português.`;
             )}
           </div>
 
+          {/* Projetos Concluídos */}
+          {allProjectsData.filter(p => p.status === 'concluido').length > 0 && (
+            <div>
+              <h2 className="text-xl font-bold text-white mb-4">Projetos Concluídos</h2>
+              <Card className="bg-slate-800 border-slate-600">
+                <CardContent className="p-0">
+                  <div className="divide-y divide-slate-700">
+                    {allProjectsData.filter(p => p.status === 'concluido').map((project) => (
+                      <div key={project.id} className="p-4 flex items-center justify-between hover:bg-slate-700/50 transition-colors">
+                        <span className="text-white font-medium">{project.name}</span>
+                        {project.deadline && (
+                          <span className="text-sm text-slate-400">
+                            {format(new Date(project.deadline), 'dd/MM/yyyy', { locale: ptBR })}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
           {/* Completed Cronogramas Summary */}
           {statusData.counts.concluido > 0 && (
             <Card className="bg-slate-800 border-slate-600">
