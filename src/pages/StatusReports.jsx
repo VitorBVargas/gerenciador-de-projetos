@@ -38,6 +38,8 @@ export default function StatusReports() {
   });
 
   const initConversation = async () => {
+    if (conversationInitialized || !projectId) return;
+    
     try {
       const conv = await base44.agents.createConversation({
         agent_name: 'ia_projetos_betha',
@@ -45,6 +47,7 @@ export default function StatusReports() {
       });
       setConversation(conv);
       setMessages(conv.messages || []);
+      setConversationInitialized(true);
 
       // Subscrever a atualizações
       const unsubscribe = base44.agents.subscribeToConversation(conv.id, (data) => {
