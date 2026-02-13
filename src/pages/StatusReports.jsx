@@ -311,7 +311,24 @@ Seja específico e acionável.`
         <EmptyState
           icon={FileText}
           title="Nenhum projeto selecionado"
-          description="Selecione um projeto para acessar a IA"
+          description="Volte à lista de projetos e selecione um para acessar a IA"
+        />
+      </div>
+    );
+  }
+
+  // Se o projeto foi concluído mas não tem reports, mostrar mensagem apropriada
+  if (project?.status === 'concluido' && reports.length === 0) {
+    return (
+      <div className="p-6">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-white mb-2">{project.name}</h1>
+          <p className="text-slate-400 text-sm">Projeto concluído em {format(new Date(project.deadline), "dd 'de' MMMM, yyyy", { locale: ptBR })}</p>
+        </div>
+        <EmptyState
+          icon={FileText}
+          title="Nenhum relatório gerado"
+          description="Este projeto foi concluído mas não possui status reports"
         />
       </div>
     );
