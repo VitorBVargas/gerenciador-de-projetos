@@ -141,7 +141,13 @@ export default function Dashboard() {
   });
 
   const updateProjectMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Project.update(id, data),
+    mutationFn: async ({ id, data }) => {
+      // Se está concluindo o projeto, marcar cronogramas como concluídos
+      if (data.status === 'concluido') {
+        await completeProjectCronogramas(id);
+      }
+      return base44.entities.Project.update(id, data);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       setProjectModalOpen(false);
