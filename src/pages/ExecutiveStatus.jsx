@@ -1207,6 +1207,7 @@ Seja conciso, profissional e em português.`;
           {/* Gráfico de Senhas */}
           <PasswordReleasesChart 
             products={allProducts}
+            projects={allProjectsData}
             visibleCharts={visibleCharts}
             onVisibilityChange={handleChartVisibility}
           />
