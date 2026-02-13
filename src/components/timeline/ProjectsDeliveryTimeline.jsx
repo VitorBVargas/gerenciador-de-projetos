@@ -173,7 +173,7 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents, pro
                 </div>
 
                 {/* Timeline Bar */}
-                <div className="flex-1 relative h-12 bg-slate-800/30 rounded border border-slate-700/50 min-w-[800px] flex items-center">
+                 <div className="flex-1 relative h-12 bg-slate-800/30 rounded border border-slate-700/50 min-w-[1200px] flex items-center">
                   {/* Go Live Marker (Blue Triangle) */}
                    {goLivePosition !== null && goLivePosition >= 0 && goLivePosition <= 100 && (
                      <div 
