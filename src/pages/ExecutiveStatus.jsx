@@ -543,6 +543,15 @@ Seja conciso, profissional e em português.`;
       >
         <Sparkles className="w-6 h-6" />
       </button>
+
+      {/* Debug Button - Resync */}
+      <button
+        onClick={handleResyncCronogramas}
+        className="fixed bottom-24 right-8 w-14 h-14 rounded-full bg-slate-700 hover:bg-slate-600 flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all z-50 text-xs"
+        title="Re-sincronizar cronogramas"
+      >
+        ↻
+      </button>
       {/* Header */}
       <div className="space-y-4">
         <Link to={createPageUrl('ProjectsList')}>
