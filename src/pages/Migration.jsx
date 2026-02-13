@@ -95,11 +95,16 @@ export default function Migration() {
 
   // Cria tarefas padrão para um produto se não existirem
   const createDefaultTasks = async (product) => {
+    // Previne criação duplicada simultânea
+    if (creatingTasksRef.current.has(product.id)) return;
+    
     const existingTasks = tasks.filter(t => t.product_id === product.id);
     if (existingTasks.length > 0) return;
 
     const defaultSections = getDefaultTasksForProduct(product.name);
     if (!defaultSections) return; // Produto não tem migração
+
+    creatingTasksRef.current.add(product.id);
 
     const tasksToCreate = [];
     let order = 0;
@@ -120,6 +125,8 @@ export default function Migration() {
       await base44.entities.MigrationTask.bulkCreate(tasksToCreate);
       queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
     }
+    
+    creatingTasksRef.current.delete(product.id);
   };
 
   React.useEffect(() => {
