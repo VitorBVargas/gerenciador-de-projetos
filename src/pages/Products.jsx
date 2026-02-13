@@ -317,7 +317,9 @@ export default function Products() {
                               className={cn(
                                 "w-full px-2 py-1 rounded text-[10px] font-medium transition-all flex items-center justify-center gap-1",
                                 product.production_password
-                                  ? "bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30"
+                                  ? product.password_grace_period_until
+                                    ? "bg-amber-500/20 text-amber-400 border border-amber-500/30 hover:bg-amber-500/30"
+                                    : "bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30"
                                   : "bg-slate-700/50 text-slate-400 border border-slate-600/50 hover:bg-slate-600/50"
                               )}
                             >
