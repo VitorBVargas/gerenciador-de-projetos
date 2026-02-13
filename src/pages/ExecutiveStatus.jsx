@@ -805,6 +805,48 @@ Seja conciso, profissional e em português.`;
 
         {/* Financeiro Tab */}
         <TabsContent value="financeiro" className="space-y-6">
+          {/* Controles de Visibilidade */}
+          <div className="bg-slate-800 border border-slate-600 rounded-lg p-4 flex items-center justify-between">
+            <h3 className="text-white font-semibold text-sm">Gráficos do Financeiro</h3>
+            <div className="flex items-center gap-4 ml-auto pl-4">
+              <div className="flex items-center gap-1.5">
+                <input 
+                  type="checkbox"
+                  id="implantacao-chart"
+                  checked={visibleCharts?.implantacao !== false}
+                  onChange={(e) => handleChartVisibility('implantacao', e.target.checked)}
+                  className="w-4 h-4 rounded cursor-pointer"
+                />
+                <label htmlFor="implantacao-chart" className="text-xs text-slate-300 cursor-pointer whitespace-nowrap">
+                  Implantação
+                </label>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <input 
+                  type="checkbox"
+                  id="recorrente-chart"
+                  checked={visibleCharts?.recorrente !== false}
+                  onChange={(e) => handleChartVisibility('recorrente', e.target.checked)}
+                  className="w-4 h-4 rounded cursor-pointer"
+                />
+                <label htmlFor="recorrente-chart" className="text-xs text-slate-300 cursor-pointer whitespace-nowrap">
+                  Recorrente
+                </label>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <input 
+                  type="checkbox"
+                  id="password-chart"
+                  checked={visibleCharts?.password !== false}
+                  onChange={(e) => handleChartVisibility('password', e.target.checked)}
+                  className="w-4 h-4 rounded cursor-pointer"
+                />
+                <label htmlFor="password-chart" className="text-xs text-slate-300 cursor-pointer whitespace-nowrap">
+                  Senhas de Produção
+                </label>
+              </div>
+            </div>
+          </div>
 
            {(() => {
             // Calcular valores por mês
