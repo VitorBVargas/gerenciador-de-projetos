@@ -265,7 +265,7 @@ export default function ExecutiveStatus() {
   // Active projects (exclude completed)
   const activeProjects = projects.filter(p => p.status !== 'concluido');
 
-  // Status counts and project lists by status
+  // Status counts based on TimelineEvents (cronogramas), not projects
   const statusData = useMemo(() => {
     const counts = {
       nao_iniciado: 0,
@@ -276,7 +276,7 @@ export default function ExecutiveStatus() {
       concluido: 0
     };
     
-    const projectsByStatus = {
+    const timelinesByStatus = {
       nao_iniciado: [],
       em_dia: [],
       atencao: [],
@@ -285,16 +285,47 @@ export default function ExecutiveStatus() {
       concluido: []
     };
     
-    allProjectsData.forEach(project => {
-      const status = classifyProjectStatus(project);
-      if (counts[status] !== undefined) {
-        counts[status]++;
-        projectsByStatus[status].push(project);
+    const now = new Date();
+    
+    allTimelineEvents.forEach(event => {
+      let status = 'em_dia';
+      
+      // Concluído
+      if (event.status === 'concluido') {
+        status = 'concluido';
       }
+      // Pausado
+      else if (event.status === 'pausado') {
+        status = 'pausado';
+      }
+      // Atrasado (passou do deadline)
+      else if (event.end_date) {
+        const endDate = new Date(event.end_date);
+        if (endDate < now && event.status !== 'concluido') {
+          status = 'atrasado';
+        }
+        // Atenção (próximo do deadline - menos de 7 dias e não iniciado)
+        else if (endDate >= now && endDate <= new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000) && event.status === 'nao_iniciado') {
+          status = 'atencao';
+        }
+        // Não iniciado
+        else if (event.status === 'nao_iniciado') {
+          status = 'nao_iniciado';
+        }
+        // Em dia
+        else {
+          status = 'em_dia';
+        }
+      } else if (event.status === 'nao_iniciado') {
+        status = 'nao_iniciado';
+      }
+      
+      counts[status]++;
+      timelinesByStatus[status].push(event);
     });
     
-    return { counts, projectsByStatus };
-  }, [allProjectsData, allTimelineEvents]);
+    return { counts, timelinesByStatus };
+  }, [allTimelineEvents]);
 
   // Calculate project with health status
   const projectsWithMetrics = useMemo(() => {
