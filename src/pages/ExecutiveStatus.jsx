@@ -564,7 +564,7 @@ Seja conciso, profissional e em português.`;
             </Card>
 
             <TooltipProvider>
-              {Object.entries(statusData.counts).filter(([status]) => status !== 'concluido').map(([status, count]) => {
+              {Object.entries(statusData.counts).filter(([status]) => status !== 'concluido').map(([status, count], idx) => {
                 const Icon = statusIcons[status];
                 const iconColorMap = {
                   'nao_iniciado': 'text-slate-400',
@@ -577,7 +577,7 @@ Seja conciso, profissional e em português.`;
                 const timelinesInStatus = statusData.timelinesByStatus[status] || [];
                 
                 return (
-                  <Tooltip key={status} delayDuration={200}>
+                  <Tooltip key={`status-${status}-${idx}`} delayDuration={200}>
                     <TooltipTrigger asChild>
                       <Card className="bg-slate-800 border-slate-600 hover:bg-slate-700 cursor-pointer transition-colors">
                         <CardContent className="p-3 text-center flex flex-col items-center justify-center h-full">
