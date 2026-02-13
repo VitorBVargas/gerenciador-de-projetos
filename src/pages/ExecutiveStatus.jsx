@@ -433,19 +433,7 @@ export default function ExecutiveStatus() {
       </div>
 
           {/* Status Cards - Segunda linha com dados adicionais */}
-          <div className="grid grid-cols-3 gap-3">
-            <Card className="bg-slate-800 border-slate-600">
-              <CardContent className="p-4 text-center flex flex-col items-center justify-center h-full">
-                <div className="text-2xl font-bold text-white mb-0.5">
-                  {allTimelineEvents.filter(e => {
-                    const project = allProjectsData.find(p => p.id === e.project_id);
-                    return project && project.status !== 'concluido';
-                  }).length}
-                </div>
-                <div className="text-xs text-slate-300">Total Cronogramas</div>
-              </CardContent>
-            </Card>
-
+          <div className="grid grid-cols-2 gap-3">
             <Card className="bg-slate-800 border-slate-600">
               <CardContent className="p-4 text-center flex flex-col items-center justify-center h-full">
                 <div className="text-2xl font-bold text-white mb-0.5">{projects.length}</div>
@@ -456,7 +444,7 @@ export default function ExecutiveStatus() {
             <Card className="bg-slate-800 border-slate-600">
               <CardContent className="p-4 text-center flex flex-col items-center justify-center h-full">
                 <div className="text-2xl font-bold text-white mb-0.5">
-                  {allProducts.filter(p => p.status !== 'pendente' && p.status !== 'em_producao').length}
+                  {allProducts.filter(p => p.status === 'em_homologacao' || p.status === 'homologado').length}
                 </div>
                 <div className="text-xs text-slate-300">Produtos em Implantação</div>
               </CardContent>
