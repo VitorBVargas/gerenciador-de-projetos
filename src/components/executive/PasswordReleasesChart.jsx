@@ -9,6 +9,7 @@ import { ptBR } from 'date-fns/locale';
 
 export default function PasswordReleasesChart({ products, visibleCharts = {}, onVisibilityChange }) {
   const [selectedMonth, setSelectedMonth] = useState(null);
+  const [selectedType, setSelectedType] = useState(null);
 
   const chartData = useMemo(() => {
     const monthlyData = {};
