@@ -581,12 +581,31 @@ Seja conciso, profissional e em português.`;
 
       {/* Header */}
       <div className="space-y-4">
-        <Link to={createPageUrl('ProjectsList')}>
-          <button className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
-            <ArrowLeft className="w-5 h-5" />
-            <span className="text-sm">Voltar para Projetos</span>
-          </button>
-        </Link>
+        <div className="flex items-start justify-between gap-4">
+          <Link to={createPageUrl('ProjectsList')}>
+            <button className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
+              <ArrowLeft className="w-5 h-5" />
+              <span className="text-sm">Voltar para Projetos</span>
+            </button>
+          </Link>
+          <Button 
+            onClick={() => analyzePortfolioStatus()}
+            disabled={isAnalyzingPortfolio}
+            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+          >
+            {isAnalyzingPortfolio ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Analisando...
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4 mr-2" />
+                Análise Inteligente
+              </>
+            )}
+          </Button>
+        </div>
         <div className="space-y-2">
           <h1 className="text-3xl font-bold text-white">Clientes Premium SC/MG</h1>
           <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-slate-400">
