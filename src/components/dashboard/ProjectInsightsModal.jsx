@@ -45,19 +45,36 @@ export default function ProjectInsightsModal({ open, onClose, projectId }) {
 Seja específico e acionável.`
       });
 
-      // Aguardar resposta
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Aguardar resposta com retry
+      let updatedConv = null;
+      let attempts = 0;
+      const maxAttempts = 10;
+      
+      while (attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        updatedConv = await base44.agents.getConversation(conv.id);
+        
+        if (updatedConv.messages.length > 1) {
+          break;
+        }
+        attempts++;
+      }
 
-      // Buscar mensagens atualizadas
-      const updatedConv = await base44.agents.getConversation(conv.id);
+      if (!updatedConv || updatedConv.messages.length <= 1) {
+        setInsights('Não há novas atualizações para o projeto no momento.');
+        return;
+      }
+
       const lastMessage = updatedConv.messages[updatedConv.messages.length - 1];
       
-      if (lastMessage && lastMessage.role === 'assistant') {
+      if (lastMessage && lastMessage.role === 'assistant' && lastMessage.content) {
         setInsights(lastMessage.content);
+      } else {
+        setInsights('Não há novas atualizações para o projeto no momento.');
       }
     } catch (error) {
       console.error('Erro ao buscar insights:', error);
-      setInsights('❌ Erro ao carregar insights do projeto. Tente novamente.');
+      setInsights('Não há novas atualizações para o projeto no momento.');
     } finally {
       setLoading(false);
     }
