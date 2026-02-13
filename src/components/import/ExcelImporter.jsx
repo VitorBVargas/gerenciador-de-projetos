@@ -270,12 +270,14 @@ const processTeamSheet = (workbook) => {
     const cargoCol = findColumn(allHeaders, ['Cargo', 'Atuação', 'Papel', 'Função', 'Funcao']);
     const telefoneCol = findColumn(allHeaders, ['Telefone', 'Fone', 'Celular', 'Phone']);
     const emailCol = findColumn(allHeaders, ['Email', 'E-mail']);
+    const verticalCol = findColumn(allHeaders, ['Vertical', 'Vertial', 'Área', 'Area']);
 
     return data.map(row => {
       const name = row[nomeCol] ? String(row[nomeCol]).trim() : '';
       const role = row[cargoCol] ? String(row[cargoCol]).trim() : '';
       const phone = row[telefoneCol] ? String(row[telefoneCol]).trim() : '';
       const email = row[emailCol] ? String(row[emailCol]).trim() : '';
+      const vertical = row[verticalCol] ? String(row[verticalCol]).trim() : '';
 
       if (!name || name.length < 2) return null;
 
@@ -284,6 +286,7 @@ const processTeamSheet = (workbook) => {
         role,
         email,
         phone,
+        vertical: normalizeVertical(vertical),
         communication_level: inferCommunicationLevel(role),
         communication_routine: ''
       };
