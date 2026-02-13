@@ -249,19 +249,32 @@ export default function Travels() {
       const start = dragStart < dragEnd ? dragStart : dragEnd;
       const end = dragStart < dragEnd ? dragEnd : dragStart;
       
+      // Reset drag state first
+      setIsDragging(false);
+      setDragStart(null);
+      setDragEnd(null);
+      setDragMember(null);
+      
       // Open modal with pre-filled dates
+      setSelectedTravel(null);
       setFormData({
-        ...formData,
+        title: '',
         start_date: format(start, 'yyyy-MM-dd'),
         end_date: format(end, 'yyyy-MM-dd'),
-        attendees: [dragMember.name]
+        location: '',
+        travel_type: 'presencial',
+        vertical: '',
+        attendees: [dragMember.name],
+        status: 'planejada',
+        notes: ''
       });
       setModalOpen(true);
+    } else {
+      setIsDragging(false);
+      setDragStart(null);
+      setDragEnd(null);
+      setDragMember(null);
     }
-    setIsDragging(false);
-    setDragStart(null);
-    setDragEnd(null);
-    setDragMember(null);
   };
 
   // Check if day is in drag selection
