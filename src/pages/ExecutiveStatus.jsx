@@ -1056,6 +1056,13 @@ Seja conciso, profissional e em português.`;
                   );
                   })()}
 
+          {/* Controles de Visibilidade e Gráfico de Senhas */}
+          <PasswordReleasesChart 
+            products={allProducts}
+            visibleCharts={visibleCharts}
+            onVisibilityChange={handleChartVisibility}
+          />
+
                   {/* Lista de produtos do mês selecionado */}
           {selectedMonth && (() => {
             const monthLabel = format(new Date(selectedMonth + '-01'), 'MMMM/yyyy', { locale: ptBR });
