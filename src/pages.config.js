@@ -61,6 +61,7 @@ import Team from './pages/Team';
 import Timeline from './pages/Timeline';
 import Trainings from './pages/Trainings';
 import Travels from './pages/Travels';
+import StatusReports from './pages/StatusReports';
 import __Layout from './Layout.jsx';
 
 
@@ -79,6 +80,7 @@ export const PAGES = {
     "Timeline": Timeline,
     "Trainings": Trainings,
     "Travels": Travels,
+    "StatusReports": StatusReports,
 }
 
 export const pagesConfig = {
