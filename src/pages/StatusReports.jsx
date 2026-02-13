@@ -430,7 +430,13 @@ Seja específico e acionável.`
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => analyzeLastSevenDays()}
+                  onClick={() => {
+                    if (!conversation) {
+                      initConversation().then(() => analyzeLastSevenDays());
+                    } else {
+                      analyzeLastSevenDays();
+                    }
+                  }}
                   disabled={isAnalyzingWeek || sending}
                   className="border-slate-600 text-slate-300 hover:bg-slate-700"
                 >
