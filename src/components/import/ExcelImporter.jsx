@@ -814,8 +814,7 @@ const processProductsSheet = (workbook) => {
       setProgress(95);
 
       // 10. Sync Cronogramas
-      setStatus('Sincronizando cronogramas...');
-      await syncProjectCronogramas(project.id);
+      setStatus('Finalizando...');
       setProgress(100);
 
       setStatus('Importação concluída com sucesso!');
