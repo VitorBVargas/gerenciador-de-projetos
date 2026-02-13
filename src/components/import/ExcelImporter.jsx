@@ -811,6 +811,11 @@ const processProductsSheet = (workbook) => {
           documents.map(d => ({ ...d, project_id: project.id }))
         );
       }
+      setProgress(95);
+
+      // 10. Sync Cronogramas
+      setStatus('Sincronizando cronogramas...');
+      await syncProjectCronogramas(project.id);
       setProgress(100);
 
       setStatus('Importação concluída com sucesso!');
