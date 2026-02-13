@@ -401,11 +401,9 @@ const processProductsSheet = (workbook) => {
       const vertical = sheetName.replace('Cronograma - ', '').trim();
       let normalizedVertical = normalizeVertical(vertical);
       
-      // Se não conseguir normalizar, usa o nome original (sem normalização)
+      // Se não conseguir normalizar, mantém o nome original da aba
       if (!normalizedVertical) {
-        normalizedVertical = vertical.toLowerCase()
-          .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-          .replace(/[^a-z0-9]/g, '_');
+        normalizedVertical = vertical;
       }
 
       console.log(`📍 Vertical: "${vertical}" → "${normalizedVertical}"`);
