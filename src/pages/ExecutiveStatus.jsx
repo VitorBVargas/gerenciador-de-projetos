@@ -702,16 +702,17 @@ export default function ExecutiveStatus() {
                   <CardContent>
                     <ResponsiveContainer width="100%" height={300}>
                       <BarChart 
-                        data={chartData}
-                        onClick={(data) => {
-                          if (data && data.activePayload && data.activePayload[0]) {
-                            const monthKey = Object.keys(monthlyData).find(
-                              key => monthlyData[key].month === data.activePayload[0].payload.month
-                            );
-                            setSelectedMonth(monthKey);
-                            setSelectedMonthType('implantacao');
-                          }
-                        }}
+                       data={chartData}
+                       onClick={(data) => {
+                         if (data && data.activePayload && data.activePayload[0]) {
+                           const monthKey = Object.keys(monthlyData).find(
+                             key => monthlyData[key].month === data.activePayload[0].payload.month
+                           );
+                           const clickedBar = data.activePayload[0].dataKey; // 'implantacao' or 'reconhecido'
+                           setSelectedMonth(monthKey);
+                           setSelectedMonthType(clickedBar === 'reconhecido' ? 'reconhecido_implantacao' : 'implantacao');
+                         }
+                       }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                         <XAxis 
@@ -768,16 +769,16 @@ export default function ExecutiveStatus() {
                   <CardContent>
                     <ResponsiveContainer width="100%" height={300}>
                       <BarChart 
-                        data={chartData}
-                        onClick={(data) => {
-                          if (data && data.activePayload && data.activePayload[0]) {
-                            const monthKey = Object.keys(monthlyData).find(
-                              key => monthlyData[key].month === data.activePayload[0].payload.month
-                            );
-                            setSelectedMonth(monthKey);
-                            setSelectedMonthType('recorrente');
-                          }
-                        }}
+                       data={chartData}
+                       onClick={(data) => {
+                         if (data && data.activePayload && data.activePayload[0]) {
+                           const monthKey = Object.keys(monthlyData).find(
+                             key => monthlyData[key].month === data.activePayload[0].payload.month
+                           );
+                           setSelectedMonth(monthKey);
+                           setSelectedMonthType('recorrente');
+                         }
+                       }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                         <XAxis 
@@ -830,7 +831,81 @@ export default function ExecutiveStatus() {
 
           {/* Lista de produtos do mês selecionado */}
           {selectedMonth && (() => {
-            // Encontrar produtos que têm Go Live no mês selecionado
+            const monthLabel = format(new Date(selectedMonth + '-01'), 'MMMM/yyyy', { locale: ptBR });
+            
+            // Se clicou em reconhecido
+            if (selectedMonthType === 'reconhecido_implantacao' || selectedMonthType === 'reconhecido_recorrente') {
+              // Buscar receitas reconhecidas neste mês
+              const recognizedInMonth = allRecognizedRevenues.filter(r => {
+                const recMonth = r.recognition_month.substring(0, 7);
+                const typeMatch = selectedMonthType === 'reconhecido_implantacao' ? r.type === 'implantacao' : r.type === 'recorrente';
+                return recMonth === selectedMonth && typeMatch;
+              });
+              
+              if (recognizedInMonth.length === 0) return null;
+              
+              return (
+                <Card className="bg-slate-800/50 border-slate-700/50">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-white">
+                        Reconhecido em {monthLabel} - {selectedMonthType === 'reconhecido_implantacao' ? 'Implantação' : 'Recorrente'}
+                      </CardTitle>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedMonth(null);
+                          setSelectedMonthType(null);
+                        }}
+                        className="text-slate-400 hover:text-white"
+                      >
+                        Fechar
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {recognizedInMonth.map((recognized) => {
+                        const product = allProducts.find(p => p.id === recognized.product_id);
+                        const project = projects.find(p => p.id === recognized.project_id);
+                        
+                        return (
+                          <div 
+                            key={recognized.id}
+                            className="p-4 bg-purple-900/20 rounded-lg border border-purple-700/50 hover:border-purple-600 transition-colors"
+                          >
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <Badge className="bg-purple-600 text-white text-xs">Reconhecido</Badge>
+                                  <div className="font-semibold text-white">{product?.name || 'Produto deletado'}</div>
+                                </div>
+                                <div className="text-sm text-slate-400">Projeto: {project?.name || 'N/A'}</div>
+                                {recognized.vertical_name && (
+                                  <div className="text-xs text-purple-400 mt-1">Vertical: {recognized.vertical_name}</div>
+                                )}
+                              </div>
+                              <div className="text-right">
+                                <div className="text-sm font-semibold text-purple-400">
+                                  {new Intl.NumberFormat('pt-BR', {
+                                    style: 'currency',
+                                    currency: 'BRL',
+                                    minimumFractionDigits: 0
+                                  }).format(recognized.amount)}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            }
+            
+            // Se clicou na barra normal (implantação ou recorrente do mês)
             const productsInMonth = [];
             
             projects.forEach(project => {
@@ -869,14 +944,12 @@ export default function ExecutiveStatus() {
             
             if (productsInMonth.length === 0) return null;
             
-            const monthLabel = format(new Date(selectedMonth + '-01'), 'MMMM/yyyy', { locale: ptBR });
-            
             return (
               <Card className="bg-slate-800/50 border-slate-700/50">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-white">
-                      Produtos em {monthLabel} - {selectedMonthType === 'implantacao' ? 'Implantação' : 'Recorrente'}
+                      Produtos em {monthLabel} - {selectedMonthType === 'implantacao' ? 'Implantação (Go Live)' : 'Recorrente (Go Live)'}
                     </CardTitle>
                     <Button
                       variant="ghost"
@@ -900,7 +973,10 @@ export default function ExecutiveStatus() {
                       >
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
-                            <div className="font-semibold text-white mb-1">{product.name}</div>
+                            <div className="flex items-center gap-2 mb-1">
+                              <Badge className="bg-emerald-600 text-white text-xs">Go Live</Badge>
+                              <div className="font-semibold text-white">{product.name}</div>
+                            </div>
                             <div className="text-sm text-slate-400">Projeto: {project.name}</div>
                           </div>
                           {endDate && (
