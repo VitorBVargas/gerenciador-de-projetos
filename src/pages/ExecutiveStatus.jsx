@@ -649,9 +649,6 @@ export default function ExecutiveStatus() {
 
         {/* Financeiro Tab */}
         <TabsContent value="financeiro" className="space-y-6">
-          {/* Gráfico de Senhas Liberadas */}
-          <PasswordReleasesChart products={allProducts} />
-
           {(() => {
             // Calcular valores por mês
             const monthlyData = {};
@@ -897,6 +894,9 @@ export default function ExecutiveStatus() {
               </div>
             );
           })()}
+
+          {/* Gráfico de Senhas Liberadas */}
+          <PasswordReleasesChart products={allProducts} />
 
           {/* Lista de produtos do mês selecionado */}
           {selectedMonth && (() => {
