@@ -361,7 +361,7 @@ export default function ExecutiveStatus() {
 
   // Calculate project with health status
   const projectsWithMetrics = useMemo(() => {
-    return activeProjects.map(project => {
+    return projects.map(project => {
       const recognizedRevenues = allRecognizedRevenues.filter(r => r.project_id === project.id);
       const totalRecognized = recognizedRevenues.reduce((sum, r) => sum + (r.amount || 0), 0);
       
@@ -376,7 +376,7 @@ export default function ExecutiveStatus() {
       // Sort by health score (worst first)
       return a.healthScore - b.healthScore;
     });
-  }, [activeProjects, allTimelineEvents, allHomologationTasks, allMigrationTasks, allRisks, allExpenses, allRecognizedRevenues]);
+  }, [projects, allTimelineEvents, allHomologationTasks, allMigrationTasks, allRisks, allExpenses, allRecognizedRevenues]);
 
   const getHealthColor = (score) => {
     if (score >= 80) return 'text-green-400';
