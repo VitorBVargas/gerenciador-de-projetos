@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Calendar, Download, Sparkles, FileText, Loader2, Plus } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { Calendar, Download, Sparkles, FileText, Loader2, Send, MessageSquare } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import jsPDF from 'jspdf';
@@ -14,6 +15,10 @@ export default function StatusReports() {
   const queryClient = useQueryClient();
   const [generatingReport, setGeneratingReport] = useState(false);
   const [downloadingId, setDownloadingId] = useState(null);
+  const [conversation, setConversation] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [userMessage, setUserMessage] = useState('');
+  const [sending, setSending] = useState(false);
 
   const urlParams = new URLSearchParams(window.location.search);
   const projectId = urlParams.get('project_id');
@@ -30,23 +35,65 @@ export default function StatusReports() {
     enabled: !!projectId
   });
 
-  const generateReport = async () => {
-    setGeneratingReport(true);
+  // Inicializar conversa
+  useEffect(() => {
+    if (projectId && !conversation) {
+      initConversation();
+    }
+  }, [projectId]);
+
+  const initConversation = async () => {
     try {
       const conv = await base44.agents.createConversation({
         agent_name: 'ia_projetos_betha',
-        metadata: { project_id: projectId, type: 'weekly_report' }
+        metadata: { project_id: projectId }
+      });
+      setConversation(conv);
+      setMessages(conv.messages || []);
+
+      // Subscrever a atualizações
+      const unsubscribe = base44.agents.subscribeToConversation(conv.id, (data) => {
+        setMessages(data.messages);
       });
 
+      return () => unsubscribe();
+    } catch (error) {
+      console.error('Erro ao criar conversa:', error);
+    }
+  };
+
+  const sendMessage = async () => {
+    if (!userMessage.trim() || !conversation || sending) return;
+
+    setSending(true);
+    try {
+      await base44.agents.addMessage(conversation, {
+        role: 'user',
+        content: userMessage
+      });
+      setUserMessage('');
+    } catch (error) {
+      console.error('Erro ao enviar mensagem:', error);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const generateWeeklyReport = async () => {
+    if (!conversation) return;
+    
+    setGeneratingReport(true);
+    setSending(true);
+    try {
       const today = new Date();
       const weekStart = new Date(today);
       weekStart.setDate(today.getDate() - today.getDay());
       const weekEnd = new Date(weekStart);
       weekEnd.setDate(weekStart.getDate() + 6);
 
-      await base44.agents.addMessage(conv, {
+      await base44.agents.addMessage(conversation, {
         role: 'user',
-        content: `Gere um Status Report semanal do projeto ID ${projectId} referente à semana de ${format(weekStart, 'dd/MM/yyyy')} a ${format(weekEnd, 'dd/MM/yyyy')}.
+        content: `Gere um Status Report semanal do projeto referente à semana de ${format(weekStart, 'dd/MM/yyyy')} a ${format(weekEnd, 'dd/MM/yyyy')}.
 
 Estruture o relatório com:
 
@@ -76,12 +123,14 @@ Estruture o relatório com:
 - Novos riscos identificados
 - Riscos que evoluíram ou foram mitigados
 
-Seja específico, objetivo e acionável. Use formato Markdown.`
+Seja específico, objetivo e acionável.`
       });
 
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Aguardar resposta completa
+      await new Promise(resolve => setTimeout(resolve, 3000));
 
-      const updatedConv = await base44.agents.getConversation(conv.id);
+      // Salvar no banco
+      const updatedConv = await base44.agents.getConversation(conversation.id);
       const aiMessage = updatedConv.messages[updatedConv.messages.length - 1];
 
       if (aiMessage?.role === 'assistant') {
@@ -105,9 +154,9 @@ Seja específico, objetivo e acionável. Use formato Markdown.`
       }
     } catch (error) {
       console.error('Erro ao gerar relatório:', error);
-      alert('Erro ao gerar relatório. Tente novamente.');
     } finally {
       setGeneratingReport(false);
+      setSending(false);
     }
   };
 
@@ -151,7 +200,6 @@ Seja específico, objetivo e acionável. Use formato Markdown.`
       const maxWidth = pageWidth - 2 * margin;
       let y = 20;
 
-      // Header
       doc.setFontSize(20);
       doc.setFont(undefined, 'bold');
       doc.text('Status Report Semanal', margin, y);
@@ -166,12 +214,10 @@ Seja específico, objetivo e acionável. Use formato Markdown.`
       doc.text(`Semana: ${format(new Date(report.week_start), 'dd/MM/yyyy')} a ${format(new Date(report.week_end), 'dd/MM/yyyy')}`, margin, y);
       y += 10;
 
-      // Linha divisória
       doc.setDrawColor(200, 200, 200);
       doc.line(margin, y, pageWidth - margin, y);
       y += 10;
 
-      // Content
       const addSection = (title, content) => {
         if (!content || content.trim() === '') return;
 
@@ -206,7 +252,6 @@ Seja específico, objetivo e acionável. Use formato Markdown.`
       addSection('Próximas Ações', report.next_actions);
       addSection('Atualizações de Riscos', report.risks_updates);
 
-      // Footer
       const pageCount = doc.internal.getNumberOfPages();
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
@@ -223,7 +268,6 @@ Seja específico, objetivo e acionável. Use formato Markdown.`
       doc.save(`Status_Report_${format(new Date(report.report_date), 'yyyy-MM-dd')}.pdf`);
     } catch (error) {
       console.error('Erro ao gerar PDF:', error);
-      alert('Erro ao gerar PDF. Tente novamente.');
     } finally {
       setDownloadingId(null);
     }
@@ -235,7 +279,7 @@ Seja específico, objetivo e acionável. Use formato Markdown.`
         <EmptyState
           icon={FileText}
           title="Nenhum projeto selecionado"
-          description="Selecione um projeto para visualizar os relatórios"
+          description="Selecione um projeto para acessar a IA"
         />
       </div>
     );
@@ -243,110 +287,190 @@ Seja específico, objetivo e acionável. Use formato Markdown.`
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div className="flex items-center gap-3">
+        <Sparkles className="w-8 h-8 text-blue-400" />
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-white">Status Reports</h1>
-          <p className="text-slate-400 mt-1">Relatórios semanais gerados pela IA</p>
+          <h1 className="text-2xl lg:text-3xl font-bold text-white">IA Projetos Betha</h1>
+          <p className="text-slate-400 mt-1">Converse com a IA e gere relatórios inteligentes</p>
         </div>
-        <Button
-          onClick={generateReport}
-          disabled={generatingReport}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          {generatingReport ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Gerando...
-            </>
-          ) : (
-            <>
-              <Sparkles className="w-4 h-4 mr-2" />
-              Gerar Novo Report
-            </>
-          )}
-        </Button>
       </div>
 
-      {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
-        </div>
-      ) : reports.length > 0 ? (
-        <div className="space-y-4">
-          {reports.map((report) => (
-            <Card key={report.id} className="bg-slate-800 border-slate-600">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <CardTitle className="text-white flex items-center gap-2">
-                      <Calendar className="w-5 h-5 text-blue-400" />
-                      Semana de {format(new Date(report.week_start), 'dd/MM', { locale: ptBR })} a {format(new Date(report.week_end), 'dd/MM/yyyy', { locale: ptBR })}
-                    </CardTitle>
-                    <p className="text-sm text-slate-400">
-                      Gerado em {format(new Date(report.report_date), "dd 'de' MMMM, yyyy", { locale: ptBR })}
+      <Tabs defaultValue="chat" className="space-y-4">
+        <TabsList className="bg-slate-800 border border-slate-700">
+          <TabsTrigger value="chat" className="data-[state=active]:bg-blue-600">
+            <MessageSquare className="w-4 h-4 mr-2" />
+            Chat com IA
+          </TabsTrigger>
+          <TabsTrigger value="reports" className="data-[state=active]:bg-blue-600">
+            <FileText className="w-4 h-4 mr-2" />
+            Status Reports
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="chat" className="space-y-4">
+          <Card className="bg-slate-800 border-slate-600">
+            <CardContent className="p-6">
+              {/* Chat Messages */}
+              <div className="space-y-4 mb-4 max-h-[500px] overflow-y-auto">
+                {messages.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Sparkles className="w-12 h-12 text-blue-400 mx-auto mb-3" />
+                    <p className="text-slate-400">Pergunte qualquer coisa sobre o projeto</p>
+                    <p className="text-sm text-slate-500 mt-2">
+                      Ex: "Como está o progresso?", "Quais os principais riscos?", "Gere um status report"
                     </p>
                   </div>
-                  <Button
-                    size="sm"
-                    onClick={() => downloadPDF(report)}
-                    disabled={downloadingId === report.id}
-                    className="bg-slate-700 hover:bg-slate-600"
-                  >
-                    {downloadingId === report.id ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <>
-                        <Download className="w-4 h-4 mr-2" />
-                        PDF
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {report.summary && (
-                  <div>
-                    <h3 className="text-sm font-semibold text-slate-300 mb-2">Resumo Executivo</h3>
-                    <div className="text-sm text-slate-400 whitespace-pre-wrap bg-slate-900/50 p-3 rounded">
-                      {report.summary}
+                ) : (
+                  messages.map((msg, idx) => (
+                    <div
+                      key={idx}
+                      className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div
+                        className={`max-w-[80%] rounded-lg p-4 ${
+                          msg.role === 'user'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-slate-700 text-slate-100'
+                        }`}
+                      >
+                        <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                      </div>
                     </div>
-                  </div>
+                  ))
                 )}
-                
-                {report.attention_points && (
-                  <div>
-                    <h3 className="text-sm font-semibold text-yellow-400 mb-2">⚠️ Pontos de Atenção</h3>
-                    <div className="text-sm text-slate-400 whitespace-pre-wrap bg-slate-900/50 p-3 rounded">
-                      {report.attention_points}
-                    </div>
-                  </div>
-                )}
+              </div>
 
-                {report.next_actions && (
-                  <div>
-                    <h3 className="text-sm font-semibold text-blue-400 mb-2">📋 Próximas Ações</h3>
-                    <div className="text-sm text-slate-400 whitespace-pre-wrap bg-slate-900/50 p-3 rounded">
-                      {report.next_actions}
+              {/* Input */}
+              <div className="flex gap-2">
+                <Textarea
+                  value={userMessage}
+                  onChange={(e) => setUserMessage(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      sendMessage();
+                    }
+                  }}
+                  placeholder="Digite sua mensagem..."
+                  className="bg-slate-900 border-slate-600 text-white resize-none"
+                  rows={2}
+                />
+                <Button
+                  onClick={sendMessage}
+                  disabled={!userMessage.trim() || sending}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  {sending ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4" />
+                  )}
+                </Button>
+              </div>
+
+              {/* Quick Actions */}
+              <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-slate-700">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={generateWeeklyReport}
+                  disabled={generatingReport || sending}
+                  className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                >
+                  {generatingReport ? (
+                    <>
+                      <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+                      Gerando...
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="w-3 h-3 mr-2" />
+                      Gerar Status Report
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="reports" className="space-y-4">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
+            </div>
+          ) : reports.length > 0 ? (
+            <div className="space-y-4">
+              {reports.map((report) => (
+                <Card key={report.id} className="bg-slate-800 border-slate-600">
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-1">
+                        <CardTitle className="text-white flex items-center gap-2">
+                          <Calendar className="w-5 h-5 text-blue-400" />
+                          Semana de {format(new Date(report.week_start), 'dd/MM', { locale: ptBR })} a {format(new Date(report.week_end), 'dd/MM/yyyy', { locale: ptBR })}
+                        </CardTitle>
+                        <p className="text-sm text-slate-400">
+                          Gerado em {format(new Date(report.report_date), "dd 'de' MMMM, yyyy", { locale: ptBR })}
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={() => downloadPDF(report)}
+                        disabled={downloadingId === report.id}
+                        className="bg-slate-700 hover:bg-slate-600"
+                      >
+                        {downloadingId === report.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <>
+                            <Download className="w-4 h-4 mr-2" />
+                            PDF
+                          </>
+                        )}
+                      </Button>
                     </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : (
-        <EmptyState
-          icon={FileText}
-          title="Nenhum relatório gerado"
-          description="Clique em 'Gerar Novo Report' para criar o primeiro relatório semanal"
-          action={
-            <Button onClick={generateReport} disabled={generatingReport}>
-              <Plus className="w-4 h-4 mr-2" />
-              Gerar Primeiro Report
-            </Button>
-          }
-        />
-      )}
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {report.summary && (
+                      <div>
+                        <h3 className="text-sm font-semibold text-slate-300 mb-2">Resumo Executivo</h3>
+                        <div className="text-sm text-slate-400 whitespace-pre-wrap bg-slate-900/50 p-3 rounded">
+                          {report.summary}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {report.attention_points && (
+                      <div>
+                        <h3 className="text-sm font-semibold text-yellow-400 mb-2">⚠️ Pontos de Atenção</h3>
+                        <div className="text-sm text-slate-400 whitespace-pre-wrap bg-slate-900/50 p-3 rounded">
+                          {report.attention_points}
+                        </div>
+                      </div>
+                    )}
+
+                    {report.next_actions && (
+                      <div>
+                        <h3 className="text-sm font-semibold text-blue-400 mb-2">📋 Próximas Ações</h3>
+                        <div className="text-sm text-slate-400 whitespace-pre-wrap bg-slate-900/50 p-3 rounded">
+                          {report.next_actions}
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              icon={FileText}
+              title="Nenhum relatório gerado"
+              description="Vá para a aba Chat e clique em 'Gerar Status Report'"
+            />
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

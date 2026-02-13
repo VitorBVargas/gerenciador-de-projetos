@@ -32,7 +32,7 @@ const navigation = [
   { name: 'Treinamentos', href: 'Trainings', icon: GraduationCap },
   { name: 'Viagens', href: 'Travels', icon: Plane },
   { name: 'Orçamento', href: 'Budget', icon: DollarSign },
-  { name: 'Status Reports', href: 'StatusReports', icon: FileText },
+  { name: 'IA Projetos Betha', href: 'StatusReports', icon: FileText },
   { name: 'Relatórios', href: 'Reports', icon: FileText },
   { name: 'Riscos', href: 'Risks', icon: AlertTriangle },
 ];

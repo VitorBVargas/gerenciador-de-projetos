@@ -113,11 +113,17 @@ export default function Dashboard() {
   // Active project
   const activeProject = projects.find(p => p.id === projectId);
 
-  // Mostrar insights automaticamente quando entrar no projeto
+  // Mostrar insights automaticamente apenas na primeira vez
   useEffect(() => {
-    if (projectId && activeProject && !hasShownInsights) {
-      setHasShownInsights(true);
-      setInsightsModalOpen(true);
+    if (projectId && activeProject) {
+      const key = `insights_shown_${projectId}`;
+      const alreadyShown = localStorage.getItem(key);
+      
+      if (!alreadyShown && !hasShownInsights) {
+        setHasShownInsights(true);
+        setInsightsModalOpen(true);
+        localStorage.setItem(key, 'true');
+      }
     }
   }, [projectId, activeProject, hasShownInsights]);
 
