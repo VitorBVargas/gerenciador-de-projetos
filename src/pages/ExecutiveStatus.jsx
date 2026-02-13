@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { 
   TrendingUp,
   AlertTriangle,
@@ -248,8 +249,8 @@ export default function ExecutiveStatus() {
   // Active projects (exclude completed)
   const activeProjects = projects.filter(p => p.status !== 'concluido');
 
-  // Status counts
-  const statusCounts = useMemo(() => {
+  // Status counts and project lists by status
+  const statusData = useMemo(() => {
     const counts = {
       nao_iniciado: 0,
       em_dia: 0,
@@ -259,15 +260,25 @@ export default function ExecutiveStatus() {
       concluido: 0
     };
     
+    const projectsByStatus = {
+      nao_iniciado: [],
+      em_dia: [],
+      atencao: [],
+      atrasado: [],
+      pausado: [],
+      concluido: []
+    };
+    
     allProjectsData.forEach(project => {
       const status = classifyProjectStatus(project);
       if (counts[status] !== undefined) {
         counts[status]++;
+        projectsByStatus[status].push(project);
       }
     });
     
-    return counts;
-  }, [projects, allTimelineEvents]);
+    return { counts, projectsByStatus };
+  }, [allProjectsData, allTimelineEvents]);
 
   // Calculate project with health status
   const projectsWithMetrics = useMemo(() => {
@@ -355,28 +366,57 @@ export default function ExecutiveStatus() {
           </CardContent>
         </Card>
 
-        {Object.entries(statusCounts).map(([status, count]) => {
-          const Icon = statusIcons[status];
-          const iconColorMap = {
-            'nao_iniciado': 'text-slate-400',
-            'em_dia': 'text-green-400',
-            'atencao': 'text-yellow-400',
-            'atrasado': 'text-red-400',
-            'pausado': 'text-orange-400',
-            'concluido': 'text-purple-400'
-          };
-          return (
-            <Card key={status} className="bg-slate-800/50 border-slate-700/50">
-              <CardContent className="p-4 text-center flex flex-col items-center justify-center h-full">
-                <div className="flex items-center justify-center mb-1">
-                  <Icon className={cn("w-5 h-5", iconColorMap[status])} />
-                </div>
-                <div className="text-2xl font-bold text-white mb-0.5">{count}</div>
-                <div className="text-xs text-slate-400">{statusLabels[status]}</div>
-              </CardContent>
-            </Card>
-          );
-        })}
+        <TooltipProvider>
+          {Object.entries(statusData.counts).map(([status, count]) => {
+            const Icon = statusIcons[status];
+            const iconColorMap = {
+              'nao_iniciado': 'text-slate-400',
+              'em_dia': 'text-green-400',
+              'atencao': 'text-yellow-400',
+              'atrasado': 'text-red-400',
+              'pausado': 'text-orange-400',
+              'concluido': 'text-purple-400'
+            };
+            
+            const projectsInStatus = statusData.projectsByStatus[status] || [];
+            
+            return (
+              <Tooltip key={status} delayDuration={200}>
+                <TooltipTrigger asChild>
+                  <Card className="bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 cursor-pointer transition-colors">
+                    <CardContent className="p-4 text-center flex flex-col items-center justify-center h-full">
+                      <div className="flex items-center justify-center mb-1">
+                        <Icon className={cn("w-5 h-5", iconColorMap[status])} />
+                      </div>
+                      <div className="text-2xl font-bold text-white mb-0.5">{count}</div>
+                      <div className="text-xs text-slate-400">{statusLabels[status]}</div>
+                    </CardContent>
+                  </Card>
+                </TooltipTrigger>
+                {projectsInStatus.length > 0 && (
+                  <TooltipContent 
+                    side="bottom" 
+                    className="bg-slate-800 border-slate-700 p-3 max-w-xs max-h-64 overflow-y-auto"
+                  >
+                    <div className="space-y-1">
+                      <div className="text-xs font-semibold text-slate-400 mb-2">
+                        {statusLabels[status]} ({projectsInStatus.length})
+                      </div>
+                      {projectsInStatus.map(project => (
+                        <div 
+                          key={project.id} 
+                          className="text-sm text-white py-1 border-b border-slate-700/50 last:border-0"
+                        >
+                          {project.name}
+                        </div>
+                      ))}
+                    </div>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            );
+          })}
+        </TooltipProvider>
       </div>
 
           {/* Projects Grid */}
