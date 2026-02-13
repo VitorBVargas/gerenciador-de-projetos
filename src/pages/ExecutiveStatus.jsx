@@ -515,23 +515,7 @@ Seja conciso, profissional e em português.`;
 
   return (
     <div className="min-h-screen bg-slate-950 p-6 lg:p-8 space-y-6 relative">
-      {/* Botão flutuante da IA */}
-      <button
-        onClick={() => setIsAIModalOpen(true)}
-        className="fixed bottom-8 right-8 w-14 h-14 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all z-50"
-        title="Abrir Assistente IA"
-      >
-        <Sparkles className="w-6 h-6" />
-      </button>
 
-      {/* Debug Button - Resync */}
-      <button
-        onClick={handleResyncCronogramas}
-        className="fixed bottom-24 right-8 w-14 h-14 rounded-full bg-slate-700 hover:bg-slate-600 flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all z-50 text-xs"
-        title="Re-sincronizar cronogramas"
-      >
-        ↻
-      </button>
       {/* Header */}
       <div className="space-y-4">
         <Link to={createPageUrl('ProjectsList')}>
