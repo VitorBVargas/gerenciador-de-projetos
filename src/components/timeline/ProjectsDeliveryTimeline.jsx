@@ -153,7 +153,7 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents, pro
       </div>
 
       {/* Projects Timeline */}
-      <div className="space-y-2">
+      <div className="space-y-2 overflow-x-auto">
         {projectsWithDelivery.map((project, idx) => {
           const config = statusConfig[project.status];
           const Icon = config.icon;
@@ -161,19 +161,19 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents, pro
           const goLivePosition = project.goLiveDate ? getDatePosition(new Date(project.goLiveDate)) : null;
           
           return (
-            <div key={project.id} className="relative">
-              <div className="flex items-center">
+            <div key={project.id} className="relative min-w-max">
+              <div className="flex items-center gap-4">
                 {/* Project Name */}
-                <div className="w-64 pr-4 text-sm text-white truncate">
+                <div className="w-64 shrink-0 text-sm text-white truncate">
                   {project.name}
                 </div>
 
                 {/* Timeline Bar */}
-                <div className="flex-1 relative h-10 bg-slate-800/30 rounded border border-slate-700/50">
+                <div className="flex-1 relative h-10 bg-slate-800/30 rounded border border-slate-700/50 min-w-[800px]">
                   {/* Go Live Marker (Blue Triangle) */}
-                  {goLivePosition !== null && (
+                  {goLivePosition !== null && goLivePosition >= 0 && goLivePosition <= 100 && (
                     <div 
-                      className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex flex-col items-center"
+                      className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex flex-col items-center z-10"
                       style={{ left: `${goLivePosition}%` }}
                     >
                       <div className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-b-[8px] border-b-blue-500" />
@@ -184,15 +184,17 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents, pro
                   )}
                   
                   {/* Delivery/End Marker */}
-                  <div 
-                    className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex flex-col items-center"
-                    style={{ left: `${deliveryPosition}%` }}
-                  >
-                    <Icon className={`w-5 h-5 ${config.color}`} />
-                    <div className="text-xs text-slate-400 mt-1 whitespace-nowrap">
-                      {format(new Date(project.deliveryDate), 'dd/MM', { locale: ptBR })}
+                  {deliveryPosition >= 0 && deliveryPosition <= 100 && (
+                    <div 
+                      className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex flex-col items-center z-10"
+                      style={{ left: `${deliveryPosition}%` }}
+                    >
+                      <Icon className={`w-5 h-5 ${config.color}`} />
+                      <div className="text-xs text-slate-400 mt-1 whitespace-nowrap">
+                        {format(new Date(project.deliveryDate), 'dd/MM', { locale: ptBR })}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
             </div>
