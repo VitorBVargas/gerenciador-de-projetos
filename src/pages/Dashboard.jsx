@@ -19,6 +19,7 @@ import { format, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from "@/lib/utils";
 import { createPageUrl } from '../utils';
+import { completeProjectCronogramas } from '../functions/syncProjectCronogramas';
 
 import StatCard from '../components/dashboard/StatCard.jsx';
 import ProgressChart from '../components/dashboard/ProgressChart.jsx';
