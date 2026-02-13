@@ -703,49 +703,63 @@ export default function ExecutiveStatus() {
                     <ResponsiveContainer width="100%" height={300}>
                       <BarChart 
                        data={chartData}
-                       onClick={(data) => {
-                         if (data && data.activePayload && data.activePayload[0]) {
-                           const monthKey = Object.keys(monthlyData).find(
-                             key => monthlyData[key].month === data.activePayload[0].payload.month
-                           );
-                           const clickedBar = data.activePayload[0].dataKey; // 'implantacao' or 'reconhecido'
-                           setSelectedMonth(monthKey);
-                           setSelectedMonthType(clickedBar === 'reconhecido' ? 'reconhecido_implantacao' : 'implantacao');
-                         }
-                       }}
                       >
-                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                        <XAxis 
-                          dataKey="month" 
-                          stroke="#94a3b8"
-                          style={{ fontSize: '12px' }}
-                        />
-                        <YAxis 
-                          stroke="#94a3b8"
-                          style={{ fontSize: '12px' }}
-                          tickFormatter={(value) => 
-                            new Intl.NumberFormat('pt-BR', {
-                              notation: 'compact',
-                              compactDisplay: 'short'
-                            }).format(value)
-                          }
-                        />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: '#1e293b',
-                            border: '1px solid #334155',
-                            borderRadius: '8px',
-                            color: '#fff'
-                          }}
-                          formatter={(value) =>
-                            new Intl.NumberFormat('pt-BR', {
-                              style: 'currency',
-                              currency: 'BRL'
-                            }).format(value)
-                          }
-                        />
-                        <Bar dataKey="implantacao" fill="#10b981" name="Implantação" cursor="pointer" />
-                        <Bar dataKey="reconhecido" fill="#a855f7" name="Reconhecido" cursor="pointer" />
+                       <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                       <XAxis 
+                         dataKey="month" 
+                         stroke="#94a3b8"
+                         style={{ fontSize: '12px' }}
+                       />
+                       <YAxis 
+                         stroke="#94a3b8"
+                         style={{ fontSize: '12px' }}
+                         tickFormatter={(value) => 
+                           new Intl.NumberFormat('pt-BR', {
+                             notation: 'compact',
+                             compactDisplay: 'short'
+                           }).format(value)
+                         }
+                       />
+                       <Tooltip
+                         contentStyle={{
+                           backgroundColor: '#1e293b',
+                           border: '1px solid #334155',
+                           borderRadius: '8px',
+                           color: '#fff'
+                         }}
+                         formatter={(value) =>
+                           new Intl.NumberFormat('pt-BR', {
+                             style: 'currency',
+                             currency: 'BRL'
+                           }).format(value)
+                         }
+                       />
+                       <Bar 
+                         dataKey="implantacao" 
+                         fill="#10b981" 
+                         name="Implantação" 
+                         cursor="pointer"
+                         onClick={(data) => {
+                           const monthKey = Object.keys(monthlyData).find(
+                             key => monthlyData[key].month === data.month
+                           );
+                           setSelectedMonth(monthKey);
+                           setSelectedMonthType('implantacao');
+                         }}
+                       />
+                       <Bar 
+                         dataKey="reconhecido" 
+                         fill="#a855f7" 
+                         name="Reconhecido" 
+                         cursor="pointer"
+                         onClick={(data) => {
+                           const monthKey = Object.keys(monthlyData).find(
+                             key => monthlyData[key].month === data.month
+                           );
+                           setSelectedMonth(monthKey);
+                           setSelectedMonthType('reconhecido_implantacao');
+                         }}
+                       />
                       </BarChart>
                     </ResponsiveContainer>
                     <div className="mt-4 text-center">
