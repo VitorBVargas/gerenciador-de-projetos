@@ -562,7 +562,10 @@ Seja conciso, profissional e em português.`;
             <Card className="bg-slate-800 border-slate-600">
               <CardContent className="p-3 text-center flex flex-col items-center justify-center h-full">
                 <div className="text-lg font-bold text-white mb-0.5">
-                  {allProducts.length}
+                  {allProducts.filter(p => {
+                    const project = allProjectsData.find(proj => proj.id === p.project_id);
+                    return project && project.status !== 'concluido';
+                  }).length}
                 </div>
                 <div className="text-xs text-slate-300">Produtos em Implantação</div>
               </CardContent>
