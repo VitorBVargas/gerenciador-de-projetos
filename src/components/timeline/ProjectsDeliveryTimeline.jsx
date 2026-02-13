@@ -16,6 +16,9 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents, pro
       const projectEvents = timelineEvents.filter(e => e.project_id === project.id);
       const projectProducts = products.filter(p => p.project_id === project.id);
       
+      // Verificar se o projeto já está concluído
+      const isProjectCompleted = project.status === 'concluido';
+      
       // Find Go Live event (production migration or similar)
       const goLiveEvent = projectEvents.find(e => 
         e.phase && (
@@ -66,9 +69,10 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents, pro
         ...project,
         goLiveDate: goLiveEvent?.end_date,
         deliveryDate,
-        status
+        status,
+        isProjectCompleted
       };
-    }).filter(p => p.deliveryDate); // Only show projects with delivery dates
+    }).filter(p => p.deliveryDate && !p.isProjectCompleted); // Only show projects with delivery dates and not completed
   }, [projects, timelineEvents, products]);
 
   // Generate months for the timeline
