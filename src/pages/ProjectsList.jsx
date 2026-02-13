@@ -6,12 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, FolderOpen, Trash2, Upload, Calendar, DollarSign, TrendingUp } from 'lucide-react';
+import { Plus, FolderOpen, Trash2, Upload, Calendar, DollarSign, TrendingUp, GripVertical } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import ExcelImporter from '../components/import/ExcelImporter';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -46,7 +47,16 @@ export default function ProjectsList() {
 
   const { data: projects = [], isLoading } = useQuery({
     queryKey: ['projects'],
-    queryFn: () => base44.entities.Project.list('-created_date')
+    queryFn: () => base44.entities.Project.list('display_order')
+  });
+
+  const updateOrderMutation = useMutation({
+    mutationFn: async ({ id, display_order }) => {
+      await base44.entities.Project.update(id, { display_order });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+    }
   });
 
   const deleteMutation = useMutation({
@@ -107,36 +117,60 @@ export default function ProjectsList() {
   const activeProjects = projects.filter(p => p.status !== 'concluido');
   const completedProjects = projects.filter(p => p.status === 'concluido');
 
-  const renderProjectCard = (project) => (
-    <Card 
-      key={project.id} 
-      className={`bg-slate-800/50 border-slate-700 hover:bg-slate-800 transition-all group ${
-        deletingProjectId === project.id ? 'opacity-50 pointer-events-none' : ''
-      }`}
-    >
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <CardTitle className="text-white text-lg mb-2">
-              {deletingProjectId === project.id ? 'Excluindo...' : project.name}
-            </CardTitle>
+  const handleDragEnd = async (result, projectsList) => {
+    if (!result.destination) return;
+
+    const items = Array.from(projectsList);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    // Update display_order for all affected items
+    const updates = items.map((project, index) => ({
+      id: project.id,
+      display_order: index
+    }));
+
+    // Update all projects
+    await Promise.all(
+      updates.map(update => updateOrderMutation.mutateAsync(update))
+    );
+  };
+
+  const renderProjectCard = (project, index, isDraggable = false) => {
+    const cardContent = (
+      <Card 
+        className={`bg-slate-800/50 border-slate-700 hover:bg-slate-800 transition-all group ${
+          deletingProjectId === project.id ? 'opacity-50 pointer-events-none' : ''
+        }`}
+      >
+        <CardHeader>
+          <div className="flex items-start gap-2">
+            {isDraggable && (
+              <div className="pt-1 cursor-grab active:cursor-grabbing">
+                <GripVertical className="w-5 h-5 text-slate-500" />
+              </div>
+            )}
+            <div className="flex-1 flex items-start justify-between">
+              <CardTitle className="text-white text-lg mb-2">
+                {deletingProjectId === project.id ? 'Excluindo...' : project.name}
+              </CardTitle>
+              {deletingProjectId !== project.id && (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleDelete(project);
+                  }}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
           </div>
-          {deletingProjectId !== project.id && (
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleDelete(project);
-              }}
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
-          )}
-        </div>
-      </CardHeader>
+        </CardHeader>
       <CardContent className="space-y-4">
         {project.manager && (
           <div className="text-sm text-slate-400">
@@ -169,7 +203,26 @@ export default function ProjectsList() {
         </Link>
       </CardContent>
     </Card>
-  );
+    );
+
+    if (isDraggable) {
+      return (
+        <Draggable key={project.id} draggableId={project.id} index={index}>
+          {(provided) => (
+            <div
+              ref={provided.innerRef}
+              {...provided.draggableProps}
+              {...provided.dragHandleProps}
+            >
+              {cardContent}
+            </div>
+          )}
+        </Draggable>
+      );
+    }
+
+    return <div key={project.id}>{cardContent}</div>;
+  };
 
   return (
     <div className="min-h-screen bg-slate-900">
@@ -210,9 +263,20 @@ export default function ProjectsList() {
 
           <TabsContent value="active" className="mt-6">
             {activeProjects.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {activeProjects.map(renderProjectCard)}
-              </div>
+              <DragDropContext onDragEnd={(result) => handleDragEnd(result, activeProjects)}>
+                <Droppable droppableId="active-projects">
+                  {(provided) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                    >
+                      {activeProjects.map((project, index) => renderProjectCard(project, index, true))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
             ) : (
               <Card className="bg-slate-800/50 border-slate-700">
                 <CardContent className="py-16 text-center">
@@ -230,35 +294,51 @@ export default function ProjectsList() {
 
           <TabsContent value="completed" className="mt-6">
             {completedProjects.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {completedProjects.map((project) => (
+              <DragDropContext onDragEnd={(result) => handleDragEnd(result, completedProjects)}>
+                <Droppable droppableId="completed-projects">
+                  {(provided) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                    >
+                      {completedProjects.map((project, index) => (
+                        <Draggable key={project.id} draggableId={project.id} index={index}>
+                          {(dragProvided) => (
+                            <div
+                              ref={dragProvided.innerRef}
+                              {...dragProvided.draggableProps}
+                              {...dragProvided.dragHandleProps}
+                            >
               <Card 
-                key={project.id} 
                 className={`bg-slate-800/50 border-slate-700 hover:bg-slate-800 transition-all group ${
                   deletingProjectId === project.id ? 'opacity-50 pointer-events-none' : ''
                 }`}
               >
                 <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
+                  <div className="flex items-start gap-2">
+                    <div className="pt-1 cursor-grab active:cursor-grabbing">
+                      <GripVertical className="w-5 h-5 text-slate-500" />
+                    </div>
+                    <div className="flex-1 flex items-start justify-between">
                       <CardTitle className="text-white text-lg mb-2">
                         {deletingProjectId === project.id ? 'Excluindo...' : project.name}
                       </CardTitle>
+                      {deletingProjectId !== project.id && (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleDelete(project);
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
                     </div>
-                    {deletingProjectId !== project.id && (
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleDelete(project);
-                        }}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    )}
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -292,9 +372,16 @@ export default function ProjectsList() {
                     </Button>
                   </Link>
                 </CardContent>
-                  </Card>
-                ))}
-              </div>
+              </Card>
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
             ) : (
               <Card className="bg-slate-800/50 border-slate-700">
                 <CardContent className="py-16 text-center">
