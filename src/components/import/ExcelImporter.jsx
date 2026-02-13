@@ -295,79 +295,85 @@ const processTeamSheet = (workbook) => {
   };
 
 const processProductsSheet = (workbook) => {
-    // Tenta encontrar a aba com nomes variantes
-    let sheet = workbook.Sheets['Produto Contratado'] || 
-                workbook.Sheets['Produtos Contratados'] || 
-                workbook.Sheets['Produtos Contratado'];
+     // Tenta encontrar a aba com nomes variantes
+     let sheet = workbook.Sheets['Produto Contratado'] || 
+                 workbook.Sheets['Produtos Contratados'] || 
+                 workbook.Sheets['Produtos Contratado'];
 
-    if (!sheet) {
-      console.log('❌ Aba de produtos não encontrada (tentou: Produto Contratado, Produtos Contratados, Produtos Contratado)');
-      return [];
-    }
+     if (!sheet) {
+       console.log('❌ Aba de produtos não encontrada (tentou: Produto Contratado, Produtos Contratados, Produtos Contratado)');
+       return [];
+     }
 
-    const data = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: false });
-    console.log('📊 Dados brutos da aba Produto Contratado:', data.length, 'linhas');
+     const data = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: false });
+     console.log('📊 Dados brutos da aba Produto Contratado:', data.length, 'linhas');
 
-    if (data.length === 0) return [];
+     if (data.length === 0) return [];
 
-    const allHeaders = Object.keys(data[0]);
-    console.log('📋 Headers encontrados:', allHeaders);
+     const allHeaders = Object.keys(data[0]);
+     console.log('📋 Headers encontrados:', allHeaders);
 
-    const verticalCol = findColumn(allHeaders, ['Vertical', 'Vertial', 'Área', 'Area']);
-    const nameCol = findColumn(allHeaders, ['Produto', 'Nome', 'Produtos', 'Product']);
-    const entityCol = findColumn(allHeaders, ['Entidade', 'Órgão', 'Orgao', 'Entity', 'Cliente']);
-    const ticketCol = findColumn(allHeaders, ['Chamado', 'Ticket', 'Número', 'Numero']);
+     const verticalCol = findColumn(allHeaders, ['Vertical', 'Vertial', 'Área', 'Area']);
+     const nameCol = findColumn(allHeaders, ['Produto', 'Nome', 'Produtos', 'Product']);
+     const entityCol = findColumn(allHeaders, ['Entidade', 'Órgão', 'Orgao', 'Entity', 'Cliente']);
+     const ticketCol = findColumn(allHeaders, ['Chamado', 'Ticket', 'Número', 'Numero']);
+     const inclusionCol = findColumn(allHeaders, ['Valor Inclusão', 'Valor Inclusao', 'Inclusão', 'Inclusao', 'Recorrente']);
+     const implCol = findColumn(allHeaders, ['Valor Implantação', 'Valor Implantacao', 'Implantação', 'Implantacao']);
 
-    console.log('🔍 Mapeamento de colunas:', { verticalCol, nameCol, entityCol, ticketCol });
+     console.log('🔍 Mapeamento de colunas:', { verticalCol, nameCol, entityCol, ticketCol, inclusionCol, implCol });
 
-    // Remove duplicatas
-    const seen = new Set();
-    const products = data.map((row, index) => {
-      const rawName = row[nameCol] ? String(row[nameCol]).trim() : '';
-      const rawVertical = row[verticalCol] ? String(row[verticalCol]).trim() : '';
-      const entity = row[entityCol] ? String(row[entityCol]).trim() : '';
-      const ticket = row[ticketCol] ? String(row[ticketCol]).trim() : '';
+     // Remove duplicatas
+     const seen = new Set();
+     const products = data.map((row, index) => {
+       const rawName = row[nameCol] ? String(row[nameCol]).trim() : '';
+       const rawVertical = row[verticalCol] ? String(row[verticalCol]).trim() : '';
+       const entity = row[entityCol] ? String(row[entityCol]).trim() : '';
+       const ticket = row[ticketCol] ? String(row[ticketCol]).trim() : '';
+       const inclusionValue = inclusionCol ? parseFloat(row[inclusionCol]) || 0 : 0;
+       const implValue = implCol ? parseFloat(row[implCol]) || 0 : 0;
 
-      // Valida se tem dados mínimos
-      if (!rawName || rawName.length < 2) {
-        console.log(`⏭️  Linha ${index + 2}: Ignorada - nome inválido`);
-        return null;
-      }
+       // Valida se tem dados mínimos
+       if (!rawName || rawName.length < 2) {
+         console.log(`⏭️  Linha ${index + 2}: Ignorada - nome inválido`);
+         return null;
+       }
 
-      if (!rawVertical || rawVertical.length < 2) {
-        console.log(`⏭️  Linha ${index + 2}: Ignorada - vertical inválida`);
-        return null;
-      }
+       if (!rawVertical || rawVertical.length < 2) {
+         console.log(`⏭️  Linha ${index + 2}: Ignorada - vertical inválida`);
+         return null;
+       }
 
-      // Normaliza a vertical (aceita qualquer valor, remove acentos)
-      const normalizedVertical = normalizeVertical(rawVertical) || rawVertical.toLowerCase()
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^a-z0-9]/g, '_');
+       // Normaliza a vertical (aceita qualquer valor, remove acentos)
+       const normalizedVertical = normalizeVertical(rawVertical) || rawVertical.toLowerCase()
+         .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+         .replace(/[^a-z0-9]/g, '_');
 
-      // Remove duplicatas EXATAS (nome + vertical + entidade + chamado)
-      // Permite produtos com mesmo nome mas entidades/chamados diferentes
-      const key = `${normalizedVertical}_${rawName}_${entity}_${ticket}`.toLowerCase().trim();
-      if (seen.has(key)) {
-        console.log(`⏭️  Linha ${index + 2}: Duplicata ignorada - ${rawName} (${entity}) - ${ticket}`);
-        return null;
-      }
-      seen.add(key);
+       // Remove duplicatas EXATAS (nome + vertical + entidade + chamado)
+       // Permite produtos com mesmo nome mas entidades/chamados diferentes
+       const key = `${normalizedVertical}_${rawName}_${entity}_${ticket}`.toLowerCase().trim();
+       if (seen.has(key)) {
+         console.log(`⏭️  Linha ${index + 2}: Duplicata ignorada - ${rawName} (${entity}) - ${ticket}`);
+         return null;
+       }
+       seen.add(key);
 
-      console.log(`✅ Linha ${index + 2}: ${rawName} | Vertical: ${normalizedVertical} | Entidade: ${entity} | Chamado: ${ticket}`);
+       console.log(`✅ Linha ${index + 2}: ${rawName} | Vertical: ${normalizedVertical} | Entidade: ${entity} | Chamado: ${ticket} | Impl: ${implValue} | Incl: ${inclusionValue}`);
 
-      return {
-        name: rawName,
-        vertical: normalizedVertical,
-        entity,
-        ticket_number: ticket,
-        status: 'pendente',
-        priority: 'media'
-      };
-    }).filter(p => p !== null);
+       return {
+         name: rawName,
+         vertical: normalizedVertical,
+         entity,
+         ticket_number: ticket,
+         implementation_value: implValue,
+         inclusion_value: inclusionValue,
+         status: 'pendente',
+         priority: 'media'
+       };
+     }).filter(p => p !== null);
 
-    console.log(`✅ Total de produtos processados: ${products.length}`);
-    return products;
-  };
+     console.log(`✅ Total de produtos processados: ${products.length}`);
+     return products;
+   };
 
   const processTimelineSheet = (workbook) => {
     const allEvents = [];
