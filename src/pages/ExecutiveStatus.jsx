@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 import { createPageUrl } from '../utils';
 import { Link } from 'react-router-dom';
 import ProjectsDeliveryTimeline from '../components/timeline/ProjectsDeliveryTimeline';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { format, addMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import RecognizedRevenueModal from '../components/modals/RecognizedRevenueModal';
@@ -763,7 +763,7 @@ export default function ExecutiveStatus() {
                            }).format(value)
                          }
                        />
-                       <Tooltip
+                       <RechartsTooltip
                          contentStyle={{
                            backgroundColor: '#1e293b',
                            border: '1px solid #334155',
@@ -853,7 +853,7 @@ export default function ExecutiveStatus() {
                             }).format(value)
                           }
                         />
-                        <Tooltip
+                        <RechartsTooltip
                           contentStyle={{
                             backgroundColor: '#1e293b',
                             border: '1px solid #334155',
