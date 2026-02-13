@@ -550,11 +550,11 @@ Seja conciso, profissional e em português.`;
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
-          {/* Status Cards - Cronogramas/Projetos por Status */}
+          {/* Status Cards - Cronogramas por Status */}
           <div className="grid grid-cols-6 gap-2">
             <Card className="bg-slate-800 border-slate-600">
               <CardContent className="p-3 text-center flex flex-col items-center justify-center h-full">
-                <div className="text-xl font-bold text-white mb-0.5">{activeProjects.length}</div>
+                <div className="text-xl font-bold text-white mb-0.5">{Object.values(statusData.cronogramasByStatus).flat().length}</div>
                 <div className="text-xs text-slate-300">Total</div>
               </CardContent>
             </Card>
@@ -570,7 +570,7 @@ Seja conciso, profissional e em português.`;
                   'pausado': 'text-orange-400'
                 };
                 
-                const projectsInStatus = statusData.projectsByStatus[status] || [];
+                const cronogramasInStatus = statusData.cronogramasByStatus[status] || [];
                 
                 return (
                   <Tooltip key={`status-${status}-${idx}`} delayDuration={200}>
@@ -585,23 +585,27 @@ Seja conciso, profissional e em português.`;
                         </CardContent>
                       </Card>
                     </TooltipTrigger>
-                    {projectsInStatus.length > 0 && (
+                    {cronogramasInStatus.length > 0 && (
                       <TooltipContent 
                         side="bottom" 
                         className="bg-slate-800 border-slate-700 p-3 max-w-xs max-h-64 overflow-y-auto"
                       >
                         <div className="space-y-1">
                           <div className="text-xs font-semibold text-slate-400 mb-2">
-                            {statusLabels[status]} ({projectsInStatus.length})
+                            {statusLabels[status]} ({cronogramasInStatus.length})
                           </div>
-                          {projectsInStatus.map(project => (
-                            <div 
-                              key={project.id} 
-                              className="text-sm text-white py-1 border-b border-slate-700/50 last:border-0"
-                            >
-                              <div className="font-medium">{project.name}</div>
-                            </div>
-                          ))}
+                          {cronogramasInStatus.map(cronograma => {
+                            const project = allProjectsData.find(p => p.id === cronograma.project_id);
+                            return (
+                              <div 
+                                key={`${cronograma.project_id}-${cronograma.vertical}`}
+                                className="text-sm text-white py-1 border-b border-slate-700/50 last:border-0"
+                              >
+                                <div className="font-medium">{cronograma.title}</div>
+                                <div className="text-xs text-slate-400">{project?.name}</div>
+                              </div>
+                            );
+                          })}
                         </div>
                       </TooltipContent>
                     )}
