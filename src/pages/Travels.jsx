@@ -372,6 +372,31 @@ export default function Travels() {
                   <div className="overflow-x-auto">
                     <table className="w-full border-collapse">
                       <thead>
+                        {/* Month headers row */}
+                        <tr className="border-b border-slate-700/50">
+                          <th className="sticky left-0 z-20 bg-slate-800/95 px-4 py-2 text-left text-sm font-semibold text-slate-400 min-w-[200px] border-r border-slate-700/50">
+                            Período
+                          </th>
+                          {(() => {
+                            let currentDisplayMonth = null;
+                            return daysInMonth.map(day => {
+                              const dayMonth = format(day, 'MMM/yy', { locale: ptBR });
+                              const isFirstOfMonth = day.getDate() === 1;
+                              const shouldShowMonth = currentDisplayMonth !== dayMonth && isFirstOfMonth;
+                              
+                              if (shouldShowMonth) {
+                                currentDisplayMonth = dayMonth;
+                              }
+                              
+                              return (
+                                <th key={day.toString()} className="px-2 py-2 text-center text-xs font-semibold text-cyan-400 min-w-[40px] border-r border-slate-700/20">
+                                  {shouldShowMonth ? dayMonth.toUpperCase() : ''}
+                                </th>
+                              );
+                            });
+                          })()}
+                        </tr>
+                        {/* Days row */}
                         <tr className="border-b border-slate-700/50">
                           <th className="sticky left-0 z-20 bg-slate-800/95 px-4 py-3 text-left text-sm font-semibold text-slate-400 min-w-[200px] border-r border-slate-700/50">
                             Implantador
