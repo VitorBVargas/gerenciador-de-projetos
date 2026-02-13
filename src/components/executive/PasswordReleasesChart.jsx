@@ -163,10 +163,11 @@ export default function PasswordReleasesChart({ products, visibleCharts = {}, on
             <div className="text-sm text-slate-400">Total de senhas liberadas</div>
           </div>
         </CardContent>
-      </Card>
+        </Card>
+        )}
 
-      {/* Lista de senhas liberadas no mês selecionado */}
-      {selectedMonth && releasedProducts.length > 0 && (
+        {/* Lista de senhas liberadas no mês selecionado */}
+        {selectedMonth && releasedProducts.length > 0 && (
         <Card className="bg-slate-800 border-slate-600">
           <CardHeader>
             <div className="flex items-center justify-between">
