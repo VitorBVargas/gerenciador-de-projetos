@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
   Plus, 
   Search, 
@@ -39,6 +40,21 @@ const communicationLabels = {
   alto: 'Alto',
   medio: 'Médio',
   baixo: 'Baixo'
+};
+
+const verticalLabels = {
+  gerenciamento: 'Gerenciamento',
+  arrecadacao: 'Arrecadação',
+  compras: 'Compras/Contratos',
+  contabil: 'Contábil',
+  pessoal: 'Pessoal',
+  educacao: 'Educação',
+  iss: 'ISS',
+  parceiros: 'Parceiros',
+  plataforma: 'Plataforma',
+  saude: 'Saúde',
+  atendimento: 'Atendimento',
+  outros: 'Outros'
 };
 
 export default function Stakeholders() {
@@ -115,6 +131,20 @@ export default function Stakeholders() {
     s.role?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const stakeholdersByVertical = useMemo(() => {
+    const grouped = {};
+    filteredStakeholders.forEach(stakeholder => {
+      const vertical = stakeholder.vertical || 'outros';
+      if (!grouped[vertical]) {
+        grouped[vertical] = [];
+      }
+      grouped[vertical].push(stakeholder);
+    });
+    return grouped;
+  }, [filteredStakeholders]);
+
+  const verticals = Object.keys(stakeholdersByVertical).sort();
+
   return (
     <div className="p-6 lg:p-8 space-y-6">
       {/* Header */}
@@ -143,10 +173,25 @@ export default function Stakeholders() {
         />
       </div>
 
-      {/* Stakeholders Grid */}
+      {/* Stakeholders by Vertical */}
       {filteredStakeholders.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredStakeholders.map((stakeholder) => (
+        <Tabs defaultValue={verticals[0] || 'outros'} className="space-y-4">
+          <TabsList className="bg-slate-800 border border-slate-700 flex-wrap h-auto">
+            {verticals.map(vertical => (
+              <TabsTrigger 
+                key={vertical} 
+                value={vertical}
+                className="data-[state=active]:bg-blue-600"
+              >
+                {verticalLabels[vertical]} ({stakeholdersByVertical[vertical].length})
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          {verticals.map(vertical => (
+            <TabsContent key={vertical} value={vertical}>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {stakeholdersByVertical[vertical].map((stakeholder) => (
             <Card key={stakeholder.id} className="bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 transition-all group">
               <CardContent className="p-5">
                 <div className="flex items-start justify-between">
@@ -207,8 +252,11 @@ export default function Stakeholders() {
                 </div>
               </CardContent>
             </Card>
+                ))}
+              </div>
+            </TabsContent>
           ))}
-        </div>
+        </Tabs>
       ) : (
         <EmptyState
           icon={UserCircle}
