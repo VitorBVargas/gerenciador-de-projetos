@@ -1098,7 +1098,7 @@ Seja conciso, profissional e em português.`;
                   );
                   })()}
 
-          {/* Controles de Visibilidade e Gráfico de Senhas */}
+          {/* Gráfico de Senhas */}
           <PasswordReleasesChart 
             products={allProducts}
             visibleCharts={visibleCharts}
