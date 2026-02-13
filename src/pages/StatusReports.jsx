@@ -36,13 +36,6 @@ export default function StatusReports() {
     enabled: !!projectId
   });
 
-  // Inicializar conversa
-  useEffect(() => {
-    if (projectId && !conversation) {
-      initConversation();
-    }
-  }, [projectId]);
-
   const initConversation = async () => {
     try {
       const conv = await base44.agents.createConversation({
