@@ -179,9 +179,9 @@ export default function Products() {
 
   const handlePasswordModalSave = (data) => {
     if (productForPassword) {
-      togglePasswordMutation.mutate({ 
+      updateMutation.mutate({ 
         id: productForPassword.id, 
-        ...data
+        data
       });
       setPasswordModalOpen(false);
       setProductForPassword(null);
