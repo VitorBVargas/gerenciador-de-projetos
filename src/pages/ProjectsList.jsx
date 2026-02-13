@@ -13,6 +13,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import ExcelImporter from '../components/import/ExcelImporter';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { deleteProjectCronogramas, completeProjectCronogramas } from '../functions/syncProjectCronogramas';
 import {
   AlertDialog,
   AlertDialogAction,
