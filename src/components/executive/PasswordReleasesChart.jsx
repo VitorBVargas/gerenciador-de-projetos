@@ -155,11 +155,19 @@ export default function PasswordReleasesChart({ products, projects = [], visible
               </div>
               
               {/* Lista de produtos */}
-              {releasedProducts.map((product) => (
+              {releasedProducts.map((product) => {
+                // Determinar se a carência acabou no mês selecionado
+                const hasGracePeriod = product.password_grace_period_until;
+                const isReleasedInSelectedMonth = hasGracePeriod && selectedMonth ? 
+                  new Date(product.password_grace_period_until) < new Date(selectedMonth + '-01') : false;
+
+                const isGraceActive = hasGracePeriod && !isReleasedInSelectedMonth;
+
+                return (
                 <div
                   key={product.id}
                   className={`grid grid-cols-4 gap-4 items-center p-4 rounded-lg border transition-colors ${
-                    product.password_grace_period_until
+                    isGraceActive
                       ? 'bg-amber-900/20 border-amber-700/50 hover:border-amber-600'
                       : 'bg-emerald-900/20 border-emerald-700/50 hover:border-emerald-600'
                   }`}
@@ -168,11 +176,11 @@ export default function PasswordReleasesChart({ products, projects = [], visible
                   <div className="text-sm text-slate-300">{projects.find(p => p.id === product.project_id)?.name || product.project_id}</div>
                   <div>
                     <Badge className={
-                      product.password_grace_period_until
+                      isGraceActive
                         ? "bg-amber-600 text-white text-xs"
                         : "bg-emerald-600 text-white text-xs"
                     }>
-                      {product.password_grace_period_until ? 'Com Carência' : 'Liberada'}
+                      {isGraceActive ? 'Com Carência' : 'Liberada'}
                     </Badge>
                   </div>
                   <div className="text-sm text-slate-300">
@@ -182,7 +190,8 @@ export default function PasswordReleasesChart({ products, projects = [], visible
                     }
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </CardContent>
         </Card>
