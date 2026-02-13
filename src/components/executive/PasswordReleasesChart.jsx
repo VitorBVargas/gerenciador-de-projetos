@@ -64,19 +64,21 @@ export default function PasswordReleasesChart({ products, visibleCharts = {}, on
 
     return products.filter(product => {
       if (!product.production_password) return false;
-      const releaseDate = product.created_date || new Date().toISOString();
-      const releaseMonth = format(new Date(releaseDate), 'yyyy-MM');
       
-      if (releaseMonth !== selectedMonth) return false;
-      
-      // Filtrar por tipo se selecionado
+      // Filtrar por tipo selecionado
       if (selectedType === 'released') {
-        return !product.password_grace_period_until;
+        // Produtos liberados SEM carência contam no mês atual
+        if (product.password_grace_period_until) return false;
+        const currentMonth = format(new Date(), 'yyyy-MM');
+        return currentMonth === selectedMonth;
       } else if (selectedType === 'grace_period') {
-        return product.password_grace_period_until;
+        // Produtos COM carência aparecem até o mês em que termina
+        if (!product.password_grace_period_until) return false;
+        const graceMonth = format(new Date(product.password_grace_period_until), 'yyyy-MM');
+        return graceMonth === selectedMonth;
       }
       
-      return true;
+      return false;
     });
   }, [selectedMonth, products, selectedType]);
 
