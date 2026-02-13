@@ -1254,6 +1254,86 @@ Seja conciso, profissional e em português.`;
         </TabsContent>
       </Tabs>
 
+      {/* Weekly Summary Modal */}
+      {weeklySummary && (
+        <Dialog open={isWeeklySummaryOpen} onOpenChange={setIsWeeklySummaryOpen}>
+          <DialogContent className="max-w-2xl bg-slate-800 border-slate-700">
+            <DialogHeader>
+              <DialogTitle className="text-white text-xl">Resumo Executivo Semanal</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-6 py-4">
+              {/* Resumo IA */}
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-300 whitespace-pre-wrap text-sm leading-relaxed">{weeklySummary}</p>
+              </div>
+
+              {/* Cards de Métricas */}
+              <div className="grid grid-cols-3 gap-4">
+                <Card className="bg-slate-700 border-slate-600">
+                  <CardContent className="p-4 text-center">
+                    <div className="text-2xl font-bold text-blue-400 mb-1">
+                      {allProjectsData.filter(p => p.status === 'concluido').length}
+                    </div>
+                    <div className="text-xs text-slate-400">Projetos Concluídos</div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-slate-700 border-slate-600">
+                  <CardContent className="p-4 text-center">
+                    <div className="text-2xl font-bold text-emerald-400 mb-1">
+                      {allProducts.filter(p => p.production_password).length}
+                    </div>
+                    <div className="text-xs text-slate-400">Licenças Liberadas</div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-slate-700 border-slate-600">
+                  <CardContent className="p-4 text-center">
+                    <div className="text-2xl font-bold text-purple-400 mb-1">
+                      {new Intl.NumberFormat('pt-BR', {
+                        notation: 'compact',
+                        compactDisplay: 'short'
+                      }).format(allRecognizedRevenues.reduce((sum, r) => sum + (r.amount || 0), 0))}
+                    </div>
+                    <div className="text-xs text-slate-400">Reconhecido</div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Status de Cronogramas */}
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="bg-green-900/20 border border-green-700/50 rounded-lg p-3">
+                  <div className="font-semibold text-green-400 mb-1">Em Dia</div>
+                  <div className="text-white text-lg">{statusData.counts.em_dia} cronogramas</div>
+                </div>
+                <div className="bg-red-900/20 border border-red-700/50 rounded-lg p-3">
+                  <div className="font-semibold text-red-400 mb-1">Atrasados</div>
+                  <div className="text-white text-lg">{statusData.counts.atrasado} cronogramas</div>
+                </div>
+                <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-3">
+                  <div className="font-semibold text-yellow-400 mb-1">Atenção</div>
+                  <div className="text-white text-lg">{statusData.counts.atencao} cronogramas</div>
+                </div>
+                <div className="bg-purple-900/20 border border-purple-700/50 rounded-lg p-3">
+                  <div className="font-semibold text-purple-400 mb-1">Concluídos</div>
+                  <div className="text-white text-lg">{statusData.counts.concluido} cronogramas</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3 justify-end pt-4 border-t border-slate-700">
+              <Button
+                variant="outline"
+                onClick={() => setIsWeeklySummaryOpen(false)}
+                className="border-slate-600 text-white hover:bg-slate-700"
+              >
+                Entendi
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
       {/* AI Assistant Modal */}
       <AIAssistantModal 
         isOpen={isAIModalOpen}
