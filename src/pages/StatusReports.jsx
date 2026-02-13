@@ -19,6 +19,7 @@ export default function StatusReports() {
   const [messages, setMessages] = useState([]);
   const [userMessage, setUserMessage] = useState('');
   const [sending, setSending] = useState(false);
+  const [isAnalyzingWeek, setIsAnalyzingWeek] = useState(false);
 
   const urlParams = new URLSearchParams(window.location.search);
   const projectId = urlParams.get('project_id');
@@ -386,6 +387,25 @@ Seja específico, objetivo e acionável.`
                     <>
                       <FileText className="w-3 h-3 mr-2" />
                       Gerar Status Report
+                    </>
+                  )}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => analyzeLastSevenDays()}
+                  disabled={isAnalyzingWeek || sending}
+                  className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                >
+                  {isAnalyzingWeek ? (
+                    <>
+                      <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+                      Analisando...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-3 h-3 mr-2" />
+                      Análise Inteligente
                     </>
                   )}
                 </Button>
