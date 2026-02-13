@@ -21,9 +21,9 @@ export default function AIAssistantModal({ isOpen, onClose, projectId, conversat
     scrollToBottom();
   }, [messages]);
 
-  // Criar conversa ao abrir modal
+  // Criar conversa ao abrir modal (apenas se não tiver uma externa)
   useEffect(() => {
-    if (isOpen && !conversation) {
+    if (isOpen && !conversation && !externalConversation) {
       const initConversation = async () => {
         try {
           const conv = await base44.agents.createConversation({
@@ -40,8 +40,11 @@ export default function AIAssistantModal({ isOpen, onClose, projectId, conversat
         }
       };
       initConversation();
+    } else if (externalConversation) {
+      setConversation(externalConversation);
+      setMessages(externalConversation.messages || []);
     }
-  }, [isOpen, conversation, projectId]);
+  }, [isOpen, conversation, externalConversation, projectId]);
 
   // Subscrever a atualizações
   useEffect(() => {
