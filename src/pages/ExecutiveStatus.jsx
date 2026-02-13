@@ -265,7 +265,7 @@ export default function ExecutiveStatus() {
   // Active projects (exclude completed)
   const activeProjects = projects.filter(p => p.status !== 'concluido');
 
-  // Status counts based on TimelineEvents (cronogramas), not projects
+  // Status counts based on "cronogramas mãe" (grouped by project_id + vertical)
   const statusData = useMemo(() => {
     const counts = {
       nao_iniciado: 0,
@@ -285,43 +285,64 @@ export default function ExecutiveStatus() {
       concluido: []
     };
     
-    const now = new Date();
+    // Agrupar por (project_id + vertical) - cada grupo é um "cronograma mãe"
+    const cronogramasMae = {};
     
     allTimelineEvents.forEach(event => {
-      let status = 'em_dia';
+      const key = event.vertical ? `${event.project_id}|${event.vertical}` : event.project_id;
       
-      // Concluído
-      if (event.status === 'concluido') {
+      if (!cronogramasMae[key]) {
+        cronogramasMae[key] = {
+          project_id: event.project_id,
+          vertical: event.vertical || null,
+          events: []
+        };
+      }
+      cronogramasMae[key].events.push(event);
+    });
+    
+    // Calcular status para cada cronograma mãe
+    const now = new Date();
+    
+    Object.values(cronogramasMae).forEach(cronograma => {
+      let status = 'em_dia';
+      const events = cronograma.events;
+      
+      // Se todos concluídos
+      if (events.every(e => e.status === 'concluido')) {
         status = 'concluido';
       }
-      // Pausado
-      else if (event.status === 'pausado') {
+      // Se algum pausado
+      else if (events.some(e => e.status === 'pausado')) {
         status = 'pausado';
       }
-      // Atrasado (passou do deadline)
-      else if (event.end_date) {
-        const endDate = new Date(event.end_date);
-        if (endDate < now && event.status !== 'concluido') {
-          status = 'atrasado';
+      // Se algum atrasado
+      else if (events.some(e => {
+        if (e.end_date) {
+          const endDate = new Date(e.end_date);
+          return endDate < now && e.status !== 'concluido';
         }
-        // Atenção (próximo do deadline - menos de 7 dias e não iniciado)
-        else if (endDate >= now && endDate <= new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000) && event.status === 'nao_iniciado') {
-          status = 'atencao';
+        return false;
+      })) {
+        status = 'atrasado';
+      }
+      // Se atenção (algum próximo do deadline e não iniciado)
+      else if (events.some(e => {
+        if (e.end_date && e.status === 'nao_iniciado') {
+          const endDate = new Date(e.end_date);
+          return endDate >= now && endDate <= new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
         }
-        // Não iniciado
-        else if (event.status === 'nao_iniciado') {
-          status = 'nao_iniciado';
-        }
-        // Em dia
-        else {
-          status = 'em_dia';
-        }
-      } else if (event.status === 'nao_iniciado') {
+        return false;
+      })) {
+        status = 'atencao';
+      }
+      // Se nenhum iniciado
+      else if (events.every(e => e.status === 'nao_iniciado')) {
         status = 'nao_iniciado';
       }
       
       counts[status]++;
-      timelinesByStatus[status].push(event);
+      timelinesByStatus[status].push(cronograma);
     });
     
     return { counts, timelinesByStatus };
