@@ -503,11 +503,11 @@ Seja conciso, profissional e em português.`;
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
-          {/* Status Cards - Primeira linha com cronogramas */}
+          {/* Status Cards - Cronogramas/Projetos por Status */}
           <div className="grid grid-cols-6 gap-2">
             <Card className="bg-slate-800 border-slate-600">
               <CardContent className="p-3 text-center flex flex-col items-center justify-center h-full">
-                <div className="text-xl font-bold text-white mb-0.5">{allTimelineEvents.length}</div>
+                <div className="text-xl font-bold text-white mb-0.5">{activeProjects.length}</div>
                 <div className="text-xs text-slate-300">Total</div>
               </CardContent>
             </Card>
@@ -523,7 +523,7 @@ Seja conciso, profissional e em português.`;
                   'pausado': 'text-orange-400'
                 };
                 
-                const timelinesInStatus = statusData.timelinesByStatus[status] || [];
+                const projectsInStatus = statusData.projectsByStatus[status] || [];
                 
                 return (
                   <Tooltip key={`status-${status}-${idx}`} delayDuration={200}>
@@ -538,27 +538,23 @@ Seja conciso, profissional e em português.`;
                         </CardContent>
                       </Card>
                     </TooltipTrigger>
-                    {timelinesInStatus.length > 0 && (
+                    {projectsInStatus.length > 0 && (
                       <TooltipContent 
                         side="bottom" 
                         className="bg-slate-800 border-slate-700 p-3 max-w-xs max-h-64 overflow-y-auto"
                       >
                         <div className="space-y-1">
                           <div className="text-xs font-semibold text-slate-400 mb-2">
-                            {statusLabels[status]} ({timelinesInStatus.length})
+                            {statusLabels[status]} ({projectsInStatus.length})
                           </div>
-                          {timelinesInStatus.map(timeline => {
-                            const project = allProjectsData.find(p => p.id === timeline.project_id);
-                            return (
-                              <div 
-                                key={timeline.id} 
-                                className="text-sm text-white py-1 border-b border-slate-700/50 last:border-0"
-                              >
-                                <div className="font-medium">{timeline.title}</div>
-                                <div className="text-xs text-slate-400">{project?.name}</div>
-                              </div>
-                            );
-                          })}
+                          {projectsInStatus.map(project => (
+                            <div 
+                              key={project.id} 
+                              className="text-sm text-white py-1 border-b border-slate-700/50 last:border-0"
+                            >
+                              <div className="font-medium">{project.name}</div>
+                            </div>
+                          ))}
                         </div>
                       </TooltipContent>
                     )}
