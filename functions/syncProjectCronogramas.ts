@@ -8,16 +8,15 @@ import { base44 } from '@/api/base44Client';
 export async function syncProjectCronogramas(projectId) {
   try {
     // Buscar todos os TimelineEvents do projeto
-    const timelineEvents = await base44.entities.TimelineEvent.filter({
-      project_id: projectId
-    });
+    const timelineEvents = await base44.entities.TimelineEvent.list();
+    const projectEvents = timelineEvents.filter(e => e.project_id === projectId);
 
-    if (timelineEvents.length === 0) return;
+    if (projectEvents.length === 0) return;
 
     // Agrupar eventos por vertical
     const eventosPorVertical = {};
     
-    timelineEvents.forEach(event => {
+    projectEvents.forEach(event => {
       const vertical = event.vertical || 'sem-vertical';
       if (!eventosPorVertical[vertical]) {
         eventosPorVertical[vertical] = [];
@@ -29,10 +28,10 @@ export async function syncProjectCronogramas(projectId) {
     for (const [vertical, eventos] of Object.entries(eventosPorVertical)) {
       try {
         // Buscar se cronograma já existe
-        const cronogramasExistentes = await base44.entities.Cronograma.filter({
-          project_id: projectId,
-          vertical: vertical
-        });
+        const allCronogramas = await base44.entities.Cronograma.list();
+        const cronogramasExistentes = allCronogramas.filter(c => 
+          c.project_id === projectId && c.vertical === vertical
+        );
 
         let cronogramaId;
 
