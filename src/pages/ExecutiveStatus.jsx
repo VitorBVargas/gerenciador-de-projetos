@@ -776,7 +776,7 @@ Seja conciso, profissional e em português.`;
             )}
           </div>
 
-          {/* Completed Timeline Events Summary */}
+          {/* Completed Projects Summary */}
           {statusData.counts.concluido > 0 && (
             <Card className="bg-slate-800 border-slate-600">
               <CardHeader>
@@ -789,16 +789,12 @@ Seja conciso, profissional e em português.`;
                 <div className="text-3xl font-bold text-purple-400 mb-3">{statusData.counts.concluido}</div>
                 <div className="text-sm text-slate-300 mb-4">cronogramas finalizados com sucesso</div>
                 <div className="space-y-2 pt-3 border-t border-slate-600">
-                  {statusData.timelinesByStatus.concluido.map(timeline => {
-                    const project = allProjectsData.find(p => p.id === timeline.project_id);
-                    return (
-                      <div key={timeline.id} className="flex items-center gap-2 text-sm">
-                        <div className="w-1.5 h-1.5 rounded-full bg-purple-400 flex-shrink-0" />
-                        <span className="text-white">{timeline.title}</span>
-                        <span className="text-slate-400 text-xs">({project?.name})</span>
-                      </div>
-                    );
-                  })}
+                  {statusData.projectsByStatus.concluido.map(project => (
+                    <div key={project.id} className="flex items-center gap-2 text-sm">
+                      <div className="w-1.5 h-1.5 rounded-full bg-purple-400 flex-shrink-0" />
+                      <span className="text-white">{project.name}</span>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
