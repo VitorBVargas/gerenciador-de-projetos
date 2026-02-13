@@ -1441,6 +1441,7 @@ Seja conciso, profissional e em português.`;
       <AIAssistantModal 
         isOpen={isAIModalOpen}
         onClose={() => setIsAIModalOpen(false)}
+        conversation={conversation}
       />
 
       {/* Recognized Revenue Modal */}
