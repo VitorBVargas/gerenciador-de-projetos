@@ -175,30 +175,30 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents, pro
                 {/* Timeline Bar */}
                 <div className="flex-1 relative h-12 bg-slate-800/30 rounded border border-slate-700/50 min-w-[800px] flex items-center">
                   {/* Go Live Marker (Blue Triangle) */}
-                  {goLivePosition !== null && goLivePosition >= 0 && goLivePosition <= 100 && (
-                    <div 
-                      className="absolute flex flex-col items-center z-10"
-                      style={{ left: `${goLivePosition}%`, transform: 'translateX(-50%)', top: '2px' }}
-                    >
-                      <div className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-b-[8px] border-b-blue-500" />
-                      <div className="text-xs text-slate-400 mt-1 whitespace-nowrap">
-                        {format(new Date(project.goLiveDate), 'dd/MM', { locale: ptBR })}
-                      </div>
-                    </div>
-                  )}
+                   {goLivePosition !== null && goLivePosition >= 0 && goLivePosition <= 100 && (
+                     <div 
+                       className="absolute flex items-center z-10"
+                       style={{ left: `${goLivePosition}%`, transform: 'translateX(-50%) translateY(-50%)', top: '50%' }}
+                     >
+                       <div className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-b-[8px] border-b-blue-500" />
+                       <div className="text-xs text-slate-400 ml-2 whitespace-nowrap">
+                         {format(new Date(project.goLiveDate), 'dd/MM', { locale: ptBR })}
+                       </div>
+                     </div>
+                   )}
 
-                  {/* Delivery/End Marker */}
-                  {deliveryPosition >= 0 && deliveryPosition <= 100 && (
-                    <div 
-                      className="absolute flex flex-col-reverse items-center z-10"
-                      style={{ left: `${deliveryPosition}%`, transform: 'translateX(-50%)', bottom: '2px' }}
-                    >
-                      <div className="text-xs text-slate-400 mb-1 whitespace-nowrap">
-                        {format(new Date(project.deliveryDate), 'dd/MM', { locale: ptBR })}
-                      </div>
-                      <Icon className={`w-4 h-4 ${config.color}`} />
-                    </div>
-                  )}
+                   {/* Delivery/End Marker */}
+                   {deliveryPosition >= 0 && deliveryPosition <= 100 && (
+                     <div 
+                       className="absolute flex items-center z-10"
+                       style={{ left: `${deliveryPosition}%`, transform: 'translateX(-50%) translateY(-50%)', top: '50%' }}
+                     >
+                       <Icon className={`w-4 h-4 ${config.color}`} />
+                       <div className="text-xs text-slate-400 ml-2 whitespace-nowrap">
+                         {format(new Date(project.deliveryDate), 'dd/MM', { locale: ptBR })}
+                       </div>
+                     </div>
+                   )}
                 </div>
               </div>
             </div>
