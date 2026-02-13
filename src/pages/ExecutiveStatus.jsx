@@ -304,27 +304,27 @@ export default function ExecutiveStatus() {
       concluido: []
     };
     
-    // Agrupar TimelineEvents por (project_id + vertical)
-    const cronogramas = {};
+    // Agrupar TimelineEvents por (project_id + vertical) - usando Set para evitar duplicatas
+    const cronogramaMap = new Map();
     
     allTimelineEvents.forEach(event => {
       const key = event.vertical ? `${event.project_id}|${event.vertical}` : event.project_id;
       
-      if (!cronogramas[key]) {
-        cronogramas[key] = {
+      if (!cronogramaMap.has(key)) {
+        cronogramaMap.set(key, {
           project_id: event.project_id,
           vertical: event.vertical || null,
           title: event.vertical || allProjectsData.find(p => p.id === event.project_id)?.name || 'Sem nome',
           events: []
-        };
+        });
       }
-      cronogramas[key].events.push(event);
+      cronogramaMap.get(key).events.push(event);
     });
     
     // Calcular status para cada cronograma
     const now = new Date();
     
-    Object.values(cronogramas).forEach(cronograma => {
+    cronogramaMap.forEach(cronograma => {
       let status = 'em_dia';
       const events = cronograma.events;
       
@@ -354,6 +354,11 @@ export default function ExecutiveStatus() {
       
       counts[status]++;
       cronogramasByStatus[status].push(cronograma);
+    });
+    
+    console.log('Cronogramas agrupados:', cronogramaMap.size);
+    cronogramaMap.forEach((cron, key) => {
+      console.log(key, '-', cron.title, '- eventos:', cron.events.length);
     });
     
     return { counts, cronogramasByStatus };
