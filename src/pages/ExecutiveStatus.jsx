@@ -562,7 +562,7 @@ Seja conciso, profissional e em português.`;
             <Card className="bg-slate-800 border-slate-600">
               <CardContent className="p-3 text-center flex flex-col items-center justify-center h-full">
                 <div className="text-lg font-bold text-white mb-0.5">
-                  {allProducts.filter(p => p.status === 'em_homologacao' || p.status === 'homologado').length}
+                  {allProducts.length}
                 </div>
                 <div className="text-xs text-slate-300">Produtos em Implantação</div>
               </CardContent>
