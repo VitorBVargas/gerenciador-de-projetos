@@ -30,25 +30,27 @@ export default function PasswordReleasesChart({ products, visibleCharts = {}, on
     // Processar cada produto com senha liberada
     products.forEach(product => {
       if (product.production_password) {
-        // Data em que a senha foi liberada (usando created_date)
-        const releaseDate = product.created_date || new Date().toISOString();
-        const releaseMonth = format(new Date(releaseDate), 'yyyy-MM');
-
-        if (monthlyData[releaseMonth]) {
-          if (product.password_grace_period_until) {
-            monthlyData[releaseMonth].grace_period += 1;
-          } else {
-            monthlyData[releaseMonth].released += 1;
-          }
-        }
-
-        // Se tem carência, adicionar no mês que acaba
+        // Se tem carência até uma data
         if (product.password_grace_period_until) {
-          const gracePeriodMonth = format(new Date(product.password_grace_period_until), 'yyyy-MM');
-          if (monthlyData[gracePeriodMonth]) {
-            // Remover do grace_period e adicionar ao released
-            monthlyData[gracePeriodMonth].grace_period -= 1;
-            monthlyData[gracePeriodMonth].released += 1;
+          // Contar no mês SEGUINTE ao fim da carência
+          const gracePeriodDate = new Date(product.password_grace_period_until);
+          const nextMonthAfterGrace = addMonths(gracePeriodDate, 1);
+          const countMonth = format(new Date(nextMonthAfterGrace.getFullYear(), nextMonthAfterGrace.getMonth(), 1), 'yyyy-MM');
+          
+          if (monthlyData[countMonth]) {
+            monthlyData[countMonth].released += 1;
+          }
+          
+          // Mostrar "Com Carência" até o mês em que termina
+          const graceMonth = format(new Date(product.password_grace_period_until), 'yyyy-MM');
+          if (monthlyData[graceMonth]) {
+            monthlyData[graceMonth].grace_period += 1;
+          }
+        } else {
+          // Senha liberada SEM carência: contar no mês atual
+          const currentMonth = format(now, 'yyyy-MM');
+          if (monthlyData[currentMonth]) {
+            monthlyData[currentMonth].released += 1;
           }
         }
       }
