@@ -165,7 +165,7 @@ export default function PasswordReleasesChart({ products, projects = [], visible
                   }`}
                 >
                   <div className="font-semibold text-white">{product.name}</div>
-                  <div className="text-sm text-slate-300">{product.project_id}</div>
+                  <div className="text-sm text-slate-300">{projects.find(p => p.id === product.project_id)?.name || product.project_id}</div>
                   <div>
                     <Badge className={
                       product.password_grace_period_until
