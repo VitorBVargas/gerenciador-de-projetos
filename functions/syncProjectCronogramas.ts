@@ -74,9 +74,8 @@ export async function syncProjectCronogramas(projectId) {
  */
 export async function deleteProjectCronogramas(projectId) {
   try {
-    const cronogramas = await base44.entities.Cronograma.filter({
-      project_id: projectId
-    });
+    const allCronogramas = await base44.entities.Cronograma.list();
+    const cronogramas = allCronogramas.filter(c => c.project_id === projectId);
 
     for (const cron of cronogramas) {
       await base44.entities.Cronograma.delete(cron.id);
