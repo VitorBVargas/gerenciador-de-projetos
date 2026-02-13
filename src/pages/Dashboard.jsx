@@ -29,7 +29,9 @@ import ProjectModal from '../components/modals/ProjectModal.jsx';
 import ExcelImporter from '../components/import/ExcelImporter.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
 import ProjectInsightsModal from '../components/dashboard/ProjectInsightsModal.jsx';
+import AIAssistantModal from '../components/modals/AIAssistantModal.jsx';
 import { Checkbox } from "@/components/ui/checkbox";
+import { Sparkles } from 'lucide-react';
 
 export default function Dashboard() {
   const queryClient = useQueryClient();
@@ -37,6 +39,7 @@ export default function Dashboard() {
   const [selectedProject, setSelectedProject] = useState(null);
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [insightsModalOpen, setInsightsModalOpen] = useState(false);
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [hasShownInsights, setHasShownInsights] = useState(false);
 
   // Get project_id from URL
@@ -327,12 +330,22 @@ export default function Dashboard() {
           <p className="text-slate-400 mt-1">Acompanhe o progresso do seu projeto</p>
         </div>
         {activeProject && (
-          <Button 
-            onClick={handleEditProject}
-            className="bg-slate-700 hover:bg-slate-600"
-          >
-            Editar Projeto
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={handleEditProject}
+              className="bg-slate-700 hover:bg-slate-600"
+            >
+              Editar Projeto
+            </Button>
+            <Button 
+              onClick={() => setIsAIModalOpen(true)}
+              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+              size="icon"
+              title="Assistente IA"
+            >
+              <Sparkles className="w-5 h-5" />
+            </Button>
+          </div>
         )}
       </div>
 
@@ -603,6 +616,13 @@ export default function Dashboard() {
       <ProjectInsightsModal
         open={insightsModalOpen}
         onClose={() => setInsightsModalOpen(false)}
+        projectId={projectId}
+      />
+
+      {/* AI Assistant Modal */}
+      <AIAssistantModal 
+        isOpen={isAIModalOpen}
+        onClose={() => setIsAIModalOpen(false)}
         projectId={projectId}
       />
     </div>
