@@ -9,54 +9,54 @@ import { ptBR } from 'date-fns/locale';
 
 export default function PasswordReleasesChart({ products, visibleCharts = {}, onVisibilityChange }) {
   const [selectedMonth, setSelectedMonth] = useState(null);
-  const [selectedType, setSelectedType] = useState(null);
 
   const chartData = useMemo(() => {
-    const monthlyData = {};
+    const verticalData = {};
     const now = new Date();
-
-    // Gerar próximos 12 meses
-    for (let i = 0; i < 12; i++) {
-      const month = addMonths(now, i);
-      const key = format(month, 'yyyy-MM');
-      monthlyData[key] = {
-        month: format(month, 'MMM/yy', { locale: ptBR }),
-        released: 0,
-        grace_period: 0,
-        raw_key: key
-      };
-    }
 
     // Processar cada produto com senha liberada
     products.forEach(product => {
       if (product.production_password) {
+        const vertical = product.vertical || 'outros';
+        
+        if (!verticalData[vertical]) {
+          verticalData[vertical] = {
+            vertical,
+            liberadas: 0,
+            comCarencia: 0,
+            products: []
+          };
+        }
+
         // Se tem carência até uma data
         if (product.password_grace_period_until) {
-          // Contar no mês SEGUINTE ao fim da carência
-          const gracePeriodDate = new Date(product.password_grace_period_until);
-          const nextMonthAfterGrace = addMonths(gracePeriodDate, 1);
-          const countMonth = format(new Date(nextMonthAfterGrace.getFullYear(), nextMonthAfterGrace.getMonth(), 1), 'yyyy-MM');
-          
-          if (monthlyData[countMonth]) {
-            monthlyData[countMonth].released += 1;
-          }
-          
-          // Mostrar "Com Carência" até o mês em que termina
-          const graceMonth = format(new Date(product.password_grace_period_until), 'yyyy-MM');
-          if (monthlyData[graceMonth]) {
-            monthlyData[graceMonth].grace_period += 1;
-          }
+          verticalData[vertical].comCarencia += 1;
         } else {
-          // Senha liberada SEM carência: contar no mês atual
-          const currentMonth = format(now, 'yyyy-MM');
-          if (monthlyData[currentMonth]) {
-            monthlyData[currentMonth].released += 1;
-          }
+          verticalData[vertical].liberadas += 1;
         }
+        
+        verticalData[vertical].products.push(product);
       }
     });
 
-    return Object.values(monthlyData);
+    const verticalLabels = {
+      arrecadacao: 'Arrecadação',
+      compras: 'Compras/Contratos',
+      contabil: 'Contábil',
+      pessoal: 'Pessoal',
+      educacao: 'Educação',
+      iss: 'ISS',
+      parceiros: 'Parceiros',
+      plataforma: 'Plataforma',
+      atendimento: 'Atendimento'
+    };
+
+    return Object.values(verticalData)
+      .map(item => ({
+        ...item,
+        name: verticalLabels[item.vertical] || item.vertical
+      }))
+      .sort((a, b) => (b.liberadas + b.comCarencia) - (a.liberadas + a.comCarencia));
   }, [products]);
 
   const releasedProducts = useMemo(() => {
