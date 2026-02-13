@@ -32,21 +32,34 @@ export default function PasswordReleasesChart({ products, projects = [], visible
       if (product.production_password) {
         // Se tem carência até uma data
         if (product.password_grace_period_until) {
-          // Mostrar "Com Carência" até o mês em que termina
-          const graceMonth = format(new Date(product.password_grace_period_until), 'yyyy-MM');
-          if (monthlyData[graceMonth]) {
-            monthlyData[graceMonth].comCarencia += 1;
-            monthlyData[graceMonth].products.push(product);
+          // Contar em COM CARÊNCIA de hoje até o mês da carência
+          const graceEndDate = new Date(product.password_grace_period_until);
+          const graceEndMonth = format(graceEndDate, 'yyyy-MM');
+          
+          let currentMonth = format(now, 'yyyy-MM');
+          let checkDate = new Date(now);
+          
+          // Percorrer todos os meses de hoje até o fim da carência
+          while (currentMonth <= graceEndMonth) {
+            if (monthlyData[currentMonth]) {
+              monthlyData[currentMonth].comCarencia += 1;
+              if (!monthlyData[currentMonth].products.includes(product)) {
+                monthlyData[currentMonth].products.push(product);
+              }
+            }
+            checkDate = addMonths(checkDate, 1);
+            currentMonth = format(checkDate, 'yyyy-MM');
           }
           
-          // Contar no mês SEGUINTE ao fim da carência
-          const gracePeriodDate = new Date(product.password_grace_period_until);
-          const nextMonthAfterGrace = addMonths(gracePeriodDate, 1);
+          // Contar no mês SEGUINTE ao fim da carência como LIBERADA
+          const nextMonthAfterGrace = addMonths(new Date(product.password_grace_period_until), 1);
           const countMonth = format(new Date(nextMonthAfterGrace.getFullYear(), nextMonthAfterGrace.getMonth(), 1), 'yyyy-MM');
           
           if (monthlyData[countMonth]) {
             monthlyData[countMonth].liberadas += 1;
-            monthlyData[countMonth].products.push(product);
+            if (!monthlyData[countMonth].products.includes(product)) {
+              monthlyData[countMonth].products.push(product);
+            }
           }
         } else {
           // Senha liberada SEM carência: contar no mês atual
