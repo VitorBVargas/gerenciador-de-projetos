@@ -395,6 +395,70 @@ export default function ExecutiveStatus() {
     return 'bg-red-500/20 border-red-500/30';
   };
 
+  // Generate weekly summary when ready
+  useEffect(() => {
+    if (isWeeklySummaryOpen && allTimelineEvents.length > 0 && projects.length > 0) {
+      generateWeeklySummary();
+    }
+  }, [isWeeklySummaryOpen, allTimelineEvents, projects, allProducts, allRecognizedRevenues]);
+
+  const generateWeeklySummary = async () => {
+    try {
+      const completedProjects = allProjectsData.filter(p => p.status === 'concluido');
+      const thisWeek = new Date();
+      const weekAgo = new Date(thisWeek.getTime() - 7 * 24 * 60 * 60 * 1000);
+      
+      // Projetos concluídos esta semana
+      const completedThisWeek = allProjectsData.filter(p => {
+        if (!p.updated_date) return false;
+        const updated = new Date(p.updated_date);
+        return p.status === 'concluido' && updated >= weekAgo && updated <= thisWeek;
+      });
+
+      // Licenças liberadas esta semana
+      const licensesReleasedThisWeek = allProducts.filter(p => {
+        if (!p.updated_date) return false;
+        const updated = new Date(p.updated_date);
+        return p.production_password && updated >= weekAgo && updated <= thisWeek;
+      });
+
+      // Receitas reconhecidas esta semana
+      const revenuesThisWeek = allRecognizedRevenues.filter(r => {
+        if (!r.created_date) return false;
+        const created = new Date(r.created_date);
+        return created >= weekAgo && created <= thisWeek;
+      });
+      const totalRevenueThisWeek = revenuesThisWeek.reduce((sum, r) => sum + (r.amount || 0), 0);
+
+      // Usar IA para gerar resumo
+      const summaryPrompt = `
+Gere um resumo executivo semanal BREVE e DIRETO da situação do portfólio Betha.
+
+DADOS DA SEMANA:
+- Total de projetos ativos: ${projects.length}
+- Projetos concluídos esta semana: ${completedThisWeek.length}
+${completedThisWeek.length > 0 ? `  Projetos: ${completedThisWeek.map(p => p.name).join(', ')}` : ''}
+- Licenças de produção liberadas: ${licensesReleasedThisWeek.length}
+- Valores reconhecidos: R$ ${totalRevenueThisWeek.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}
+- Status dos cronogramas: ${statusData.counts.em_dia} em dia, ${statusData.counts.atencao} em atenção, ${statusData.counts.atrasado} atrasados
+
+Forneça:
+1. Uma frase de abertura sobre a semana
+2. Highlights dos 3 principais pontos (projetos concluídos, licenças, receitas)
+3. Uma recomendação de ação imediata
+
+Seja conciso, profissional e em português.`;
+
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt: summaryPrompt
+      });
+
+      setWeeklySummary(response);
+    } catch (err) {
+      console.error('Erro ao gerar resumo semanal:', err);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-900 p-6 lg:p-8 flex items-center justify-center">
