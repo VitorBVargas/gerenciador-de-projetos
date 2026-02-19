@@ -34,6 +34,7 @@ import AIAssistantModal from '../components/modals/AIAssistantModal.jsx';
 import AIWelcomeModal from '../components/modals/AIWelcomeModal.jsx';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Sparkles } from 'lucide-react';
+import EntityFilter from '../components/filters/EntityFilter';
 
 export default function Dashboard() {
   const queryClient = useQueryClient();
@@ -43,6 +44,7 @@ export default function Dashboard() {
   const projectId = urlParams.get('project_id');
   const isNewProject = urlParams.get('isNewProject') === 'true';
 
+  const [selectedEntity, setSelectedEntity] = useState(null);
   const [projectModalOpen, setProjectModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [importModalOpen, setImportModalOpen] = useState(false);
@@ -120,6 +122,12 @@ export default function Dashboard() {
 
   // Active project
   const activeProject = projects.find(p => p.id === projectId);
+
+  // Entity filter
+  const allEntities = [...new Set(products.map(p => p.entity).filter(Boolean))].sort();
+  const filteredProducts = selectedEntity ? products.filter(p => p.entity === selectedEntity) : products;
+  const filteredMigrationTasks = migrationTasks.filter(t => filteredProducts.some(p => p.id === t.product_id));
+  const filteredHomologationTasks = homologationTasks.filter(t => filteredProducts.some(p => p.id === t.product_id));
 
 
 
