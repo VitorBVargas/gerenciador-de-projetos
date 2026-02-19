@@ -205,8 +205,8 @@ export default function Migration() {
     }
   }, [selectedVertical]);
 
-  // Overall migration progress (apenas produtos com migração)
-  const productsWithMigration = products.filter(p => productHasMigration(p.name));
+  // Overall migration progress (apenas produtos com migração, filtrados por entidade)
+  const productsWithMigration = entityFilteredProducts.filter(p => productHasMigration(p.name));
   const overallProgress = productsWithMigration.length > 0
     ? Math.round(productsWithMigration.reduce((sum, p) => sum + getProductProgress(p.id), 0) / productsWithMigration.length)
     : 0;
@@ -374,6 +374,14 @@ export default function Migration() {
           </div>
         )}
       </div>
+
+      {allEntities.length > 0 && (
+        <EntityFilter entities={allEntities} selectedEntity={selectedEntity} onEntityChange={(e) => {
+          setSelectedEntity(e);
+          setSelectedVertical('');
+          setSelectedProduct('');
+        }} />
+      )}
 
       {products.length > 0 ? (
         <Tabs value={selectedVertical} onValueChange={setSelectedVertical} className="space-y-4">
