@@ -203,7 +203,6 @@ export default function Reports() {
   const bottlenecks = useMemo(() => {
     const issues = [];
 
-    // Timeline delays
     const delayedEvents = timelineEvents.filter(e => 
       e.status === 'atrasado' || 
       (e.end_date && new Date(e.end_date) < new Date() && e.status !== 'concluido')
@@ -218,8 +217,7 @@ export default function Reports() {
       });
     }
 
-    // Products stuck in homologation
-    const stuckProducts = products.filter(p => p.status === 'em_homologacao');
+    const stuckProducts = filteredProducts.filter(p => p.status === 'em_homologacao');
     if (stuckProducts.length > 3) {
       issues.push({
         area: 'Homologação',
@@ -251,7 +249,7 @@ export default function Reports() {
     }
 
     return issues;
-  }, [timelineEvents, products, verticalProgress, kpis.highRisks]);
+  }, [timelineEvents, filteredProducts, verticalProgress, kpis.highRisks]);
 
   // Prepare export data
   const exportData = {
@@ -292,6 +290,10 @@ export default function Reports() {
           reportData={exportData}
         />
       </div>
+
+      {allEntities.length > 0 && (
+        <EntityFilter entities={allEntities} selectedEntity={selectedEntity} onEntityChange={setSelectedEntity} />
+      )}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
