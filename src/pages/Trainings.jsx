@@ -163,10 +163,23 @@ export default function Trainings() {
     }
   };
 
+  const allEntities = [...new Set(
+    products.map(p => p.entity).filter(Boolean)
+  )].sort();
+  const [selectedEntity, setSelectedEntity] = useState(null);
+
+  // Filter trainings by entity (via product linkage)
+  const entityProductNames = selectedEntity
+    ? products.filter(p => p.entity === selectedEntity).map(p => p.name)
+    : null;
+  const filteredTrainings = entityProductNames
+    ? trainings.filter(t => !t.product || entityProductNames.includes(t.product))
+    : trainings;
+
   // Group trainings by status
-  const upcomingTrainings = trainings.filter(t => t.status === 'agendado');
-  const completedTrainings = trainings.filter(t => t.status === 'realizado');
-  const canceledTrainings = trainings.filter(t => t.status === 'cancelado');
+  const upcomingTrainings = filteredTrainings.filter(t => t.status === 'agendado');
+  const completedTrainings = filteredTrainings.filter(t => t.status === 'realizado');
+  const canceledTrainings = filteredTrainings.filter(t => t.status === 'cancelado');
 
   const TrainingCard = ({ training }) => (
     <Card className="bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 transition-all group">
@@ -224,7 +237,7 @@ export default function Trainings() {
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-white">Treinamentos</h1>
-          <p className="text-slate-400 mt-1">{trainings.length} treinamentos cadastrados</p>
+          <p className="text-slate-400 mt-1">{filteredTrainings.length} treinamentos</p>
         </div>
         <Button 
           onClick={() => { setSelectedTraining(null); resetForm(); setModalOpen(true); }}
@@ -235,7 +248,11 @@ export default function Trainings() {
         </Button>
       </div>
 
-      {trainings.length > 0 ? (
+      {allEntities.length > 0 && (
+        <EntityFilter entities={allEntities} selectedEntity={selectedEntity} onEntityChange={setSelectedEntity} />
+      )}
+
+      {filteredTrainings.length > 0 ? (
         <div className="space-y-8">
           {upcomingTrainings.length > 0 && (
             <div>
