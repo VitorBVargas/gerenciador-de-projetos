@@ -226,16 +226,24 @@ export default function Dashboard() {
 
 
   // Calculate stats
-  const projectProgress = timelineEvents.length > 0
-    ? Math.round(timelineEvents.reduce((sum, e) => {
+  // Filter timeline events by vertical (based on filtered products)
+  const filteredVerticals = selectedEntity
+    ? [...new Set(filteredProducts.map(p => p.vertical).filter(Boolean))]
+    : null;
+  const filteredTimelineEvents = filteredVerticals
+    ? timelineEvents.filter(e => !e.vertical || filteredVerticals.includes(e.vertical))
+    : timelineEvents;
+
+  const projectProgress = filteredTimelineEvents.length > 0
+    ? Math.round(filteredTimelineEvents.reduce((sum, e) => {
         // Usar 100% se status for concluído, caso contrário usar o valor de progress
         if (e.status === 'concluido') return sum + 100;
         return sum + (e.progress || 0);
-      }, 0) / timelineEvents.length)
+      }, 0) / filteredTimelineEvents.length)
     : 0;
 
-  const tasksCompleted = homologationTasks.filter(t => t.completed).length;
-  const totalTasks = homologationTasks.length;
+  const tasksCompleted = filteredHomologationTasks.filter(t => t.completed).length;
+  const totalTasks = filteredHomologationTasks.length;
 
   const highRisks = risks.filter(r => r.probability === 'alta' || r.impact === 'alto').length;
 
@@ -245,7 +253,7 @@ export default function Dashboard() {
 
   // Timeline progress by vertical
   const eventsByVertical = {};
-  const usedVerticals = [...new Set(timelineEvents.map(e => e.vertical).filter(Boolean))];
+  const usedVerticals = [...new Set(filteredTimelineEvents.map(e => e.vertical).filter(Boolean))];
   
   usedVerticals.forEach(vertical => {
     eventsByVertical[vertical] = timelineEvents.filter(e => e.vertical === vertical);
