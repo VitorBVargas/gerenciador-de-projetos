@@ -87,6 +87,7 @@ export default function Products() {
   const [activeTab, setActiveTab] = useState('all');
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const [productForPassword, setProductForPassword] = useState(null);
+  const [selectedEntity, setSelectedEntity] = useState(null);
 
   // Get project_id from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -203,11 +204,17 @@ export default function Products() {
     filteredProducts = filteredProducts.filter(p => p.vertical === activeTab);
   }
 
+  // Unique entities for filter
+  const entities = [...new Set(products.map(p => p.entity).filter(Boolean))].sort();
+  const entityFilteredProducts = selectedEntity
+    ? filteredProducts.filter(p => p.entity === selectedEntity)
+    : filteredProducts;
+
   // Get unique verticals and organize by vertical
   const usedVerticals = [...new Set(products.map(p => p.vertical).filter(Boolean))].sort();
   const productsByVertical = {};
   usedVerticals.forEach(v => {
-    productsByVertical[v] = filteredProducts.filter(p => p.vertical === v);
+    productsByVertical[v] = entityFilteredProducts.filter(p => p.vertical === v);
   });
 
   return (
@@ -228,18 +235,21 @@ export default function Products() {
       </div>
 
       {/* Filters */}
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-        <Input
-          placeholder="Buscar produto..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
-        />
+      <div className="space-y-3">
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+          <Input
+            placeholder="Buscar produto..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+          />
+        </div>
+        <EntityFilter entities={entities} selectedEntity={selectedEntity} onEntityChange={setSelectedEntity} />
       </div>
 
       {/* Products Table by Vertical */}
-      {filteredProducts.length > 0 ? (
+      {entityFilteredProducts.length > 0 ? (
         <div className="overflow-x-auto -mx-6 lg:-mx-8 px-6 lg:px-8">
           <div className="inline-flex gap-4 pb-4 min-w-full">
             {usedVerticals.map((vertical) => {
