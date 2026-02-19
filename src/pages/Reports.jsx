@@ -147,15 +147,15 @@ export default function Reports() {
   const verticalProgress = useMemo(() => {
     const verticalMap = {};
     
-    products.forEach(product => {
+    filteredProducts.forEach(product => {
       if (!product.vertical) return;
       if (!verticalMap[product.vertical]) {
         verticalMap[product.vertical] = { completed: 0, total: 0 };
       }
     });
 
-    [...homologationTasks, ...migrationTasks].forEach(task => {
-      const product = products.find(p => p.id === task.product_id);
+    [...filteredHomologationTasks, ...filteredMigrationTasks].forEach(task => {
+      const product = filteredProducts.find(p => p.id === task.product_id);
       if (!product?.vertical) return;
       
       if (!verticalMap[product.vertical]) {
@@ -175,12 +175,12 @@ export default function Reports() {
       total: data.total,
       percentage: data.total > 0 ? Math.round((data.completed / data.total) * 100) : 0
     })).sort((a, b) => b.percentage - a.percentage);
-  }, [products, homologationTasks, migrationTasks]);
+  }, [filteredProducts, filteredHomologationTasks, filteredMigrationTasks]);
 
   // Progress by Product
   const productProgress = useMemo(() => {
-    return products.map(product => {
-      const productTasks = [...homologationTasks, ...migrationTasks].filter(
+    return filteredProducts.map(product => {
+      const productTasks = [...filteredHomologationTasks, ...filteredMigrationTasks].filter(
         t => t.product_id === product.id
       );
       const completed = productTasks.filter(t => t.completed).length;
@@ -197,7 +197,7 @@ export default function Reports() {
         total
       };
     }).sort((a, b) => b.progress - a.progress);
-  }, [products, homologationTasks, migrationTasks]);
+  }, [filteredProducts, filteredHomologationTasks, filteredMigrationTasks]);
 
   // Identify bottlenecks
   const bottlenecks = useMemo(() => {
