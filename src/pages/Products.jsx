@@ -168,11 +168,10 @@ export default function Products() {
       setProductForPassword(product);
       setPasswordModalOpen(true);
     } else {
-      // Se vai desativar, faz direto
-      togglePasswordMutation.mutate({ 
+      // Se vai desativar, faz direto e limpa a carência
+      updateMutation.mutate({ 
         id: product.id, 
-        value: false,
-        password_grace_period_until: null
+        data: { production_password: false, password_grace_period_until: null }
       });
     }
   };

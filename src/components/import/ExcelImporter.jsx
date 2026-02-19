@@ -96,6 +96,15 @@ export default function ExcelImporter({ open, onOpenChange, onSuccess }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
+  const parseCurrency = (value) => {
+    if (!value && value !== 0) return 0;
+    const str = String(value)
+      .replace(/R\$\s*/g, '')
+      .replace(/\./g, '')
+      .replace(',', '.');
+    return parseFloat(str) || 0;
+  };
+
   const findColumn = (headers, possibleNames) => {
     for (const name of possibleNames) {
       const header = headers.find(h => h && h.toLowerCase().trim() === name.toLowerCase().trim());
