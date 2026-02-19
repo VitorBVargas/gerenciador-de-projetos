@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import KPICard from '../components/reports/KPICard';
 import ExportButton from '../components/reports/ExportButton';
 import EmptyState from '../components/ui/EmptyState';
+import EntityFilter from '../components/filters/EntityFilter';
 
 const verticalLabels = {
   arrecadacao: 'Arrecadação',
@@ -48,6 +49,7 @@ const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'
 
 export default function Reports() {
   const [activeTab, setActiveTab] = useState('overview');
+  const [selectedEntity, setSelectedEntity] = useState(null);
   
   const urlParams = new URLSearchParams(window.location.search);
   const projectId = urlParams.get('project_id');
@@ -90,9 +92,14 @@ export default function Reports() {
 
   const activeProject = projects.find(p => p.id === projectId);
 
+  const allEntities = [...new Set(products.map(p => p.entity).filter(Boolean))].sort();
+  const filteredProducts = selectedEntity ? products.filter(p => p.entity === selectedEntity) : products;
+  const filteredHomologationTasks = homologationTasks.filter(t => filteredProducts.some(p => p.id === t.product_id));
+  const filteredMigrationTasks = migrationTasks.filter(t => filteredProducts.some(p => p.id === t.product_id));
+
   // Calculate KPIs
   const kpis = useMemo(() => {
-    const allTasks = [...homologationTasks, ...migrationTasks];
+    const allTasks = [...filteredHomologationTasks, ...filteredMigrationTasks];
     const completedTasks = allTasks.filter(t => t.completed).length;
     const totalTasks = allTasks.length;
     const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
@@ -106,8 +113,8 @@ export default function Reports() {
       r.status !== 'mitigado'
     ).length;
 
-    const productsInProduction = products.filter(p => p.status === 'em_producao').length;
-    const totalProducts = products.length;
+    const productsInProduction = filteredProducts.filter(p => p.status === 'em_producao').length;
+    const totalProducts = filteredProducts.length;
     const productionRate = totalProducts > 0 ? Math.round((productsInProduction / totalProducts) * 100) : 0;
 
     // Calculate average time per phase (mock calculation based on timeline)
@@ -134,7 +141,7 @@ export default function Reports() {
       totalProducts,
       productsInProduction
     };
-  }, [homologationTasks, migrationTasks, timelineEvents, risks, products]);
+  }, [filteredHomologationTasks, filteredMigrationTasks, timelineEvents, risks, filteredProducts]);
 
   // Progress by Vertical
   const verticalProgress = useMemo(() => {
