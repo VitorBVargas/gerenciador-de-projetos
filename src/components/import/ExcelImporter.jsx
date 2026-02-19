@@ -338,8 +338,8 @@ const processProductsSheet = (workbook) => {
        const rawVertical = row[verticalCol] ? String(row[verticalCol]).trim() : '';
        const entity = row[entityCol] ? String(row[entityCol]).trim() : '';
        const ticket = row[ticketCol] ? String(row[ticketCol]).trim() : '';
-       const inclusionValue = inclusionCol ? parseFloat(row[inclusionCol]) || 0 : 0;
-       const implValue = implCol ? parseFloat(row[implCol]) || 0 : 0;
+       const inclusionValue = inclusionCol ? parseCurrency(row[inclusionCol]) : 0;
+       const implValue = implCol ? parseCurrency(row[implCol]) : 0;
 
        // Valida se tem dados mínimos
        if (!rawName || rawName.length < 2) {

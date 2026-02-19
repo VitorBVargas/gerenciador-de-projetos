@@ -172,12 +172,7 @@ Seja conciso e executivo.`
   // Filter out completed projects from overview
   const projects = allProjectsData.filter(p => p.status !== 'concluido');
   
-  // Debug log
-  useEffect(() => {
-    console.log('Total projects:', allProjectsData.length);
-    console.log('Active projects:', projects.length);
-    console.log('Projects:', allProjectsData.map(p => ({ name: p.name, status: p.status, id: p.id })));
-  }, [allProjectsData, projects]);
+
 
   // Fetch all cronogramas
   const { data: allCronogramas = [] } = useQuery({
@@ -419,13 +414,7 @@ Seja conciso e executivo.`
       });
     });
     
-    console.log('=== CRONOGRAMAS EXECUTIVO ===');
-    console.log('Total cronogramas:', allCronogramas.length);
-    console.log('Status:', counts);
-    allCronogramas.forEach(cron => {
-      const proj = allProjectsData.find(p => p.id === cron.project_id);
-      console.log(`✓ ${proj?.name} + "${cron.vertical}"`);
-    });
+
     
     return { counts, cronogramasByStatus };
   }, [allCronogramas, allTimelineEvents, allProjectsData]);
