@@ -9,6 +9,7 @@ import TimelineEventModal from '../components/modals/TimelineEventModal';
 import GanttTimeline from '../components/timeline/GanttTimeline';
 import ProjectVerticalDeliveryTimeline from '../components/timeline/ProjectVerticalDeliveryTimeline';
 import EmptyState from '../components/ui/EmptyState';
+import EntityFilter from '../components/filters/EntityFilter';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,6 +41,7 @@ export default function Timeline() {
   const [eventToDelete, setEventToDelete] = useState(null);
   const [activeTab, setActiveTab] = useState('');
   const [mainTab, setMainTab] = useState('timeline');
+  const [selectedEntity, setSelectedEntity] = useState(null);
 
   // Get project_id from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -48,6 +50,12 @@ export default function Timeline() {
   const { data: projects = [] } = useQuery({
     queryKey: ['projects'],
     queryFn: () => base44.entities.Project.list('-created_date')
+  });
+
+  const { data: products = [] } = useQuery({
+    queryKey: ['products', projectId],
+    queryFn: () => projectId ? base44.entities.Product.filter({ project_id: projectId }) : [],
+    enabled: !!projectId
   });
 
   const { data: timelineEvents = [] } = useQuery({
@@ -115,12 +123,21 @@ export default function Timeline() {
     setDeleteDialogOpen(true);
   };
 
+  // Entity filter
+  const allEntities = [...new Set(products.map(p => p.entity).filter(Boolean))].sort();
+  const entityVerticals = selectedEntity
+    ? [...new Set(products.filter(p => p.entity === selectedEntity).map(p => p.vertical).filter(Boolean))]
+    : null;
+  const filteredTimelineEvents = entityVerticals
+    ? timelineEvents.filter(e => !e.vertical || entityVerticals.includes(e.vertical))
+    : timelineEvents;
+
   // Group events by vertical
   const eventsByVertical = {};
-  const usedVerticals = [...new Set(timelineEvents.map(e => e.vertical).filter(Boolean))].sort();
+  const usedVerticals = [...new Set(filteredTimelineEvents.map(e => e.vertical).filter(Boolean))].sort();
   
   usedVerticals.forEach(vertical => {
-    eventsByVertical[vertical] = timelineEvents.filter(e => e.vertical === vertical);
+    eventsByVertical[vertical] = filteredTimelineEvents.filter(e => e.vertical === vertical);
   });
 
   // Set initial tab to first vertical if not set
