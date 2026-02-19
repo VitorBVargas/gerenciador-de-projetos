@@ -326,6 +326,14 @@ export default function Homologation() {
         )}
       </div>
 
+      {allEntities.length > 0 && (
+        <EntityFilter entities={allEntities} selectedEntity={selectedEntity} onEntityChange={(e) => {
+          setSelectedEntity(e);
+          setSelectedVertical('');
+          setSelectedProduct('');
+        }} />
+      )}
+
       {products.length > 0 ? (
         <Tabs value={selectedVertical} onValueChange={setSelectedVertical} className="space-y-4">
           <TabsList className="bg-slate-800 border border-slate-700">
