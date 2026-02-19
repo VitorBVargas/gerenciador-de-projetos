@@ -256,7 +256,7 @@ export default function Dashboard() {
   const usedVerticals = [...new Set(filteredTimelineEvents.map(e => e.vertical).filter(Boolean))];
   
   usedVerticals.forEach(vertical => {
-    eventsByVertical[vertical] = timelineEvents.filter(e => e.vertical === vertical);
+    eventsByVertical[vertical] = filteredTimelineEvents.filter(e => e.vertical === vertical);
   });
 
   const verticalLabels = {
@@ -301,9 +301,9 @@ export default function Dashboard() {
     .sort((a, b) => b.progress - a.progress);
 
   // Homologation progress by vertical
-  const homologationByVertical = products.reduce((acc, product) => {
+  const homologationByVertical = filteredProducts.reduce((acc, product) => {
     const vertical = product.vertical || 'outros';
-    const productTasks = homologationTasks.filter(t => t.product_id === product.id);
+    const productTasks = filteredHomologationTasks.filter(t => t.product_id === product.id);
     const completed = productTasks.filter(t => t.completed).length;
     
     if (!acc[vertical]) {
