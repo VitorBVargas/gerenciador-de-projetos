@@ -163,7 +163,7 @@ export default function Timeline() {
 
   // Calcula o progresso de uma vertical (média do progresso de todas as etapas)
   const getVerticalProgress = (vertical) => {
-    const events = eventsByVertical[vertical] || [];
+    const events = filteredTimelineEvents.filter(e => e.vertical === vertical);
     if (events.length === 0) return 0;
     const totalProgress = events.reduce((sum, event) => {
       // Usar 100% se status for concluído, caso contrário usar o valor de progress
@@ -189,6 +189,11 @@ export default function Timeline() {
           Adicionar Etapa
         </Button>
       </div>
+
+      {/* Entity Filter */}
+      {allEntities.length > 0 && (
+        <EntityFilter entities={allEntities} selectedEntity={selectedEntity} onEntityChange={setSelectedEntity} />
+      )}
 
       {/* Main Tabs */}
       <Tabs value={mainTab} onValueChange={setMainTab} className="space-y-4">
