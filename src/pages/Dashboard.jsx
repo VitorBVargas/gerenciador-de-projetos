@@ -557,8 +557,8 @@ export default function Dashboard() {
           </Card>
         )}
 
-        {products.length > 0 && homologationTasks.length > 0 ? (
-          <HomologationProgressChart products={products} tasks={homologationTasks} />
+        {filteredProducts.length > 0 && filteredHomologationTasks.length > 0 ? (
+          <HomologationProgressChart products={filteredProducts} tasks={filteredHomologationTasks} />
         ) : (
           <Card className="bg-slate-800/50 border-slate-700/50">
             <CardContent className="py-12">
@@ -573,8 +573,8 @@ export default function Dashboard() {
       </div>
 
       {/* Migration Progress Chart */}
-      {products.length > 0 && (
-        <MigrationProgressChart products={products} tasks={migrationTasks} />
+      {filteredProducts.length > 0 && (
+        <MigrationProgressChart products={filteredProducts} tasks={filteredMigrationTasks} />
       )}
 
       {/* Marcos e Documentos */}
