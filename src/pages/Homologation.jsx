@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { cn } from "@/lib/utils";
 import EmptyState from '../components/ui/EmptyState';
 import { getDefaultTasksForProduct, productHasHomologation } from '../components/homologation/homologationTasks';
+import EntityFilter from '../components/filters/EntityFilter';
 
 const verticalLabels = {
   arrecadacao: 'Arrecadação',
@@ -32,6 +33,7 @@ export default function Homologation() {
   const queryClient = useQueryClient();
   const [selectedVertical, setSelectedVertical] = useState('');
   const [selectedProduct, setSelectedProduct] = useState('');
+  const [selectedEntity, setSelectedEntity] = useState(null);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [sectionOrder, setSectionOrder] = useState({});
   const [isResetting, setIsResetting] = useState(false);
@@ -149,7 +151,10 @@ export default function Homologation() {
     return Math.round((completed / productTasks.length) * 100);
   };
 
-  const productsByVertical = products.reduce((acc, product) => {
+  const allEntities = [...new Set(products.map(p => p.entity).filter(Boolean))].sort();
+  const entityFilteredProducts = selectedEntity ? products.filter(p => p.entity === selectedEntity) : products;
+
+  const productsByVertical = entityFilteredProducts.reduce((acc, product) => {
     if (productHasHomologation(product.name)) {
       const vertical = product.vertical || 'outros';
       if (!acc[vertical]) acc[vertical] = [];
@@ -176,7 +181,7 @@ export default function Homologation() {
     }
   }, [selectedVertical]);
 
-  const productsWithHomologation = products.filter(p => productHasHomologation(p.name));
+  const productsWithHomologation = entityFilteredProducts.filter(p => productHasHomologation(p.name));
   const overallProgress = productsWithHomologation.length > 0
     ? Math.round(productsWithHomologation.reduce((sum, p) => sum + getProductProgress(p.id), 0) / productsWithHomologation.length)
     : 0;
