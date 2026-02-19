@@ -25,6 +25,7 @@ import { toast } from 'sonner';
 import { cn } from "@/lib/utils";
 import EmptyState from '../components/ui/EmptyState';
 import { getDefaultTasksForProduct, productHasMigration } from '../components/migration/migrationTasks';
+import EntityFilter from '../components/filters/EntityFilter';
 
 const verticalLabels = {
   arrecadacao: 'Arrecadação',
@@ -42,6 +43,7 @@ export default function Migration() {
   const queryClient = useQueryClient();
   const [selectedVertical, setSelectedVertical] = useState('');
   const [selectedProduct, setSelectedProduct] = useState('');
+  const [selectedEntity, setSelectedEntity] = useState(null);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [sectionOrder, setSectionOrder] = useState({});
   const [isResetting, setIsResetting] = useState(false);
@@ -169,9 +171,11 @@ export default function Migration() {
     return Math.round((completed / productTasks.length) * 100);
   };
 
+  const allEntities = [...new Set(products.map(p => p.entity).filter(Boolean))].sort();
+  const entityFilteredProducts = selectedEntity ? products.filter(p => p.entity === selectedEntity) : products;
+
   // Group products by vertical (apenas produtos com migração)
-  const productsByVertical = products.reduce((acc, product) => {
-    // Só inclui produtos que têm processo de migração
+  const productsByVertical = entityFilteredProducts.reduce((acc, product) => {
     if (productHasMigration(product.name)) {
       const vertical = product.vertical || 'outros';
       if (!acc[vertical]) acc[vertical] = [];
