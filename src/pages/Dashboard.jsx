@@ -372,6 +372,11 @@ export default function Dashboard() {
         )}
       </div>
 
+      {/* Entity Filter */}
+      {allEntities.length > 0 && (
+        <EntityFilter entities={allEntities} selectedEntity={selectedEntity} onEntityChange={setSelectedEntity} />
+      )}
+
       {/* Project Info Row */}
       {activeProject && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
