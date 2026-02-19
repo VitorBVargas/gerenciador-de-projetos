@@ -65,6 +65,7 @@ export default function Stakeholders() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [stakeholderToDelete, setStakeholderToDelete] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedEntity, setSelectedEntity] = useState(null);
 
   // Get project_id from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -127,10 +128,14 @@ export default function Stakeholders() {
     setDeleteDialogOpen(true);
   };
 
-  const filteredStakeholders = stakeholders.filter(s =>
-    s.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    s.role?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const entities = [...new Set(stakeholders.map(s => s.entity || '').filter(Boolean))].sort();
+
+  const filteredStakeholders = stakeholders.filter(s => {
+    const matchesSearch = s.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      s.role?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesEntity = !selectedEntity || s.entity === selectedEntity;
+    return matchesSearch && matchesEntity;
+  });
 
   const stakeholdersByVertical = useMemo(() => {
     const grouped = {};
@@ -163,15 +168,18 @@ export default function Stakeholders() {
         </Button>
       </div>
 
-      {/* Search */}
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-        <Input
-          placeholder="Buscar por nome ou papel..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
-        />
+      {/* Search & Filter */}
+      <div className="space-y-3">
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+          <Input
+            placeholder="Buscar por nome ou papel..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+          />
+        </div>
+        <EntityFilter entities={entities} selectedEntity={selectedEntity} onEntityChange={setSelectedEntity} />
       </div>
 
       {/* Stakeholders by Vertical */}
