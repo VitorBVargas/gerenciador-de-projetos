@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import ProductModal from '../components/modals/ProductModal';
 import EmptyState from '../components/ui/EmptyState';
 import PasswordGracePeriodModal from '../components/modals/PasswordGracePeriodModal';
+import EntityFilter from '../components/filters/EntityFilter';
 import {
   AlertDialog,
   AlertDialogAction,

@@ -19,6 +19,7 @@ import {
 import { cn } from "@/lib/utils";
 import StakeholderModal from '../components/modals/StakeholderModal';
 import EmptyState from '../components/ui/EmptyState';
+import EntityFilter from '../components/filters/EntityFilter';
 import {
   AlertDialog,
   AlertDialogAction,
