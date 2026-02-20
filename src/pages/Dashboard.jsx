@@ -44,7 +44,7 @@ export default function Dashboard() {
   const projectId = urlParams.get('project_id');
   const isNewProject = urlParams.get('isNewProject') === 'true';
 
-  const [selectedEntity, setSelectedEntity] = useState(null);
+  const [selectedEntity, setSelectedEntity] = useState('PM');
   const [projectModalOpen, setProjectModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [importModalOpen, setImportModalOpen] = useState(false);
@@ -679,41 +679,7 @@ export default function Dashboard() {
         projectName={activeProject?.name || 'Seu Projeto'}
       />
 
-      {/* Completed Projects Section */}
-      {projects.filter(p => p.status === 'concluido').length > 0 && (
-        <div>
-          <h2 className="text-xl font-bold text-white mb-4">Projetos Concluídos</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {projects.filter(p => p.status === 'concluido').map((project) => (
-              <Card key={project.id} className="bg-slate-800/50 border-slate-700/50 hover:border-slate-600 transition-colors cursor-pointer" onClick={() => window.location.href = createPageUrl(`Dashboard?project_id=${project.id}`)}>
-                <CardContent className="p-4">
-                  <div className="space-y-3">
-                    <div className="flex items-start justify-between">
-                      <h3 className="font-semibold text-white truncate">{project.name}</h3>
-                      <Badge className="bg-purple-600 text-white text-xs whitespace-nowrap ml-2">Concluído</Badge>
-                    </div>
-                    {project.manager && (
-                      <div className="text-xs text-slate-400">
-                        <span className="text-slate-500">Gerente:</span> {project.manager}
-                      </div>
-                    )}
-                    {project.deadline && (
-                      <div className="text-xs text-slate-400">
-                        <span className="text-slate-500">Finalizado em:</span> {format(new Date(project.deadline), "dd/MM/yyyy", { locale: ptBR })}
-                      </div>
-                    )}
-                    {project.implementation_value > 0 && (
-                      <div className="text-xs text-emerald-400">
-                        <span className="text-slate-500">Implantação:</span> {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(project.implementation_value)}
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
+
     </div>
   );
 }
