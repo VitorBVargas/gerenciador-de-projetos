@@ -18,7 +18,11 @@ export default function EntityFilter({ entities = [], selectedEntity, onEntityCh
       >
         Todas
       </button>
-      {entities.map(entity => (
+      {[...entities].sort((a, b) => {
+        if (a === 'PM') return -1;
+        if (b === 'PM') return 1;
+        return a.localeCompare(b);
+      }).map(entity => (
         <button
           key={entity}
           onClick={() => onEntityChange(entity)}
