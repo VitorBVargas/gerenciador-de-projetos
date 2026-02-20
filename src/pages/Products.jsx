@@ -87,7 +87,7 @@ export default function Products() {
   const [activeTab, setActiveTab] = useState('all');
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const [productForPassword, setProductForPassword] = useState(null);
-  const [selectedEntity, setSelectedEntity] = useState(null);
+  const [selectedEntity, setSelectedEntity] = useState('PM');
 
   // Get project_id from URL
   const urlParams = new URLSearchParams(window.location.search);

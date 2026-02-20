@@ -65,7 +65,7 @@ export default function Stakeholders() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [stakeholderToDelete, setStakeholderToDelete] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedEntity, setSelectedEntity] = useState(null);
+  const [selectedEntity, setSelectedEntity] = useState('PM');
 
   // Get project_id from URL
   const urlParams = new URLSearchParams(window.location.search);

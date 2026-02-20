@@ -41,7 +41,7 @@ export default function Timeline() {
   const [eventToDelete, setEventToDelete] = useState(null);
   const [activeTab, setActiveTab] = useState('');
   const [mainTab, setMainTab] = useState('timeline');
-  const [selectedEntity, setSelectedEntity] = useState(null);
+  const [selectedEntity, setSelectedEntity] = useState('PM');
 
   // Get project_id from URL
   const urlParams = new URLSearchParams(window.location.search);
