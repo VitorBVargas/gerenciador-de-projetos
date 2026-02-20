@@ -166,7 +166,7 @@ export default function Trainings() {
   const allEntities = [...new Set(
     products.map(p => p.entity).filter(Boolean)
   )].sort();
-  const [selectedEntity, setSelectedEntity] = useState(null);
+  const [selectedEntity, setSelectedEntity] = useState('PM');
 
   // Filter trainings by entity (via product linkage)
   const entityProductNames = selectedEntity

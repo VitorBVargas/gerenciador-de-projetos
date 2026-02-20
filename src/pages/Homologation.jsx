@@ -33,7 +33,7 @@ export default function Homologation() {
   const queryClient = useQueryClient();
   const [selectedVertical, setSelectedVertical] = useState('');
   const [selectedProduct, setSelectedProduct] = useState('');
-  const [selectedEntity, setSelectedEntity] = useState(null);
+  const [selectedEntity, setSelectedEntity] = useState('PM');
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [sectionOrder, setSectionOrder] = useState({});
   const [isResetting, setIsResetting] = useState(false);
