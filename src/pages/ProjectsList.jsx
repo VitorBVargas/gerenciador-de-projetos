@@ -119,6 +119,23 @@ export default function ProjectsList() {
     setImportModalOpen(false);
   };
 
+  // Check on load if came from CRM import (needs wizard)
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const crmImport = urlParams.get('crmImport');
+    const projectId = urlParams.get('project_id');
+    if (crmImport === 'true' && projectId) {
+      base44.entities.Project.filter({ id: projectId }).then(results => {
+        if (results?.[0]) {
+          setWizardProject(results[0]);
+          setSetupWizardOpen(true);
+        }
+      });
+      // Clean URL
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
+
   // Filter projects by status
   const activeProjects = projects.filter(p => p.status !== 'concluido');
   const completedProjects = projects.filter(p => p.status === 'concluido');
