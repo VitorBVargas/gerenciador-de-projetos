@@ -424,7 +424,27 @@ export default function ProjectsList() {
         </Tabs>
       </div>
 
-      {/* Import Modal */}
+      {/* CRM Import */}
+      <CrmImporter
+        open={crmImportModalOpen}
+        onOpenChange={setCrmImportModalOpen}
+        onSuccess={handleImportSuccess}
+      />
+
+      {/* Setup Wizard (after CRM import) */}
+      <ProjectSetupWizard
+        open={setupWizardOpen}
+        onOpenChange={setSetupWizardOpen}
+        project={wizardProject}
+        onComplete={() => {
+          queryClient.invalidateQueries({ queryKey: ['projects'] });
+          if (wizardProject) {
+            window.location.href = `/dashboard?project_id=${wizardProject.id}`;
+          }
+        }}
+      />
+
+      {/* Import Modal (legado) */}
       <ExcelImporter
         open={importModalOpen}
         onOpenChange={setImportModalOpen}
