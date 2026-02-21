@@ -12,6 +12,8 @@ import { createPageUrl } from '../utils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import ExcelImporter from '../components/import/ExcelImporter';
+import CrmImporter from '../components/import/CrmImporter';
+import ProjectSetupWizard from '../components/modals/ProjectSetupWizard';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { deleteProjectCronogramas, completeProjectCronogramas } from '../functions/syncProjectCronogramas';
 import {
