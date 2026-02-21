@@ -263,12 +263,19 @@ export default function ProjectsList() {
                 Status Executivo
               </Button>
             </Link>
+            <Button
+              onClick={() => setCrmImportModalOpen(true)}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Importar CRM
+            </Button>
             <Button 
               onClick={() => setImportModalOpen(true)}
               className="bg-blue-600 hover:bg-blue-700"
             >
               <Upload className="w-4 h-4 mr-2" />
-              Importar Projeto
+              Importar Excel
             </Button>
           </div>
         </div>
