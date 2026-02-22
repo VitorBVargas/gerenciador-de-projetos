@@ -143,15 +143,15 @@ export default function Team() {
     verticalLabels[member.vertical]?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Group by vertical, then by role
+  const toggleLeader = (member) => {
+    updateMutation.mutate({ id: member.id, data: { is_leader: !member.is_leader } });
+  };
+
+  // Group by vertical
   const membersByVertical = filteredMembers.reduce((acc, member) => {
     const vertical = member.vertical || 'outros';
-    if (!acc[vertical]) acc[vertical] = {};
-    
-    const role = member.role || 'Sem função definida';
-    if (!acc[vertical][role]) acc[vertical][role] = [];
-    acc[vertical][role].push(member);
-    
+    if (!acc[vertical]) acc[vertical] = [];
+    acc[vertical].push(member);
     return acc;
   }, {});
 
