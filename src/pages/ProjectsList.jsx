@@ -268,7 +268,7 @@ export default function ProjectsList() {
               className="bg-green-600 hover:bg-green-700"
             >
               <Upload className="w-4 h-4 mr-2" />
-              Importar CRM
+              Cadastrar Novo Projeto
             </Button>
             <Button 
               onClick={() => setImportModalOpen(true)}
