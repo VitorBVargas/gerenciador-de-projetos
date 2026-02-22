@@ -201,7 +201,14 @@ export default function CrmImporter({ open, onOpenChange }) {
     // 5. Criar stakeholders
     if (formData.stakeholders?.length > 0) {
       await base44.entities.Stakeholder.bulkCreate(
-        formData.stakeholders.map(s => ({ ...s, project_id: project.id }))
+        formData.stakeholders.map(s => ({
+          project_id: project.id,
+          name: s.name,
+          role: s.role || '',
+          email: s.email || '',
+          phone: s.phone || '',
+          vertical: s.vertical || 'outros',
+        }))
       );
     }
 
