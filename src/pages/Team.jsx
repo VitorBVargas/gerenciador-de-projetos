@@ -12,7 +12,8 @@ import {
   Mail,
   Phone,
   Pencil,
-  Trash2
+  Trash2,
+  Crown
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import TeamMemberModal from '../components/modals/TeamMemberModal';
