@@ -4,25 +4,16 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Plus, 
-  AlertTriangle,
-  Shield,
-  Pencil,
-  Trash2
-} from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, AlertTriangle, Shield, Pencil, Trash2, X } from 'lucide-react';
 import { cn } from "@/lib/utils";
-import RiskModal from '../components/modals/RiskModal';
-import EmptyState from '../components/ui/EmptyState';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
 const categoryColors = {
@@ -34,39 +25,239 @@ const categoryColors = {
 };
 
 const categoryLabels = {
-  tecnico: 'Técnico',
-  cronograma: 'Cronograma',
-  recurso: 'Recurso',
-  cliente: 'Cliente',
-  externo: 'Externo'
+  tecnico: 'Técnico', cronograma: 'Cronograma', recurso: 'Recurso',
+  cliente: 'Cliente', externo: 'Externo'
 };
 
 const statusColors = {
-  identificado: 'bg-slate-500',
-  em_monitoramento: 'bg-yellow-500',
-  mitigado: 'bg-green-500',
-  ocorreu: 'bg-red-500'
+  identificado: 'bg-slate-500', em_monitoramento: 'bg-yellow-500',
+  mitigado: 'bg-green-500', ocorreu: 'bg-red-500'
 };
 
 const statusLabels = {
-  identificado: 'Identificado',
-  em_monitoramento: 'Monitorando',
-  mitigado: 'Mitigado',
-  ocorreu: 'Ocorreu'
+  identificado: 'Identificado', em_monitoramento: 'Monitorando',
+  mitigado: 'Mitigado', ocorreu: 'Ocorreu'
 };
 
-const probabilityColors = {
-  baixa: 'text-green-400',
-  media: 'text-yellow-400',
-  alta: 'text-red-400'
+// Converts stored value (number 1-5 OR old string) to number
+const toNum = (v) => {
+  if (typeof v === 'number') return v;
+  const map = { baixa: 2, media: 3, alta: 4, baixo: 2, medio: 3, alto: 4 };
+  return map[v] || 3;
 };
 
-const impactColors = {
-  baixo: 'text-green-400',
-  medio: 'text-yellow-400',
-  alto: 'text-red-400'
+const getSeverityColor = (score) => {
+  if (score >= 20) return 'bg-red-600';
+  if (score >= 12) return 'bg-orange-500';
+  if (score >= 6) return 'bg-yellow-500';
+  return 'bg-green-600';
 };
 
+const getSeverityLabel = (score) => {
+  if (score >= 20) return 'Crítico';
+  if (score >= 12) return 'Alto';
+  if (score >= 6) return 'Médio';
+  return 'Baixo';
+};
+
+// ─── Risk Matrix ──────────────────────────────────────────────────────────
+function RiskMatrix({ risks }) {
+  const [hoveredRisk, setHoveredRisk] = useState(null);
+
+  // Matrix is 5×5: probability (Y, 5 top) vs impact (X, 5 right)
+  // Cell color: severity = prob * impact
+  const cellColor = (p, i) => {
+    const s = p * i;
+    if (s >= 20) return 'bg-red-600/80';
+    if (s >= 12) return 'bg-orange-500/70';
+    if (s >= 6) return 'bg-yellow-500/70';
+    return 'bg-green-600/60';
+  };
+
+  const risksInCell = (p, i) =>
+    risks.filter(r => toNum(r.probability) === p && toNum(r.impact) === i);
+
+  return (
+    <div className="space-y-3">
+      <h3 className="text-sm font-semibold text-white">Matriz de Risco × Impacto</h3>
+      <div className="flex gap-2">
+        {/* Y axis label */}
+        <div className="flex items-center justify-center" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
+          <span className="text-xs text-slate-500 whitespace-nowrap">Probabilidade →</span>
+        </div>
+
+        <div className="flex-1">
+          {/* Grid */}
+          <div className="grid gap-0.5" style={{ gridTemplateColumns: 'auto repeat(5, 1fr)' }}>
+            {/* Header row */}
+            <div />
+            {[1,2,3,4,5].map(i => (
+              <div key={i} className="text-center text-xs text-slate-500 pb-1">{i}</div>
+            ))}
+
+            {/* Rows: probability 5 (top) to 1 (bottom) */}
+            {[5,4,3,2,1].map(p => (
+              <React.Fragment key={p}>
+                <div className="flex items-center justify-end pr-1.5 text-xs text-slate-500">{p}</div>
+                {[1,2,3,4,5].map(i => {
+                  const cellRisks = risksInCell(p, i);
+                  return (
+                    <div key={i}
+                      className={cn('relative rounded aspect-square flex items-center justify-center transition-all', cellColor(p, i))}
+                    >
+                      {cellRisks.length > 0 && (
+                        <div className="relative group">
+                          <div className="w-5 h-5 rounded-full bg-white/90 flex items-center justify-center text-xs font-bold text-slate-900 cursor-pointer shadow">
+                            {cellRisks.length}
+                          </div>
+                          {/* Tooltip */}
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-50 min-w-40">
+                            <div className="bg-slate-900 border border-slate-700 rounded-lg p-2 shadow-xl text-xs space-y-1">
+                              {cellRisks.map((r, idx) => (
+                                <p key={idx} className="text-white font-medium">{r.title}</p>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </React.Fragment>
+            ))}
+          </div>
+
+          {/* X axis label */}
+          <div className="text-center text-xs text-slate-500 mt-1">Impacto →</div>
+        </div>
+      </div>
+
+      {/* Legend */}
+      <div className="flex gap-3 flex-wrap">
+        {[
+          { label: 'Baixo (1-5)', color: 'bg-green-600/60' },
+          { label: 'Médio (6-11)', color: 'bg-yellow-500/70' },
+          { label: 'Alto (12-19)', color: 'bg-orange-500/70' },
+          { label: 'Crítico (20-25)', color: 'bg-red-600/80' },
+        ].map(l => (
+          <div key={l.label} className="flex items-center gap-1.5">
+            <div className={cn('w-3 h-3 rounded', l.color)} />
+            <span className="text-xs text-slate-400">{l.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Risk Form Modal ──────────────────────────────────────────────────────
+function RiskFormModal({ open, onOpenChange, risk, onSave, projectId }) {
+  const levelLabel = ['', 'Muito Baixo', 'Baixo', 'Médio', 'Alto', 'Muito Alto'];
+  const levelColor = ['', 'text-green-400', 'text-lime-400', 'text-yellow-400', 'text-orange-400', 'text-red-400'];
+
+  const [form, setForm] = useState({
+    title: '', description: '', category: 'tecnico',
+    probability: 3, impact: 3, mitigation: '', status: 'em_monitoramento'
+  });
+
+  React.useEffect(() => {
+    if (risk) {
+      setForm({
+        title: risk.title || '',
+        description: risk.description || '',
+        category: risk.category || 'tecnico',
+        probability: toNum(risk.probability),
+        impact: toNum(risk.impact),
+        mitigation: risk.mitigation || '',
+        status: risk.status || 'em_monitoramento',
+      });
+    } else {
+      setForm({ title: '', description: '', category: 'tecnico', probability: 3, impact: 3, mitigation: '', status: 'em_monitoramento' });
+    }
+  }, [risk, open]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSave({ ...form, project_id: projectId });
+  };
+
+  const Slider = ({ field, label }) => (
+    <div className="space-y-1">
+      <div className="flex justify-between">
+        <Label className="text-slate-400 text-xs">{label}</Label>
+        <span className={`text-xs font-bold ${levelColor[form[field]]}`}>{form[field]} – {levelLabel[form[field]]}</span>
+      </div>
+      <input type="range" min={1} max={5} value={form[field]}
+        onChange={e => setForm(p => ({ ...p, [field]: Number(e.target.value) }))}
+        className="w-full h-2 rounded-lg cursor-pointer" />
+      <div className="flex justify-between text-xs text-slate-600"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
+    </div>
+  );
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="bg-slate-800 border-slate-700 text-slate-100 max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-bold text-white">{risk ? 'Editar Risco' : 'Novo Risco'}</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label>Nome do Risco *</Label>
+            <Input value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
+              className="bg-slate-700 border-slate-600 text-white" required />
+          </div>
+          <div className="space-y-2">
+            <Label>Descrição</Label>
+            <Textarea value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
+              className="bg-slate-700 border-slate-600 text-white h-16 resize-none" />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Categoria</Label>
+              <Select value={form.category} onValueChange={v => setForm(p => ({ ...p, category: v }))}>
+                <SelectTrigger className="bg-slate-700 border-slate-600 text-white"><SelectValue /></SelectTrigger>
+                <SelectContent className="bg-slate-700 border-slate-600">
+                  <SelectItem value="tecnico">Técnico</SelectItem>
+                  <SelectItem value="cronograma">Cronograma</SelectItem>
+                  <SelectItem value="recurso">Recurso</SelectItem>
+                  <SelectItem value="cliente">Cliente</SelectItem>
+                  <SelectItem value="externo">Externo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <Select value={form.status} onValueChange={v => setForm(p => ({ ...p, status: v }))}>
+                <SelectTrigger className="bg-slate-700 border-slate-600 text-white"><SelectValue /></SelectTrigger>
+                <SelectContent className="bg-slate-700 border-slate-600">
+                  <SelectItem value="identificado">Identificado</SelectItem>
+                  <SelectItem value="em_monitoramento">Em Monitoramento</SelectItem>
+                  <SelectItem value="mitigado">Mitigado</SelectItem>
+                  <SelectItem value="ocorreu">Ocorreu</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <Slider field="probability" label="Chance de Acontecer" />
+            <Slider field="impact" label="Impacto se Acontecer" />
+          </div>
+          <div className="space-y-2">
+            <Label>Plano de Mitigação</Label>
+            <Textarea value={form.mitigation} onChange={e => setForm(p => ({ ...p, mitigation: e.target.value }))}
+              className="bg-slate-700 border-slate-600 text-white h-20 resize-none" />
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="border-slate-600 text-slate-300 hover:bg-slate-700">Cancelar</Button>
+            <Button type="submit" className="bg-blue-600 hover:bg-blue-700">{risk ? 'Salvar' : 'Adicionar'}</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────
 export default function Risks() {
   const queryClient = useQueryClient();
   const [modalOpen, setModalOpen] = useState(false);
@@ -74,7 +265,6 @@ export default function Risks() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [riskToDelete, setRiskToDelete] = useState(null);
 
-  // Get project_id from URL
   const urlParams = new URLSearchParams(window.location.search);
   const projectId = urlParams.get('project_id');
 
@@ -83,7 +273,7 @@ export default function Risks() {
     queryFn: () => base44.entities.Project.list('-created_date')
   });
 
-  const { data: risks = [] } = useQuery({
+  const { data: risks = [], isLoading } = useQuery({
     queryKey: ['risks', projectId],
     queryFn: () => projectId ? base44.entities.Risk.filter({ project_id: projectId }) : [],
     enabled: !!projectId
@@ -93,69 +283,37 @@ export default function Risks() {
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Risk.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['risks', projectId] });
-      setModalOpen(false);
-    }
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['risks', projectId] }); setModalOpen(false); }
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Risk.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['risks', projectId] });
-      setModalOpen(false);
-      setSelectedRisk(null);
-    }
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['risks', projectId] }); setModalOpen(false); setSelectedRisk(null); }
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.Risk.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['risks', projectId] });
-      setDeleteDialogOpen(false);
-      setRiskToDelete(null);
-    }
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['risks', projectId] }); setDeleteDialogOpen(false); setRiskToDelete(null); }
   });
 
   const handleSave = (data) => {
-    if (selectedRisk) {
-      updateMutation.mutate({ id: selectedRisk.id, data });
-    } else {
-      createMutation.mutate(data);
-    }
+    if (selectedRisk) updateMutation.mutate({ id: selectedRisk.id, data });
+    else createMutation.mutate(data);
   };
 
-  const handleEdit = (risk) => {
-    setSelectedRisk(risk);
-    setModalOpen(true);
-  };
-
-  const handleDelete = (risk) => {
-    setRiskToDelete(risk);
-    setDeleteDialogOpen(true);
-  };
-
-  // Group risks by status
   const activeRisks = risks.filter(r => r.status !== 'mitigado');
   const mitigatedRisks = risks.filter(r => r.status === 'mitigado');
-
-  // Risk score calculation
-  const getRiskScore = (probability, impact) => {
-    const probScore = { baixa: 1, media: 2, alta: 3 };
-    const impScore = { baixo: 1, medio: 2, alto: 3 };
-    return (probScore[probability] || 2) * (impScore[impact] || 2);
-  };
-
-  const getRiskLevel = (score) => {
-    if (score >= 6) return { label: 'Crítico', color: 'bg-red-500' };
-    if (score >= 4) return { label: 'Alto', color: 'bg-orange-500' };
-    if (score >= 2) return { label: 'Médio', color: 'bg-yellow-500' };
-    return { label: 'Baixo', color: 'bg-green-500' };
-  };
-
-  // Stats
-  const highRisks = risks.filter(r => getRiskScore(r.probability, r.impact) >= 6).length;
+  const criticalRisks = risks.filter(r => toNum(r.probability) * toNum(r.impact) >= 20).length;
   const monitoringRisks = risks.filter(r => r.status === 'em_monitoramento').length;
+
+  if (!projectId) {
+    return (
+      <div className="p-8 text-center">
+        <AlertTriangle className="w-12 h-12 mx-auto text-slate-600 mb-4" />
+        <p className="text-slate-400">Selecione um projeto para ver os riscos.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
@@ -165,177 +323,130 @@ export default function Risks() {
           <h1 className="text-2xl lg:text-3xl font-bold text-white">Riscos do Projeto</h1>
           <p className="text-slate-400 mt-1">Gerencie e monitore os riscos identificados</p>
         </div>
-        <Button 
-          onClick={() => { setSelectedRisk(null); setModalOpen(true); }}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Adicionar Risco
+        <Button onClick={() => { setSelectedRisk(null); setModalOpen(true); }} className="bg-blue-600 hover:bg-blue-700">
+          <Plus className="w-4 h-4 mr-2" /> Adicionar Risco
         </Button>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="bg-slate-800/50 border-slate-700/50">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="p-3 rounded-xl bg-red-500/20">
-              <AlertTriangle className="w-6 h-6 text-red-400" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-white">{highRisks}</p>
-              <p className="text-sm text-slate-400">Riscos Críticos</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-slate-800/50 border-slate-700/50">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="p-3 rounded-xl bg-yellow-500/20">
-              <Shield className="w-6 h-6 text-yellow-400" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-white">{monitoringRisks}</p>
-              <p className="text-sm text-slate-400">Em Monitoramento</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-slate-800/50 border-slate-700/50">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="p-3 rounded-xl bg-green-500/20">
-              <Shield className="w-6 h-6 text-green-400" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-white">{mitigatedRisks.length}</p>
-              <p className="text-sm text-slate-400">Mitigados</p>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-3 gap-4">
+        {[
+          { label: 'Riscos Críticos', value: criticalRisks, icon: AlertTriangle, color: 'text-red-400', bg: 'bg-red-500/20' },
+          { label: 'Em Monitoramento', value: monitoringRisks, icon: Shield, color: 'text-yellow-400', bg: 'bg-yellow-500/20' },
+          { label: 'Mitigados', value: mitigatedRisks.length, icon: Shield, color: 'text-green-400', bg: 'bg-green-500/20' },
+        ].map(s => (
+          <Card key={s.label} className="bg-slate-800/50 border-slate-700/50">
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className={cn('p-3 rounded-xl', s.bg)}><s.icon className={cn('w-6 h-6', s.color)} /></div>
+              <div><p className="text-2xl font-bold text-white">{s.value}</p><p className="text-sm text-slate-400">{s.label}</p></div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      {/* Risks List */}
+      {/* Matrix + List */}
       {risks.length > 0 ? (
-        <div className="space-y-6">
-          {activeRisks.length > 0 && (
-            <div>
-              <h2 className="text-lg font-semibold text-white mb-4">Riscos Ativos ({activeRisks.length})</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {activeRisks.map(risk => {
-                  const score = getRiskScore(risk.probability, risk.impact);
-                  const level = getRiskLevel(score);
-                  return (
-                    <Card key={risk.id} className="bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 transition-all group">
-                      <CardContent className="p-5">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex items-center gap-2">
-                            <div className={cn("w-2 h-2 rounded-full", statusColors[risk.status])} />
-                            <Badge className={cn("border", categoryColors[risk.category])}>
-                              {categoryLabels[risk.category]}
-                            </Badge>
-                            <Badge className={cn("text-white", level.color)}>
-                              {level.label}
-                            </Badge>
-                          </div>
-                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-7 w-7 text-slate-400 hover:text-white hover:bg-slate-700"
-                              onClick={() => handleEdit(risk)}
-                            >
-                              <Pencil className="w-3 h-3" />
-                            </Button>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-500/20"
-                              onClick={() => handleDelete(risk)}
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </Button>
-                          </div>
-                        </div>
-                        <h3 className="font-semibold text-white mb-3">{risk.title}</h3>
-                        <div className="flex gap-4 text-sm mb-3">
-                          <div>
-                            <span className="text-slate-500">Probabilidade: </span>
-                            <span className={probabilityColors[risk.probability]}>
-                              {risk.probability?.charAt(0).toUpperCase() + risk.probability?.slice(1)}
-                            </span>
-                          </div>
-                          <div>
-                            <span className="text-slate-500">Impacto: </span>
-                            <span className={impactColors[risk.impact]}>
-                              {risk.impact?.charAt(0).toUpperCase() + risk.impact?.slice(1)}
-                            </span>
-                          </div>
-                        </div>
-                        {risk.mitigation && (
-                          <div className="bg-slate-700/30 rounded-lg p-3 text-sm">
-                            <p className="text-slate-500 text-xs mb-1">Plano de Mitigação:</p>
-                            <p className="text-slate-300 line-clamp-2">{risk.mitigation}</p>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Matrix */}
+          <Card className="bg-slate-800/50 border-slate-700/50">
+            <CardContent className="p-5">
+              <RiskMatrix risks={risks} />
+            </CardContent>
+          </Card>
 
-          {mitigatedRisks.length > 0 && (
-            <div>
-              <h2 className="text-lg font-semibold text-white mb-4 opacity-60">Riscos Mitigados ({mitigatedRisks.length})</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 opacity-60">
-                {mitigatedRisks.map(risk => (
-                  <Card key={risk.id} className="bg-slate-800/30 border-slate-700/30 group">
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between">
+          {/* List */}
+          <div className="space-y-4">
+            {activeRisks.length > 0 && (
+              <div>
+                <h2 className="text-sm font-semibold text-white mb-3">Riscos Ativos ({activeRisks.length})</h2>
+                <div className="space-y-2">
+                  {activeRisks
+                    .sort((a, b) => (toNum(b.probability) * toNum(b.impact)) - (toNum(a.probability) * toNum(a.impact)))
+                    .map(risk => {
+                      const score = toNum(risk.probability) * toNum(risk.impact);
+                      return (
+                        <Card key={risk.id} className="bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 transition-all group">
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                  <div className={cn('w-2 h-2 rounded-full flex-shrink-0', statusColors[risk.status])} />
+                                  <Badge className={cn('border text-xs', categoryColors[risk.category])}>
+                                    {categoryLabels[risk.category]}
+                                  </Badge>
+                                  <Badge className={cn('text-white text-xs', getSeverityColor(score))}>
+                                    {getSeverityLabel(score)} ({score})
+                                  </Badge>
+                                </div>
+                                <h3 className="font-semibold text-white text-sm">{risk.title}</h3>
+                                {risk.description && <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">{risk.description}</p>}
+                                <div className="flex gap-4 text-xs mt-1.5 text-slate-400">
+                                  <span>Chance: <span className="text-white font-medium">{toNum(risk.probability)}/5</span></span>
+                                  <span>Impacto: <span className="text-white font-medium">{toNum(risk.impact)}/5</span></span>
+                                  <span className="text-slate-500">{statusLabels[risk.status]}</span>
+                                </div>
+                                {risk.mitigation && (
+                                  <p className="text-xs text-slate-500 mt-1.5 line-clamp-1">
+                                    <span className="text-slate-600">Mitigação: </span>{risk.mitigation}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                                <Button size="icon" variant="ghost" className="h-7 w-7 text-slate-400 hover:text-white hover:bg-slate-700"
+                                  onClick={() => { setSelectedRisk(risk); setModalOpen(true); }}>
+                                  <Pencil className="w-3 h-3" />
+                                </Button>
+                                <Button size="icon" variant="ghost" className="h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-500/20"
+                                  onClick={() => { setRiskToDelete(risk); setDeleteDialogOpen(true); }}>
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                </div>
+              </div>
+            )}
+
+            {mitigatedRisks.length > 0 && (
+              <div className="opacity-60">
+                <h2 className="text-sm font-semibold text-white mb-3">Mitigados ({mitigatedRisks.length})</h2>
+                <div className="space-y-2">
+                  {mitigatedRisks.map(risk => (
+                    <Card key={risk.id} className="bg-slate-800/30 border-slate-700/30 group">
+                      <CardContent className="p-3 flex items-center justify-between">
                         <div>
-                          <Badge className={cn("border mb-2", categoryColors[risk.category])}>
-                            {categoryLabels[risk.category]}
-                          </Badge>
-                          <h3 className="text-white line-through">{risk.title}</h3>
+                          <Badge className={cn('border text-xs mb-1', categoryColors[risk.category])}>{categoryLabels[risk.category]}</Badge>
+                          <p className="text-sm text-white line-through">{risk.title}</p>
                         </div>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover:opacity-100"
-                          onClick={() => handleDelete(risk)}
-                        >
+                        <Button size="icon" variant="ghost" className="h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover:opacity-100"
+                          onClick={() => { setRiskToDelete(risk); setDeleteDialogOpen(true); }}>
                           <Trash2 className="w-3 h-3" />
                         </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       ) : (
-        <EmptyState
-          icon={AlertTriangle}
-          title="Nenhum risco cadastrado"
-          description="Identifique e registre os riscos do projeto"
-          action={
-            <Button onClick={() => setModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
-              <Plus className="w-4 h-4 mr-2" />
-              Adicionar Risco
-            </Button>
-          }
-        />
+        <div className="text-center py-16">
+          <AlertTriangle className="w-12 h-12 mx-auto text-slate-600 mb-3" />
+          <h3 className="text-white font-semibold mb-1">Nenhum risco cadastrado</h3>
+          <p className="text-slate-400 text-sm mb-4">Identifique e registre os riscos do projeto</p>
+          <Button onClick={() => setModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+            <Plus className="w-4 h-4 mr-2" /> Adicionar Risco
+          </Button>
+        </div>
       )}
 
-      {/* Modal */}
-      <RiskModal
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-        risk={selectedRisk}
-        onSave={handleSave}
-        projectId={activeProject?.id}
-      />
+      <RiskFormModal open={modalOpen} onOpenChange={setModalOpen} risk={selectedRisk}
+        onSave={handleSave} projectId={projectId} />
 
-      {/* Delete Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className="bg-slate-800 border-slate-700">
           <AlertDialogHeader>
@@ -346,12 +457,7 @@ export default function Risks() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel className="border-slate-600 text-slate-300 hover:bg-slate-700">Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => deleteMutation.mutate(riskToDelete?.id)}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              Excluir
-            </AlertDialogAction>
+            <AlertDialogAction onClick={() => deleteMutation.mutate(riskToDelete?.id)} className="bg-red-600 hover:bg-red-700">Excluir</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
