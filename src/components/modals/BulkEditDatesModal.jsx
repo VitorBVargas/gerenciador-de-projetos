@@ -209,11 +209,11 @@ export default function BulkEditDatesModal({
               </>
             )}
 
-            {/* Activities List */}
+            {/* Activities List - Show one of each */}
             {isValidSelection && (
               <div>
                 <label className="text-sm text-slate-300 block mb-2">Selecione a Atividade para editar:</label>
-                <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                <div className="space-y-2">
                   {(() => {
                     const filteredEvents = getFilteredEvents();
 
@@ -221,8 +221,23 @@ export default function BulkEditDatesModal({
                       return <p className="text-slate-400 text-sm py-4 text-center">Nenhuma atividade encontrada</p>;
                     }
 
-                    return filteredEvents.map(event => {
+                    // Group by title and show one of each
+                    const uniqueActivities = [];
+                    const seenTitles = new Set();
+
+                    filteredEvents.forEach(event => {
+                      const activityTitle = event.title || phaseLabels[event.phase] || event.phase;
+                      if (!seenTitles.has(activityTitle)) {
+                        seenTitles.add(activityTitle);
+                        uniqueActivities.push(event);
+                      }
+                    });
+
+                    return uniqueActivities.map(event => {
                       const isSelected = selectedPhase === event.phase;
+                      const eventCount = filteredEvents.filter(e => 
+                        (e.title || phaseLabels[e.phase] || e.phase) === (event.title || phaseLabels[event.phase] || event.phase)
+                      ).length;
 
                       return (
                         <div key={event.id}>
@@ -238,12 +253,15 @@ export default function BulkEditDatesModal({
                               <span className="text-sm">
                                 {event.title || phaseLabels[event.phase] || event.phase}
                               </span>
+                              <span className="text-xs text-slate-500">
+                                ({eventCount} produto{eventCount > 1 ? 's' : ''})
+                              </span>
                             </div>
                           </button>
 
                           {isSelected && (
                             <div className="mt-2 p-3 bg-slate-700/30 rounded border border-slate-600 space-y-3">
-                              <p className="text-xs text-slate-400">Editar datas para esta atividade:</p>
+                              <p className="text-xs text-slate-400">Editar datas para esta atividade em {eventCount} produto{eventCount > 1 ? 's' : ''}:</p>
                               <div>
                                 <label className="text-xs text-slate-400 block mb-1">Data Início</label>
                                 <Input
