@@ -207,6 +207,26 @@ export default function CrmImporter({ open, onOpenChange }) {
     });
     if (allEvents.length > 0) await base44.entities.TimelineEvent.bulkCreate(allEvents);
 
+    // Normalize vertical from PortfolioCollaborator (may have accents/capitals) to TeamMember enum
+    const normalizeVertical = (v) => {
+      if (!v) return 'gerenciamento';
+      const map = {
+        'arrecadação': 'arrecadacao', 'arrecadacao': 'arrecadacao',
+        'compras': 'compras', 'compras/contratos': 'compras',
+        'contábil': 'contabil', 'contabil': 'contabil',
+        'pessoal': 'pessoal',
+        'educação': 'educacao', 'educacao': 'educacao',
+        'iss': 'iss',
+        'parceiros': 'parceiros',
+        'plataforma': 'plataforma',
+        'saúde': 'saude', 'saude': 'saude',
+        'atendimento': 'atendimento',
+        'gerenciamento': 'gerenciamento',
+        'suporte': 'outros', 'extensão': 'outros', 'migrador': 'outros',
+      };
+      return map[v.toLowerCase()] || 'outros';
+    };
+
     // 4. Criar membros da equipe
     if (formData.team?.length > 0) {
       await base44.entities.TeamMember.bulkCreate(
@@ -214,7 +234,7 @@ export default function CrmImporter({ open, onOpenChange }) {
           project_id: project.id,
           name: c.name,
           role: c.role || '',
-          vertical: c.vertical1 || 'gerenciamento',
+          vertical: normalizeVertical(c.vertical1),
           email: c.email || '',
           phone: c.phone || '',
           is_leader: !!c.is_leader
