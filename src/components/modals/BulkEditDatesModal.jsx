@@ -24,6 +24,8 @@ export default function BulkEditDatesModal({
   const [editedEvents, setEditedEvents] = useState({});
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [editAllMode, setEditAllMode] = useState(false);
+  const [globalStartDate, setGlobalStartDate] = useState('');
+  const [globalEndDate, setGlobalEndDate] = useState('');
 
   React.useEffect(() => {
     if (open) {
@@ -32,6 +34,8 @@ export default function BulkEditDatesModal({
       setExpandedEvent(null);
       setEditedEvents({});
       setEditAllMode(false);
+      setGlobalStartDate('');
+      setGlobalEndDate('');
     }
   }, [open]);
 
@@ -87,27 +91,45 @@ export default function BulkEditDatesModal({
   };
 
   const handleConfirm = async () => {
-    const eventsToUpdate = Object.values(editedEvents).map(event => {
-      const originalEvent = timelineEvents.find(e => e.id === event.id);
-      if (!originalEvent) return null;
+    const filteredEvents = getFilteredEvents();
+    
+    // Se há datas globais definidas, aplica a todos os eventos filtrados
+    if (globalStartDate || globalEndDate) {
+      const eventsToUpdate = filteredEvents.map(event => ({
+        id: event.id,
+        start_date: globalStartDate || event.start_date,
+        end_date: globalEndDate || event.end_date
+      }));
       
-      return {
-        id: originalEvent.id,
-        start_date: event.start_date !== undefined ? event.start_date : originalEvent.start_date,
-        end_date: event.end_date !== undefined ? event.end_date : originalEvent.end_date
-      };
-    }).filter(Boolean);
+      if (eventsToUpdate.length > 0) {
+        await onApply(eventsToUpdate);
+      }
+    } else {
+      // Caso contrário, aplica apenas as alterações individuais
+      const eventsToUpdate = Object.values(editedEvents).map(event => {
+        const originalEvent = timelineEvents.find(e => e.id === event.id);
+        if (!originalEvent) return null;
+        
+        return {
+          id: originalEvent.id,
+          start_date: event.start_date !== undefined ? event.start_date : originalEvent.start_date,
+          end_date: event.end_date !== undefined ? event.end_date : originalEvent.end_date
+        };
+      }).filter(Boolean);
 
-    if (eventsToUpdate.length > 0) {
-      await onApply(eventsToUpdate);
+      if (eventsToUpdate.length > 0) {
+        await onApply(eventsToUpdate);
+      }
     }
+    
     setConfirmOpen(false);
     onOpenChange(false);
   };
 
   const filteredEvents = getFilteredEvents();
   const filteredVerticals = getFilteredVerticals();
-  const changedCount = Object.keys(editedEvents).length;
+  const changedCount = globalStartDate || globalEndDate ? filteredEvents.length : Object.keys(editedEvents).length;
+  const hasChanges = changedCount > 0 && (globalStartDate || globalEndDate || Object.keys(editedEvents).length > 0);
 
   return (
     <>
@@ -185,10 +207,60 @@ export default function BulkEditDatesModal({
               </>
             )}
 
+            {/* Global Dates (when entity + vertical selected) */}
+            {!editAllMode && selectedVertical && (
+              <div className="bg-slate-700/30 p-3 rounded border border-slate-600 space-y-3">
+                <p className="text-sm text-slate-300 font-medium">Aplicar a todas as etapas:</p>
+                <div>
+                  <label className="text-xs text-slate-400 block mb-1">Data Início</label>
+                  <Input
+                    type="date"
+                    value={globalStartDate}
+                    onChange={(e) => setGlobalStartDate(e.target.value)}
+                    className="bg-slate-700 border-slate-600 text-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-slate-400 block mb-1">Data Fim</label>
+                  <Input
+                    type="date"
+                    value={globalEndDate}
+                    onChange={(e) => setGlobalEndDate(e.target.value)}
+                    className="bg-slate-700 border-slate-600 text-white"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Global Dates (when edit all selected) */}
+            {editAllMode && (
+              <div className="bg-slate-700/30 p-3 rounded border border-slate-600 space-y-3">
+                <p className="text-sm text-slate-300 font-medium">Aplicar a todas as etapas do projeto:</p>
+                <div>
+                  <label className="text-xs text-slate-400 block mb-1">Data Início</label>
+                  <Input
+                    type="date"
+                    value={globalStartDate}
+                    onChange={(e) => setGlobalStartDate(e.target.value)}
+                    className="bg-slate-700 border-slate-600 text-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-slate-400 block mb-1">Data Fim</label>
+                  <Input
+                    type="date"
+                    value={globalEndDate}
+                    onChange={(e) => setGlobalEndDate(e.target.value)}
+                    className="bg-slate-700 border-slate-600 text-white"
+                  />
+                </div>
+              </div>
+            )}
+
             {/* Events List */}
-            {(editAllMode || selectedVertical) && (
+            {(editAllMode || selectedVertical) && (!globalStartDate && !globalEndDate) && (
               <div>
-                <label className="text-sm text-slate-300 block mb-2">Etapas</label>
+                <label className="text-sm text-slate-300 block mb-2">Ou editar individualmente:</label>
                 <div className="space-y-2">
                   {filteredEvents.length === 0 ? (
                     <p className="text-slate-400 text-sm py-4 text-center">Nenhuma etapa encontrada</p>
@@ -259,7 +331,7 @@ export default function BulkEditDatesModal({
             <Button
               onClick={handleApplyClick}
               className="bg-blue-600 hover:bg-blue-700"
-              disabled={changedCount === 0 || (!editAllMode && !selectedVertical)}
+              disabled={!hasChanges || (!editAllMode && !selectedVertical)}
             >
               Aplicar {changedCount > 0 && `(${changedCount})`}
             </Button>
