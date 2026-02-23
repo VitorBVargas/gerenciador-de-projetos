@@ -58,6 +58,8 @@ const verticalLabels = {
   outros: 'Outros'
 };
 
+import { VERTICAL_BADGE_COLORS, VERTICAL_AVATAR_COLORS } from '../components/verticalColors';
+
 export default function Stakeholders() {
   const queryClient = useQueryClient();
   const [modalOpen, setModalOpen] = useState(false);
@@ -65,7 +67,7 @@ export default function Stakeholders() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [stakeholderToDelete, setStakeholderToDelete] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedEntity, setSelectedEntity] = useState('PM');
+  const [selectedEntity, setSelectedEntity] = useState('');
 
   // Get project_id from URL
   const urlParams = new URLSearchParams(window.location.search);

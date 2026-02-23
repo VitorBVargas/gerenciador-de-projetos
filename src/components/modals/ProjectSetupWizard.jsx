@@ -286,6 +286,26 @@ export default function ProjectSetupWizard({ open, onOpenChange, project, onComp
                   <Input value={newStakeholder.role} onChange={e => setNewStakeholder(p => ({ ...p, role: e.target.value }))} placeholder="Cargo/Função" className="bg-slate-700 border-slate-600 text-white text-sm" />
                 </div>
                 <div className="space-y-2">
+                  <Label className="text-slate-300 text-xs">Vertical</Label>
+                  <Select value={newStakeholder.vertical} onValueChange={v => setNewStakeholder(p => ({ ...p, vertical: v }))}>
+                    <SelectTrigger className="bg-slate-700 border-slate-600 text-white text-sm h-9"><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                    <SelectContent className="bg-slate-800 border-slate-700">
+                      <SelectItem value="gerenciamento">Gerenciamento</SelectItem>
+                      <SelectItem value="arrecadacao">Arrecadação</SelectItem>
+                      <SelectItem value="compras">Compras/Contratos</SelectItem>
+                      <SelectItem value="contabil">Contábil</SelectItem>
+                      <SelectItem value="pessoal">Pessoal</SelectItem>
+                      <SelectItem value="educacao">Educação</SelectItem>
+                      <SelectItem value="iss">ISS</SelectItem>
+                      <SelectItem value="parceiros">Parceiros</SelectItem>
+                      <SelectItem value="plataforma">Plataforma</SelectItem>
+                      <SelectItem value="saude">Saúde</SelectItem>
+                      <SelectItem value="atendimento">Atendimento</SelectItem>
+                      <SelectItem value="outros">Outros</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
                   <Label className="text-slate-300 text-xs">E-mail</Label>
                   <Input value={newStakeholder.email} onChange={e => setNewStakeholder(p => ({ ...p, email: e.target.value }))} placeholder="email@municipio.gov.br" className="bg-slate-700 border-slate-600 text-white text-sm" />
                 </div>
