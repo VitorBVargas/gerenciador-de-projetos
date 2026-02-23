@@ -73,6 +73,7 @@ export default function ExecutiveStatus() {
   const [selectedMonth, setSelectedMonth] = useState(null);
   const [selectedMonthType, setSelectedMonthType] = useState(null);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+  const [recognitionsModalProject, setRecognitionsModalProject] = useState(null);
   const [isWeeklySummaryOpen, setIsWeeklySummaryOpen] = useState(false);
   const [weeklySummary, setWeeklySummary] = useState(null);
   const [visibleCharts, setVisibleCharts] = useState({
