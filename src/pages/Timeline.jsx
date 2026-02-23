@@ -9,6 +9,7 @@ import TimelineEventModal from '../components/modals/TimelineEventModal';
 import BulkEditDatesModal from '../components/modals/BulkEditDatesModal';
 import EmptyState from '../components/ui/EmptyState';
 import EntityFilter from '../components/filters/EntityFilter';
+import GanttBoard from '../components/gantt/GanttBoard';
 import { phaseLabels } from '../components/timeline/phaseLabels';
 import {
   AlertDialog,
