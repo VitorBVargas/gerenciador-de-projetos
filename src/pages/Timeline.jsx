@@ -426,13 +426,15 @@ export default function Timeline() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Bulk Edit Dates Modal */}
+      {/* Edit Dates Modal */}
       <BulkEditDatesModal
-        open={bulkEditOpen}
-        onOpenChange={setBulkEditOpen}
-        events={getEventsForBulkEdit()}
-        onApply={handleBulkEditApply}
-        mode={bulkEditMode}
+        open={editDatesOpen}
+        onOpenChange={setEditDatesOpen}
+        entities={getUniqueEntities()}
+        verticals={verticals}
+        timelineEvents={timelineEvents}
+        products={products}
+        onApply={handleEditDatesApply}
       />
     </div>
   );
