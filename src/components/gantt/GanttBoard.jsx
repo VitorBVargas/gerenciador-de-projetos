@@ -82,8 +82,9 @@ export default function GanttBoard({ projectId, projectDeadline }) {
   return (
     <div className="flex flex-col h-full bg-slate-900 rounded-lg border border-slate-700">
       {/* Header */}
-      <div className="bg-slate-800 border-b border-slate-700 px-4 py-3 flex items-center justify-between">
+      <div className="bg-slate-800 border-b border-slate-700 px-4 py-3 flex items-center justify-between gap-4">
         <h3 className="text-white font-semibold">Cronograma Gantt</h3>
+        <TimelineScaler zoom={zoom} onZoomChange={setZoom} />
         <Button
           size="sm"
           className="bg-blue-600 hover:bg-blue-700"
