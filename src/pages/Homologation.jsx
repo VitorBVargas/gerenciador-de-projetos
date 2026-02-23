@@ -518,7 +518,27 @@ export default function Homologation() {
                             return (
                               <>
                                 {/* Renderizar seções importadas */}
-                                {Object.entries(importedBySection).map(([sectionName, sectionTasks], idx) => (
+                                {Object.entries(importedBySection).map(([sectionName, sectionTasks], idx) => {
+                                  // Remover duplicados nas seções importadas
+                                  const uniqueImportedTasks = [];
+                                  const seenTitles = new Map();
+
+                                  for (const task of sectionTasks) {
+                                    const titleLower = task.displayTitle.toLowerCase();
+                                    if (!seenTitles.has(titleLower)) {
+                                      seenTitles.set(titleLower, task);
+                                      uniqueImportedTasks.push(task);
+                                    } else {
+                                      const existing = seenTitles.get(titleLower);
+                                      if (task.completed && !existing.completed) {
+                                        const idx = uniqueImportedTasks.indexOf(existing);
+                                        uniqueImportedTasks[idx] = task;
+                                        seenTitles.set(titleLower, task);
+                                      }
+                                    }
+                                  }
+
+                                  return (
                                  <div key={`imported-${idx}`}>
                                    <div className="flex items-center justify-between mb-3 group/section">
                                      <h3 className="text-cyan-400 font-semibold text-sm uppercase">
@@ -537,7 +557,7 @@ export default function Homologation() {
                                      </Button>
                                    </div>
                                     <div className="space-y-2">
-                                      {uniqueTasks.map(task => (
+                                      {uniqueImportedTasks.map(task => (
                                         <div key={task.id} className="flex items-center gap-3 group">
                                           <Checkbox
                                             checked={task.completed}
@@ -560,10 +580,10 @@ export default function Homologation() {
                                           </Button>
                                         </div>
                                       ))}
-                                      </div>
-                                      </div>
-                                      );
-                                      })}
+                                    </div>
+                                  </div>
+                                  );
+                                })}
                                 
                                 {/* Renderizar seções padrão */}
                                 {defaultSections.length > 0 && getOrderedSections(product.id, defaultSections).map((section, displayIndex) => {
