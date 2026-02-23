@@ -56,8 +56,7 @@ export default function Timeline() {
   const [eventToDelete, setEventToDelete] = useState(null);
   const [activeVertical, setActiveVertical] = useState('');
   const [selectedEntity, setSelectedEntity] = useState('PM');
-  const [bulkEditOpen, setBulkEditOpen] = useState(false);
-  const [bulkEditMode, setBulkEditMode] = useState('vertical'); // 'vertical' or 'all'
+  const [editDatesOpen, setEditDatesOpen] = useState(false);
 
   // Get project_id from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -114,7 +113,7 @@ export default function Timeline() {
     ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timelineEvents', projectId] });
-      setBulkEditOpen(false);
+      setEditDatesOpen(false);
     }
   });
 
@@ -197,23 +196,15 @@ export default function Timeline() {
     return Math.round(productProgresses.reduce((a, b) => a + b, 0) / productProgresses.length);
   };
 
-  const getEventsForBulkEdit = () => {
-    if (bulkEditMode === 'vertical') {
-      // Get all events for all products in the current vertical
-      return timelineEvents.filter(e => {
-        const product = productsInVertical.find(p => p.id === e.product_id);
-        return !!product;
-      }).sort((a, b) => (a.order || 0) - (b.order || 0));
-    } else {
-      // Get all events for all products in selected entity
-      return timelineEvents.filter(e => {
-        const product = entityProducts.find(p => p.id === e.product_id);
-        return !!product;
-      }).sort((a, b) => (a.order || 0) - (b.order || 0));
-    }
+  const getUniqueEntities = () => {
+    return [...new Set(products.map(p => p.entity))].sort((a, b) => {
+      if (a === 'PM') return -1;
+      if (b === 'PM') return 1;
+      return a.localeCompare(b);
+    });
   };
 
-  const handleBulkEditApply = async (updatedEvents) => {
+  const handleEditDatesApply = async (updatedEvents) => {
     await bulkUpdateMutation.mutateAsync(updatedEvents);
   };
 
@@ -236,7 +227,7 @@ export default function Timeline() {
 
       {/* Main Tabs - Cronograma do Projeto */}
       <Tabs defaultValue="timeline" className="space-y-4">
-       <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+       <div className="flex items-center justify-between">
          <TabsList className="bg-slate-800 border border-slate-700">
            <TabsTrigger value="timeline" className="data-[state=active]:bg-blue-600">
              Cronograma do Projeto
@@ -245,32 +236,14 @@ export default function Timeline() {
              Linha do Tempo de Entregas
            </TabsTrigger>
          </TabsList>
-         <div className="flex gap-2 lg:ml-auto">
-           <Button
-             size="sm"
-             onClick={() => {
-               setBulkEditMode('vertical');
-               setBulkEditOpen(true);
-             }}
-             className="bg-blue-600 hover:bg-blue-700 gap-2"
-             disabled={productsInVertical.length === 0}
-           >
-             <Edit3 className="w-4 h-4" />
-             Editar Datas da Vertical
-           </Button>
-           <Button
-             size="sm"
-             onClick={() => {
-               setBulkEditMode('all');
-               setBulkEditOpen(true);
-             }}
-             className="bg-slate-700 hover:bg-slate-600 gap-2"
-             disabled={entityProducts.length === 0}
-           >
-             <Edit3 className="w-4 h-4" />
-             Editar Todas
-           </Button>
-         </div>
+         <Button
+           size="sm"
+           onClick={() => setEditDatesOpen(true)}
+           className="bg-blue-600 hover:bg-blue-700 gap-2"
+         >
+           <Edit3 className="w-4 h-4" />
+           Editar datas
+         </Button>
        </div>
 
         {/* Timeline Tab */}
