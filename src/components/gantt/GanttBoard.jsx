@@ -136,8 +136,8 @@ export default function GanttBoard({ projectId, projectDeadline }) {
           <TimelineHeader
             startDate={startDate}
             endDate={endDate}
-            viewType={viewType}
-            onViewChange={setViewType}
+            viewType={zoom}
+            onViewChange={setZoom}
             pixelsPerDay={pixelsPerDay}
           />
 
