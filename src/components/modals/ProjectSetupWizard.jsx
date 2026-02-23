@@ -38,7 +38,7 @@ export default function ProjectSetupWizard({ open, onOpenChange, project, onComp
 
   // Step 2 - Stakeholders
   const [stakeholders, setStakeholders] = useState([]);
-  const [newStakeholder, setNewStakeholder] = useState({ name: '', role: '', email: '', phone: '' });
+  const [newStakeholder, setNewStakeholder] = useState({ name: '', role: '', email: '', phone: '', vertical: '' });
 
   // Step 3 - Risks
   const [risks, setRisks] = useState([]);
