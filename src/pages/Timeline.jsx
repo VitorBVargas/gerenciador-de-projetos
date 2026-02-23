@@ -247,6 +247,31 @@ export default function Timeline() {
          </Button>
        </div>
 
+        {/* Gantt Tab */}
+        <TabsContent value="gantt" className="space-y-6">
+          {timelineEvents.length === 0 ? (
+            <EmptyState
+              icon={Calendar}
+              title="Nenhuma etapa cadastrada"
+              description="Adicione as etapas para visualizar o Gantt"
+              action={
+                <Button onClick={() => window.location.href = 'Dashboard?project_id=' + projectId} className="bg-blue-600 hover:bg-blue-700">
+                  Ir para Produtos
+                </Button>
+              }
+            />
+          ) : (
+            <GanttBoard
+              projectId={projectId}
+              tasks={timelineEvents}
+              projectDeadline={activeProject?.deadline}
+              selectedEntity={selectedEntity}
+              selectedVertical={activeVertical}
+              selectedProduct={selectedProductId}
+            />
+          )}
+        </TabsContent>
+
         {/* Timeline Tab */}
         <TabsContent value="timeline" className="space-y-6">
           {timelineEvents.length === 0 ? (
