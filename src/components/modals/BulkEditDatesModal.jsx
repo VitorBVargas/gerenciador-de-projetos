@@ -44,15 +44,13 @@ export default function BulkEditDatesModal({
 
   const getFilteredEvents = () => {
     if (editAllMode) {
-      // Get all unique events by phase
-      const eventsByPhase = {};
+      // Get all unique events by ID
+      const seenIds = new Set();
       return timelineEvents
         .filter(e => {
-          if (!eventsByPhase[e.phase]) {
-            eventsByPhase[e.phase] = true;
-            return true;
-          }
-          return false;
+          if (seenIds.has(e.id)) return false;
+          seenIds.add(e.id);
+          return true;
         })
         .sort((a, b) => (a.order || 0) - (b.order || 0));
     }
@@ -63,14 +61,12 @@ export default function BulkEditDatesModal({
       p => p.entity === selectedEntity && p.vertical === selectedVertical
     );
     
-    const eventsByPhase = {};
+    const seenIds = new Set();
     return timelineEvents
       .filter(e => {
-        if (!eventsByPhase[e.phase] && entityProducts.some(p => p.id === e.product_id)) {
-          eventsByPhase[e.phase] = true;
-          return true;
-        }
-        return false;
+        if (seenIds.has(e.id)) return false;
+        seenIds.add(e.id);
+        return entityProducts.some(p => p.id === e.product_id);
       })
       .sort((a, b) => (a.order || 0) - (b.order || 0));
   };
