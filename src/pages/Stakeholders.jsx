@@ -43,6 +43,8 @@ const communicationLabels = {
   baixo: 'Baixo'
 };
 
+import { VERTICAL_BADGE_COLORS, VERTICAL_AVATAR_COLORS } from '../components/verticalColors';
+
 const verticalLabels = {
   gerenciamento: 'Gerenciamento',
   arrecadacao: 'Arrecadação',
@@ -57,8 +59,6 @@ const verticalLabels = {
   atendimento: 'Atendimento',
   outros: 'Outros'
 };
-
-import { VERTICAL_BADGE_COLORS, VERTICAL_AVATAR_COLORS } from '../components/verticalColors';
 
 export default function Stakeholders() {
   const queryClient = useQueryClient();
