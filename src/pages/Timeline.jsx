@@ -6,10 +6,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Plus, Calendar } from 'lucide-react';
 import TimelineEventModal from '../components/modals/TimelineEventModal';
-import GanttTimeline from '../components/timeline/GanttTimeline';
-import ProjectVerticalDeliveryTimeline from '../components/timeline/ProjectVerticalDeliveryTimeline';
 import EmptyState from '../components/ui/EmptyState';
-import EntityFilter from '../components/filters/EntityFilter';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,15 +30,42 @@ const verticalLabels = {
   atendimento: 'Atendimento'
 };
 
+const phaseLabels = {
+  planejamento_contrato: 'Planejamento/Contrato',
+  kickoff: 'Kickoff',
+  diagnostico: 'Diagnóstico',
+  onboarding_cliente: 'Onboarding Cliente',
+  configuracao_migracao_hml: 'Configuração/Migração de Homologação',
+  homologacao_base: 'Homologação da Base',
+  migracao_prd_blackout: 'Migração de PRD (Blackout)',
+  configuracao_prd: 'Configuração de PRD',
+  treinamento: 'Treinamento',
+  go_live: 'Go-Live',
+  operacao_assistida: 'Operação Assistida',
+  encerramento_bastao: 'Encerramento/Passagem de Bastão'
+};
+
+const statusLabels = {
+  nao_iniciado: 'Não Iniciado',
+  em_andamento: 'Em Andamento',
+  concluido: 'Concluído',
+  atrasado: 'Atrasado'
+};
+
+const statusColors = {
+  nao_iniciado: 'bg-slate-600',
+  em_andamento: 'bg-blue-600',
+  concluido: 'bg-green-600',
+  atrasado: 'bg-red-600'
+};
+
 export default function Timeline() {
   const queryClient = useQueryClient();
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [eventToDelete, setEventToDelete] = useState(null);
-  const [activeTab, setActiveTab] = useState('');
-  const [mainTab, setMainTab] = useState('timeline');
-  const [selectedEntity, setSelectedEntity] = useState('PM');
+  const [activeVertical, setActiveVertical] = useState('');
 
   // Get project_id from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -64,8 +88,6 @@ export default function Timeline() {
     enabled: !!projectId
   });
 
-
-
   const activeProject = projects.find(p => p.id === projectId);
 
   const createMutation = useMutation({
@@ -84,16 +106,6 @@ export default function Timeline() {
       setSelectedEvent(null);
     }
   });
-
-  const handleStatusChange = (eventId, newStatus) => {
-    const event = timelineEvents.find(e => e.id === eventId);
-    if (event) {
-      updateMutation.mutate({ 
-        id: eventId, 
-        data: { ...event, status: newStatus } 
-      });
-    }
-  };
 
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.TimelineEvent.delete(id),
@@ -123,54 +135,47 @@ export default function Timeline() {
     setDeleteDialogOpen(true);
   };
 
-  // Entity filter
-  const allEntities = [...new Set(products.map(p => p.entity).filter(Boolean))].sort();
-  const entityVerticals = selectedEntity
-    ? [...new Set(products.filter(p => p.entity === selectedEntity).map(p => p.vertical).filter(Boolean))]
-    : null;
-  const filteredTimelineEvents = entityVerticals
-    ? timelineEvents.filter(e => !e.vertical || entityVerticals.includes(e.vertical))
-    : timelineEvents;
-
-  // Group events by vertical
-  const eventsByVertical = {};
-  const usedVerticals = [...new Set(filteredTimelineEvents.map(e => e.vertical).filter(Boolean))].sort();
-  
-  usedVerticals.forEach(vertical => {
-    eventsByVertical[vertical] = filteredTimelineEvents.filter(e => e.vertical === vertical);
-  });
-
-  // Set initial tab to first vertical if not set
-  React.useEffect(() => {
-    if (usedVerticals.length > 0 && !activeTab) {
-      setActiveTab(usedVerticals[0]);
+  const handleStatusChange = (eventId, newStatus) => {
+    const event = timelineEvents.find(e => e.id === eventId);
+    if (event) {
+      updateMutation.mutate({ 
+        id: eventId, 
+        data: { ...event, status: newStatus } 
+      });
     }
-  }, [usedVerticals.length]);
-
-  const sortEvents = (events) => {
-    return [...events].sort((a, b) => {
-      // Sort by order field (from Excel import), then by created_date
-      if (a.order !== undefined && b.order !== undefined) {
-        return a.order - b.order;
-      }
-      // Fallback to created_date for manually added events
-      if (a.created_date && b.created_date) {
-        return a.created_date.localeCompare(b.created_date);
-      }
-      return 0;
-    });
   };
 
-  // Calcula o progresso de uma vertical (média do progresso de todas as etapas)
-  const getVerticalProgress = (vertical) => {
-    const events = filteredTimelineEvents.filter(e => e.vertical === vertical);
-    if (events.length === 0) return 0;
-    const totalProgress = events.reduce((sum, event) => {
-      // Usar 100% se status for concluído, caso contrário usar o valor de progress
-      if (event.status === 'concluido') return sum + 100;
-      return sum + (event.progress || 0);
-    }, 0);
-    return Math.round(totalProgress / events.length);
+  // Get unique verticals from products
+  const verticals = [...new Set(products.map(p => p.vertical).filter(Boolean))].sort();
+
+  // Set initial vertical
+  React.useEffect(() => {
+    if (verticals.length > 0 && !activeVertical) {
+      setActiveVertical(verticals[0]);
+    }
+  }, [verticals.length]);
+
+  // Get products for active vertical
+  const productsInVertical = activeVertical 
+    ? products.filter(p => p.vertical === activeVertical)
+    : [];
+
+  // Calculate vertical progress (average of all products' average progress)
+  const getVerticalProgress = () => {
+    if (productsInVertical.length === 0) return 0;
+    
+    const productProgresses = productsInVertical.map(product => {
+      const productEvents = timelineEvents.filter(e => e.product_id === product.id);
+      if (productEvents.length === 0) return 0;
+      
+      const totalProgress = productEvents.reduce((sum, event) => {
+        if (event.status === 'concluido') return sum + 100;
+        return sum + (event.progress || 0);
+      }, 0);
+      return Math.round(totalProgress / productEvents.length);
+    });
+
+    return Math.round(productProgresses.reduce((a, b) => a + b, 0) / productProgresses.length);
   };
 
   return (
@@ -179,24 +184,12 @@ export default function Timeline() {
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-white">Cronograma</h1>
-          <p className="text-slate-400 mt-1">Visualize e gerencie as etapas do projeto</p>
+          <p className="text-slate-400 mt-1">Visualize e gerencie as etapas por produto</p>
         </div>
-        <Button 
-          onClick={() => { setSelectedEvent(null); setModalOpen(true); }}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Adicionar Etapa
-        </Button>
       </div>
 
-      {/* Entity Filter */}
-      {allEntities.length > 0 && (
-        <EntityFilter entities={allEntities} selectedEntity={selectedEntity} onEntityChange={setSelectedEntity} />
-      )}
-
-      {/* Main Tabs */}
-      <Tabs value={mainTab} onValueChange={setMainTab} className="space-y-4">
+      {/* Main Tabs - Cronograma do Projeto */}
+      <Tabs defaultValue="timeline" className="space-y-4">
         <TabsList className="bg-slate-800 border border-slate-700">
           <TabsTrigger value="timeline" className="data-[state=active]:bg-blue-600">
             Cronograma do Projeto
@@ -207,25 +200,39 @@ export default function Timeline() {
         </TabsList>
 
         {/* Timeline Tab */}
-        <TabsContent value="timeline" className="space-y-4">
-          {timelineEvents.length > 0 ? (
-            usedVerticals.length > 0 ? (
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-                <TabsList className="bg-slate-800 border border-slate-700">
-                  {usedVerticals.map(vertical => (
+        <TabsContent value="timeline" className="space-y-6">
+          {timelineEvents.length === 0 ? (
+            <EmptyState
+              icon={Calendar}
+              title="Nenhuma etapa cadastrada"
+              description="Adicione os produtos e as etapas serão criadas automaticamente"
+              action={
+                <Button onClick={() => window.location.href = 'Dashboard?project_id=' + projectId} className="bg-blue-600 hover:bg-blue-700">
+                  Ir para Produtos
+                </Button>
+              }
+            />
+          ) : (
+            <>
+              {/* Vertical Tabs */}
+              <Tabs value={activeVertical} onValueChange={setActiveVertical} className="space-y-4">
+                <TabsList className="bg-slate-800 border border-slate-700 flex-wrap h-auto p-2 gap-2">
+                  {verticals.map(vertical => (
                     <TabsTrigger key={vertical} value={vertical} className="data-[state=active]:bg-blue-600">
                       {verticalLabels[vertical] || vertical}
                     </TabsTrigger>
                   ))}
                 </TabsList>
 
-                {usedVerticals.map(vertical => {
-                  const verticalProgress = getVerticalProgress(vertical);
+                {verticals.map(vertical => {
+                  const verticalProgress = getVerticalProgress();
+                  const productsInVert = products.filter(p => p.vertical === vertical);
+
                   return (
                     <TabsContent key={vertical} value={vertical} className="space-y-4">
-                      {/* Barra de Progresso da Vertical */}
+                      {/* Vertical Progress Bar */}
                       <div className="flex items-center gap-4 bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
-                        <div className="text-sm text-slate-400 min-w-[140px]">
+                        <div className="text-sm text-slate-400 min-w-[160px]">
                           Progresso {verticalLabels[vertical] || vertical}
                         </div>
                         <div className="flex-1">
@@ -236,45 +243,105 @@ export default function Timeline() {
                         </div>
                       </div>
 
-                      <GanttTimeline
-                        events={sortEvents(eventsByVertical[vertical])}
-                        onEdit={handleEdit}
-                        onDelete={handleDelete}
-                        onStatusChange={handleStatusChange}
-                      />
+                      {/* Products in Vertical */}
+                      <div className="space-y-4">
+                        {productsInVert.map(product => {
+                          const productEvents = timelineEvents
+                            .filter(e => e.product_id === product.id)
+                            .sort((a, b) => (a.order || 0) - (b.order || 0));
+
+                          const productProgress = productEvents.length > 0
+                            ? Math.round(productEvents.reduce((sum, e) => {
+                                if (e.status === 'concluido') return sum + 100;
+                                return sum + (e.progress || 0);
+                              }, 0) / productEvents.length)
+                            : 0;
+
+                          return (
+                            <div key={product.id} className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
+                              {/* Product Header */}
+                              <div className="px-4 py-3 border-b border-slate-700 bg-slate-800/50">
+                                <h3 className="font-semibold text-white">{product.name}</h3>
+                              </div>
+
+                              {/* Product Stages Table */}
+                              <div className="overflow-x-auto">
+                                <table className="w-full">
+                                  <thead>
+                                    <tr className="border-b border-slate-700 bg-slate-900/50">
+                                      <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Atividade</th>
+                                      <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Status</th>
+                                      <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Progresso</th>
+                                      <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Ações</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {productEvents.map((event) => (
+                                      <tr key={event.id} className="border-b border-slate-700/30 hover:bg-slate-700/20">
+                                        <td className="px-4 py-3 text-sm text-white">
+                                          {phaseLabels[event.phase] || event.title}
+                                        </td>
+                                        <td className="px-4 py-3">
+                                          <select
+                                            value={event.status}
+                                            onChange={(e) => handleStatusChange(event.id, e.target.value)}
+                                            className={`px-3 py-1 rounded text-xs font-medium text-white border-0 ${statusColors[event.status]} cursor-pointer hover:opacity-80`}
+                                          >
+                                            {Object.entries(statusLabels).map(([key, label]) => (
+                                              <option key={key} value={key}>{label}</option>
+                                            ))}
+                                          </select>
+                                        </td>
+                                        <td className="px-4 py-3">
+                                          <div className="flex items-center gap-2 max-w-xs">
+                                            <Progress value={event.progress || 0} className="h-2 flex-1" />
+                                            <span className="text-xs text-slate-400 min-w-[35px] text-right">
+                                              {event.progress || 0}%
+                                            </span>
+                                          </div>
+                                        </td>
+                                        <td className="px-4 py-3">
+                                          <div className="flex gap-2">
+                                            <Button
+                                              size="sm"
+                                              variant="ghost"
+                                              onClick={() => handleEdit(event)}
+                                              className="text-slate-400 hover:text-blue-400"
+                                            >
+                                              Editar
+                                            </Button>
+                                            <Button
+                                              size="sm"
+                                              variant="ghost"
+                                              onClick={() => handleDelete(event.id)}
+                                              className="text-slate-400 hover:text-red-400"
+                                            >
+                                              Deletar
+                                            </Button>
+                                          </div>
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </TabsContent>
                   );
                 })}
               </Tabs>
-            ) : (
-              <GanttTimeline
-                events={sortEvents(timelineEvents)}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onStatusChange={handleStatusChange}
-              />
-            )
-          ) : (
-            <EmptyState
-              icon={Calendar}
-              title="Nenhuma etapa cadastrada"
-              description="Adicione as etapas do cronograma do projeto"
-              action={
-                <Button onClick={() => setModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Adicionar Etapa
-                </Button>
-              }
-            />
+            </>
           )}
         </TabsContent>
 
-        {/* Delivery Timeline Tab */}
+        {/* Delivery Tab */}
         <TabsContent value="delivery" className="space-y-4">
-          <ProjectVerticalDeliveryTimeline 
-            projectId={projectId} 
-            timelineEvents={timelineEvents}
-          />
+          <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
+            <p className="text-slate-400">Linha do Tempo de Entregas em desenvolvimento</p>
+          </div>
         </TabsContent>
       </Tabs>
 
@@ -293,7 +360,7 @@ export default function Timeline() {
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white">Confirmar exclusão</AlertDialogTitle>
             <AlertDialogDescription className="text-slate-400">
-              Tem certeza que deseja excluir a etapa "{eventToDelete?.title}"? Esta ação não pode ser desfeita.
+              Tem certeza que deseja excluir a etapa "{eventToDelete?.title}"?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
