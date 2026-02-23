@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import TaskBar from './TaskBar';
 import TimelineHeader from './TimelineHeader';
+import TimelineScaler from './TimelineScaler';
 import { TaskService } from './TaskService';
 import { useTaskRecalculation } from './useTaskRecalculation';
 import { format, startOfMonth } from 'date-fns';
