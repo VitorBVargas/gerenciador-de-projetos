@@ -36,7 +36,6 @@ export default function Homologation() {
   const [selectedEntity, setSelectedEntity] = useState('PM');
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [sectionOrder, setSectionOrder] = useState({});
-  const [isResetting, setIsResetting] = useState(false);
   const fileInputRef = React.useRef(null);
   const creatingTasksRef = React.useRef(new Set());
 
@@ -436,28 +435,14 @@ export default function Homologation() {
                           </div>
                           
                           <div className="flex gap-2 flex-wrap">
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button variant="outline" className="flex-1 min-w-[180px] border-orange-500/30 text-orange-400 hover:bg-orange-500/10">
-                                  <RotateCcw className="w-4 h-4 mr-2" />
-                                  Zerar Tarefas
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent className="bg-slate-800 border-slate-700">
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle className="text-white">Zerar todas as tarefas?</AlertDialogTitle>
-                                  <AlertDialogDescription className="text-slate-400">
-                                    Isso irá deletar todas as tarefas atuais deste produto (incluindo duplicatas) e recriar as tarefas padrão. Esta ação não pode ser desfeita.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel className="bg-slate-700 text-white border-slate-600">Cancelar</AlertDialogCancel>
-                                  <AlertDialogAction onClick={handleResetTasks} className="bg-orange-600 hover:bg-orange-700" disabled={isResetting}>
-                                    {isResetting ? 'Processando...' : 'Zerar'}
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
+                            <Button 
+                              variant="outline" 
+                              className="flex-1 min-w-[180px] border-green-500/30 text-green-400 hover:bg-green-500/10"
+                              onClick={handleMarkAllTasks}
+                            >
+                              <CheckCircle className="w-4 h-4 mr-2" />
+                              Marcar Todos
+                            </Button>
 
                             <input
                               ref={fileInputRef}
@@ -485,7 +470,7 @@ export default function Homologation() {
                               return (
                                 <div className="flex items-center gap-2 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg text-yellow-400 text-sm">
                                   <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-                                  <span className="flex-1">Foram detectadas tarefas duplicadas neste produto ({productTasks.length - uniqueTitles.size} duplicatas). Use "Zerar Tarefas" para corrigir.</span>
+                                  <span className="flex-1">Foram detectadas tarefas duplicadas neste produto ({productTasks.length - uniqueTitles.size} duplicatas). Considere importar novamente.</span>
                                 </div>
                               );
                             }
