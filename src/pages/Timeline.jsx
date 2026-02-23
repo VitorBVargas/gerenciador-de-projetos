@@ -9,7 +9,7 @@ import TimelineEventModal from '../components/modals/TimelineEventModal';
 import BulkEditDatesModal from '../components/modals/BulkEditDatesModal';
 import EmptyState from '../components/ui/EmptyState';
 import EntityFilter from '../components/filters/EntityFilter';
-import GanttBoard from '../components/gantt/GanttBoard';
+
 import { phaseLabels } from '../components/timeline/phaseLabels';
 import {
   AlertDialog,
@@ -227,17 +227,11 @@ export default function Timeline() {
       )}
 
       {/* Main Tabs - Cronograma do Projeto */}
-      <Tabs defaultValue="gantt" className="space-y-4">
+      <Tabs defaultValue="timeline" className="space-y-4">
        <div className="flex items-center justify-between">
          <TabsList className="bg-slate-800 border border-slate-700">
-           <TabsTrigger value="gantt" className="data-[state=active]:bg-blue-600">
-             Gantt
-           </TabsTrigger>
            <TabsTrigger value="timeline" className="data-[state=active]:bg-blue-600">
              Cronograma do Projeto
-           </TabsTrigger>
-           <TabsTrigger value="delivery" className="data-[state=active]:bg-blue-600">
-             Linha do Tempo de Entregas
            </TabsTrigger>
          </TabsList>
          <Button
@@ -249,31 +243,6 @@ export default function Timeline() {
            Editar datas
          </Button>
        </div>
-
-        {/* Gantt Tab */}
-        <TabsContent value="gantt" className="space-y-6">
-          {timelineEvents.length === 0 ? (
-            <EmptyState
-              icon={Calendar}
-              title="Nenhuma etapa cadastrada"
-              description="Adicione as etapas para visualizar o Gantt"
-              action={
-                <Button onClick={() => window.location.href = 'Dashboard?project_id=' + projectId} className="bg-blue-600 hover:bg-blue-700">
-                  Ir para Produtos
-                </Button>
-              }
-            />
-          ) : (
-            <GanttBoard
-              projectId={projectId}
-              tasks={timelineEvents}
-              projectDeadline={activeProject?.deadline}
-              selectedEntity={selectedEntity}
-              selectedVertical={activeVertical}
-              selectedProduct={selectedProductId}
-            />
-          )}
-        </TabsContent>
 
         {/* Timeline Tab */}
         <TabsContent value="timeline" className="space-y-6">
@@ -420,12 +389,7 @@ export default function Timeline() {
           )}
         </TabsContent>
 
-        {/* Delivery Tab */}
-        <TabsContent value="delivery" className="space-y-4">
-          <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
-            <p className="text-slate-400">Linha do Tempo de Entregas em desenvolvimento</p>
-          </div>
-        </TabsContent>
+
       </Tabs>
 
       {/* Modal */}
