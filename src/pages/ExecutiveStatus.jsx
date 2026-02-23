@@ -981,14 +981,16 @@ Seja conciso, profissional e em português.`;
             projects.forEach(project => {
               const events = allTimelineEvents.filter(e => e.project_id === project.id);
               
-              // Encontrar Go Live (primeiro evento de produção/operação)
+              // Encontrar Go Live (evento de produção/operação)
               const goLiveEvent = events.find(e => 
-                e.phase && (
-                  e.phase === 'migracao_producao' || 
-                  e.phase === 'operacao_assistida' ||
-                  e.title?.toLowerCase().includes('go live') ||
-                  e.title?.toLowerCase().includes('produção')
-                )
+                (e.phase && (e.phase === 'migracao_producao' || e.phase === 'operacao_assistida')) ||
+                e.title?.toLowerCase().includes('go live') ||
+                e.title?.toLowerCase().includes('go-live') ||
+                e.title?.toLowerCase().includes('producao') ||
+                e.title?.toLowerCase().includes('produção') ||
+                e.title?.toLowerCase().includes('prd') ||
+                e.title?.toLowerCase().includes('migração em produção') ||
+                e.title?.toLowerCase().includes('migracao em producao')
               );
               
               // Encontrar data de encerramento (último evento)
