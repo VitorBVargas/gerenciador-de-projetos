@@ -20,22 +20,20 @@ export default function BulkEditDatesModal({
 }) {
   const [selectedEntity, setSelectedEntity] = useState('');
   const [selectedVertical, setSelectedVertical] = useState('');
-  const [expandedEvent, setExpandedEvent] = useState(null);
-  const [editedEvents, setEditedEvents] = useState({});
+  const [selectedPhase, setSelectedPhase] = useState(null);
+  const [phaseStartDate, setPhaseStartDate] = useState('');
+  const [phaseEndDate, setPhaseEndDate] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [editAllMode, setEditAllMode] = useState(false);
-  const [globalStartDate, setGlobalStartDate] = useState('');
-  const [globalEndDate, setGlobalEndDate] = useState('');
 
   React.useEffect(() => {
     if (open) {
       setSelectedEntity('');
       setSelectedVertical('');
-      setExpandedEvent(null);
-      setEditedEvents({});
+      setSelectedPhase(null);
+      setPhaseStartDate('');
+      setPhaseEndDate('');
       setEditAllMode(false);
-      setGlobalStartDate('');
-      setGlobalEndDate('');
     }
   }, [open]);
 
@@ -79,21 +77,10 @@ export default function BulkEditDatesModal({
     return filteredEvents.filter(e => e.phase === phase);
   };
 
-  const handleDateChange = (phase, field, value) => {
-    // Encontra todos os eventos da fase e atualiza
-    const eventsInPhase = getEventsByPhase(phase);
-    const newEdited = { ...editedEvents };
-    
-    eventsInPhase.forEach(event => {
-      newEdited[event.id] = {
-        ...newEdited[event.id],
-        id: event.id,
-        phase: phase,
-        [field]: value
-      };
-    });
-    
-    setEditedEvents(newEdited);
+  const handlePhaseSelect = (phase) => {
+    setSelectedPhase(phase);
+    setPhaseStartDate('');
+    setPhaseEndDate('');
   };
 
   const handleApplyClick = () => {
@@ -101,45 +88,29 @@ export default function BulkEditDatesModal({
   };
 
   const handleConfirm = async () => {
-    const filteredEvents = getFilteredEvents();
-    
-    // Se há datas globais definidas, aplica a todos os eventos filtrados
-    if (globalStartDate || globalEndDate) {
-      const eventsToUpdate = filteredEvents.map(event => ({
-        id: event.id,
-        start_date: globalStartDate || event.start_date,
-        end_date: globalEndDate || event.end_date
-      }));
-      
-      if (eventsToUpdate.length > 0) {
-        await onApply(eventsToUpdate);
-      }
-    } else {
-      // Caso contrário, aplica apenas as alterações individuais
-      const eventsToUpdate = Object.values(editedEvents).map(event => {
-        const originalEvent = timelineEvents.find(e => e.id === event.id);
-        if (!originalEvent) return null;
-        
-        return {
-          id: originalEvent.id,
-          start_date: event.start_date !== undefined ? event.start_date : originalEvent.start_date,
-          end_date: event.end_date !== undefined ? event.end_date : originalEvent.end_date
-        };
-      }).filter(Boolean);
+    if (!selectedPhase || (!phaseStartDate && !phaseEndDate)) {
+      setConfirmOpen(false);
+      return;
+    }
 
-      if (eventsToUpdate.length > 0) {
-        await onApply(eventsToUpdate);
-      }
+    const phaseEvents = getEventsByPhase(selectedPhase);
+    const eventsToUpdate = phaseEvents.map(event => ({
+      id: event.id,
+      start_date: phaseStartDate || event.start_date,
+      end_date: phaseEndDate || event.end_date
+    }));
+
+    if (eventsToUpdate.length > 0) {
+      await onApply(eventsToUpdate);
     }
     
     setConfirmOpen(false);
     onOpenChange(false);
   };
 
-  const filteredEvents = getFilteredEvents();
   const filteredVerticals = getFilteredVerticals();
-  const changedCount = globalStartDate || globalEndDate ? filteredEvents.length : Object.keys(editedEvents).length;
-  const hasChanges = changedCount > 0 && (globalStartDate || globalEndDate || Object.keys(editedEvents).length > 0);
+  const phaseEvents = selectedPhase ? getEventsByPhase(selectedPhase) : [];
+  const hasChanges = selectedPhase && (phaseStartDate || phaseEndDate);
   const isValidSelection = editAllMode || (selectedEntity && selectedVertical);
 
   return (
@@ -148,9 +119,9 @@ export default function BulkEditDatesModal({
         <DialogContent className="bg-slate-800 border-slate-700 max-w-2xl max-h-[80vh]">
           <DialogHeader>
             <DialogTitle className="text-white">Editar Datas em Lote</DialogTitle>
-            {isValidSelection && (
+            {selectedPhase && (
               <p className="text-xs text-slate-400 mt-1">
-                {filteredEvents.length} etapa(s) encontrada(s)
+                Será alterado {phaseEvents.length} etapa(s) - {phaseLabels[selectedPhase]}
               </p>
             )}
           </DialogHeader>
@@ -188,10 +159,9 @@ export default function BulkEditDatesModal({
                     onChange={(e) => {
                       setSelectedEntity(e.target.value);
                       setSelectedVertical('');
-                      setExpandedEvent(null);
-                      setEditedEvents({});
-                      setGlobalStartDate('');
-                      setGlobalEndDate('');
+                      setSelectedPhase(null);
+                      setPhaseStartDate('');
+                      setPhaseEndDate('');
                     }}
                     className="w-full bg-slate-700 border border-slate-600 text-white rounded px-3 py-2 text-sm"
                   >
@@ -210,10 +180,9 @@ export default function BulkEditDatesModal({
                       value={selectedVertical}
                       onChange={(e) => {
                         setSelectedVertical(e.target.value);
-                        setExpandedEvent(null);
-                        setEditedEvents({});
-                        setGlobalStartDate('');
-                        setGlobalEndDate('');
+                        setSelectedPhase(null);
+                        setPhaseStartDate('');
+                        setPhaseEndDate('');
                       }}
                       className="w-full bg-slate-700 border border-slate-600 text-white rounded px-3 py-2 text-sm"
                     >
@@ -239,121 +208,70 @@ export default function BulkEditDatesModal({
               </>
             )}
 
-            {/* Global Dates (when entity + vertical selected) */}
-            {!editAllMode && selectedVertical && (
-              <div className="bg-slate-700/30 p-3 rounded border border-slate-600 space-y-3">
-                <p className="text-sm text-slate-300 font-medium">Aplicar a todas as etapas:</p>
-                <div>
-                  <label className="text-xs text-slate-400 block mb-1">Data Início</label>
-                  <Input
-                    type="date"
-                    value={globalStartDate}
-                    onChange={(e) => setGlobalStartDate(e.target.value)}
-                    className="bg-slate-700 border-slate-600 text-white"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-slate-400 block mb-1">Data Fim</label>
-                  <Input
-                    type="date"
-                    value={globalEndDate}
-                    onChange={(e) => setGlobalEndDate(e.target.value)}
-                    className="bg-slate-700 border-slate-600 text-white"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Global Dates (when edit all selected) */}
-            {editAllMode && (
-              <div className="bg-slate-700/30 p-3 rounded border border-slate-600 space-y-3">
-                <p className="text-sm text-slate-300 font-medium">Aplicar a todas as etapas do projeto:</p>
-                <div>
-                  <label className="text-xs text-slate-400 block mb-1">Data Início</label>
-                  <Input
-                    type="date"
-                    value={globalStartDate}
-                    onChange={(e) => setGlobalStartDate(e.target.value)}
-                    className="bg-slate-700 border-slate-600 text-white"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-slate-400 block mb-1">Data Fim</label>
-                  <Input
-                    type="date"
-                    value={globalEndDate}
-                    onChange={(e) => setGlobalEndDate(e.target.value)}
-                    className="bg-slate-700 border-slate-600 text-white"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Events List by Phase */}
-            {(editAllMode || selectedVertical) && (!globalStartDate && !globalEndDate) && (
+            {/* Phases List */}
+            {isValidSelection && (
               <div>
-                <label className="text-sm text-slate-300 block mb-2">Ou editar por fase:</label>
+                <label className="text-sm text-slate-300 block mb-2">Selecione a Fase para editar:</label>
                 <div className="space-y-2">
-                   {filteredEvents.length === 0 ? (
-                    <p className="text-slate-400 text-sm py-4 text-center">Nenhuma etapa encontrada</p>
-                  ) : (
-                    (() => {
-                      const phases = [...new Set(filteredEvents.map(e => e.phase))];
-                      return phases.map(phase => {
-                        const phaseEvents = getEventsByPhase(phase);
-                        const isPhaseEdited = phaseEvents.some(e => editedEvents[e.id]);
+                  {(() => {
+                    const filteredEvents = getFilteredEvents();
+                    const phases = [...new Set(filteredEvents.map(e => e.phase))].sort();
 
-                        return (
-                          <div key={phase} className="bg-slate-700/50 border border-slate-600 rounded">
-                            <button
-                              onClick={() => setExpandedEvent(expandedEvent === phase ? null : phase)}
-                              className="w-full flex items-center justify-between p-3 hover:bg-slate-700/70 transition"
-                            >
-                              <div className="flex items-center gap-2 flex-1">
-                                <span className="text-white text-sm">
-                                  {phaseLabels[phase] || phase}
-                                </span>
-                                {isPhaseEdited && (
-                                  <span className="text-xs bg-blue-600/30 text-blue-300 px-2 py-1 rounded">
-                                    Alterado ({phaseEvents.length})
-                                  </span>
-                                )}
-                              </div>
-                              {expandedEvent === phase ? (
-                                <ChevronUp className="w-4 h-4 text-slate-400" />
-                              ) : (
-                                <ChevronDown className="w-4 h-4 text-slate-400" />
-                              )}
-                            </button>
+                    if (phases.length === 0) {
+                      return <p className="text-slate-400 text-sm py-4 text-center">Nenhuma etapa encontrada</p>;
+                    }
 
-                            {expandedEvent === phase && (
-                              <div className="border-t border-slate-600 p-3 bg-slate-800/50 space-y-3">
-                                <p className="text-xs text-slate-400 mb-2">Altera {phaseEvents.length} etapa(s) nesta fase:</p>
-                                <div>
-                                  <label className="text-xs text-slate-400 block mb-1">Data Início</label>
-                                  <Input
-                                    type="date"
-                                    value={editedEvents[phaseEvents[0]?.id]?.start_date || phaseEvents[0]?.start_date || ''}
-                                    onChange={(e) => handleDateChange(phase, 'start_date', e.target.value)}
-                                    className="bg-slate-700 border-slate-600 text-white"
-                                  />
-                                </div>
-                                <div>
-                                  <label className="text-xs text-slate-400 block mb-1">Data Fim</label>
-                                  <Input
-                                    type="date"
-                                    value={editedEvents[phaseEvents[0]?.id]?.end_date || phaseEvents[0]?.end_date || ''}
-                                    onChange={(e) => handleDateChange(phase, 'end_date', e.target.value)}
-                                    className="bg-slate-700 border-slate-600 text-white"
-                                  />
-                                </div>
+                    return phases.map(phase => {
+                      const phaseCnt = filteredEvents.filter(e => e.phase === phase).length;
+                      const isSelected = selectedPhase === phase;
+
+                      return (
+                        <div key={phase}>
+                          <button
+                            onClick={() => handlePhaseSelect(phase)}
+                            className={`w-full flex items-center justify-between p-3 rounded border transition ${
+                              isSelected
+                                ? 'bg-blue-600/20 border-blue-600 text-blue-300'
+                                : 'bg-slate-700/50 border-slate-600 text-white hover:bg-slate-700/70'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 flex-1 text-left">
+                              <span className="text-sm">
+                                {phaseLabels[phase] || phase}
+                              </span>
+                              <span className="text-xs text-slate-400">
+                                ({phaseCnt})
+                              </span>
+                            </div>
+                          </button>
+
+                          {isSelected && (
+                            <div className="mt-2 p-3 bg-slate-700/30 rounded border border-slate-600 space-y-3">
+                              <p className="text-xs text-slate-400">Editar datas para esta fase:</p>
+                              <div>
+                                <label className="text-xs text-slate-400 block mb-1">Data Início</label>
+                                <Input
+                                  type="date"
+                                  value={phaseStartDate}
+                                  onChange={(e) => setPhaseStartDate(e.target.value)}
+                                  className="bg-slate-700 border-slate-600 text-white"
+                                />
                               </div>
-                            )}
-                          </div>
-                        );
-                      });
-                    })()
-                  )}
+                              <div>
+                                <label className="text-xs text-slate-400 block mb-1">Data Fim</label>
+                                <Input
+                                  type="date"
+                                  value={phaseEndDate}
+                                  onChange={(e) => setPhaseEndDate(e.target.value)}
+                                  className="bg-slate-700 border-slate-600 text-white"
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    });
+                  })()}
                 </div>
               </div>
             )}
@@ -372,9 +290,9 @@ export default function BulkEditDatesModal({
             <Button
               onClick={handleApplyClick}
               className="bg-blue-600 hover:bg-blue-700"
-              disabled={!isValidSelection || !hasChanges}
+              disabled={!hasChanges}
             >
-              Aplicar em Lote {changedCount > 0 && `(${changedCount})`}
+              Aplicar em Lote {phaseEvents.length > 0 && `(${phaseEvents.length})`}
             </Button>
           </DialogFooter>
         </DialogContent>
