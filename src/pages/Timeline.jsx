@@ -127,8 +127,9 @@ export default function Timeline() {
     }
   };
 
-  const handleEdit = (event) => {
+  const handleEdit = (event, productId) => {
     setSelectedEvent(event);
+    setSelectedProductId(productId);
     setModalOpen(true);
   };
 
