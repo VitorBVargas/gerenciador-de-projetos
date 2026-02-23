@@ -381,7 +381,8 @@ export default function Timeline() {
         onOpenChange={setModalOpen}
         event={selectedEvent}
         onSave={handleSave}
-        projectId={activeProject?.id}
+        projectId={projectId}
+        productId={selectedProductId}
       />
 
       {/* Delete Confirmation */}
