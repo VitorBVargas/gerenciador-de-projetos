@@ -43,29 +43,33 @@ const verticalLabels = {
 };
 
 const verticalColors = {
-  gerenciamento: 'bg-slate-500/20 text-slate-300 border-slate-500/30',
-  arrecadacao: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-  compras: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
-  contabil: 'bg-green-500/20 text-green-400 border-green-500/30',
-  pessoal: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
-  educacao: 'bg-pink-500/20 text-pink-400 border-pink-500/30',
-  iss: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
-  parceiros: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-  plataforma: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30',
-  saude: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+  gerenciamento: 'bg-[#8B7355]/20 text-[#c4a97d] border-[#8B7355]/30',   // Gestão Municipal - marrom
+  arrecadacao:   'bg-[#22c55e]/20 text-[#4ade80] border-[#22c55e]/30',   // Arrecadação - verde
+  compras:       'bg-[#ef4444]/20 text-[#f87171] border-[#ef4444]/30',   // Contratos - vermelho/coral
+  contabil:      'bg-[#94a3b8]/20 text-[#cbd5e1] border-[#94a3b8]/30',   // Contábil - cinza azulado
+  pessoal:       'bg-[#0ea5e9]/20 text-[#38bdf8] border-[#0ea5e9]/30',   // Pessoal - azul ciano
+  educacao:      'bg-[#f59e0b]/20 text-[#fbbf24] border-[#f59e0b]/30',   // Educação - amarelo/âmbar
+  iss:           'bg-[#94a3b8]/20 text-[#cbd5e1] border-[#94a3b8]/30',   // ISS - cinza
+  parceiros:     'bg-[#8B7355]/20 text-[#c4a97d] border-[#8B7355]/30',   // Parceiros - marrom
+  plataforma:    'bg-[#3b82f6]/20 text-[#60a5fa] border-[#3b82f6]/30',   // NoPaper/Plataforma - azul escuro
+  saude:         'bg-[#84cc16]/20 text-[#a3e635] border-[#84cc16]/30',   // Saúde - verde lima
+  atendimento:   'bg-[#94a3b8]/20 text-[#cbd5e1] border-[#94a3b8]/30',   // Atendimento - cinza
+  outros:        'bg-slate-500/20 text-slate-400 border-slate-500/30'
 };
 
 const verticalAvatarColors = {
-  gerenciamento: 'from-slate-500 to-slate-600',
-  arrecadacao: 'from-blue-500 to-blue-600',
-  compras: 'from-purple-500 to-purple-600',
-  contabil: 'from-green-500 to-green-600',
-  pessoal: 'from-orange-500 to-orange-600',
-  educacao: 'from-pink-500 to-pink-600',
-  iss: 'from-cyan-500 to-cyan-600',
-  parceiros: 'from-yellow-500 to-yellow-600',
-  plataforma: 'from-indigo-500 to-indigo-600',
-  saude: 'from-emerald-500 to-emerald-600'
+  gerenciamento: 'from-[#8B7355] to-[#6b5a40]',
+  arrecadacao:   'from-[#16a34a] to-[#15803d]',
+  compras:       'from-[#ef4444] to-[#dc2626]',
+  contabil:      'from-[#64748b] to-[#475569]',
+  pessoal:       'from-[#0ea5e9] to-[#0284c7]',
+  educacao:      'from-[#f59e0b] to-[#d97706]',
+  iss:           'from-[#64748b] to-[#475569]',
+  parceiros:     'from-[#8B7355] to-[#6b5a40]',
+  plataforma:    'from-[#3b82f6] to-[#2563eb]',
+  saude:         'from-[#65a30d] to-[#4d7c0f]',
+  atendimento:   'from-[#64748b] to-[#475569]',
+  outros:        'from-slate-500 to-slate-600'
 };
 
 export default function Team() {
