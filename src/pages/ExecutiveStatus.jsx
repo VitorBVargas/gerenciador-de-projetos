@@ -1304,12 +1304,14 @@ Seja conciso, profissional e em português.`;
             allProjectsData.forEach(project => {
               const events = allTimelineEvents.filter(e => e.project_id === project.id);
               const goLiveEvent = events.find(e => 
-                e.phase && (
-                  e.phase === 'migracao_producao' || 
-                  e.phase === 'operacao_assistida' ||
-                  e.title?.toLowerCase().includes('go live') ||
-                  e.title?.toLowerCase().includes('produção')
-                )
+                (e.phase && (e.phase === 'migracao_producao' || e.phase === 'operacao_assistida')) ||
+                e.title?.toLowerCase().includes('go live') ||
+                e.title?.toLowerCase().includes('go-live') ||
+                e.title?.toLowerCase().includes('producao') ||
+                e.title?.toLowerCase().includes('produção') ||
+                e.title?.toLowerCase().includes('prd') ||
+                e.title?.toLowerCase().includes('migração em produção') ||
+                e.title?.toLowerCase().includes('migracao em producao')
               );
               
               if (goLiveEvent?.end_date) {
