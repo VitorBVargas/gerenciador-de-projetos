@@ -148,8 +148,14 @@ export default function Timeline() {
     }
   };
 
-  // Get unique verticals from products
-  const verticals = [...new Set(products.map(p => p.vertical).filter(Boolean))].sort();
+  // Entity filter
+  const allEntities = [...new Set(products.map(p => p.entity).filter(Boolean))].sort();
+  const entityProducts = selectedEntity
+    ? products.filter(p => p.entity === selectedEntity)
+    : [];
+  
+  // Get unique verticals from selected entity
+  const verticals = [...new Set(entityProducts.map(p => p.vertical).filter(Boolean))].sort();
 
   // Set initial vertical
   React.useEffect(() => {
@@ -160,8 +166,11 @@ export default function Timeline() {
 
   // Get products for active vertical
   const productsInVertical = activeVertical 
-    ? products.filter(p => p.vertical === activeVertical)
+    ? entityProducts.filter(p => p.vertical === activeVertical)
     : [];
+
+  // Current product
+  const currentProduct = productsInVertical[currentProductIndex] || null;
 
   // Calculate vertical progress (average of all products' average progress)
   const getVerticalProgress = () => {
