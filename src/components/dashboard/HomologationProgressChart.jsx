@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { VERTICAL_CHART_COLORS } from '../verticalColors';
 
 const verticalLabels = {
   arrecadacao: 'Arrecadação',
@@ -12,18 +13,6 @@ const verticalLabels = {
   parceiros: 'Parceiros',
   plataforma: 'Plataforma',
   atendimento: 'Atendimento'
-};
-
-const verticalColors = {
-  arrecadacao: '#10b981',
-  compras: '#3b82f6',
-  contabil: '#8b5cf6',
-  pessoal: '#f59e0b',
-  educacao: '#ec4899',
-  iss: '#14b8a6',
-  parceiros: '#6366f1',
-  plataforma: '#84cc16',
-  atendimento: '#f97316'
 };
 
 const CustomTooltip = ({ active, payload }) => {

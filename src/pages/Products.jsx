@@ -43,18 +43,7 @@ const verticalLabels = {
   saude: 'Saúde'
 };
 
-const verticalColors = {
-  arrecadacao: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-  compras: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
-  contabil: 'bg-green-500/20 text-green-400 border-green-500/30',
-  pessoal: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
-  educacao: 'bg-pink-500/20 text-pink-400 border-pink-500/30',
-  iss: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
-  parceiros: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-  plataforma: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30',
-  atendimento: 'bg-teal-500/20 text-teal-400 border-teal-500/30',
-  saude: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-};
+// imported from verticalColors
 
 const statusColors = {
   pendente: 'bg-slate-500',
