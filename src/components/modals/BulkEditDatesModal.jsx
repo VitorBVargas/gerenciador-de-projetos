@@ -80,8 +80,15 @@ export default function BulkEditDatesModal({
   };
 
   const handlePhaseSelect = (phase) => {
-    setSelectedPhase(phase);
-    setExpandedPhase(expandedPhase === phase ? null : phase);
+    if (expandedPhase === phase) {
+      // Recolher
+      setExpandedPhase(null);
+      setSelectedPhase(null);
+    } else {
+      // Expandir
+      setExpandedPhase(phase);
+      setSelectedPhase(phase);
+    }
     setPhaseStartDate('');
     setPhaseEndDate('');
   };
@@ -113,7 +120,7 @@ export default function BulkEditDatesModal({
 
   const filteredVerticals = getFilteredVerticals();
   const phaseEvents = selectedPhase ? getEventsByPhase(selectedPhase) : [];
-  const hasChanges = expandedPhase && (phaseStartDate || phaseEndDate);
+  const hasChanges = selectedPhase && (phaseStartDate || phaseEndDate);
   const isValidSelection = editAllMode || (selectedEntity && selectedVertical);
 
   return (
