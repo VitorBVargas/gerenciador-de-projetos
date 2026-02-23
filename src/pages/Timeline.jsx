@@ -197,10 +197,7 @@ export default function Timeline() {
     return Math.round(productProgresses.reduce((a, b) => a + b, 0) / productProgresses.length);
   };
 
-  // Reset product index when vertical changes
-  React.useEffect(() => {
-    setCurrentProductIndex(0);
-  }, [activeVertical]);
+
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
