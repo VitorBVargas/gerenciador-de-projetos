@@ -107,7 +107,7 @@ export const homologationTasksByProduct = {
     'Todos os Módulos: Encerramento Mensal (Imobiliário, Mobiliário, Dívida Ativa), Prestação de Contas (Imobiliário, Mobiliário, Dívida Ativa)'
   ]),
 
-  'e-Nota (Cloud)': parseTasksIntoSections([
+  'e-nota cloud': parseTasksIntoSections([
     'SPRINT: CADASTROS E CONFIGURAÇÕES',
     'Módulo Único: Cadastros (Entidades, Pessoas, Usuários), Auto de infração, Base cadastral (lista de serviços Lei 116/03, alíquotas, taxas), Configurações gerais, Endereços, Financeiros (competências, convênios, indexadores, feriados), Manutenção de incentivos fiscais, Mensagens, Relatórios personalizados, Rotinas externas, Scripts',
     'SPRINT: PROCESSOS E MOVIMENTAÇÕES',

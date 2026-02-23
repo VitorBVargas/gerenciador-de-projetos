@@ -27,7 +27,7 @@ const parseTasksIntoSections = (tasks) => {
 // Mapa de produtos com suas tarefas de migração
 export const migrationTasksByProduct = {
   // ISS - e-Nota
-  'e-Nota (Cloud)': parseTasksIntoSections([
+  'e-nota cloud': parseTasksIntoSections([
     'MIGRAÇÃO: INICIAIS',
     'Extrair Competências', 'Extrair Indexadores', 'Extrair Lista de Serviços', 'Extrair Incentivos Fiscais',
     'MIGRAÇÃO: CONTRIBUINTES',
