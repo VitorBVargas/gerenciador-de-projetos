@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import TeamMemberModal from '../components/modals/TeamMemberModal';
+import { VERTICAL_BADGE_COLORS, VERTICAL_AVATAR_COLORS } from '../components/verticalColors';
 import EmptyState from '../components/ui/EmptyState';
 import {
   AlertDialog,
