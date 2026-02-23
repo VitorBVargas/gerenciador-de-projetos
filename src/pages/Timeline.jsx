@@ -318,6 +318,8 @@ export default function Timeline() {
                                         <tr className="border-b border-slate-700 bg-slate-900/50">
                                           <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Atividade</th>
                                           <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Status</th>
+                                          <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Data Início</th>
+                                          <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Data Fim</th>
                                           <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Progresso</th>
                                           <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400"></th>
                                         </tr>
@@ -338,6 +340,12 @@ export default function Timeline() {
                                                   <option key={key} value={key}>{label}</option>
                                                 ))}
                                               </select>
+                                            </td>
+                                            <td className="px-4 py-3 text-sm text-slate-300">
+                                              {event.start_date ? new Date(event.start_date).toLocaleDateString('pt-BR') : '-'}
+                                            </td>
+                                            <td className="px-4 py-3 text-sm text-slate-300">
+                                              {event.end_date ? new Date(event.end_date).toLocaleDateString('pt-BR') : '-'}
                                             </td>
                                             <td className="px-4 py-3">
                                               <div className="flex items-center gap-2 max-w-xs">
