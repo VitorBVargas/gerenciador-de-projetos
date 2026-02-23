@@ -48,15 +48,7 @@ export default function BulkEditDatesModal({
 
   const getFilteredEvents = () => {
     if (editAllMode) {
-      // Get all unique events by ID
-      const seenIds = new Set();
-      return timelineEvents
-        .filter(e => {
-          if (seenIds.has(e.id)) return false;
-          seenIds.add(e.id);
-          return true;
-        })
-        .sort((a, b) => (a.order || 0) - (b.order || 0));
+      return timelineEvents.sort((a, b) => (a.order || 0) - (b.order || 0));
     }
     
     if (!selectedVertical) return [];
@@ -65,25 +57,31 @@ export default function BulkEditDatesModal({
       p => p.entity === selectedEntity && p.vertical === selectedVertical
     );
     
-    const seenIds = new Set();
     return timelineEvents
-      .filter(e => {
-        if (seenIds.has(e.id)) return false;
-        seenIds.add(e.id);
-        return entityProducts.some(p => p.id === e.product_id);
-      })
+      .filter(e => entityProducts.some(p => p.id === e.product_id))
       .sort((a, b) => (a.order || 0) - (b.order || 0));
   };
 
-  const handleDateChange = (eventId, field, value) => {
-    setEditedEvents(prev => ({
-      ...prev,
-      [eventId]: {
-        ...(prev[eventId] || {}),
-        id: eventId,
+  const getEventsByPhase = (phase) => {
+    const filteredEvents = getFilteredEvents();
+    return filteredEvents.filter(e => e.phase === phase);
+  };
+
+  const handleDateChange = (phase, field, value) => {
+    // Encontra todos os eventos da fase e atualiza
+    const eventsInPhase = getEventsByPhase(phase);
+    const newEdited = { ...editedEvents };
+    
+    eventsInPhase.forEach(event => {
+      newEdited[event.id] = {
+        ...newEdited[event.id],
+        id: event.id,
+        phase: phase,
         [field]: value
-      }
-    }));
+      };
+    });
+    
+    setEditedEvents(newEdited);
   };
 
   const handleApplyClick = () => {
@@ -257,61 +255,70 @@ export default function BulkEditDatesModal({
               </div>
             )}
 
-            {/* Events List */}
+            {/* Events List by Phase */}
             {(editAllMode || selectedVertical) && (!globalStartDate && !globalEndDate) && (
               <div>
-                <label className="text-sm text-slate-300 block mb-2">Ou editar individualmente:</label>
+                <label className="text-sm text-slate-300 block mb-2">Ou editar por fase:</label>
                 <div className="space-y-2">
-                  {filteredEvents.length === 0 ? (
+                   {filteredEvents.length === 0 ? (
                     <p className="text-slate-400 text-sm py-4 text-center">Nenhuma etapa encontrada</p>
                   ) : (
-                    filteredEvents.map(event => (
-                      <div key={event.id} className="bg-slate-700/50 border border-slate-600 rounded">
-                        <button
-                          onClick={() => setExpandedEvent(expandedEvent === event.id ? null : event.id)}
-                          className="w-full flex items-center justify-between p-3 hover:bg-slate-700/70 transition"
-                        >
-                          <div className="flex items-center gap-2 flex-1">
-                            <span className="text-white text-sm">
-                              {phaseLabels[event.phase] || event.title}
-                            </span>
-                            {editedEvents[event.id] && (
-                              <span className="text-xs bg-blue-600/30 text-blue-300 px-2 py-1 rounded">
-                                Alterado
-                              </span>
+                    (() => {
+                      const phases = [...new Set(filteredEvents.map(e => e.phase))];
+                      return phases.map(phase => {
+                        const phaseEvents = getEventsByPhase(phase);
+                        const isPhaseEdited = phaseEvents.some(e => editedEvents[e.id]);
+
+                        return (
+                          <div key={phase} className="bg-slate-700/50 border border-slate-600 rounded">
+                            <button
+                              onClick={() => setExpandedEvent(expandedEvent === phase ? null : phase)}
+                              className="w-full flex items-center justify-between p-3 hover:bg-slate-700/70 transition"
+                            >
+                              <div className="flex items-center gap-2 flex-1">
+                                <span className="text-white text-sm">
+                                  {phaseLabels[phase] || phase}
+                                </span>
+                                {isPhaseEdited && (
+                                  <span className="text-xs bg-blue-600/30 text-blue-300 px-2 py-1 rounded">
+                                    Alterado ({phaseEvents.length})
+                                  </span>
+                                )}
+                              </div>
+                              {expandedEvent === phase ? (
+                                <ChevronUp className="w-4 h-4 text-slate-400" />
+                              ) : (
+                                <ChevronDown className="w-4 h-4 text-slate-400" />
+                              )}
+                            </button>
+
+                            {expandedEvent === phase && (
+                              <div className="border-t border-slate-600 p-3 bg-slate-800/50 space-y-3">
+                                <p className="text-xs text-slate-400 mb-2">Altera {phaseEvents.length} etapa(s) nesta fase:</p>
+                                <div>
+                                  <label className="text-xs text-slate-400 block mb-1">Data Início</label>
+                                  <Input
+                                    type="date"
+                                    value={editedEvents[phaseEvents[0]?.id]?.start_date || phaseEvents[0]?.start_date || ''}
+                                    onChange={(e) => handleDateChange(phase, 'start_date', e.target.value)}
+                                    className="bg-slate-700 border-slate-600 text-white"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-xs text-slate-400 block mb-1">Data Fim</label>
+                                  <Input
+                                    type="date"
+                                    value={editedEvents[phaseEvents[0]?.id]?.end_date || phaseEvents[0]?.end_date || ''}
+                                    onChange={(e) => handleDateChange(phase, 'end_date', e.target.value)}
+                                    className="bg-slate-700 border-slate-600 text-white"
+                                  />
+                                </div>
+                              </div>
                             )}
                           </div>
-                          {expandedEvent === event.id ? (
-                            <ChevronUp className="w-4 h-4 text-slate-400" />
-                          ) : (
-                            <ChevronDown className="w-4 h-4 text-slate-400" />
-                          )}
-                        </button>
-
-                        {expandedEvent === event.id && (
-                          <div className="border-t border-slate-600 p-3 bg-slate-800/50 space-y-3">
-                            <div>
-                              <label className="text-xs text-slate-400 block mb-1">Data Início</label>
-                              <Input
-                                type="date"
-                                value={editedEvents[event.id]?.start_date || event.start_date || ''}
-                                onChange={(e) => handleDateChange(event.id, 'start_date', e.target.value)}
-                                className="bg-slate-700 border-slate-600 text-white"
-                              />
-                            </div>
-                            <div>
-                              <label className="text-xs text-slate-400 block mb-1">Data Fim</label>
-                              <Input
-                                type="date"
-                                value={editedEvents[event.id]?.end_date || event.end_date || ''}
-                                onChange={(e) => handleDateChange(event.id, 'end_date', e.target.value)}
-                                className="bg-slate-700 border-slate-600 text-white"
-                              />
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    ))
+                        );
+                      });
+                    })()
                   )}
                 </div>
               </div>
