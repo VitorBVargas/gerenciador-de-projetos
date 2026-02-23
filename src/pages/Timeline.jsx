@@ -4,8 +4,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { Plus, Calendar } from 'lucide-react';
+import { Plus, Calendar, Edit3 } from 'lucide-react';
 import TimelineEventModal from '../components/modals/TimelineEventModal';
+import BulkEditDatesModal from '../components/modals/BulkEditDatesModal';
 import EmptyState from '../components/ui/EmptyState';
 import EntityFilter from '../components/filters/EntityFilter';
 import {
@@ -69,6 +70,8 @@ export default function Timeline() {
   const [eventToDelete, setEventToDelete] = useState(null);
   const [activeVertical, setActiveVertical] = useState('');
   const [selectedEntity, setSelectedEntity] = useState('PM');
+  const [bulkEditOpen, setBulkEditOpen] = useState(false);
+  const [bulkEditMode, setBulkEditMode] = useState('vertical'); // 'vertical' or 'all'
 
   // Get project_id from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -116,6 +119,16 @@ export default function Timeline() {
       queryClient.invalidateQueries({ queryKey: ['timelineEvents', projectId] });
       setDeleteDialogOpen(false);
       setEventToDelete(null);
+    }
+  });
+
+  const bulkUpdateMutation = useMutation({
+    mutationFn: (events) => Promise.all(
+      events.map(event => base44.entities.TimelineEvent.update(event.id, event))
+    ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['timelineEvents', projectId] });
+      setBulkEditOpen(false);
     }
   });
 
@@ -196,6 +209,26 @@ export default function Timeline() {
     });
 
     return Math.round(productProgresses.reduce((a, b) => a + b, 0) / productProgresses.length);
+  };
+
+  const getEventsForBulkEdit = () => {
+    if (bulkEditMode === 'vertical') {
+      // Get all events for all products in the current vertical
+      return timelineEvents.filter(e => {
+        const product = productsInVertical.find(p => p.id === e.product_id);
+        return !!product;
+      }).sort((a, b) => (a.order || 0) - (b.order || 0));
+    } else {
+      // Get all events for all products in selected entity
+      return timelineEvents.filter(e => {
+        const product = entityProducts.find(p => p.id === e.product_id);
+        return !!product;
+      }).sort((a, b) => (a.order || 0) - (b.order || 0));
+    }
+  };
+
+  const handleBulkEditApply = async (updatedEvents) => {
+    await bulkUpdateMutation.mutateAsync(updatedEvents);
   };
 
 
