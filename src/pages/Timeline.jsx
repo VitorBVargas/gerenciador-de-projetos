@@ -57,7 +57,6 @@ export default function Timeline() {
   const [activeVertical, setActiveVertical] = useState('');
   const [selectedEntity, setSelectedEntity] = useState('PM');
   const [editDatesOpen, setEditDatesOpen] = useState(false);
-  const [editAllProjectOpen, setEditAllProjectOpen] = useState(false);
 
   // Get project_id from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -237,24 +236,14 @@ export default function Timeline() {
              Linha do Tempo de Entregas
            </TabsTrigger>
          </TabsList>
-         <div className="flex gap-2">
-           <Button
-             size="sm"
-             onClick={() => setEditDatesOpen(true)}
-             className="bg-blue-600 hover:bg-blue-700 gap-2"
-           >
-             <Edit3 className="w-4 h-4" />
-             Editar datas
-           </Button>
-           <Button
-             size="sm"
-             onClick={() => setEditAllProjectOpen(true)}
-             className="bg-slate-700 hover:bg-slate-600 gap-2"
-           >
-             <Edit3 className="w-4 h-4" />
-             Editar todo o projeto
-           </Button>
-         </div>
+         <Button
+           size="sm"
+           onClick={() => setEditDatesOpen(true)}
+           className="bg-blue-600 hover:bg-blue-700 gap-2"
+         >
+           <Edit3 className="w-4 h-4" />
+           Editar datas
+         </Button>
        </div>
 
         {/* Timeline Tab */}
@@ -442,18 +431,6 @@ export default function Timeline() {
         timelineEvents={timelineEvents}
         products={products}
         onApply={handleEditDatesApply}
-      />
-
-      {/* Edit All Project Modal */}
-      <BulkEditDatesModal
-        open={editAllProjectOpen}
-        onOpenChange={setEditAllProjectOpen}
-        entities={getUniqueEntities()}
-        verticals={verticals}
-        timelineEvents={timelineEvents}
-        products={products}
-        onApply={handleEditDatesApply}
-        editAll={true}
       />
     </div>
   );
