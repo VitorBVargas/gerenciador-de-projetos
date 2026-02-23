@@ -20,7 +20,9 @@ const STANDARD_PHASES = [
   "Treinamento",
   "Go-Live",
   "Operação Assistida",
-  "Encerramento/Passagem de Bastão"
+  "Encerramento/Passagem de Bastão",
+  "Módulo único: Cadastros (Entidade, Configurações, Pessoa)",
+  "Módulo único: Processos (Liberação de acesso, AIDF, Contador, Notas Avulsas)"
 ];
 
 const inferEntityCode = (entityName) => {
