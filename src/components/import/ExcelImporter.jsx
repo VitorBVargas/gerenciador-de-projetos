@@ -127,7 +127,13 @@ export default function ExcelImporter({ open, onOpenChange, onSuccess }) {
 
   const normalizeVertical = (vertical) => {
     if (!vertical) return null;
-    const normalized = vertical.toLowerCase().trim();
+    const normalized = vertical.toLowerCase().trim()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    // Try with accents removed version of the mapping keys too
+    for (const [key, val] of Object.entries(verticalMapping)) {
+      const normalizedKey = key.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      if (normalizedKey === normalized) return val;
+    }
     return verticalMapping[normalized] || null;
   };
 
