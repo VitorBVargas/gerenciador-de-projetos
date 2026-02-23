@@ -205,6 +205,11 @@ export default function Timeline() {
         </div>
       </div>
 
+      {/* Entity Filter */}
+      {allEntities.length > 0 && (
+        <EntityFilter entities={allEntities} selectedEntity={selectedEntity} onEntityChange={setSelectedEntity} />
+      )}
+
       {/* Main Tabs - Cronograma do Projeto */}
       <Tabs defaultValue="timeline" className="space-y-4">
         <TabsList className="bg-slate-800 border border-slate-700">
