@@ -446,6 +446,17 @@ export default function Products() {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Recognition Modal */}
+      {productForRecognition && (
+        <ProductRecognitionModal
+          open={recognitionModalOpen}
+          onOpenChange={setRecognitionModalOpen}
+          product={productForRecognition}
+          projectId={projectId}
+          onSave={(data) => createRecognitionMutation.mutate(data)}
+        />
+      )}
+
       {/* Password Grace Period Modal */}
       <PasswordGracePeriodModal
         open={passwordModalOpen}
