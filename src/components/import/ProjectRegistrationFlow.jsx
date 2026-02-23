@@ -163,6 +163,12 @@ function StepOverview({ data, onChange }) {
         <Input value={data.contract_link} onChange={e => onChange({ ...data, contract_link: e.target.value })}
           placeholder="https://..." className="bg-slate-700 border-slate-600 text-white" />
       </div>
+
+      <div className="space-y-1.5">
+        <Label className="text-slate-300">Diretório Geral de Documentos</Label>
+        <Input value={data.documents_folder_link || ''} onChange={e => onChange({ ...data, documents_folder_link: e.target.value })}
+          placeholder="https://drive.google.com/..." className="bg-slate-700 border-slate-600 text-white" />
+      </div>
     </div>
   );
 }

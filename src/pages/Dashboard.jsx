@@ -587,44 +587,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="bg-slate-800/50 border-slate-700/50">
-          <CardHeader>
-            <CardTitle className="text-white">Documentos Chave</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {documents.sort((a, b) => a.order - b.order).map((document) => (
-              <div key={document.id} className="flex items-center gap-3">
-                <Checkbox 
-                  checked={document.completed}
-                  onCheckedChange={(checked) => toggleDocumentMutation.mutate({ 
-                    id: document.id, 
-                    completed: checked 
-                  })}
-                  className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" 
-                />
-                {document.link ? (
-                  <a
-                    href={document.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={cn(
-                      "text-sm hover:underline flex items-center gap-1",
-                      document.completed ? "text-slate-500 line-through" : "text-blue-400"
-                    )}
-                  >
-                    {document.title}
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                ) : (
-                  <span className={cn(
-                    "text-sm",
-                    document.completed ? "text-slate-500 line-through" : "text-white"
-                  )}>{document.title}</span>
-                )}
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+        <KeyDocuments projectId={projectId} project={activeProject} />
       </div>
 
       {/* Project Modal */}

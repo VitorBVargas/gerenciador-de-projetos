@@ -12,6 +12,7 @@ export default function ProjectModal({ open, onOpenChange, project, onSave }) {
     value: '',
     deadline: '',
     contract_link: '',
+    documents_folder_link: '',
     status: 'planejamento'
   });
 
@@ -23,6 +24,7 @@ export default function ProjectModal({ open, onOpenChange, project, onSave }) {
         value: project.value || '',
         deadline: project.deadline || '',
         contract_link: project.contract_link || '',
+        documents_folder_link: project.documents_folder_link || '',
         status: project.status || 'planejamento'
       });
     } else {
@@ -32,6 +34,7 @@ export default function ProjectModal({ open, onOpenChange, project, onSave }) {
         value: '',
         deadline: '',
         contract_link: '',
+        documents_folder_link: '',
         status: 'planejamento'
       });
     }
@@ -121,6 +124,16 @@ export default function ProjectModal({ open, onOpenChange, project, onSave }) {
               onChange={(e) => setFormData({ ...formData, contract_link: e.target.value })}
               className="bg-slate-700 border-slate-600 text-white"
               placeholder="https://..."
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="documents_folder_link">Diretório Geral de Documentos</Label>
+            <Input
+              id="documents_folder_link"
+              value={formData.documents_folder_link}
+              onChange={(e) => setFormData({ ...formData, documents_folder_link: e.target.value })}
+              className="bg-slate-700 border-slate-600 text-white"
+              placeholder="https://drive.google.com/..."
             />
           </div>
           <DialogFooter>
