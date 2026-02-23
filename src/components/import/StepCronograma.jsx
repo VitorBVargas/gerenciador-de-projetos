@@ -43,12 +43,20 @@ export default function StepCronograma({ cronogramas, setCronogramas, availableV
   const addVerticals = () => {
     if (selectedVerticals.length === 0) return;
     
+    // Validar se tem pelo menos uma data preenchida
+    const hasDates = Object.values(currentDates).some(v => v);
+    if (!hasDates) {
+      alert('Por favor, preencha pelo menos uma data de etapa');
+      return;
+    }
+    
     const newCronograma = {
       id: Date.now(),
       verticals: selectedVerticals,
       dates: { ...currentDates }
     };
     
+    console.log('✅ Adicionando cronograma:', newCronograma);
     setCronogramas([...cronogramas, newCronograma]);
     setSelectedVerticals([]);
     setCurrentDates({});
