@@ -64,11 +64,11 @@ export default function Timeline() {
   const queryClient = useQueryClient();
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [selectedProductId, setSelectedProductId] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [eventToDelete, setEventToDelete] = useState(null);
   const [activeVertical, setActiveVertical] = useState('');
   const [selectedEntity, setSelectedEntity] = useState('PM');
-  const [currentProductIndex, setCurrentProductIndex] = useState(0);
 
   // Get project_id from URL
   const urlParams = new URLSearchParams(window.location.search);
