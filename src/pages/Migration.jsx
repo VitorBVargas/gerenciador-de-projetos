@@ -46,7 +46,6 @@ export default function Migration() {
   const [selectedEntity, setSelectedEntity] = useState('PM');
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [sectionOrder, setSectionOrder] = useState({});
-  const [isResetting, setIsResetting] = useState(false);
   const fileInputRef = React.useRef(null);
   const creatingTasksRef = React.useRef(new Set());
 
@@ -241,54 +240,22 @@ export default function Migration() {
     return order.map(i => sections[i]).filter(Boolean);
   };
 
-  const handleResetTasks = async () => {
+  const handleMarkAllTasks = async () => {
     if (!selectedProduct) return;
-    setIsResetting(true);
     try {
       const product = getCurrentProduct();
-      const existingTasks = tasks.filter(t => t.product_id === product.id);
+      const productTasks = tasks.filter(t => t.product_id === product.id);
       
-      // Deleta todas as tarefas existentes em paralelo
-      await Promise.all(existingTasks.map(task => 
-        base44.entities.MigrationTask.delete(task.id)
+      // Marca todas as tarefas como concluídas
+      await Promise.all(productTasks.map(task => 
+        base44.entities.MigrationTask.update(task.id, { completed: true })
       ));
       
-      // Invalida cache antes de recriar
-      await queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
-      
-      // Aguarda para garantir que as deleções foram processadas
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Recria as tarefas padrão diretamente (sem verificar se existem)
-      const defaultSections = getDefaultTasksForProduct(product.name);
-      if (defaultSections) {
-        const tasksToCreate = [];
-        let order = 0;
-
-        for (const section of defaultSections) {
-          for (const taskTitle of section.tasks) {
-            tasksToCreate.push({
-              title: taskTitle,
-              project_id: projectId,
-              product_id: product.id,
-              completed: false,
-              order: order++
-            });
-          }
-        }
-
-        if (tasksToCreate.length > 0) {
-          await base44.entities.MigrationTask.bulkCreate(tasksToCreate);
-        }
-      }
-      
-      toast.success('Tarefas zeradas e recriadas com sucesso!');
-    } catch (error) {
-      toast.error('Erro ao zerar tarefas');
-      console.error(error);
-    } finally {
-      setIsResetting(false);
+      toast.success('Todas as tarefas foram marcadas como concluídas!');
       queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
+    } catch (error) {
+      toast.error('Erro ao marcar tarefas');
+      console.error(error);
     }
   };
 
@@ -458,28 +425,14 @@ export default function Migration() {
                           </div>
                           
                           <div className="flex gap-2 flex-wrap">
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button variant="outline" className="flex-1 min-w-[180px] border-orange-500/30 text-orange-400 hover:bg-orange-500/10">
-                                  <RotateCcw className="w-4 h-4 mr-2" />
-                                  Zerar Tarefas
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent className="bg-slate-800 border-slate-700">
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle className="text-white">Zerar todas as tarefas?</AlertDialogTitle>
-                                  <AlertDialogDescription className="text-slate-400">
-                                    Isso irá deletar todas as tarefas atuais deste produto (incluindo duplicatas) e recriar as tarefas padrão. Esta ação não pode ser desfeita.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel className="bg-slate-700 text-white border-slate-600">Cancelar</AlertDialogCancel>
-                                  <AlertDialogAction onClick={handleResetTasks} className="bg-orange-600 hover:bg-orange-700" disabled={isResetting}>
-                                    {isResetting ? 'Processando...' : 'Zerar'}
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
+                            <Button 
+                              variant="outline" 
+                              className="flex-1 min-w-[180px] border-green-500/30 text-green-400 hover:bg-green-500/10"
+                              onClick={handleMarkAllTasks}
+                            >
+                              <CheckCircle className="w-4 h-4 mr-2" />
+                              Marcar Todos
+                            </Button>
 
                             <input
                               ref={fileInputRef}
@@ -507,7 +460,7 @@ export default function Migration() {
                               return (
                                 <div className="flex items-center gap-2 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg text-yellow-400 text-sm">
                                   <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-                                  <span className="flex-1">Foram detectadas tarefas duplicadas neste produto ({productTasks.length - uniqueTitles.size} duplicatas). Use "Zerar Tarefas" para corrigir.</span>
+                                  <span className="flex-1">Foram detectadas tarefas duplicadas neste produto ({productTasks.length - uniqueTitles.size} duplicatas). Considere importar novamente.</span>
                                 </div>
                               );
                             }
