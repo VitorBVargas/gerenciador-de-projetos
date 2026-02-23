@@ -20,7 +20,7 @@ const phases = [
   { value: 'operacao_assistida', label: 'Operação Assistida' }
 ];
 
-export default function TimelineEventModal({ open, onOpenChange, event, onSave, projectId }) {
+export default function TimelineEventModal({ open, onOpenChange, event, onSave, projectId, productId }) {
   const [formData, setFormData] = useState({
     title: '',
     phase: 'planejamento',
@@ -59,7 +59,8 @@ export default function TimelineEventModal({ open, onOpenChange, event, onSave, 
     e.preventDefault();
     onSave({
       ...formData,
-      project_id: projectId
+      project_id: projectId,
+      product_id: productId
     });
   };
 
