@@ -15,24 +15,25 @@ export default function BulkEditDatesModal({
   verticals = [],
   timelineEvents = [],
   products = [],
-  onApply
+  onApply,
+  editAll = false
 }) {
   const [selectedEntity, setSelectedEntity] = useState('');
   const [selectedVertical, setSelectedVertical] = useState('');
   const [expandedEvent, setExpandedEvent] = useState(null);
-  const [applyToAll, setApplyToAll] = useState(false);
   const [editedEvents, setEditedEvents] = useState({});
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   React.useEffect(() => {
-    if (open) {
+    if (open && editAll) {
+      // No need to reset when in editAll mode
+    } else if (open) {
       setSelectedEntity('');
       setSelectedVertical('');
       setExpandedEvent(null);
-      setApplyToAll(false);
       setEditedEvents({});
     }
-  }, [open]);
+  }, [open, editAll]);
 
   const getFilteredVerticals = () => {
     if (!selectedEntity) return [];
@@ -42,14 +43,31 @@ export default function BulkEditDatesModal({
   };
 
   const getFilteredEvents = () => {
+    if (editAll) {
+      // Get all unique events across all products
+      const seenIds = new Set();
+      return timelineEvents
+        .filter(e => {
+          if (seenIds.has(e.id)) return false;
+          seenIds.add(e.id);
+          return true;
+        })
+        .sort((a, b) => (a.order || 0) - (b.order || 0));
+    }
+    
     if (!selectedVertical) return [];
     
     const entityProducts = products.filter(
       p => p.entity === selectedEntity && p.vertical === selectedVertical
     );
     
+    const seenIds = new Set();
     return timelineEvents
-      .filter(e => entityProducts.some(p => p.id === e.product_id))
+      .filter(e => {
+        if (seenIds.has(e.id)) return false;
+        seenIds.add(e.id);
+        return entityProducts.some(p => p.id === e.product_id);
+      })
       .sort((a, b) => (a.order || 0) - (b.order || 0));
   };
 
@@ -99,53 +117,59 @@ export default function BulkEditDatesModal({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="bg-slate-800 border-slate-700 max-w-2xl max-h-[80vh]">
           <DialogHeader>
-            <DialogTitle className="text-white">Editar Datas</DialogTitle>
+            <DialogTitle className="text-white">
+              {editAll ? 'Editar Todo o Projeto' : 'Editar Datas'}
+            </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4 overflow-y-auto max-h-[60vh] pr-4">
-            {/* Entity Selection */}
-            <div>
-              <label className="text-sm text-slate-300 block mb-2">Entidade</label>
-              <select
-                value={selectedEntity}
-                onChange={(e) => {
-                  setSelectedEntity(e.target.value);
-                  setSelectedVertical('');
-                  setExpandedEvent(null);
-                  setEditedEvents({});
-                }}
-                className="w-full bg-slate-700 border border-slate-600 text-white rounded px-3 py-2 text-sm"
-              >
-                <option value="">Selecione uma entidade</option>
-                {entities.map(entity => (
-                  <option key={entity} value={entity}>{entity}</option>
-                ))}
-              </select>
-            </div>
+            {!editAll && (
+              <>
+                {/* Entity Selection */}
+                <div>
+                  <label className="text-sm text-slate-300 block mb-2">Entidade</label>
+                  <select
+                    value={selectedEntity}
+                    onChange={(e) => {
+                      setSelectedEntity(e.target.value);
+                      setSelectedVertical('');
+                      setExpandedEvent(null);
+                      setEditedEvents({});
+                    }}
+                    className="w-full bg-slate-700 border border-slate-600 text-white rounded px-3 py-2 text-sm"
+                  >
+                    <option value="">Selecione uma entidade</option>
+                    {entities.map(entity => (
+                      <option key={entity} value={entity}>{entity}</option>
+                    ))}
+                  </select>
+                </div>
 
-            {/* Vertical Selection */}
-            {selectedEntity && (
-              <div>
-                <label className="text-sm text-slate-300 block mb-2">Vertical</label>
-                <select
-                  value={selectedVertical}
-                  onChange={(e) => {
-                    setSelectedVertical(e.target.value);
-                    setExpandedEvent(null);
-                    setEditedEvents({});
-                  }}
-                  className="w-full bg-slate-700 border border-slate-600 text-white rounded px-3 py-2 text-sm"
-                >
-                  <option value="">Selecione uma vertical</option>
-                  {filteredVerticals.map(vertical => (
-                    <option key={vertical} value={vertical}>{vertical}</option>
-                  ))}
-                </select>
-              </div>
+                {/* Vertical Selection */}
+                {selectedEntity && (
+                  <div>
+                    <label className="text-sm text-slate-300 block mb-2">Vertical</label>
+                    <select
+                      value={selectedVertical}
+                      onChange={(e) => {
+                        setSelectedVertical(e.target.value);
+                        setExpandedEvent(null);
+                        setEditedEvents({});
+                      }}
+                      className="w-full bg-slate-700 border border-slate-600 text-white rounded px-3 py-2 text-sm"
+                    >
+                      <option value="">Selecione uma vertical</option>
+                      {filteredVerticals.map(vertical => (
+                        <option key={vertical} value={vertical}>{vertical}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </>
             )}
 
             {/* Events List */}
-            {selectedVertical && (
+            {(editAll || selectedVertical) && (
               <div>
                 <label className="text-sm text-slate-300 block mb-2">Etapas</label>
                 <div className="space-y-2">
@@ -204,23 +228,7 @@ export default function BulkEditDatesModal({
               </div>
             )}
 
-            {/* Apply to All Checkbox */}
-            {filteredEvents.length > 0 && (
-              <div className="flex items-center gap-2 p-3 bg-slate-700/30 rounded border border-slate-600">
-                <Checkbox
-                  id="applyToAll"
-                  checked={applyToAll}
-                  onCheckedChange={setApplyToAll}
-                  className="border-slate-500"
-                />
-                <Label
-                  htmlFor="applyToAll"
-                  className="text-sm text-slate-300 cursor-pointer flex-1"
-                >
-                  Alterar todas as etapas desta vertical
-                </Label>
-              </div>
-            )}
+
           </div>
 
           <DialogFooter>
@@ -234,7 +242,7 @@ export default function BulkEditDatesModal({
             <Button
               onClick={handleApplyClick}
               className="bg-blue-600 hover:bg-blue-700"
-              disabled={changedCount === 0 || !selectedVertical}
+              disabled={changedCount === 0 || (!editAll && !selectedVertical)}
             >
               Aplicar {changedCount > 0 && `(${changedCount})`}
             </Button>
