@@ -15,7 +15,7 @@ import {
   Trash2,
   ChevronUp,
   ChevronDown,
-  RotateCcw,
+  CheckCircle,
   Upload,
   AlertTriangle
 } from 'lucide-react';
