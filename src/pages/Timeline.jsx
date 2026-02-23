@@ -227,9 +227,12 @@ export default function Timeline() {
       )}
 
       {/* Main Tabs - Cronograma do Projeto */}
-      <Tabs defaultValue="timeline" className="space-y-4">
+      <Tabs defaultValue="gantt" className="space-y-4">
        <div className="flex items-center justify-between">
          <TabsList className="bg-slate-800 border border-slate-700">
+           <TabsTrigger value="gantt" className="data-[state=active]:bg-blue-600">
+             Gantt
+           </TabsTrigger>
            <TabsTrigger value="timeline" className="data-[state=active]:bg-blue-600">
              Cronograma do Projeto
            </TabsTrigger>
