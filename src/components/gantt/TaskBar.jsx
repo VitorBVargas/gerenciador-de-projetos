@@ -86,12 +86,10 @@ export default function TaskBar({
         {task.progress > 0 && (
           <div className="absolute bottom-0 left-0 h-1 bg-white/30" style={{ width: `${task.progress}%` }}></div>
         )}
-      </div>
 
-      {/* Delayed Indicator */}
-      {isDelayed && (
-        <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border border-red-300"></div>
-      )}
+        {/* Indicators */}
+        <TaskBarIndicators task={task} />
+      </div>
 
       {/* Resize Handle */}
       <div
