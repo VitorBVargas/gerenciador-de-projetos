@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ChevronLeft, ChevronRight, Check, X, Plus, Search, Loader2, Crown } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import StepCronograma from './StepCronograma';
 // useQuery still used by StepTeam
 
 const PORTFOLIOS = ['Grandes Contas SC/MG', 'Grandes Contas SC/SP', 'Médias Contas'];
@@ -36,6 +37,7 @@ const VERTICAL_AVATAR_COLORS = {
 
 const STEPS = [
   { id: 'overview', label: 'Visão Geral', icon: '📋' },
+  { id: 'cronograma', label: 'Cronograma', icon: '📅' },
   { id: 'team', label: 'Equipe', icon: '👥' },
   { id: 'stakeholders', label: 'Stakeholders', icon: '🤝' },
   { id: 'risks', label: 'Riscos', icon: '⚠️' },
@@ -486,6 +488,7 @@ export default function ProjectRegistrationFlow({ open, onOpenChange, parsedData
     name: '', managers: [], coordinator: '', portfolio_manager: '',
     portfolio: '', deadline: '', budget: '', contract_link: '',
   });
+  const [cronogramas, setCronogramas] = useState([]);
   const [team, setTeam] = useState([]);
   const [teamLeaders, setTeamLeaders] = useState([]); // array of collab ids
   const [stakeholders, setStakeholders] = useState([]);
@@ -516,6 +519,7 @@ export default function ProjectRegistrationFlow({ open, onOpenChange, parsedData
           ...projectInfo,
           manager: projectInfo.managers.join(', '),
         },
+        cronogramas,
         team: team.map(m => ({ ...m, is_leader: teamLeaders.includes(m.id) })),
         stakeholders,
         risks,
@@ -562,9 +566,10 @@ export default function ProjectRegistrationFlow({ open, onOpenChange, parsedData
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-6 py-5">
           {step === 0 && <StepOverview data={projectInfo} onChange={setProjectInfo} />}
-          {step === 1 && <StepTeam selected={team} onToggle={toggleTeam} leaders={teamLeaders} onToggleLeader={toggleLeader} />}
-          {step === 2 && <StepStakeholders stakeholders={stakeholders} setStakeholders={setStakeholders} />}
-          {step === 3 && <StepRisks risks={risks} setRisks={setRisks} />}
+          {step === 1 && <StepCronograma cronogramas={cronogramas} setCronogramas={setCronogramas} />}
+          {step === 2 && <StepTeam selected={team} onToggle={toggleTeam} leaders={teamLeaders} onToggleLeader={toggleLeader} />}
+          {step === 3 && <StepStakeholders stakeholders={stakeholders} setStakeholders={setStakeholders} />}
+          {step === 4 && <StepRisks risks={risks} setRisks={setRisks} />}
         </div>
 
         {/* Footer */}
