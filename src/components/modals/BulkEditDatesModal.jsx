@@ -136,8 +136,9 @@ export default function BulkEditDatesModal({
                   setEditAllMode(checked);
                   setSelectedEntity('');
                   setSelectedVertical('');
-                  setExpandedEvent(null);
-                  setEditedEvents({});
+                  setSelectedPhase(null);
+                  setPhaseStartDate('');
+                  setPhaseEndDate('');
                 }}
                 className="border-slate-500"
               />
