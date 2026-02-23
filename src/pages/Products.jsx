@@ -20,6 +20,7 @@ import { VERTICAL_BADGE_COLORS } from '../components/verticalColors';
 import EmptyState from '../components/ui/EmptyState';
 import PasswordGracePeriodModal from '../components/modals/PasswordGracePeriodModal';
 import EntityFilter from '../components/filters/EntityFilter';
+import ProductRecognitionModal from '../components/modals/ProductRecognitionModal';
 import {
   AlertDialog,
   AlertDialogAction,
