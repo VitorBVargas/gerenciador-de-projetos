@@ -188,7 +188,7 @@ export default function Team() {
                       <div className="flex items-center gap-2.5">
                         <div className={cn(
                           "w-7 h-7 rounded-full bg-gradient-to-br flex items-center justify-center text-white font-semibold text-xs flex-shrink-0",
-                          verticalAvatarColors[vertical] || 'from-slate-500 to-slate-600'
+                          VERTICAL_AVATAR_COLORS[vertical] || 'from-slate-500 to-slate-600'
                         )}>
                           {member.name?.charAt(0).toUpperCase()}
                         </div>
