@@ -443,6 +443,18 @@ export default function Timeline() {
         products={products}
         onApply={handleEditDatesApply}
       />
+
+      {/* Edit All Project Modal */}
+      <BulkEditDatesModal
+        open={editAllProjectOpen}
+        onOpenChange={setEditAllProjectOpen}
+        entities={getUniqueEntities()}
+        verticals={verticals}
+        timelineEvents={timelineEvents}
+        products={products}
+        onApply={handleEditDatesApply}
+        editAll={true}
+      />
     </div>
   );
 }
