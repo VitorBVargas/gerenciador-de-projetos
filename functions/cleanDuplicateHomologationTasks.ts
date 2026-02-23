@@ -5,7 +5,7 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
 
     // Busca todas as tarefas de homologação
-    const allTasks = await base44.asServiceRole.entities.HomologationTask.list();
+    const allTasks = await base44.entities.HomologationTask.list();
     
     // Filtra tarefas que começam com "Módulo único:"
     const tasksToDelete = allTasks.filter(task => 
@@ -15,7 +15,7 @@ Deno.serve(async (req) => {
     // Deleta todas as tarefas encontradas
     let deletedCount = 0;
     for (const task of tasksToDelete) {
-      await base44.asServiceRole.entities.HomologationTask.delete(task.id);
+      await base44.entities.HomologationTask.delete(task.id);
       deletedCount++;
     }
 
