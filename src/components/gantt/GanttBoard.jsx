@@ -15,13 +15,19 @@ import { format, startOfMonth } from 'date-fns';
 
 export default function GanttBoard({ projectId, projectDeadline }) {
   const queryClient = useQueryClient();
-  const [viewType, setViewType] = useState('month');
+  const [zoom, setZoom] = useState('month');
   const [editingTask, setEditingTask] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteTaskId, setDeleteTaskId] = useState(null);
   const [startDate, setStartDate] = useState(new Date());
 
-  const pixelsPerDay = TaskService.calculatePixelsPerDay(viewType);
+  const zoomPixels = {
+    day: 60,
+    week: 30,
+    month: 8,
+    quarter: 2
+  };
+  const pixelsPerDay = zoomPixels[zoom];
 
   const { data: tasks = [], isLoading } = useQuery({
     queryKey: ['tasks', projectId],
