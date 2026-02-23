@@ -31,6 +31,7 @@ import { format, addMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import RecognizedRevenueModal from '../components/modals/RecognizedRevenueModal';
 import RecognizeAllVerticalModal from '../components/modals/RecognizeAllVerticalModal';
+import ProjectRecognitionsModal from '../components/modals/ProjectRecognitionsModal';
 import AIAssistantModal from '../components/modals/AIAssistantModal';
 import { Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
