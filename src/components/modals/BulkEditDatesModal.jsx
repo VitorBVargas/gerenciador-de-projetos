@@ -303,7 +303,7 @@ export default function BulkEditDatesModal({
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white">Confirmar alterações</AlertDialogTitle>
             <AlertDialogDescription className="text-slate-400">
-              Tem certeza que deseja alterar as datas de {changedCount} etapa(s)?
+              Tem certeza que deseja alterar as datas de {phaseEvents.length} etapa(s)?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
