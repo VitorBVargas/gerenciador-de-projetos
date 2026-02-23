@@ -98,6 +98,22 @@ export default function Products() {
     enabled: !!projectId
   });
 
+  const { data: recognizedRevenues = [] } = useQuery({
+    queryKey: ['recognizedRevenues', projectId],
+    queryFn: () => projectId ? base44.entities.RecognizedRevenue.filter({ project_id: projectId }) : [],
+    enabled: !!projectId
+  });
+
+  const createRecognitionMutation = useMutation({
+    mutationFn: (data) => base44.entities.RecognizedRevenue.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recognizedRevenues', projectId] });
+      queryClient.invalidateQueries({ queryKey: ['allRecognizedRevenues'] });
+      setRecognitionModalOpen(false);
+      setProductForRecognition(null);
+    }
+  });
+
   const activeProject = projects.find(p => p.id === projectId);
 
   const createMutation = useMutation({
