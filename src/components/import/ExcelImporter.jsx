@@ -23,6 +23,8 @@ const verticalMapping = {
   'iss': 'iss',
   'parceiros': 'parceiros',
   'plataforma': 'plataforma',
+  'nopaper': 'plataforma',
+  'no paper': 'plataforma',
   'atendimento': 'atendimento',
   'saúde': 'saude',
   'saude': 'saude'
