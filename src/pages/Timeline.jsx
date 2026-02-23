@@ -169,8 +169,15 @@ export default function Timeline() {
     ? entityProducts.filter(p => p.vertical === activeVertical)
     : [];
 
+  // Set initial product
+  React.useEffect(() => {
+    if (productsInVertical.length > 0 && !selectedProductId) {
+      setSelectedProductId(productsInVertical[0].id);
+    }
+  }, [productsInVertical.length, activeVertical]);
+
   // Current product
-  const currentProduct = productsInVertical[currentProductIndex] || null;
+  const currentProduct = productsInVertical.find(p => p.id === selectedProductId) || null;
 
   // Calculate vertical progress (average of all products' average progress)
   const getVerticalProgress = () => {
