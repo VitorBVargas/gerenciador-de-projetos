@@ -61,6 +61,7 @@ function RangeSlider({ value, onChange, label, color = 'blue' }) {
 
 // ─── STEP 1: Visão Geral ───────────────────────────────────────────────────
 function StepOverview({ data, onChange }) {
+  const [openField, setOpenField] = useState(null);
   const { data: collaborators = [] } = useQuery({
     queryKey: ['portfolioCollaborators'],
     queryFn: () => base44.entities.PortfolioCollaborator.list(),
