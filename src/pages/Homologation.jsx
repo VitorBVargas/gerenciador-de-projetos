@@ -263,6 +263,7 @@ export default function Homologation() {
 
       // Processa a planilha: Coluna A = tipo (Etapa/Tarefa), Coluna B = nome
       const tasksToCreate = [];
+      const seenTitles = new Set();
       let currentEtapa = '';
       let order = 0;
       
@@ -279,13 +280,19 @@ export default function Homologation() {
         // Se Coluna A = "Tarefa", cria a tarefa (branca) dentro da etapa atual
         else if (colA === 'tarefa') {
           const title = currentEtapa ? `||${currentEtapa}||${colB}` : colB;
-          tasksToCreate.push({
-            title: title,
-            project_id: projectId,
-            product_id: product.id,
-            completed: false,
-            order: order++
-          });
+          const titleLower = title.toLowerCase();
+          
+          // Evita adicionar tarefas duplicadas
+          if (!seenTitles.has(titleLower)) {
+            seenTitles.add(titleLower);
+            tasksToCreate.push({
+              title: title,
+              project_id: projectId,
+              product_id: product.id,
+              completed: false,
+              order: order++
+            });
+          }
         }
       }
 
@@ -429,21 +436,7 @@ export default function Homologation() {
                             </Button>
                           </div>
                           
-                          {(() => {
-                            const productTasks = tasks.filter(t => t.product_id === product.id);
-                            const uniqueTitles = new Set(productTasks.map(t => t.title.toLowerCase()));
-                            const hasDuplicates = productTasks.length > uniqueTitles.size;
-                            
-                            if (hasDuplicates) {
-                              return (
-                                <div className="flex items-center gap-2 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg text-yellow-400 text-sm">
-                                  <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-                                  <span className="flex-1">Foram detectadas tarefas duplicadas neste produto ({productTasks.length - uniqueTitles.size} duplicatas). Considere importar novamente.</span>
-                                </div>
-                              );
-                            }
-                            return null;
-                          })()}
+
                         </div>
 
                         <div className="space-y-6">
