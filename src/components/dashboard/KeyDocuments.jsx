@@ -171,39 +171,64 @@ export default function KeyDocuments({ projectId, project }) {
             <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-slate-400" /></div>
           ) : sorted.map((doc) => (
             <div key={doc.id} className="flex items-center gap-3 group">
-              <Checkbox
-                checked={doc.completed}
-                onCheckedChange={(checked) => toggleMutation.mutate({ id: doc.id, completed: checked })}
-                className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
-              />
+              {!editMode && (
+                <Checkbox
+                  checked={doc.completed}
+                  onCheckedChange={(checked) => toggleMutation.mutate({ id: doc.id, completed: checked })}
+                  className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                />
+              )}
               <button
-                onClick={() => handleOpenModal(doc)}
+                onClick={() => !editMode && handleOpenModal(doc)}
                 className={cn(
-                  "flex-1 text-sm text-left transition-colors hover:text-blue-400",
-                  doc.completed ? "text-slate-500 line-through" : "text-white"
+                  "flex-1 text-sm text-left transition-colors",
+                  editMode ? "text-slate-300 cursor-default" : "hover:text-blue-400",
+                  doc.completed && !editMode ? "text-slate-500 line-through" : "text-white"
                 )}
               >
                 {doc.title}
               </button>
-              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                {doc.file_url && (
-                  <a href={doc.file_url} target="_blank" rel="noopener noreferrer"
-                    className="p-1 text-slate-400 hover:text-green-400 transition-colors" title="Baixar arquivo">
-                    <Download className="w-3.5 h-3.5" />
-                  </a>
-                )}
-                {doc.link && (
-                  <a href={doc.link} target="_blank" rel="noopener noreferrer"
-                    className="p-1 text-slate-400 hover:text-blue-400 transition-colors" title="Abrir link">
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
-                )}
-              </div>
-              {(doc.link || doc.file_url) && (
-                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" title="Tem arquivo/link" />
+              {!editMode && (
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {doc.file_url && (
+                    <a href={doc.file_url} target="_blank" rel="noopener noreferrer"
+                      className="p-1 text-slate-400 hover:text-green-400 transition-colors" title="Baixar arquivo">
+                      <Download className="w-3.5 h-3.5" />
+                    </a>
+                  )}
+                  {doc.link && (
+                    <a href={doc.link} target="_blank" rel="noopener noreferrer"
+                      className="p-1 text-slate-400 hover:text-blue-400 transition-colors" title="Abrir link">
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  )}
+                  {(doc.link || doc.file_url) && (
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" title="Tem arquivo/link" />
+                  )}
+                </div>
+              )}
+              {editMode && (
+                <div className="flex items-center gap-1">
+                  <button onClick={() => handleOpenModal(doc)}
+                    className="p-1 text-slate-400 hover:text-blue-400 transition-colors" title="Editar">
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                  <button onClick={() => deleteDocMutation.mutate(doc.id)}
+                    className="p-1 text-slate-400 hover:text-red-400 transition-colors" title="Excluir">
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               )}
             </div>
           ))}
+          {editMode && (
+            <button
+              onClick={() => setAddModalOpen(true)}
+              className="w-full mt-2 flex items-center justify-center gap-1.5 py-1.5 rounded-lg border border-dashed border-slate-600 text-slate-400 hover:text-white hover:border-slate-500 transition-colors text-sm"
+            >
+              <Plus className="w-3.5 h-3.5" /> Adicionar documento
+            </button>
+          )}
         </CardContent>
       </Card>
 
