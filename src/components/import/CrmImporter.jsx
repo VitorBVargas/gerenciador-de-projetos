@@ -38,13 +38,36 @@ const inferEntityCode = (entityName) => {
 
 const inferVertical = (productName) => {
   const name = productName.toLowerCase();
-  if (name.includes('contabilidade') || name.includes('tesouraria') || name.includes('orçamento') || name.includes('orcamento')) return 'contabil';
-  if (name.includes('compras') || name.includes('contratos') || name.includes('almoxarifado') || name.includes('patrimônio') || name.includes('patrimonio')) return 'compras';
-  if (name.includes('folha') || name.includes('pessoal') || name.includes('recursos humanos') || name.includes('esocial') || name.includes('minha folha')) return 'pessoal';
-  if (name.includes('arrecadação') || name.includes('arrecadacao') || name.includes('tributos') || name.includes('iss')) return 'arrecadacao';
-  if (name.includes('saúde') || name.includes('saude')) return 'saude';
-  if (name.includes('educação') || name.includes('educacao')) return 'educacao';
-  if (name.includes('protocolo') || name.includes('atendimento')) return 'atendimento';
+  // Contábil
+  if (name.includes('contabilidade') || name.includes('tesouraria') || name.includes('orçamento') || name.includes('orcamento') ||
+      name.includes('convênios') || name.includes('convenios') || name.includes('prestação de contas') || name.includes('prestacao de contas') ||
+      name.includes('controladoria') || name.includes('planejamento') || name.includes('controle de caixa')) return 'contabil';
+  // Compras
+  if (name.includes('compras') || name.includes('contratos') || name.includes('almoxarifado') ||
+      name.includes('patrimônio') || name.includes('patrimonio') || name.includes('frotas') ||
+      name.includes('obras') || name.includes('monitor df')) return 'compras';
+  // Pessoal
+  if (name.includes('folha') || name.includes('pessoal') || name.includes('recursos humanos') ||
+      name.includes('esocial') || name.includes('minha folha') || name.includes('ponto') || name.includes('pontual')) return 'pessoal';
+  // Arrecadação
+  if (name.includes('arrecadação') || name.includes('arrecadacao') || name.includes('tributos') ||
+      name.includes('iss') || name.includes('procuradoria') || name.includes('livro eletrônico') ||
+      name.includes('livro eletronico') || name.includes('gestão fiscal') || name.includes('gestao fiscal') ||
+      name.includes('e-nota') || name.includes('e - nota') || name.includes('enota') ||
+      name.includes('cadastro imobiliário') || name.includes('fatura') || name.includes('cidadão web')) return 'arrecadacao';
+  // Saúde
+  if (name.includes('saúde') || name.includes('saude') || name.includes('social')) return 'saude';
+  // Educação
+  if (name.includes('educação') || name.includes('educacao') || name.includes('professores') ||
+      name.includes('biblioteca') || name.includes('merenda') || name.includes('transporte escolar')) return 'educacao';
+  // Atendimento
+  if (name.includes('protocolo') || name.includes('atendimento') || name.includes('transparência') ||
+      name.includes('transparencia') || name.includes('beth') || name.includes('gov digital') ||
+      name.includes('portal') || name.includes('cidadão') || name.includes('app minha cidade')) return 'atendimento';
+  // Parceiros
+  if (name.includes('alvará') || name.includes('alvara') || name.includes('controle interno') ||
+      name.includes('cemitério') || name.includes('cemiterio')) return 'parceiros';
+  // Plataforma (Conecta, Documentos, Studio)
   return 'plataforma';
 };
 
