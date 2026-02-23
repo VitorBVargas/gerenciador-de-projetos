@@ -66,7 +66,12 @@ function StepOverview({ data, onChange }) {
     queryFn: () => base44.entities.PortfolioCollaborator.list(),
   });
 
-  const names = collaborators.map(c => c.name).sort();
+  const [openField, setOpenField] = useState(null);
+
+  // Apenas colaboradores da vertical Gerenciamento
+  const managementCollabs = collaborators
+    .filter(c => c.vertical1 === 'Gerenciamento' || c.vertical1 === 'gerenciamento')
+    .map(c => c.name).sort();
 
   const toggleManager = (name) => {
     const current = data.managers || [];
@@ -74,39 +79,57 @@ function StepOverview({ data, onChange }) {
     onChange({ ...data, managers: exists ? current.filter(n => n !== name) : [...current, name] });
   };
 
-  const CollabList = ({ label, field, multi = false }) => (
-    <div className="space-y-1.5">
-      <Label className="text-slate-300">{label}{multi && ' (pode ser mais de um)'}</Label>
-      <div className="bg-slate-900/50 border border-slate-700 rounded-lg p-2 max-h-40 overflow-y-auto space-y-0.5">
-        {names.map(name => {
-          const selected = multi ? (data[field] || []).includes(name) : data[field] === name;
-          return (
-            <button key={name} onClick={() => {
-              if (multi) toggleManager(name);
-              else onChange({ ...data, [field]: data[field] === name ? '' : name });
-            }}
-              className={`w-full text-left px-3 py-1.5 rounded text-sm transition-all flex items-center justify-between ${
-                selected ? 'bg-blue-600/30 text-blue-300' : 'text-slate-300 hover:bg-slate-700'
-              }`}
-            >
-              {name}
-              {selected && <Check className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />}
-            </button>
-          );
-        })}
-        {names.length === 0 && <p className="text-xs text-slate-500 px-2 py-2">Nenhum colaborador no banco</p>}
+  const CollabList = ({ label, field, multi = false }) => {
+    const isOpen = openField === field;
+    const selectedVal = multi ? (data[field] || []) : data[field];
+    const displayLabel = multi
+      ? (selectedVal.length > 0 ? `${selectedVal.length} selecionado(s)` : 'Selecione...')
+      : (selectedVal || 'Selecione...');
+
+    return (
+      <div className="space-y-1.5 relative">
+        <Label className="text-slate-300">{label}{multi && ' (pode ser mais de um)'}</Label>
+        <button
+          type="button"
+          onClick={() => setOpenField(isOpen ? null : field)}
+          className="w-full flex items-center justify-between bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-left transition-colors hover:bg-slate-600"
+        >
+          <span className={selectedVal && (!multi || selectedVal.length > 0) ? 'text-white' : 'text-slate-400'}>{displayLabel}</span>
+          <ChevronRight className={`w-4 h-4 text-slate-400 transition-transform ${isOpen ? 'rotate-90' : ''}`} />
+        </button>
+        {isOpen && (
+          <div className="absolute z-50 w-full bg-slate-900 border border-slate-700 rounded-lg p-1 max-h-48 overflow-y-auto shadow-xl top-full mt-1">
+            {managementCollabs.map(name => {
+              const selected = multi ? (data[field] || []).includes(name) : data[field] === name;
+              return (
+                <button key={name} onClick={() => {
+                  if (multi) toggleManager(name);
+                  else { onChange({ ...data, [field]: data[field] === name ? '' : name }); setOpenField(null); }
+                }}
+                  className={`w-full text-left px-3 py-1.5 rounded text-sm transition-all flex items-center justify-between ${
+                    selected ? 'bg-blue-600/30 text-blue-300' : 'text-slate-300 hover:bg-slate-700'
+                  }`}
+                >
+                  {name}
+                  {selected && <Check className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />}
+                </button>
+              );
+            })}
+            {managementCollabs.length === 0 && <p className="text-xs text-slate-500 px-2 py-2">Nenhum colaborador com vertical Gerenciamento</p>}
+          </div>
+        )}
+        {multi && (data[field] || []).length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-1">
+            {(data[field] || []).map(n => (
+              <Badge key={n} className="bg-blue-600/20 text-blue-300 border border-blue-600/30 text-xs">
+                {n} <button onClick={() => toggleManager(n)} className="ml-1"><X className="w-2.5 h-2.5" /></button>
+              </Badge>
+            ))}
+          </div>
+        )}
       </div>
-      {multi && (data[field] || []).length > 0 && (
-        <div className="flex flex-wrap gap-1 mt-1">
-          {(data[field] || []).map(n => (
-            <Badge key={n} className="bg-blue-600/20 text-blue-300 border border-blue-600/30 text-xs">
-              {n} <button onClick={() => toggleManager(n)} className="ml-1"><X className="w-2.5 h-2.5" /></button>
-            </Badge>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="space-y-4">
