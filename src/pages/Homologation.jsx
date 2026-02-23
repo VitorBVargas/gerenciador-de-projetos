@@ -228,16 +228,16 @@ export default function Homologation() {
     try {
       const product = getCurrentProduct();
       const productTasks = tasks.filter(t => t.product_id === product.id);
+      const allCompleted = productTasks.every(t => t.completed);
       
-      // Marca todas as tarefas como concluídas
       await Promise.all(productTasks.map(task => 
-        base44.entities.HomologationTask.update(task.id, { completed: true })
+        base44.entities.HomologationTask.update(task.id, { completed: !allCompleted })
       ));
       
-      toast.success('Todas as tarefas foram marcadas como concluídas!');
+      toast.success(allCompleted ? 'Tarefas desmarcadas!' : 'Todas as tarefas foram marcadas!');
       queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
     } catch (error) {
-      toast.error('Erro ao marcar tarefas');
+      toast.error('Erro ao atualizar tarefas');
       console.error(error);
     }
   };

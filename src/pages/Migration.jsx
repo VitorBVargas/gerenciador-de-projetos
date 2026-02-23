@@ -245,16 +245,16 @@ export default function Migration() {
     try {
       const product = getCurrentProduct();
       const productTasks = tasks.filter(t => t.product_id === product.id);
+      const allCompleted = productTasks.every(t => t.completed);
       
-      // Marca todas as tarefas como concluídas
       await Promise.all(productTasks.map(task => 
-        base44.entities.MigrationTask.update(task.id, { completed: true })
+        base44.entities.MigrationTask.update(task.id, { completed: !allCompleted })
       ));
       
-      toast.success('Todas as tarefas foram marcadas como concluídas!');
+      toast.success(allCompleted ? 'Tarefas desmarcadas!' : 'Todas as tarefas foram marcadas!');
       queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
     } catch (error) {
-      toast.error('Erro ao marcar tarefas');
+      toast.error('Erro ao atualizar tarefas');
       console.error(error);
     }
   };
