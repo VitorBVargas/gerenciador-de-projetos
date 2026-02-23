@@ -299,6 +299,9 @@ export default function Products() {
                                     : "bg-slate-600"
                                 )}
                               />
+                              {recognizedRevenues.some(r => r.product_id === product.id) && (
+                                <div className="w-2 h-2 rounded-full bg-purple-500 shadow-lg shadow-purple-500/50 ring-2 ring-purple-500/30" />
+                              )}
                             </div>
                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                               <Button
