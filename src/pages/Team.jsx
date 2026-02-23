@@ -195,7 +195,7 @@ export default function Team() {
             .map(([vertical, members]) => (
               <div key={vertical}>
                 <div className="flex items-center gap-2 mb-2.5">
-                  <h2 className="text-sm font-semibold text-white">{verticalLabels[vertical] || 'Outros'}</h2>
+                  <h2 className="text-sm font-semibold text-white capitalize">{verticalLabels[vertical] || vertical}</h2>
                   <Badge variant="secondary" className="bg-slate-700 text-slate-300 text-xs h-5">{members.length}</Badge>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
