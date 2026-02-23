@@ -223,54 +223,22 @@ export default function Homologation() {
     return order.map(i => sections[i]).filter(Boolean);
   };
 
-  const handleResetTasks = async () => {
+  const handleMarkAllTasks = async () => {
     if (!selectedProduct) return;
-    setIsResetting(true);
     try {
       const product = getCurrentProduct();
-      const existingTasks = tasks.filter(t => t.product_id === product.id);
+      const productTasks = tasks.filter(t => t.product_id === product.id);
       
-      // Deleta todas as tarefas existentes em paralelo
-      await Promise.all(existingTasks.map(task => 
-        base44.entities.HomologationTask.delete(task.id)
+      // Marca todas as tarefas como concluídas
+      await Promise.all(productTasks.map(task => 
+        base44.entities.HomologationTask.update(task.id, { completed: true })
       ));
       
-      // Invalida cache antes de recriar
-      await queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
-      
-      // Aguarda para garantir que as deleções foram processadas
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Recria as tarefas padrão diretamente (sem verificar se existem)
-      const defaultSections = getDefaultTasksForProduct(product.name);
-      if (defaultSections) {
-        const tasksToCreate = [];
-        let order = 0;
-
-        for (const section of defaultSections) {
-          for (const taskTitle of section.tasks) {
-            tasksToCreate.push({
-              title: taskTitle,
-              project_id: projectId,
-              product_id: product.id,
-              completed: false,
-              order: order++
-            });
-          }
-        }
-
-        if (tasksToCreate.length > 0) {
-          await base44.entities.HomologationTask.bulkCreate(tasksToCreate);
-        }
-      }
-      
-      toast.success('Tarefas zeradas e recriadas com sucesso!');
-    } catch (error) {
-      toast.error('Erro ao zerar tarefas');
-      console.error(error);
-    } finally {
-      setIsResetting(false);
+      toast.success('Todas as tarefas foram marcadas como concluídas!');
       queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
+    } catch (error) {
+      toast.error('Erro ao marcar tarefas');
+      console.error(error);
     }
   };
 
