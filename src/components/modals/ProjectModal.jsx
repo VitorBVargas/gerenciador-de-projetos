@@ -9,7 +9,8 @@ export default function ProjectModal({ open, onOpenChange, project, onSave }) {
   const [formData, setFormData] = useState({
     name: '',
     manager: '',
-    value: '',
+    implementation_value: '',
+    recurring_value: '',
     deadline: '',
     contract_link: '',
     documents_folder_link: '',
@@ -21,7 +22,8 @@ export default function ProjectModal({ open, onOpenChange, project, onSave }) {
       setFormData({
         name: project.name || '',
         manager: project.manager || '',
-        value: project.value || '',
+        implementation_value: project.implementation_value || '',
+        recurring_value: project.recurring_value || '',
         deadline: project.deadline || '',
         contract_link: project.contract_link || '',
         documents_folder_link: project.documents_folder_link || '',
@@ -31,7 +33,8 @@ export default function ProjectModal({ open, onOpenChange, project, onSave }) {
       setFormData({
         name: '',
         manager: '',
-        value: '',
+        implementation_value: '',
+        recurring_value: '',
         deadline: '',
         contract_link: '',
         documents_folder_link: '',
@@ -44,7 +47,8 @@ export default function ProjectModal({ open, onOpenChange, project, onSave }) {
     e.preventDefault();
     onSave({
       ...formData,
-      value: parseFloat(formData.value) || 0
+      implementation_value: parseFloat(formData.implementation_value) || 0,
+      recurring_value: parseFloat(formData.recurring_value) || 0,
     });
   };
 
@@ -80,27 +84,39 @@ export default function ProjectModal({ open, onOpenChange, project, onSave }) {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="value">Valor (R$)</Label>
+              <Label htmlFor="implementation_value">Valor de Implantação (R$)</Label>
               <Input
-                id="value"
+                id="implementation_value"
                 type="number"
                 step="0.01"
-                value={formData.value}
-                onChange={(e) => setFormData({ ...formData, value: e.target.value })}
+                value={formData.implementation_value}
+                onChange={(e) => setFormData({ ...formData, implementation_value: e.target.value })}
                 className="bg-slate-700 border-slate-600 text-white"
                 placeholder="0.00"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="deadline">Prazo Final</Label>
+              <Label htmlFor="recurring_value">Valor de Inclusão/Recorrente (R$)</Label>
               <Input
-                id="deadline"
-                type="date"
-                value={formData.deadline}
-                onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
+                id="recurring_value"
+                type="number"
+                step="0.01"
+                value={formData.recurring_value}
+                onChange={(e) => setFormData({ ...formData, recurring_value: e.target.value })}
                 className="bg-slate-700 border-slate-600 text-white"
+                placeholder="0.00"
               />
             </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="deadline">Prazo Final</Label>
+            <Input
+              id="deadline"
+              type="date"
+              value={formData.deadline}
+              onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
+              className="bg-slate-700 border-slate-600 text-white"
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="status">Status</Label>
