@@ -270,106 +270,93 @@ export default function Timeline() {
                         </div>
                       </div>
 
-                      {/* Current Product Navigation */}
-                      {productsInVert.length > 0 && currentProduct && (
-                        <div className="space-y-4">
-                          {/* Product Navigation */}
-                          <div className="flex items-center justify-between bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setCurrentProductIndex(Math.max(0, currentProductIndex - 1))}
-                              disabled={currentProductIndex === 0}
-                              className="border-slate-600"
-                            >
-                              <ChevronLeft className="w-4 h-4" />
-                            </Button>
-                            <div className="flex-1 text-center">
-                              <h3 className="font-semibold text-white">{currentProduct.name}</h3>
-                              <p className="text-xs text-slate-400">
-                                Produto {currentProductIndex + 1} de {productsInVert.length}
-                              </p>
-                            </div>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setCurrentProductIndex(Math.min(productsInVert.length - 1, currentProductIndex + 1))}
-                              disabled={currentProductIndex === productsInVert.length - 1}
-                              className="border-slate-600"
-                            >
-                              <ChevronRight className="w-4 h-4" />
-                            </Button>
-                          </div>
+                      {/* Products Tabs */}
+                      {productsInVert.length > 0 && (
+                       <div className="space-y-4">
+                         {/* Product Tabs */}
+                         <Tabs value={selectedProductId} onValueChange={setSelectedProductId} className="space-y-4">
+                           <TabsList className="bg-slate-800 border border-slate-700 flex-wrap h-auto p-2 gap-2">
+                             {productsInVert.map(product => (
+                               <TabsTrigger key={product.id} value={product.id} className="data-[state=active]:bg-blue-600 text-sm">
+                                 {product.name}
+                               </TabsTrigger>
+                             ))}
+                           </TabsList>
 
-                          {/* Product Stages Table */}
-                          {(() => {
-                            const productEvents = timelineEvents
-                              .filter(e => e.product_id === currentProduct.id)
-                              .sort((a, b) => (a.order || 0) - (b.order || 0));
+                           {productsInVert.map(product => (
+                             <TabsContent key={product.id} value={product.id} className="space-y-4">
 
-                            return (
-                              <div className="overflow-x-auto bg-slate-800 rounded-lg border border-slate-700">
-                                <table className="w-full">
-                                  <thead>
-                                    <tr className="border-b border-slate-700 bg-slate-900/50">
-                                      <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Atividade</th>
-                                      <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Status</th>
-                                      <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Progresso</th>
-                                      <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Ações</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    {productEvents.map((event) => (
-                                      <tr key={event.id} className="border-b border-slate-700/30 hover:bg-slate-700/20">
-                                        <td className="px-4 py-3 text-sm text-white">
-                                          {phaseLabels[event.phase] || event.title}
-                                        </td>
-                                        <td className="px-4 py-3">
-                                          <select
-                                            value={event.status}
-                                            onChange={(e) => handleStatusChange(event.id, e.target.value)}
-                                            className={`px-3 py-1 rounded text-xs font-medium text-white border-0 ${statusColors[event.status]} cursor-pointer hover:opacity-80`}
-                                          >
-                                            {Object.entries(statusLabels).map(([key, label]) => (
-                                              <option key={key} value={key}>{label}</option>
-                                            ))}
-                                          </select>
-                                        </td>
-                                        <td className="px-4 py-3">
-                                          <div className="flex items-center gap-2 max-w-xs">
-                                            <Progress value={event.progress || 0} className="h-2 flex-1" />
-                                            <span className="text-xs text-slate-400 min-w-[35px] text-right">
-                                              {event.progress || 0}%
-                                            </span>
-                                          </div>
-                                        </td>
-                                        <td className="px-4 py-3">
-                                          <div className="flex gap-2">
-                                            <Button
-                                              size="sm"
-                                              variant="ghost"
-                                              onClick={() => handleEdit(event)}
-                                              className="text-slate-400 hover:text-blue-400"
-                                            >
-                                              Editar
-                                            </Button>
-                                            <Button
-                                              size="sm"
-                                              variant="ghost"
-                                              onClick={() => handleDelete(event.id)}
-                                              className="text-slate-400 hover:text-red-400"
-                                            >
-                                              Deletar
-                                            </Button>
-                                          </div>
-                                        </td>
-                                      </tr>
-                                    ))}
-                                  </tbody>
-                                </table>
-                              </div>
-                            );
-                          })()}
+                              {(() => {
+                                const productEvents = timelineEvents
+                                  .filter(e => e.product_id === product.id)
+                                  .sort((a, b) => (a.order || 0) - (b.order || 0));
+
+                                return (
+                                  <div className="overflow-x-auto bg-slate-800 rounded-lg border border-slate-700">
+                                    <table className="w-full">
+                                      <thead>
+                                        <tr className="border-b border-slate-700 bg-slate-900/50">
+                                          <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Atividade</th>
+                                          <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Status</th>
+                                          <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Progresso</th>
+                                          <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Ações</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {productEvents.map((event) => (
+                                          <tr key={event.id} className="border-b border-slate-700/30 hover:bg-slate-700/20">
+                                            <td className="px-4 py-3 text-sm text-white">
+                                              {phaseLabels[event.phase] || event.title}
+                                            </td>
+                                            <td className="px-4 py-3">
+                                              <select
+                                                value={event.status}
+                                                onChange={(e) => handleStatusChange(event.id, e.target.value)}
+                                                className={`px-3 py-1 rounded text-xs font-medium text-white border-0 ${statusColors[event.status]} cursor-pointer hover:opacity-80`}
+                                              >
+                                                {Object.entries(statusLabels).map(([key, label]) => (
+                                                  <option key={key} value={key}>{label}</option>
+                                                ))}
+                                              </select>
+                                            </td>
+                                            <td className="px-4 py-3">
+                                              <div className="flex items-center gap-2 max-w-xs">
+                                                <Progress value={event.progress || 0} className="h-2 flex-1" />
+                                                <span className="text-xs text-slate-400 min-w-[35px] text-right">
+                                                  {event.progress || 0}%
+                                                </span>
+                                              </div>
+                                            </td>
+                                            <td className="px-4 py-3">
+                                              <div className="flex gap-2">
+                                                <Button
+                                                  size="sm"
+                                                  variant="ghost"
+                                                  onClick={() => handleEdit(event, product.id)}
+                                                  className="text-slate-400 hover:text-blue-400"
+                                                >
+                                                  Editar
+                                                </Button>
+                                                <Button
+                                                  size="sm"
+                                                  variant="ghost"
+                                                  onClick={() => handleDelete(event.id)}
+                                                  className="text-slate-400 hover:text-red-400"
+                                                >
+                                                  Deletar
+                                                </Button>
+                                              </div>
+                                            </td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                );
+                              })()}
+                            </TabsContent>
+                            ))}
+                          </Tabs>
                         </div>
                       )}
                     </TabsContent>
