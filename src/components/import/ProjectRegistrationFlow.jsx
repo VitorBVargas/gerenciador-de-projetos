@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ChevronLeft, ChevronRight, Check, X, Plus, Search, Loader2, Crown } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+// useQuery still used by StepTeam
 
 const PORTFOLIOS = ['Grandes Contas SC/MG', 'Grandes Contas SC/SP', 'Médias Contas'];
 
