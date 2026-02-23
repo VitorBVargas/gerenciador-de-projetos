@@ -141,17 +141,29 @@ export default function KeyDocuments({ projectId, project }) {
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-white">Documentos Chave</CardTitle>
-            {project?.documents_folder_link && (
-              <a
-                href={project.documents_folder_link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+            <div className="flex items-center gap-2">
+              {project?.documents_folder_link && (
+                <a
+                  href={project.documents_folder_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                >
+                  <FolderOpen className="w-3.5 h-3.5" />
+                  Diretório Geral
+                </a>
+              )}
+              <button
+                onClick={() => setEditMode(v => !v)}
+                className={cn(
+                  "p-1.5 rounded-md transition-colors",
+                  editMode ? "bg-blue-600/20 text-blue-400" : "text-slate-500 hover:text-white hover:bg-slate-700"
+                )}
+                title="Gerenciar documentos"
               >
-                <FolderOpen className="w-3.5 h-3.5" />
-                Diretório Geral
-              </a>
-            )}
+                <Settings className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-2">
