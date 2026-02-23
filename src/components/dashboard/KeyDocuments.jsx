@@ -102,8 +102,34 @@ export default function KeyDocuments({ projectId, project }) {
     setUploading(false);
   };
 
+  const deleteDocMutation = useMutation({
+    mutationFn: (id) => base44.entities.ProjectDocument.delete(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['documents', projectId] }),
+  });
+
+  const createDocMutation = useMutation({
+    mutationFn: (data) => base44.entities.ProjectDocument.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['documents', projectId] });
+      setAddModalOpen(false);
+      setNewDocTitle('');
+    },
+  });
+
   const handleSaveLink = () => {
     updateDocMutation.mutate({ id: selectedDoc.id, data: { link: linkInput } });
+  };
+
+  const handleAddDoc = () => {
+    if (!newDocTitle.trim()) return;
+    const maxOrder = documents.length > 0 ? Math.max(...documents.map(d => d.order || 0)) + 1 : 0;
+    createDocMutation.mutate({ project_id: projectId, title: newDocTitle.trim(), completed: false, order: maxOrder });
+  };
+
+  const handleRenameDoc = (doc) => {
+    setSelectedDoc({ ...doc, _renaming: true });
+    setLinkInput(doc.link || '');
+    setDocModalOpen(true);
   };
 
   // Sort by order, keep fixed list order
