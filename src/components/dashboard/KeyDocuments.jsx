@@ -29,6 +29,9 @@ export default function KeyDocuments({ projectId, project }) {
   const [linkInput, setLinkInput] = useState('');
   const [uploading, setUploading] = useState(false);
   const [initialized, setInitialized] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [newDocTitle, setNewDocTitle] = useState('');
 
   const { data: documents = [], isLoading } = useQuery({
     queryKey: ['documents', projectId],
