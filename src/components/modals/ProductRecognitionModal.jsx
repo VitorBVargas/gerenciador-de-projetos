@@ -46,19 +46,6 @@ export default function ProductRecognitionModal({ open, onOpenChange, product, p
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-slate-300 text-xs">Tipo de Receita</Label>
-            <Select value={type} onValueChange={setType}>
-              <SelectTrigger className="bg-slate-700 border-slate-600 text-white h-9">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-slate-700">
-                <SelectItem value="implantacao">Implantação</SelectItem>
-                <SelectItem value="recorrente">Recorrente</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-1.5">
             <Label className="text-slate-300 text-xs">Mês do Reconhecimento</Label>
             <Input
               type="month"
