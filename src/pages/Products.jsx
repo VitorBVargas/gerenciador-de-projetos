@@ -250,7 +250,7 @@ export default function Products() {
                 <div key={vertical} className="flex-shrink-0 w-56">
                   <div className={cn(
                     "rounded-t-lg px-2.5 py-1.5 border-t border-x",
-                    verticalColors[vertical]
+                    VERTICAL_BADGE_COLORS[vertical] || 'bg-slate-500/20 text-slate-400 border-slate-500/30'
                   )}>
                     <h3 className="font-semibold text-xs">{verticalLabels[vertical]}</h3>
                     <p className="text-xs opacity-75 mt-0.5">{verticalProducts.length} produtos</p>
