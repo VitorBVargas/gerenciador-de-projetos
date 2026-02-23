@@ -7,7 +7,6 @@ import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { phaseLabels } from '@/components/timeline/phaseLabels';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { useState } from 'react';
 
 export default function BulkEditDatesModal({ 
   open, 
