@@ -209,27 +209,25 @@ export default function BulkEditDatesModal({
               </>
             )}
 
-            {/* Phases List */}
+            {/* Activities List */}
             {isValidSelection && (
               <div>
-                <label className="text-sm text-slate-300 block mb-2">Selecione a Fase para editar:</label>
-                <div className="space-y-2">
+                <label className="text-sm text-slate-300 block mb-2">Selecione a Atividade para editar:</label>
+                <div className="space-y-2 max-h-[300px] overflow-y-auto">
                   {(() => {
                     const filteredEvents = getFilteredEvents();
-                    const phases = [...new Set(filteredEvents.map(e => e.phase))].sort();
 
-                    if (phases.length === 0) {
-                      return <p className="text-slate-400 text-sm py-4 text-center">Nenhuma etapa encontrada</p>;
+                    if (filteredEvents.length === 0) {
+                      return <p className="text-slate-400 text-sm py-4 text-center">Nenhuma atividade encontrada</p>;
                     }
 
-                    return phases.map(phase => {
-                      const phaseCnt = filteredEvents.filter(e => e.phase === phase).length;
-                      const isSelected = selectedPhase === phase;
+                    return filteredEvents.map(event => {
+                      const isSelected = selectedPhase === event.phase;
 
                       return (
-                        <div key={phase}>
+                        <div key={event.id}>
                           <button
-                            onClick={() => handlePhaseSelect(phase)}
+                            onClick={() => handlePhaseSelect(event.phase)}
                             className={`w-full flex items-center justify-between p-3 rounded border transition ${
                               isSelected
                                 ? 'bg-blue-600/20 border-blue-600 text-blue-300'
@@ -238,17 +236,14 @@ export default function BulkEditDatesModal({
                           >
                             <div className="flex items-center gap-2 flex-1 text-left">
                               <span className="text-sm">
-                                {phaseLabels[phase] || phase}
-                              </span>
-                              <span className="text-xs text-slate-400">
-                                ({phaseCnt})
+                                {event.title || phaseLabels[event.phase] || event.phase}
                               </span>
                             </div>
                           </button>
 
                           {isSelected && (
                             <div className="mt-2 p-3 bg-slate-700/30 rounded border border-slate-600 space-y-3">
-                              <p className="text-xs text-slate-400">Editar datas para esta fase:</p>
+                              <p className="text-xs text-slate-400">Editar datas para esta atividade:</p>
                               <div>
                                 <label className="text-xs text-slate-400 block mb-1">Data Início</label>
                                 <Input
