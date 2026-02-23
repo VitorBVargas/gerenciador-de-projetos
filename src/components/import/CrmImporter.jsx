@@ -216,7 +216,8 @@ export default function CrmImporter({ open, onOpenChange }) {
           role: c.role || '',
           vertical: c.vertical1 || 'gerenciamento',
           email: c.email || '',
-          phone: c.phone || ''
+          phone: c.phone || '',
+          is_leader: !!c.is_leader
         }))
       );
     }
