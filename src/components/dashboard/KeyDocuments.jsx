@@ -232,6 +232,32 @@ export default function KeyDocuments({ projectId, project }) {
         </CardContent>
       </Card>
 
+      {/* Add Document Modal */}
+      <Dialog open={addModalOpen} onOpenChange={setAddModalOpen}>
+        <DialogContent className="bg-slate-800 border-slate-700 text-white max-w-sm">
+          <div className="space-y-4">
+            <h3 className="text-base font-semibold text-white">Adicionar Documento</h3>
+            <div className="space-y-1.5">
+              <Label className="text-slate-300 text-sm">Nome do documento</Label>
+              <Input
+                value={newDocTitle}
+                onChange={e => setNewDocTitle(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleAddDoc()}
+                placeholder="Ex: Ata de reunião"
+                className="bg-slate-700 border-slate-600 text-white"
+                autoFocus
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => { setAddModalOpen(false); setNewDocTitle(''); }}
+                className="flex-1 border-slate-600 text-slate-300 hover:bg-slate-700">Cancelar</Button>
+              <Button onClick={handleAddDoc} disabled={!newDocTitle.trim() || createDocMutation.isPending}
+                className="flex-1 bg-blue-600 hover:bg-blue-700">Adicionar</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Document Modal */}
       <Dialog open={docModalOpen} onOpenChange={setDocModalOpen}>
         <DialogContent className="bg-slate-800 border-slate-700 text-white max-w-md">
