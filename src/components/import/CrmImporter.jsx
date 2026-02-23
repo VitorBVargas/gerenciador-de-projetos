@@ -154,7 +154,7 @@ export default function CrmImporter({ open, onOpenChange }) {
   };
 
   const handleFlowComplete = async (formData) => {
-    // formData = { projectInfo, team, stakeholders, risks }
+    // formData = { projectInfo, cronogramas, team, stakeholders, risks }
     const { entityProductMap, totalImpl, totalIncl } = parsedData;
     const entities = Object.keys(entityProductMap);
 
@@ -192,15 +192,34 @@ export default function CrmImporter({ open, onOpenChange }) {
 
     const createdProducts = await base44.entities.Product.bulkCreate(allProducts);
 
-    // 3. Criar eventos de cronograma
+    // 3. Criar eventos de cronograma com datas dos cronogramas configurados
     const allEvents = [];
+    const cronogramaMap = {};
+    
+    // Mapear datas por vertical
+    if (formData.cronogramas && formData.cronogramas.length > 0) {
+      formData.cronogramas.forEach(crono => {
+        crono.verticals.forEach(vertical => {
+          cronogramaMap[vertical] = crono.dates;
+        });
+      });
+    }
+
     createdProducts.forEach((product, pIdx) => {
       STANDARD_PHASES.forEach((phase, phaseIdx) => {
+        const phaseKey = phase; // já está em format snake_case
+        const startDateKey = `${phaseKey}_start`;
+        const endDateKey = `${phaseKey}_end`;
+        const crondates = cronogramaMap[product.vertical] || {};
+        
         allEvents.push({
           project_id: project.id,
           product_id: product.id,
           title: phase,
+          phase: phaseKey,
           vertical: product.vertical,
+          start_date: crondates[startDateKey] || null,
+          end_date: crondates[endDateKey] || null,
           status: 'nao_iniciado',
           progress: 0,
           order: pIdx * 100 + phaseIdx
