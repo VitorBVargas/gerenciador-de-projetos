@@ -1467,6 +1467,17 @@ Seja conciso, profissional e em português.`;
         </Dialog>
       )}
 
+      {/* Project Recognitions Modal */}
+      {recognitionsModalProject && (
+        <ProjectRecognitionsModal
+          open={!!recognitionsModalProject}
+          onOpenChange={(v) => { if (!v) setRecognitionsModalProject(null); }}
+          project={recognitionsModalProject}
+          recognitions={allRecognizedRevenues.filter(r => r.project_id === recognitionsModalProject.id)}
+          products={allProducts.filter(p => p.project_id === recognitionsModalProject.id)}
+        />
+      )}
+
       {/* AI Assistant Modal */}
       <AIAssistantModal 
         isOpen={isAIModalOpen}
