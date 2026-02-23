@@ -188,10 +188,11 @@ function StepTeam({ selected, onToggle, leaders, onToggleLeader }) {
   const filtered = collaborators.filter(c => {
     const matchVertical = !activeVertical || c.vertical1 === activeVertical || c.vertical2 === activeVertical;
     const matchSearch = !search || c.name.toLowerCase().includes(search.toLowerCase());
-    return matchVertical && matchSearch;
+    const isNotSelected = !selected.find(m => m.id === c.id);
+    return matchVertical && matchSearch && isNotSelected;
   });
 
-  // Group filtered by vertical
+  // Group filtered (not selected) by vertical
   const grouped = {};
   filtered.forEach(c => {
     const v = c.vertical1 || 'outros';
@@ -201,6 +202,40 @@ function StepTeam({ selected, onToggle, leaders, onToggleLeader }) {
 
   return (
     <div className="space-y-3">
+      {/* Selected panel */}
+      {selected.length > 0 && (
+        <div className="bg-slate-700/30 border border-slate-600/50 rounded-lg p-3 space-y-2">
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
+            {selected.length} selecionado(s) — clique na <Crown className="w-3 h-3 inline text-yellow-400" /> para líder
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {selected.map(m => {
+              const isLeader = leaders.includes(m.id);
+              const vertical = m.vertical1 || 'outros';
+              return (
+                <div key={m.id} className={`flex items-center gap-1.5 pl-1.5 pr-1 py-0.5 rounded-full border text-xs transition-all ${
+                  isLeader ? 'bg-yellow-500/15 border-yellow-500/40 text-yellow-200' : 'bg-blue-600/15 border-blue-600/30 text-blue-200'
+                }`}>
+                  <div className={`w-4 h-4 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[9px] font-bold flex-shrink-0 ${VERTICAL_AVATAR_COLORS[vertical] || 'from-slate-500 to-slate-600'}`}>
+                    {m.name?.charAt(0)}
+                  </div>
+                  <span className="max-w-[90px] truncate">{m.name}</span>
+                  <button onClick={() => onToggleLeader(m.id)}
+                    title={isLeader ? 'Remover líder' : 'Marcar como líder'}
+                    className={`p-0.5 rounded transition-all ${isLeader ? 'text-yellow-400' : 'text-slate-500 hover:text-yellow-400'}`}>
+                    <Crown className="w-3 h-3" />
+                  </button>
+                  <button onClick={() => onToggle(m)}
+                    className="p-0.5 text-slate-400 hover:text-red-400 transition-colors">
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Vertical filter */}
       <div className="flex flex-wrap gap-1.5">
         <button onClick={() => setActiveVertical(null)}
@@ -219,15 +254,11 @@ function StepTeam({ selected, onToggle, leaders, onToggleLeader }) {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
         <Input value={search} onChange={e => setSearch(e.target.value)}
-          placeholder="Buscar..." className="bg-slate-700 border-slate-600 text-white pl-9 h-8 text-sm" />
+          placeholder="Buscar colaborador..." className="bg-slate-700 border-slate-600 text-white pl-9 h-8 text-sm" />
       </div>
 
-      {selected.length > 0 && (
-        <p className="text-xs text-slate-500">{selected.length} selecionado(s) · Clique na <Crown className="w-3 h-3 inline text-yellow-400" /> para marcar como líder da vertical</p>
-      )}
-
-      {/* Grouped list */}
-      <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
+      {/* Grouped list (only unselected) */}
+      <div className="space-y-3 max-h-52 overflow-y-auto pr-1">
         {isLoading ? (
           <div className="flex justify-center py-6"><Loader2 className="w-5 h-5 animate-spin text-slate-400" /></div>
         ) : Object.entries(grouped).map(([vertical, collabs]) => (
@@ -236,35 +267,23 @@ function StepTeam({ selected, onToggle, leaders, onToggleLeader }) {
               {VERTICAL_LABELS[vertical] || vertical}
             </p>
             <div className="space-y-0.5">
-              {collabs.map(c => {
-                const isSelected = !!selected.find(m => m.id === c.id);
-                const isLeader = leaders.includes(c.id);
-                return (
-                  <div key={c.id} className={`flex items-center gap-2 px-2 py-1.5 rounded-lg transition-all border ${
-                    isSelected ? 'bg-blue-600/15 border-blue-600/30' : 'border-transparent hover:bg-slate-700/50'
-                  }`}>
-                    <button onClick={() => onToggle(c)} className="flex-1 flex items-center gap-2 text-left">
-                      <div className={`w-6 h-6 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-xs font-bold flex-shrink-0 ${VERTICAL_AVATAR_COLORS[vertical] || 'from-slate-500 to-slate-600'}`}>
-                        {c.name?.charAt(0)}
-                      </div>
-                      <span className={`text-sm ${isSelected ? 'text-white font-medium' : 'text-slate-300'}`}>{c.name}</span>
-                      {isSelected && <Check className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />}
-                    </button>
-                    {isSelected && (
-                      <button onClick={() => onToggleLeader(c.id)}
-                        title="Marcar como líder"
-                        className={`p-1 rounded transition-all ${isLeader ? 'text-yellow-400' : 'text-slate-600 hover:text-yellow-500'}`}>
-                        <Crown className="w-3.5 h-3.5" />
-                      </button>
-                    )}
+              {collabs.map(c => (
+                <button key={c.id} onClick={() => onToggle(c)}
+                  className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg border border-transparent hover:bg-slate-700/50 hover:border-slate-600/50 transition-all text-left">
+                  <div className={`w-6 h-6 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-xs font-bold flex-shrink-0 ${VERTICAL_AVATAR_COLORS[vertical] || 'from-slate-500 to-slate-600'}`}>
+                    {c.name?.charAt(0)}
                   </div>
-                );
-              })}
+                  <span className="text-sm text-slate-300">{c.name}</span>
+                  {c.entity && <span className="ml-auto text-[10px] text-slate-500 bg-slate-700 px-1.5 py-0.5 rounded">{c.entity}</span>}
+                </button>
+              ))}
             </div>
           </div>
         ))}
         {Object.keys(grouped).length === 0 && !isLoading && (
-          <p className="text-center text-slate-500 text-sm py-4">Nenhum colaborador encontrado</p>
+          <p className="text-center text-slate-500 text-sm py-4">
+            {filtered.length === 0 && collaborators.length > 0 ? 'Todos os colaboradores já foram selecionados' : 'Nenhum colaborador encontrado'}
+          </p>
         )}
       </div>
     </div>
