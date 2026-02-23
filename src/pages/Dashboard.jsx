@@ -35,6 +35,7 @@ import AIWelcomeModal from '../components/modals/AIWelcomeModal.jsx';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Sparkles } from 'lucide-react';
 import EntityFilter from '../components/filters/EntityFilter';
+import KeyDocuments from '../components/dashboard/KeyDocuments.jsx';
 
 export default function Dashboard() {
   const queryClient = useQueryClient();
