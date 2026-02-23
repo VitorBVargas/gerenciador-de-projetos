@@ -376,7 +376,23 @@ export default function Products() {
                               {product.implementation_accepted && <Check className="w-3 h-3" />}
                               Aceite de Implantação
                             </button>
-                          </div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setProductForRecognition(product);
+                                setRecognitionModalOpen(true);
+                              }}
+                              className={cn(
+                                "w-full px-2 py-1 rounded text-[10px] font-medium transition-all flex items-center justify-center gap-1",
+                                recognizedRevenues.some(r => r.product_id === product.id)
+                                  ? "bg-purple-500/20 text-purple-400 border border-purple-500/30 hover:bg-purple-500/30"
+                                  : "bg-slate-700/50 text-slate-400 border border-slate-600/50 hover:bg-slate-600/50"
+                              )}
+                            >
+                              {recognizedRevenues.some(r => r.product_id === product.id) && <Check className="w-3 h-3" />}
+                              Reconhecimento
+                            </button>
+                            </div>
                         </CardContent>
                       </Card>
                     ))}
