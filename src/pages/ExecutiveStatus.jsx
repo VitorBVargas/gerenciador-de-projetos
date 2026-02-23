@@ -666,17 +666,32 @@ Seja conciso, profissional e em português.`;
                       <Badge className={cn("border", getHealthBg(project.healthScore))}>
                         <span className={getHealthColor(project.healthScore)}>{project.healthScore}</span>
                       </Badge>
-                      <Button
-                        size="icon"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setSelectedProject(project);
-                          setIsRevenueModalOpen(true);
-                        }}
-                        className="h-8 w-8 bg-purple-600 hover:bg-purple-700 shrink-0"
-                      >
-                        <DollarSign className="w-4 h-4" />
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        {allRecognizedRevenues.some(r => r.project_id === project.id) && (
+                          <Button
+                            size="icon"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setRecognitionsModalProject(project);
+                            }}
+                            className="h-8 w-8 bg-purple-800/50 hover:bg-purple-700 border border-purple-600/40 shrink-0"
+                            title="Ver reconhecimentos"
+                          >
+                            <Sparkles className="w-4 h-4 text-purple-300" />
+                          </Button>
+                        )}
+                        <Button
+                          size="icon"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setSelectedProject(project);
+                            setIsRevenueModalOpen(true);
+                          }}
+                          className="h-8 w-8 bg-purple-600 hover:bg-purple-700 shrink-0"
+                        >
+                          <DollarSign className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </CardHeader>
