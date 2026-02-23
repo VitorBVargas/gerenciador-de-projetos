@@ -9,6 +9,7 @@ import TimelineEventModal from '../components/modals/TimelineEventModal';
 import BulkEditDatesModal from '../components/modals/BulkEditDatesModal';
 import EmptyState from '../components/ui/EmptyState';
 import EntityFilter from '../components/filters/EntityFilter';
+import { phaseLabels } from '../components/timeline/phaseLabels';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,21 +31,6 @@ const verticalLabels = {
   parceiros: 'Parceiros',
   plataforma: 'Plataforma',
   atendimento: 'Atendimento'
-};
-
-const phaseLabels = {
-  planejamento_contrato: 'Planejamento/Contrato',
-  kickoff: 'Kickoff',
-  diagnostico: 'Diagnóstico',
-  onboarding_cliente: 'Onboarding Cliente',
-  configuracao_migracao_hml: 'Configuração/Migração de Homologação',
-  homologacao_base: 'Homologação da Base',
-  migracao_prd_blackout: 'Migração de PRD (Blackout)',
-  configuracao_prd: 'Configuração de PRD',
-  treinamento: 'Treinamento',
-  go_live: 'Go-Live',
-  operacao_assistida: 'Operação Assistida',
-  encerramento_bastao: 'Encerramento/Passagem de Bastão'
 };
 
 const statusLabels = {
