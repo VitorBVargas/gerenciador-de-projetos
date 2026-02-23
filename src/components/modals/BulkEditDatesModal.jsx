@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { phaseLabels } from '@/components/timeline/phaseLabels';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { useState } from 'react';
 
 export default function BulkEditDatesModal({ 
   open, 
@@ -21,6 +22,7 @@ export default function BulkEditDatesModal({
   const [selectedEntity, setSelectedEntity] = useState('');
   const [selectedVertical, setSelectedVertical] = useState('');
   const [selectedPhase, setSelectedPhase] = useState(null);
+  const [expandedPhase, setExpandedPhase] = useState(null);
   const [phaseStartDate, setPhaseStartDate] = useState('');
   const [phaseEndDate, setPhaseEndDate] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -31,6 +33,7 @@ export default function BulkEditDatesModal({
       setSelectedEntity('');
       setSelectedVertical('');
       setSelectedPhase(null);
+      setExpandedPhase(null);
       setPhaseStartDate('');
       setPhaseEndDate('');
       setEditAllMode(false);
@@ -79,6 +82,7 @@ export default function BulkEditDatesModal({
 
   const handlePhaseSelect = (phase) => {
     setSelectedPhase(phase);
+    setExpandedPhase(expandedPhase === phase ? null : phase);
     setPhaseStartDate('');
     setPhaseEndDate('');
   };
@@ -110,7 +114,7 @@ export default function BulkEditDatesModal({
 
   const filteredVerticals = getFilteredVerticals();
   const phaseEvents = selectedPhase ? getEventsByPhase(selectedPhase) : [];
-  const hasChanges = selectedPhase && (phaseStartDate || phaseEndDate);
+  const hasChanges = expandedPhase && (phaseStartDate || phaseEndDate);
   const isValidSelection = editAllMode || (selectedEntity && selectedVertical);
 
   return (
@@ -234,7 +238,7 @@ export default function BulkEditDatesModal({
                     });
 
                     return uniqueActivities.map(event => {
-                      const isSelected = selectedPhase === event.phase;
+                      const isExpanded = expandedPhase === event.phase;
                       const eventCount = filteredEvents.filter(e => 
                         (e.title || phaseLabels[e.phase] || e.phase) === (event.title || phaseLabels[event.phase] || event.phase)
                       ).length;
@@ -244,7 +248,7 @@ export default function BulkEditDatesModal({
                           <button
                             onClick={() => handlePhaseSelect(event.phase)}
                             className={`w-full flex items-center justify-between p-3 rounded border transition ${
-                              isSelected
+                              isExpanded
                                 ? 'bg-blue-600/20 border-blue-600 text-blue-300'
                                 : 'bg-slate-700/50 border-slate-600 text-white hover:bg-slate-700/70'
                             }`}
@@ -257,9 +261,14 @@ export default function BulkEditDatesModal({
                                 ({eventCount} produto{eventCount > 1 ? 's' : ''})
                               </span>
                             </div>
+                            {isExpanded ? (
+                              <ChevronUp className="w-4 h-4" />
+                            ) : (
+                              <ChevronDown className="w-4 h-4" />
+                            )}
                           </button>
 
-                          {isSelected && (
+                          {isExpanded && (
                             <div className="mt-2 p-3 bg-slate-700/30 rounded border border-slate-600 space-y-3">
                               <p className="text-xs text-slate-400">Editar datas para esta atividade em {eventCount} produto{eventCount > 1 ? 's' : ''}:</p>
                               <div>
