@@ -253,7 +253,7 @@ export default function Timeline() {
 
                 {verticals.map(vertical => {
                   const verticalProgress = getVerticalProgress();
-                  const productsInVert = products.filter(p => p.vertical === vertical);
+                  const productsInVert = entityProducts.filter(p => p.vertical === vertical);
 
                   return (
                     <TabsContent key={vertical} value={vertical} className="space-y-4">
