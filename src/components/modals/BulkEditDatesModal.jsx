@@ -89,13 +89,6 @@ export default function BulkEditDatesModal({
   const handleConfirm = async () => {
     const eventsToUpdate = Object.values(editedEvents).map(event => {
       const originalEvent = timelineEvents.find(e => e.id === event.id);
-      if (applyToAll) {
-        return {
-          ...originalEvent,
-          start_date: event.start_date || originalEvent.start_date,
-          end_date: event.end_date || originalEvent.end_date
-        };
-      }
       return {
         ...originalEvent,
         start_date: event.start_date || originalEvent.start_date,
