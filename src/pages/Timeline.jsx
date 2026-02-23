@@ -265,29 +265,45 @@ export default function Timeline() {
                         </div>
                       </div>
 
-                      {/* Products in Vertical */}
-                      <div className="space-y-4">
-                        {productsInVert.map(product => {
-                          const productEvents = timelineEvents
-                            .filter(e => e.product_id === product.id)
-                            .sort((a, b) => (a.order || 0) - (b.order || 0));
+                      {/* Current Product Navigation */}
+                      {productsInVert.length > 0 && currentProduct && (
+                        <div className="space-y-4">
+                          {/* Product Navigation */}
+                          <div className="flex items-center justify-between bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setCurrentProductIndex(Math.max(0, currentProductIndex - 1))}
+                              disabled={currentProductIndex === 0}
+                              className="border-slate-600"
+                            >
+                              <ChevronLeft className="w-4 h-4" />
+                            </Button>
+                            <div className="flex-1 text-center">
+                              <h3 className="font-semibold text-white">{currentProduct.name}</h3>
+                              <p className="text-xs text-slate-400">
+                                Produto {currentProductIndex + 1} de {productsInVert.length}
+                              </p>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setCurrentProductIndex(Math.min(productsInVert.length - 1, currentProductIndex + 1))}
+                              disabled={currentProductIndex === productsInVert.length - 1}
+                              className="border-slate-600"
+                            >
+                              <ChevronRight className="w-4 h-4" />
+                            </Button>
+                          </div>
 
-                          const productProgress = productEvents.length > 0
-                            ? Math.round(productEvents.reduce((sum, e) => {
-                                if (e.status === 'concluido') return sum + 100;
-                                return sum + (e.progress || 0);
-                              }, 0) / productEvents.length)
-                            : 0;
+                          {/* Product Stages Table */}
+                          {(() => {
+                            const productEvents = timelineEvents
+                              .filter(e => e.product_id === currentProduct.id)
+                              .sort((a, b) => (a.order || 0) - (b.order || 0));
 
-                          return (
-                            <div key={product.id} className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
-                              {/* Product Header */}
-                              <div className="px-4 py-3 border-b border-slate-700 bg-slate-800/50">
-                                <h3 className="font-semibold text-white">{product.name}</h3>
-                              </div>
-
-                              {/* Product Stages Table */}
-                              <div className="overflow-x-auto">
+                            return (
+                              <div className="overflow-x-auto bg-slate-800 rounded-lg border border-slate-700">
                                 <table className="w-full">
                                   <thead>
                                     <tr className="border-b border-slate-700 bg-slate-900/50">
@@ -347,10 +363,10 @@ export default function Timeline() {
                                   </tbody>
                                 </table>
                               </div>
-                            </div>
-                          );
-                        })}
-                      </div>
+                            );
+                          })()}
+                        </div>
+                      )}
                     </TabsContent>
                   );
                 })}
