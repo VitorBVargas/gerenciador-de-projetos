@@ -472,6 +472,7 @@ export default function Dashboard() {
             migrationTasks={migrationTasks}
             homologationTasks={homologationTasks}
             risks={risks}
+            products={products}
           />
         </div>
       )}
