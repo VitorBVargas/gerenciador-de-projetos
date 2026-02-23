@@ -38,6 +38,7 @@ export default function Homologation() {
   const [sectionOrder, setSectionOrder] = useState({});
   const [isResetting, setIsResetting] = useState(false);
   const fileInputRef = React.useRef(null);
+  const creatingTasksRef = React.useRef(new Set());
 
   const urlParams = new URLSearchParams(window.location.search);
   const projectId = urlParams.get('project_id');
@@ -84,11 +85,16 @@ export default function Homologation() {
   });
 
   const createDefaultTasks = async (product) => {
+    // Previne criação duplicada simultânea
+    if (creatingTasksRef.current.has(product.id)) return;
+    
     const existingTasks = tasks.filter(t => t.product_id === product.id);
     if (existingTasks.length > 0) return;
 
     const defaultSections = getDefaultTasksForProduct(product.name);
     if (!defaultSections) return;
+
+    creatingTasksRef.current.add(product.id);
 
     const tasksToCreate = [];
     let order = 0;
@@ -109,19 +115,21 @@ export default function Homologation() {
       await base44.entities.HomologationTask.bulkCreate(tasksToCreate);
       queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
     }
+    
+    creatingTasksRef.current.delete(product.id);
   };
 
   React.useEffect(() => {
-    if (selectedProduct && products.length > 0) {
+    if (selectedProduct && products.length > 0 && tasks.length >= 0) {
       const product = getCurrentProduct();
       if (product) {
         const existingTasks = tasks.filter(t => t.product_id === product.id);
-        if (existingTasks.length === 0) {
+        if (existingTasks.length === 0 && productHasHomologation(product.name)) {
           createDefaultTasks(product);
         }
       }
     }
-  }, [selectedProduct, products.length]);
+  }, [selectedProduct, products.length, tasks.length]);
 
   const handleAddTask = () => {
     if (!newTaskTitle.trim() || !selectedProduct) return;
@@ -228,11 +236,34 @@ export default function Homologation() {
         base44.entities.HomologationTask.delete(task.id)
       ));
       
-      // Aguarda um pouco para garantir que as deleções foram processadas
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Invalida cache antes de recriar
+      await queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
       
-      // Recria as tarefas padrão
-      await createDefaultTasks(product);
+      // Aguarda para garantir que as deleções foram processadas
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Recria as tarefas padrão diretamente (sem verificar se existem)
+      const defaultSections = getDefaultTasksForProduct(product.name);
+      if (defaultSections) {
+        const tasksToCreate = [];
+        let order = 0;
+
+        for (const section of defaultSections) {
+          for (const taskTitle of section.tasks) {
+            tasksToCreate.push({
+              title: taskTitle,
+              project_id: projectId,
+              product_id: product.id,
+              completed: false,
+              order: order++
+            });
+          }
+        }
+
+        if (tasksToCreate.length > 0) {
+          await base44.entities.HomologationTask.bulkCreate(tasksToCreate);
+        }
+      }
       
       toast.success('Tarefas zeradas e recriadas com sucesso!');
     } catch (error) {
@@ -506,7 +537,7 @@ export default function Homologation() {
                                      </Button>
                                    </div>
                                     <div className="space-y-2">
-                                      {sectionTasks.map(task => (
+                                      {uniqueTasks.map(task => (
                                         <div key={task.id} className="flex items-center gap-3 group">
                                           <Checkbox
                                             checked={task.completed}
@@ -529,15 +560,38 @@ export default function Homologation() {
                                           </Button>
                                         </div>
                                       ))}
-                                    </div>
-                                  </div>
-                                ))}
+                                      </div>
+                                      </div>
+                                      );
+                                      })}
                                 
-                                {/* Renderizar seções padrão se não tem tarefas importadas */}
-                                {!hasImportedTasks && defaultSections.length > 0 && getOrderedSections(product.id, defaultSections).map((section, displayIndex) => {
+                                {/* Renderizar seções padrão */}
+                                {defaultSections.length > 0 && getOrderedSections(product.id, defaultSections).map((section, displayIndex) => {
                                  const sectionTasks = standardTasks.filter(task => 
                                    section.tasks.some(t => t.toLowerCase() === task.title.toLowerCase())
                                  );
+
+                                 // Remover duplicados, mantendo o que está marcado
+                                 const uniqueTasks = [];
+                                 const seenTitles = new Map();
+
+                                 for (const task of sectionTasks) {
+                                   const titleLower = task.title.toLowerCase();
+                                   if (!seenTitles.has(titleLower)) {
+                                     seenTitles.set(titleLower, task);
+                                     uniqueTasks.push(task);
+                                   } else {
+                                     // Se já existe, mantém o marcado
+                                     const existing = seenTitles.get(titleLower);
+                                     if (task.completed && !existing.completed) {
+                                       const idx = uniqueTasks.indexOf(existing);
+                                       uniqueTasks[idx] = task;
+                                       seenTitles.set(titleLower, task);
+                                     }
+                                   }
+                                 }
+
+                                 if (uniqueTasks.length === 0) return null;
 
                                  const totalSections = defaultSections.length;
 
