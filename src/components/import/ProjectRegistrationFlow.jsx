@@ -302,8 +302,9 @@ function StepStakeholders({ stakeholders, setStakeholders }) {
     { value: 'pessoal', label: 'Pessoal' },
     { value: 'educacao', label: 'Educação' },
     { value: 'iss', label: 'ISS' },
-    { value: 'saude', label: 'Saúde' },
+    { value: 'parceiros', label: 'Parceiros' },
     { value: 'plataforma', label: 'Plataforma' },
+    { value: 'saude', label: 'Saúde' },
     { value: 'atendimento', label: 'Atendimento' },
     { value: 'outros', label: 'Outros' },
   ];
