@@ -61,7 +61,7 @@ export default function MigrationProgressChart({ products, tasks }) {
       progress,
       completed,
       total,
-      color: verticalColors[vertical] || '#64748b'
+      color: VERTICAL_CHART_COLORS[vertical] || '#64748b'
     };
   }); // Mostra todas as verticais com produtos de migração, mesmo com 0 tarefas
 

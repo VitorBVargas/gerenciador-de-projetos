@@ -51,7 +51,7 @@ export default function HomologationProgressChart({ products, tasks }) {
     vertical,
     name: verticalLabels[vertical] || vertical,
     progress: Math.round((data.completedTasks / data.totalTasks) * 100),
-    color: verticalColors[vertical] || '#64748b'
+    color: VERTICAL_CHART_COLORS[vertical] || '#64748b'
   }))
   .sort((a, b) => b.progress - a.progress);
 
