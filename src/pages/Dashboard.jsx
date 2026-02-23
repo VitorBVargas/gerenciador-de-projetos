@@ -109,12 +109,6 @@ export default function Dashboard() {
     enabled: !!projectId
   });
 
-  const { data: documents = [] } = useQuery({
-    queryKey: ['documents', projectId],
-    queryFn: () => projectId ? base44.entities.ProjectDocument.filter({ project_id: projectId }) : [],
-    enabled: !!projectId
-  });
-
   const { data: expenses = [] } = useQuery({
     queryKey: ['expenses', projectId],
     queryFn: () => projectId ? base44.entities.Expense.filter({ project_id: projectId }) : [],
@@ -160,13 +154,6 @@ export default function Dashboard() {
     mutationFn: ({ id, completed }) => base44.entities.ProjectMilestone.update(id, { completed }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['milestones', projectId] });
-    }
-  });
-
-  const toggleDocumentMutation = useMutation({
-    mutationFn: ({ id, completed }) => base44.entities.ProjectDocument.update(id, { completed }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['documents', projectId] });
     }
   });
 
