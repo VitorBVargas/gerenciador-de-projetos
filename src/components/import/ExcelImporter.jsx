@@ -211,9 +211,10 @@ const processTeamSheet = (workbook) => {
         
         console.log(`Linha ${index}:`, { name, vertical, role, normalizedVertical: normalizeVertical(vertical) });
         
+        const normalizedV = normalizeVertical(vertical);
         return {
           name,
-          vertical: normalizeVertical(vertical),
+          vertical: normalizedV || 'outros',
           role,
           email,
           phone
@@ -223,12 +224,6 @@ const processTeamSheet = (workbook) => {
         // Ignora se não tem nome
         if (!m.name) {
           console.log('Ignorando por falta de nome:', m);
-          return false;
-        }
-        
-        // Ignora se não tem vertical
-        if (!m.vertical) {
-          console.log('Ignorando por falta de vertical válida:', m);
           return false;
         }
         
