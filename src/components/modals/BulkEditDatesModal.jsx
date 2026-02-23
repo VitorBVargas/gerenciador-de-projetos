@@ -140,13 +140,19 @@ export default function BulkEditDatesModal({
   const filteredVerticals = getFilteredVerticals();
   const changedCount = globalStartDate || globalEndDate ? filteredEvents.length : Object.keys(editedEvents).length;
   const hasChanges = changedCount > 0 && (globalStartDate || globalEndDate || Object.keys(editedEvents).length > 0);
+  const isValidSelection = editAllMode || (selectedEntity && selectedVertical);
 
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="bg-slate-800 border-slate-700 max-w-2xl max-h-[80vh]">
           <DialogHeader>
-            <DialogTitle className="text-white">Editar Datas</DialogTitle>
+            <DialogTitle className="text-white">Editar Datas em Lote</DialogTitle>
+            {isValidSelection && (
+              <p className="text-xs text-slate-400 mt-1">
+                {filteredEvents.length} etapa(s) encontrada(s)
+              </p>
+            )}
           </DialogHeader>
 
           <div className="space-y-4 overflow-y-auto max-h-[60vh] pr-4">
@@ -176,7 +182,7 @@ export default function BulkEditDatesModal({
               <>
                 {/* Entity Selection */}
                 <div>
-                  <label className="text-sm text-slate-300 block mb-2">Entidade</label>
+                  <label className="text-sm text-slate-300 block mb-2">Entidade <span className="text-red-400">*</span></label>
                   <select
                     value={selectedEntity}
                     onChange={(e) => {
@@ -184,6 +190,8 @@ export default function BulkEditDatesModal({
                       setSelectedVertical('');
                       setExpandedEvent(null);
                       setEditedEvents({});
+                      setGlobalStartDate('');
+                      setGlobalEndDate('');
                     }}
                     className="w-full bg-slate-700 border border-slate-600 text-white rounded px-3 py-2 text-sm"
                   >
@@ -197,13 +205,15 @@ export default function BulkEditDatesModal({
                 {/* Vertical Selection */}
                 {selectedEntity && (
                   <div>
-                    <label className="text-sm text-slate-300 block mb-2">Vertical</label>
+                    <label className="text-sm text-slate-300 block mb-2">Vertical <span className="text-red-400">*</span></label>
                     <select
                       value={selectedVertical}
                       onChange={(e) => {
                         setSelectedVertical(e.target.value);
                         setExpandedEvent(null);
                         setEditedEvents({});
+                        setGlobalStartDate('');
+                        setGlobalEndDate('');
                       }}
                       className="w-full bg-slate-700 border border-slate-600 text-white rounded px-3 py-2 text-sm"
                     >
@@ -212,6 +222,18 @@ export default function BulkEditDatesModal({
                         <option key={vertical} value={vertical}>{vertical}</option>
                       ))}
                     </select>
+                  </div>
+                )}
+
+                {/* Validation Message */}
+                {!selectedEntity && (
+                  <div className="p-3 bg-amber-600/20 border border-amber-600/50 rounded text-xs text-amber-300">
+                    ⚠️ Selecione uma entidade e uma vertical para continuar
+                  </div>
+                )}
+                {selectedEntity && !selectedVertical && (
+                  <div className="p-3 bg-amber-600/20 border border-amber-600/50 rounded text-xs text-amber-300">
+                    ⚠️ Selecione uma vertical para ver as etapas
                   </div>
                 )}
               </>
@@ -350,9 +372,9 @@ export default function BulkEditDatesModal({
             <Button
               onClick={handleApplyClick}
               className="bg-blue-600 hover:bg-blue-700"
-              disabled={!hasChanges || (!editAllMode && !selectedVertical)}
+              disabled={!isValidSelection || !hasChanges}
             >
-              Aplicar {changedCount > 0 && `(${changedCount})`}
+              Aplicar em Lote {changedCount > 0 && `(${changedCount})`}
             </Button>
           </DialogFooter>
         </DialogContent>
