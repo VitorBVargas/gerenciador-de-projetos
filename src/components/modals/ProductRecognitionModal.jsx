@@ -8,19 +8,17 @@ import { Sparkles } from 'lucide-react';
 
 export default function ProductRecognitionModal({ open, onOpenChange, product, projectId, onSave }) {
   const [month, setMonth] = useState('');
-  const [type, setType] = useState('implantacao');
 
   const handleSave = () => {
     if (!month) return;
     onSave({
       project_id: projectId,
       product_id: product.id,
-      amount: type === 'implantacao' ? (product.implementation_value || 0) : (product.inclusion_value || 0),
+      amount: product.implementation_value || 0,
       recognition_month: month + '-01',
-      type
+      type: 'implantacao'
     });
     setMonth('');
-    setType('implantacao');
     onOpenChange(false);
   };
 
