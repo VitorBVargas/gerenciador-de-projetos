@@ -1,9 +1,9 @@
 import React, { useRef, useState } from 'react';
 import { Trash2, Edit2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { format, differenceInDays } from 'date-fns';
 import { TaskService } from './TaskService';
+import TaskBarIndicators from './TaskBarIndicators';
 
 export default function TaskBar({
   task,
