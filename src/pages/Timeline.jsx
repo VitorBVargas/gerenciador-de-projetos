@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { Plus, Calendar, Edit3 } from 'lucide-react';
+import { Plus, Calendar, Edit3, Pencil, Trash2 } from 'lucide-react';
 import TimelineEventModal from '../components/modals/TimelineEventModal';
 import BulkEditDatesModal from '../components/modals/BulkEditDatesModal';
 import EmptyState from '../components/ui/EmptyState';
@@ -57,6 +57,7 @@ export default function Timeline() {
   const [activeVertical, setActiveVertical] = useState('');
   const [selectedEntity, setSelectedEntity] = useState('PM');
   const [editDatesOpen, setEditDatesOpen] = useState(false);
+  const [editAllProjectOpen, setEditAllProjectOpen] = useState(false);
 
   // Get project_id from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -236,14 +237,24 @@ export default function Timeline() {
              Linha do Tempo de Entregas
            </TabsTrigger>
          </TabsList>
-         <Button
-           size="sm"
-           onClick={() => setEditDatesOpen(true)}
-           className="bg-blue-600 hover:bg-blue-700 gap-2"
-         >
-           <Edit3 className="w-4 h-4" />
-           Editar datas
-         </Button>
+         <div className="flex gap-2">
+           <Button
+             size="sm"
+             onClick={() => setEditDatesOpen(true)}
+             className="bg-blue-600 hover:bg-blue-700 gap-2"
+           >
+             <Edit3 className="w-4 h-4" />
+             Editar datas
+           </Button>
+           <Button
+             size="sm"
+             onClick={() => setEditAllProjectOpen(true)}
+             className="bg-slate-700 hover:bg-slate-600 gap-2"
+           >
+             <Edit3 className="w-4 h-4" />
+             Editar todo o projeto
+           </Button>
+         </div>
        </div>
 
         {/* Timeline Tab */}
@@ -319,7 +330,7 @@ export default function Timeline() {
                                           <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Atividade</th>
                                           <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Status</th>
                                           <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Progresso</th>
-                                          <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Ações</th>
+                                          <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400"></th>
                                         </tr>
                                       </thead>
                                       <tbody>
@@ -348,25 +359,21 @@ export default function Timeline() {
                                               </div>
                                             </td>
                                             <td className="px-4 py-3">
-                                              <div className="flex gap-2">
-                                                <Button
-                                                  size="sm"
-                                                  variant="ghost"
-                                                  onClick={() => handleEdit(event, product.id)}
-                                                  className="text-slate-400 hover:text-blue-400"
-                                                >
-                                                  Editar
-                                                </Button>
-                                                <Button
-                                                  size="sm"
-                                                  variant="ghost"
-                                                  onClick={() => handleDelete(event.id)}
-                                                  className="text-slate-400 hover:text-red-400"
-                                                >
-                                                  Deletar
-                                                </Button>
-                                              </div>
-                                            </td>
+                                               <div className="flex gap-3">
+                                                 <button
+                                                   onClick={() => handleEdit(event, product.id)}
+                                                   className="text-slate-400 hover:text-blue-400 transition"
+                                                 >
+                                                   <Pencil className="w-4 h-4" />
+                                                 </button>
+                                                 <button
+                                                   onClick={() => handleDelete(event.id)}
+                                                   className="text-slate-400 hover:text-red-400 transition"
+                                                 >
+                                                   <Trash2 className="w-4 h-4" />
+                                                 </button>
+                                               </div>
+                                             </td>
                                           </tr>
                                         ))}
                                       </tbody>
