@@ -250,14 +250,42 @@ export default function Timeline() {
 
       {/* Main Tabs - Cronograma do Projeto */}
       <Tabs defaultValue="timeline" className="space-y-4">
-        <TabsList className="bg-slate-800 border border-slate-700">
-          <TabsTrigger value="timeline" className="data-[state=active]:bg-blue-600">
-            Cronograma do Projeto
-          </TabsTrigger>
-          <TabsTrigger value="delivery" className="data-[state=active]:bg-blue-600">
-            Linha do Tempo de Entregas
-          </TabsTrigger>
-        </TabsList>
+       <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+         <TabsList className="bg-slate-800 border border-slate-700">
+           <TabsTrigger value="timeline" className="data-[state=active]:bg-blue-600">
+             Cronograma do Projeto
+           </TabsTrigger>
+           <TabsTrigger value="delivery" className="data-[state=active]:bg-blue-600">
+             Linha do Tempo de Entregas
+           </TabsTrigger>
+         </TabsList>
+         <div className="flex gap-2 lg:ml-auto">
+           <Button
+             size="sm"
+             onClick={() => {
+               setBulkEditMode('vertical');
+               setBulkEditOpen(true);
+             }}
+             className="bg-blue-600 hover:bg-blue-700 gap-2"
+             disabled={productsInVertical.length === 0}
+           >
+             <Edit3 className="w-4 h-4" />
+             Editar Datas da Vertical
+           </Button>
+           <Button
+             size="sm"
+             onClick={() => {
+               setBulkEditMode('all');
+               setBulkEditOpen(true);
+             }}
+             className="bg-slate-700 hover:bg-slate-600 gap-2"
+             disabled={entityProducts.length === 0}
+           >
+             <Edit3 className="w-4 h-4" />
+             Editar Todas
+           </Button>
+         </div>
+       </div>
 
         {/* Timeline Tab */}
         <TabsContent value="timeline" className="space-y-6">
@@ -438,6 +466,15 @@ export default function Timeline() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Bulk Edit Dates Modal */}
+      <BulkEditDatesModal
+        open={bulkEditOpen}
+        onOpenChange={setBulkEditOpen}
+        events={getEventsForBulkEdit()}
+        onApply={handleBulkEditApply}
+        mode={bulkEditMode}
+      />
     </div>
   );
 }
