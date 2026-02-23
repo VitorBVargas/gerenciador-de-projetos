@@ -133,7 +133,8 @@ export default function Stakeholders() {
   const entities = [...new Set(stakeholders.map(s => s.entity || '').filter(Boolean))].sort();
 
   const filteredStakeholders = stakeholders.filter(s => {
-    const matchesSearch = s.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const matchesSearch = !searchQuery ||
+      s.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       s.role?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesEntity = !selectedEntity || s.entity === selectedEntity;
     return matchesSearch && matchesEntity;
