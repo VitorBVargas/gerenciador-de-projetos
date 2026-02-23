@@ -23,17 +23,17 @@ export default function BulkEditDatesModal({
   const [expandedEvent, setExpandedEvent] = useState(null);
   const [editedEvents, setEditedEvents] = useState({});
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [editAllMode, setEditAllMode] = useState(false);
 
   React.useEffect(() => {
-    if (open && editAll) {
-      // No need to reset when in editAll mode
-    } else if (open) {
+    if (open) {
       setSelectedEntity('');
       setSelectedVertical('');
       setExpandedEvent(null);
       setEditedEvents({});
+      setEditAllMode(false);
     }
-  }, [open, editAll]);
+  }, [open]);
 
   const getFilteredVerticals = () => {
     if (!selectedEntity) return [];
@@ -43,14 +43,16 @@ export default function BulkEditDatesModal({
   };
 
   const getFilteredEvents = () => {
-    if (editAll) {
-      // Get all unique events across all products
-      const seenIds = new Set();
+    if (editAllMode) {
+      // Get all unique events by phase
+      const eventsByPhase = {};
       return timelineEvents
         .filter(e => {
-          if (seenIds.has(e.id)) return false;
-          seenIds.add(e.id);
-          return true;
+          if (!eventsByPhase[e.phase]) {
+            eventsByPhase[e.phase] = true;
+            return true;
+          }
+          return false;
         })
         .sort((a, b) => (a.order || 0) - (b.order || 0));
     }
@@ -61,12 +63,14 @@ export default function BulkEditDatesModal({
       p => p.entity === selectedEntity && p.vertical === selectedVertical
     );
     
-    const seenIds = new Set();
+    const eventsByPhase = {};
     return timelineEvents
       .filter(e => {
-        if (seenIds.has(e.id)) return false;
-        seenIds.add(e.id);
-        return entityProducts.some(p => p.id === e.product_id);
+        if (!eventsByPhase[e.phase] && entityProducts.some(p => p.id === e.product_id)) {
+          eventsByPhase[e.phase] = true;
+          return true;
+        }
+        return false;
       })
       .sort((a, b) => (a.order || 0) - (b.order || 0));
   };
@@ -117,13 +121,33 @@ export default function BulkEditDatesModal({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="bg-slate-800 border-slate-700 max-w-2xl max-h-[80vh]">
           <DialogHeader>
-            <DialogTitle className="text-white">
-              {editAll ? 'Editar Todo o Projeto' : 'Editar Datas'}
-            </DialogTitle>
+            <DialogTitle className="text-white">Editar Datas</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4 overflow-y-auto max-h-[60vh] pr-4">
-            {!editAll && (
+            {/* Edit All Mode Toggle */}
+            <div className="flex items-center gap-2 p-3 bg-slate-700/30 rounded border border-slate-600">
+              <Checkbox
+                id="editAllMode"
+                checked={editAllMode}
+                onCheckedChange={(checked) => {
+                  setEditAllMode(checked);
+                  setSelectedEntity('');
+                  setSelectedVertical('');
+                  setExpandedEvent(null);
+                  setEditedEvents({});
+                }}
+                className="border-slate-500"
+              />
+              <Label
+                htmlFor="editAllMode"
+                className="text-sm text-slate-300 cursor-pointer flex-1"
+              >
+                Editar todo o projeto
+              </Label>
+            </div>
+
+            {!editAllMode && (
               <>
                 {/* Entity Selection */}
                 <div>
@@ -169,7 +193,7 @@ export default function BulkEditDatesModal({
             )}
 
             {/* Events List */}
-            {(editAll || selectedVertical) && (
+            {(editAllMode || selectedVertical) && (
               <div>
                 <label className="text-sm text-slate-300 block mb-2">Etapas</label>
                 <div className="space-y-2">
@@ -242,7 +266,7 @@ export default function BulkEditDatesModal({
             <Button
               onClick={handleApplyClick}
               className="bg-blue-600 hover:bg-blue-700"
-              disabled={changedCount === 0 || (!editAll && !selectedVertical)}
+              disabled={changedCount === 0 || (!editAllMode && !selectedVertical)}
             >
               Aplicar {changedCount > 0 && `(${changedCount})`}
             </Button>
