@@ -67,8 +67,6 @@ function StepOverview({ data, onChange }) {
     queryFn: () => base44.entities.PortfolioCollaborator.list(),
   });
 
-  const [openField, setOpenField] = useState(null);
-
   // Apenas colaboradores da vertical Gerenciamento
   const managementCollabs = collaborators
     .filter(c => c.vertical1 === 'Gerenciamento' || c.vertical1 === 'gerenciamento')
