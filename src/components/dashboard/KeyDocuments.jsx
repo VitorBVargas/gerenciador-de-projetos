@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { ExternalLink, Upload, Download, FolderOpen, X, Loader2 } from 'lucide-react';
+import { ExternalLink, Upload, Download, FolderOpen, X, Loader2, Settings, Plus, Trash2, Pencil } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 const KEY_DOCUMENTS = [
