@@ -128,7 +128,20 @@ export default function Timeline() {
 
   const handleSave = (data) => {
     if (selectedEvent) {
-      updateMutation.mutate({ id: selectedEvent.id, data });
+      // Preserva campos originais do evento (product_id, cronograma_id, vertical, etc)
+      // e sobrescreve apenas os campos editáveis
+      updateMutation.mutate({ 
+        id: selectedEvent.id, 
+        data: {
+          ...selectedEvent,
+          title: data.title,
+          phase: data.phase,
+          start_date: data.start_date,
+          end_date: data.end_date,
+          status: data.status,
+          progress: data.progress,
+        }
+      });
     } else {
       createMutation.mutate(data);
     }
