@@ -84,7 +84,7 @@ export default function Timeline() {
     enabled: !!projectId
   });
 
-  const activeProject = projects.find(p => p.id === projectId);
+  const schedulingType = activeProject?.scheduling_type || 'por_produto';
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.TimelineEvent.create(data),
