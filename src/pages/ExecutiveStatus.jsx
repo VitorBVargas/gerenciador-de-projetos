@@ -86,6 +86,49 @@ export default function ExecutiveStatus() {
   const [recorrenteProductsMap, setRecorrenteProductsMap] = useState({});
   const queryClient = useQueryClient();
 
+  // Recalcular mapa de produtos recorrentes sempre que os dados mudarem
+  useEffect(() => {
+    if (!allProducts.length && !allTimelineEvents.length && !allCronogramas.length) return;
+    const map = {};
+    const now = new Date();
+    for (let i = 0; i < 12; i++) {
+      const key = format(addMonths(now, i), 'yyyy-MM');
+      map[key] = [];
+    }
+    projects.forEach(project => {
+      const projectProducts = allProducts.filter(p => p.project_id === project.id);
+      if (!projectProducts.length) return;
+      if (project.scheduling_type === 'por_vertical') {
+        const verticalGroups = {};
+        projectProducts.forEach(prod => {
+          const v = prod.vertical || 'outros';
+          if (!verticalGroups[v]) verticalGroups[v] = [];
+          verticalGroups[v].push(prod);
+        });
+        Object.entries(verticalGroups).forEach(([vertical, prods]) => {
+          const cronograma = allCronogramas.find(c => c.project_id === project.id && c.vertical === vertical);
+          if (!cronograma) return;
+          const migEvent = allTimelineEvents.find(e => e.cronograma_id === cronograma.id && e.phase === 'migracao_prd_blackout');
+          if (!migEvent || !migEvent.start_date) return;
+          const migMonth = migEvent.start_date.substring(0, 7);
+          if (!map[migMonth]) return;
+          prods.forEach(prod => {
+            map[migMonth].push({ product: prod, project, vertical, startDate: migEvent.start_date, inclusionValue: prod.inclusion_value || 0 });
+          });
+        });
+      } else {
+        projectProducts.forEach(prod => {
+          const migEvent = allTimelineEvents.find(e => e.product_id === prod.id && e.phase === 'migracao_prd_blackout');
+          if (!migEvent || !migEvent.start_date) return;
+          const migMonth = migEvent.start_date.substring(0, 7);
+          if (!map[migMonth]) return;
+          map[migMonth].push({ product: prod, project, startDate: migEvent.start_date, inclusionValue: prod.inclusion_value || 0 });
+        });
+      }
+    });
+    setRecorrenteProductsMap(map);
+  }, [allProducts, allTimelineEvents, allCronogramas, projects]);
+
   // Inicializar conversa IA
   useEffect(() => {
     const initConversation = async () => {
