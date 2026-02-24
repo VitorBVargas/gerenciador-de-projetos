@@ -1020,15 +1020,6 @@ Seja conciso, profissional e em português.`;
           )}
         </TabsContent>
 
-        {/* Timeline Tab */}
-        <TabsContent value="timeline" className="space-y-6">
-          <MarcosRadar 
-            projects={allProjectsData}
-            timelineEvents={allTimelineEvents}
-            products={allProducts}
-          />
-        </TabsContent>
-
         {/* Financeiro Tab */}
         <TabsContent value="financeiro" className="space-y-6">
           {/* Controles de Visibilidade */}
