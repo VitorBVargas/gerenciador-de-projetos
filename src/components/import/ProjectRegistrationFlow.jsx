@@ -596,7 +596,7 @@ export default function ProjectRegistrationFlow({ open, onOpenChange, parsedData
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-6 py-5">
           {step === 0 && <StepOverview data={projectInfo} onChange={setProjectInfo} />}
-          {step === 1 && <StepCronograma cronogramas={cronogramas} setCronogramas={setCronogramas} />}
+          {step === 1 && <StepCronograma cronogramas={cronogramas} setCronogramas={setCronogramas} schedulingType={schedulingType} setSchedulingType={setSchedulingType} availableProducts={parsedProducts} />}
           {step === 2 && <StepTeam selected={team} onToggle={toggleTeam} leaders={teamLeaders} onToggleLeader={toggleLeader} />}
           {step === 3 && <StepStakeholders stakeholders={stakeholders} setStakeholders={setStakeholders} />}
           {step === 4 && <StepRisks risks={risks} setRisks={setRisks} />}
