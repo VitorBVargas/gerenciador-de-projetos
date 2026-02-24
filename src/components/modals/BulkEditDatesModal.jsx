@@ -105,15 +105,15 @@ export default function BulkEditDatesModal({
       return;
     }
 
-    setApplying(true);
-    setConfirmOpen(false);
-
     const phaseEvents = getEventsByPhase(selectedPhase);
     const eventsToUpdate = phaseEvents.map(event => ({
       id: event.id,
       start_date: phaseStartDate || event.start_date,
       end_date: phaseEndDate || event.end_date
     }));
+
+    setApplying(true);
+    setConfirmOpen(false);
 
     if (eventsToUpdate.length > 0) {
       await onApply(eventsToUpdate);
