@@ -252,41 +252,41 @@ export default function StepCronograma({ cronogramas, setCronogramas, scheduling
         </div>
       )}
 
-      {/* Form - Por Produto */}
+      {/* Form - Por Produto (seleciona por vertical, aplica a todos os produtos dela) */}
       {schedulingType === 'por_produto' && (
         <div className="space-y-3">
           <div>
-            <Label className="text-slate-300 text-xs mb-1 block">Selecione o Produto *</Label>
-            {remainingProducts.length === 0 ? (
-              <p className="text-xs text-green-400">✓ Todos os produtos já possuem cronograma</p>
+            <Label className="text-slate-300 text-xs mb-1 block">Selecione as Verticais *</Label>
+            {remainingVerticals.length === 0 && availableVerticals.length > 0 ? (
+              <p className="text-xs text-green-400">✓ Todas as verticais já possuem cronograma</p>
             ) : (
               <div className="flex flex-wrap gap-2">
-                {remainingProducts.map(p => (
+                {(remainingVerticals.length > 0 ? remainingVerticals : Object.keys(VERTICAL_LABELS)).map(v => (
                   <button
-                    key={p.name}
-                    onClick={() => { setSelectedProduct(selectedProduct?.name === p.name ? null : p); setCurrentDates({}); }}
+                    key={v}
+                    onClick={() => setSelectedVerticals(prev =>
+                      prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v]
+                    )}
                     className={`px-3 py-1.5 rounded-lg border text-xs transition-all ${
-                      selectedProduct?.name === p.name
-                        ? 'border-purple-500 bg-purple-600/15 text-purple-300'
+                      selectedVerticals.includes(v)
+                        ? (VERTICAL_COLORS[v] || 'bg-purple-500/20 text-purple-300 border-purple-500/30')
                         : 'bg-slate-700/30 border-slate-600 text-slate-400 hover:text-slate-300'
                     }`}
                   >
-                    {p.name}
-                    <span className="ml-1 opacity-50">({VERTICAL_LABELS[p.vertical] || p.vertical})</span>
+                    {VERTICAL_LABELS[v] || v}
                   </button>
                 ))}
               </div>
             )}
           </div>
 
-          {selectedProduct && (
+          {selectedVerticals.length > 0 && (
             <div className="bg-slate-800 border border-slate-600 rounded-lg p-3 space-y-3">
-              <p className="text-xs text-purple-300 font-semibold">{selectedProduct.name}</p>
               <DatesForm dates={currentDates} onChange={setCurrentDates} />
-              <Button onClick={handleAddProduct} disabled={!hasDates} size="sm"
+              <Button onClick={handleAddVertical} disabled={!hasDates} size="sm"
                 className="w-full bg-purple-600/20 hover:bg-purple-600/40 text-purple-300 border border-purple-600/30">
                 <Plus className="w-3.5 h-3.5 mr-1.5" />
-                Adicionar Cronograma do Produto
+                Adicionar Cronograma das Verticais Selecionadas
               </Button>
               {!hasDates && (
                 <p className="text-xs text-amber-500 text-center">Preencha pelo menos uma data para continuar</p>
