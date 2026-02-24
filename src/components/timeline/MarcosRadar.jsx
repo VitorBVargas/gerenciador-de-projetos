@@ -204,7 +204,7 @@ export default function MarcosRadar({ projects, timelineEvents, products = [] })
       <div className="bg-slate-800/30 border border-slate-700 rounded-lg p-4 max-h-64 overflow-y-auto">
         <h3 className="text-sm font-bold text-slate-200 mb-3">Projetos Monitorados</h3>
         <div className="space-y-2">
-          {projectsData.map((project) => (
+          {projectsData.sort((a, b) => a.daysToGoLive - b.daysToGoLive).map((project) => (
             <div key={project.id} className="text-xs text-slate-300 p-2 bg-slate-900/50 rounded border border-slate-700">
               <div className="font-medium text-slate-100">{project.name}</div>
               <div className="mt-1 flex gap-4">
