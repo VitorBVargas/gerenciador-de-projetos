@@ -112,9 +112,14 @@ export default function Timeline() {
   });
 
   const bulkUpdateMutation = useMutation({
-    mutationFn: (events) => Promise.all(
-      events.map(event => base44.entities.TimelineEvent.update(event.id, event))
-    ),
+    mutationFn: async (events) => {
+      // Process in chunks of 5 to avoid rate limiting
+      const chunkSize = 5;
+      for (let i = 0; i < events.length; i += chunkSize) {
+        const chunk = events.slice(i, i + chunkSize);
+        await Promise.all(chunk.map(event => base44.entities.TimelineEvent.update(event.id, event)));
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timelineEvents', projectId] });
       setEditDatesOpen(false);
