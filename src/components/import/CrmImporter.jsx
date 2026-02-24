@@ -152,9 +152,6 @@ export default function CrmImporter({ open, onOpenChange }) {
   };
 
   const handleFlowComplete = async (formData) => {
-    // formData = { projectInfo, cronogramas, team, stakeholders, risks }
-    console.log('📋 FormData recebido:', formData);
-    console.log('📅 Cronogramas:', formData.cronogramas);
     const { entityProductMap, totalImpl, totalIncl } = parsedData;
     const entities = Object.keys(entityProductMap);
 
