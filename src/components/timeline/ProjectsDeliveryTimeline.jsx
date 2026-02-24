@@ -19,10 +19,19 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents, pro
       // Verificar se o projeto já está concluído
       const isProjectCompleted = project.status === 'concluido';
       
-      // Find Go Live event
-      const goLiveEvent = projectEvents.find(e => e.phase === 'go_live');
+      // Find the most recent Go Live event (latest end_date)
+      const goLiveEvents = projectEvents.filter(e => e.phase === 'go_live');
+      const goLiveEvent = goLiveEvents.reduce((latest, event) => {
+        if (event.end_date) {
+          const eventDate = new Date(event.end_date);
+          if (!latest || eventDate > new Date(latest.end_date)) {
+            return event;
+          }
+        }
+        return latest;
+      }, null);
       
-      // Find the last encerramento_bastao event end_date (project end)
+      // Find the furthest encerramento_bastao event end_date (project end)
       const closureEvents = projectEvents.filter(e => e.phase === 'encerramento_bastao');
       const closureEvent = closureEvents.reduce((latest, event) => {
         if (event.end_date) {
