@@ -168,7 +168,7 @@ export default function ProjectSetupWizard({ open, onOpenChange, project, onComp
           {/* Steps indicator */}
           <div className="flex items-center gap-2 mt-4">
             {STEPS.map((s, i) => (
-              <React.Fragment key={s.id}>
+              <div key={s.id} className="flex items-center gap-2">
                 <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                   i === step ? 'bg-blue-600 text-white' :
                   i < step ? 'bg-green-600/30 text-green-400' :
@@ -178,7 +178,7 @@ export default function ProjectSetupWizard({ open, onOpenChange, project, onComp
                   <span className="hidden sm:inline">{s.label}</span>
                 </div>
                 {i < STEPS.length - 1 && <ChevronRight className="w-3 h-3 text-slate-600 flex-shrink-0" />}
-              </React.Fragment>
+              </div>
             ))}
           </div>
         </DialogHeader>
