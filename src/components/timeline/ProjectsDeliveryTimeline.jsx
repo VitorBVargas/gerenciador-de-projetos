@@ -180,18 +180,7 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents, pro
                      </div>
                    )}
 
-                   {/* Delivery/End Marker */}
-                   {deliveryPosition >= 0 && deliveryPosition <= 100 && (
-                     <div 
-                       className="absolute flex items-center z-10"
-                       style={{ left: `${deliveryPosition}%`, transform: 'translateX(-50%) translateY(-50%)', top: '50%' }}
-                     >
-                       <Icon className={`w-4 h-4 ${config.color}`} />
-                       <div className="text-xs text-slate-400 ml-2 whitespace-nowrap">
-                         {format(new Date(project.deliveryDate), 'dd/MM', { locale: ptBR })}
-                       </div>
-                     </div>
-                   )}
+
                 </div>
               </div>
             </div>
