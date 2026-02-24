@@ -166,7 +166,8 @@ export default function CrmImporter({ open, onOpenChange }) {
       budget: formData.projectInfo.budget ? parseFloat(formData.projectInfo.budget) : 0,
       deadline: formData.projectInfo.deadline || null,
       contract_link: formData.projectInfo.contract_link || '',
-      status: 'em_andamento'
+      status: 'em_andamento',
+      scheduling_type: formData.schedulingType || 'por_vertical'
     });
 
     // 2. Criar produtos
