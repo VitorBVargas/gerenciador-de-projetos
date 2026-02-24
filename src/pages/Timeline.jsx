@@ -11,6 +11,8 @@ import EmptyState from '../components/ui/EmptyState';
 import EntityFilter from '../components/filters/EntityFilter';
 
 import { phaseLabels } from '../components/timeline/phaseLabels';
+import TimelineByVertical from '../components/timeline/TimelineByVertical';
+import TimelineByProduct from '../components/timeline/TimelineByProduct';
 import {
   AlertDialog,
   AlertDialogAction,
