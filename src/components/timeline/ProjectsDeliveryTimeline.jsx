@@ -163,22 +163,34 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents, pro
                 </div>
 
                 {/* Timeline Bar */}
-                 <div className="flex-1 relative h-12 bg-slate-800/30 rounded border border-slate-700/50 min-w-[1200px] flex items-center">
-                  {/* Go Live Marker (Blue Triangle) */}
-                   {goLivePosition !== null && goLivePosition >= 0 && goLivePosition <= 100 && (
-                     <div 
-                       className="absolute flex items-center z-10"
-                       style={{ left: `${goLivePosition}%`, transform: 'translateX(-50%) translateY(-50%)', top: '50%' }}
-                     >
-                       <div className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-b-[8px] border-b-blue-500" />
-                       <div className="text-xs text-slate-400 ml-2 whitespace-nowrap">
-                         {format(new Date(project.goLiveDate), 'dd/MM', { locale: ptBR })}
-                       </div>
-                     </div>
-                   )}
+                  <div className="flex-1 relative h-12 bg-slate-800/30 rounded border border-slate-700/50 min-w-[1200px] flex items-center">
+                   {/* Go Live Marker (Blue Triangle) */}
+                    {goLivePosition !== null && goLivePosition >= 0 && goLivePosition <= 100 && (
+                      <div 
+                        className="absolute flex items-center z-10"
+                        style={{ left: `${goLivePosition}%`, transform: 'translateX(-50%) translateY(-50%)', top: '50%' }}
+                      >
+                        <div className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-b-[8px] border-b-blue-500" />
+                        <div className="text-xs text-slate-400 ml-2 whitespace-nowrap">
+                          {format(new Date(project.goLiveDate), 'dd/MM', { locale: ptBR })}
+                        </div>
+                      </div>
+                    )}
 
+                   {/* Status Marker (Circle for project_end, Star for awaiting_release) */}
+                    {deliveryPosition >= 0 && deliveryPosition <= 100 && (
+                      <div 
+                        className="absolute flex items-center z-10"
+                        style={{ left: `${deliveryPosition}%`, transform: 'translateX(-50%) translateY(-50%)', top: '50%' }}
+                      >
+                        <Icon className={`w-5 h-5 ${config.color}`} />
+                        <div className="text-xs text-slate-400 ml-2 whitespace-nowrap">
+                          {format(new Date(project.deliveryDate), 'dd/MM', { locale: ptBR })}
+                        </div>
+                      </div>
+                    )}
 
-                </div>
+                 </div>
               </div>
             </div>
           );
