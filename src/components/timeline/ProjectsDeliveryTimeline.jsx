@@ -22,8 +22,17 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents, pro
       // Find Go Live event
       const goLiveEvent = projectEvents.find(e => e.phase === 'go_live');
       
-      // Find the encerramento_bastao event end_date (project end)
-      const closureEvent = projectEvents.find(e => e.phase === 'encerramento_bastao');
+      // Find the last encerramento_bastao event end_date (project end)
+      const closureEvents = projectEvents.filter(e => e.phase === 'encerramento_bastao');
+      const closureEvent = closureEvents.reduce((latest, event) => {
+        if (event.end_date) {
+          const eventDate = new Date(event.end_date);
+          if (!latest || eventDate > new Date(latest.end_date)) {
+            return event;
+          }
+        }
+        return latest;
+      }, null);
       const deliveryDate = closureEvent?.end_date ? new Date(closureEvent.end_date) : null;
 
       // Verificar se todas as etapas do cronograma estão concluídas
