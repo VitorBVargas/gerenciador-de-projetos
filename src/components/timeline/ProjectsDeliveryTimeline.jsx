@@ -94,7 +94,7 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents, pro
     return Math.max(2, (barMs / totalMs) * 100);
   };
 
-  if (projectsWithDelivery.length === 0) {
+  if (projectsWithDelivery.length === 0 || !timelineRange) {
     return (
       <Card className="bg-slate-800/50 border-slate-700/50 p-8 text-center">
         <p className="text-slate-400">Nenhum projeto com data de entrega definida</p>
@@ -103,102 +103,123 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents, pro
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Legend */}
       <div className="flex gap-8 px-4 py-3 text-xs font-medium bg-slate-800/40 rounded-lg border border-slate-700">
         <div className="flex items-center gap-2">
-          <div className="w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-b-[7px] border-b-blue-500" />
-          <span className="text-slate-300">Go Live / Liberação</span>
+          <div className="w-0 h-0 border-l-[3px] border-l-transparent border-r-[3px] border-r-transparent border-b-[5px] border-b-blue-500" />
+          <span className="text-slate-300">Go Live</span>
         </div>
         <div className="flex items-center gap-2">
-          <Circle className="w-3 h-3 text-green-500 fill-green-500" />
+          <Circle className="w-2 h-2 text-green-500 fill-green-500" />
           <span className="text-slate-300">Fim do Projeto</span>
         </div>
       </div>
 
-      {/* Monthly Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {months.map((month) => {
-          const monthKey = format(month, 'yyyy-MM');
-          const monthData = projectsByMonth[monthKey];
-          const hasProjects = monthData.goLive.length > 0 || monthData.closing.length > 0;
+      {/* Timeline Container */}
+      <div className="border border-slate-700 rounded-lg bg-slate-900/20 overflow-hidden">
+        {/* Header with months */}
+        <div className="flex">
+          {/* Left spacer for project names */}
+          <div className="w-48 shrink-0 bg-slate-900/50 border-r border-slate-700 p-4">
+            <h3 className="text-xs font-bold text-slate-300 uppercase">Projeto</h3>
+          </div>
 
-          if (!hasProjects) return null;
-
-          return (
-            <div key={monthKey} className="border border-slate-700 rounded-lg bg-slate-900/30 overflow-hidden">
-              {/* Month Header */}
-              <div className="bg-gradient-to-r from-slate-800 to-slate-800/50 px-4 py-3 border-b border-slate-700">
-                <h3 className="text-sm font-bold text-white">
-                  {format(month, 'MMMM yyyy', { locale: ptBR }).toUpperCase()}
-                </h3>
-              </div>
-
-              {/* Month Content */}
-              <div className="divide-y divide-slate-700">
-                {/* Go Live Section */}
-                {monthData.goLive.length > 0 && (
-                  <div className="p-4 space-y-3">
-                    <div className="flex items-center gap-2 text-xs font-semibold text-blue-400">
-                      <div className="w-0 h-0 border-l-[3px] border-l-transparent border-r-[3px] border-r-transparent border-b-[5px] border-b-blue-500" />
-                      <span>GO LIVE ({monthData.goLive.length})</span>
-                    </div>
-                    <div className="space-y-2 ml-5">
-                      {monthData.goLive.map(project => (
-                        <div key={`${project.id}-go-live`} className="flex items-start justify-between gap-2">
-                          <div className="text-xs text-slate-200 truncate flex-1">
-                            <span className="font-medium">{project.name}</span>
-                            <span className="text-slate-400 ml-2">
-                              {format(new Date(project.goLiveDate), 'dd MMM', { locale: ptBR })}
-                            </span>
-                          </div>
-                          {expandedProjects[project.id] && (
-                            <button
-                              onClick={() => toggleProject(project.id)}
-                              className="text-slate-400 hover:text-slate-300"
-                            >
-                              <ChevronUp className="w-3 h-3" />
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
+          {/* Timeline header */}
+          <div className="flex-1 overflow-x-auto scrollbar-thin scrollbar-thumb-slate-600">
+            <div className="flex" style={{ width: `${Math.max(100, months.length * 60)}px` }}>
+              {months.map((month, idx) => (
+                <div
+                  key={idx}
+                  className="flex-1 px-2 py-3 border-r border-slate-700/50 last:border-r-0 min-w-[60px] text-center bg-slate-800/30"
+                >
+                  <div className="text-xs font-bold text-slate-300">
+                    {format(month, 'MMM', { locale: ptBR })}
                   </div>
-                )}
-
-                {/* Closing Section */}
-                {monthData.closing.length > 0 && (
-                  <div className="p-4 space-y-3">
-                    <div className="flex items-center gap-2 text-xs font-semibold text-green-400">
-                      <Circle className="w-3 h-3 text-green-500 fill-green-500" />
-                      <span>FIM DO PROJETO ({monthData.closing.length})</span>
-                    </div>
-                    <div className="space-y-2 ml-5">
-                      {monthData.closing.map(project => (
-                        <div key={`${project.id}-closing`} className="flex items-start justify-between gap-2">
-                          <div className="text-xs text-slate-200 truncate flex-1">
-                            <span className="font-medium">{project.name}</span>
-                            <span className="text-slate-400 ml-2">
-                              {format(new Date(project.deliveryDate), 'dd MMM', { locale: ptBR })}
-                            </span>
-                          </div>
-                          {expandedProjects[project.id] && (
-                            <button
-                              onClick={() => toggleProject(project.id)}
-                              className="text-slate-400 hover:text-slate-300"
-                            >
-                              <ChevronUp className="w-3 h-3" />
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
+                  <div className="text-xs text-slate-500">
+                    {format(month, 'yy', { locale: ptBR })}
                   </div>
-                )}
-              </div>
+                </div>
+              ))}
             </div>
-          );
-        })}
+          </div>
+        </div>
+
+        {/* Timeline rows */}
+        <div className="flex">
+          {/* Project names */}
+          <div className="w-48 shrink-0 border-r border-slate-700 bg-slate-900/30">
+            {projectsWithDelivery.map((project) => (
+              <div
+                key={project.id}
+                className="h-14 px-4 py-3 border-b border-slate-700 last:border-b-0 flex items-center"
+              >
+                <span className="text-sm font-medium text-slate-200 truncate">{project.name}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Timeline bars */}
+          <div className="flex-1 overflow-x-auto scrollbar-thin scrollbar-thumb-slate-600 relative">
+            <div style={{ width: `${Math.max(100, months.length * 60)}px` }} className="relative">
+              {/* Vertical grid lines */}
+              <div className="absolute inset-0 flex pointer-events-none">
+                {months.map((month, idx) => (
+                  <div
+                    key={idx}
+                    className="flex-1 border-r border-slate-700/20 last:border-r-0 min-w-[60px]"
+                  />
+                ))}
+              </div>
+
+              {/* Project bars */}
+              {projectsWithDelivery.map((project) => {
+                const startPos = getDatePosition(project.goLiveDate);
+                const barWidth = getBarWidth(project.goLiveDate, project.deliveryDate);
+
+                return (
+                  <div
+                    key={project.id}
+                    className="h-14 py-3 px-2 border-b border-slate-700 last:border-b-0 relative flex items-center"
+                  >
+                    {/* Bar container */}
+                    <div className="absolute top-0 bottom-0 flex items-center" style={{ left: `${startPos}%` }}>
+                      {/* Bar background */}
+                      <div
+                        className="h-6 bg-gradient-to-r from-blue-500 to-blue-600 rounded opacity-70 hover:opacity-100 transition-opacity relative group"
+                        style={{ width: `${barWidth}%`, minWidth: '8px' }}
+                      >
+                        {/* Tooltip */}
+                        <div className="hidden group-hover:block absolute z-10 bottom-full left-0 mb-2 whitespace-nowrap">
+                          <div className="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200">
+                            {format(new Date(project.goLiveDate), 'dd MMM', { locale: ptBR })} - {format(new Date(project.deliveryDate), 'dd MMM', { locale: ptBR })}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Go Live marker */}
+                      <div className="absolute top-1/2 -translate-y-1/2" style={{ left: 0 }}>
+                        <div className="w-0 h-0 border-l-[3px] border-l-transparent border-r-[3px] border-r-transparent border-b-[6px] border-b-blue-500 relative" style={{ marginLeft: '-3px' }}>
+                          <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 text-xs text-slate-400 font-semibold whitespace-nowrap pointer-events-none">
+                            {format(new Date(project.goLiveDate), 'dd/MM', { locale: ptBR })}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Delivery marker */}
+                      <div className="absolute top-1/2 -translate-y-1/2" style={{ left: `${barWidth}%` }}>
+                        <Circle className="w-4 h-4 text-green-500 fill-green-500 relative" style={{ marginLeft: '-8px' }} />
+                        <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 text-xs text-slate-400 font-semibold whitespace-nowrap pointer-events-none">
+                          {format(new Date(project.deliveryDate), 'dd/MM', { locale: ptBR })}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
