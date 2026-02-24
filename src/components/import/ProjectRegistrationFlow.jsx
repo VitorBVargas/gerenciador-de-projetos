@@ -610,9 +610,14 @@ export default function ProjectRegistrationFlow({ open, onOpenChange, parsedData
           </Button>
           <span className="text-xs text-slate-500">{step + 1} de {STEPS.length}</span>
           {step < STEPS.length - 1 ? (
-            <Button onClick={() => setStep(s => s + 1)} disabled={!canNext()} className="bg-blue-600 hover:bg-blue-700">
-              Próximo <ChevronRight className="w-4 h-4 ml-1" />
-            </Button>
+            <div className="flex flex-col items-end gap-1">
+              <Button onClick={() => setStep(s => s + 1)} disabled={!canNext()} className="bg-blue-600 hover:bg-blue-700">
+                Próximo <ChevronRight className="w-4 h-4 ml-1" />
+              </Button>
+              {step === 1 && !canNext() && (
+                <span className="text-xs text-amber-400">Adicione pelo menos 1 cronograma com datas</span>
+              )}
+            </div>
           ) : (
             <Button onClick={handleFinish} disabled={saving || !canNext()} className="bg-green-600 hover:bg-green-700 min-w-32">
               {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Salvando...</> : <><Check className="w-4 h-4 mr-1" />Criar Projeto</>}
