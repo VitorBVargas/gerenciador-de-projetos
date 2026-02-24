@@ -1288,13 +1288,23 @@ Seja conciso, profissional e em português.`;
             
             // Se clicou na barra normal (implantação ou recorrente do mês)
             const productsInMonth = [];
+
+            // Recalcular totalRecognizedByProject para uso aqui
+            const totalRecognizedByProjectLocal = {};
+            allRecognizedRevenues.forEach(r => {
+              if (!totalRecognizedByProjectLocal[r.project_id]) {
+                totalRecognizedByProjectLocal[r.project_id] = { implantacao: 0, recorrente: 0 };
+              }
+              if (r.type === 'implantacao') totalRecognizedByProjectLocal[r.project_id].implantacao += r.amount;
+              else totalRecognizedByProjectLocal[r.project_id].recorrente += r.amount;
+            });
             
             // Projetos cujo prazo contratual cai neste mês (A Receber - verde)
             projects.forEach(project => {
               const implMonth = project.deadline ? project.deadline.substring(0, 7) : null;
               if (!implMonth || implMonth !== selectedMonth) return;
 
-              const recognized = totalRecognizedByProject[project.id] || { implantacao: 0, recorrente: 0 };
+              const recognized = totalRecognizedByProjectLocal[project.id] || { implantacao: 0, recorrente: 0 };
               const pendente = Math.max(0, (project.implementation_value || 0) - recognized.implantacao);
 
               const projectProducts = allProducts.filter(p => p.project_id === project.id);
