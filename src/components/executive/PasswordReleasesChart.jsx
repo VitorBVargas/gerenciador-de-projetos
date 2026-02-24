@@ -103,6 +103,12 @@ export default function PasswordReleasesChart({ products, projects = [], visible
               <YAxis
                 stroke="#94a3b8"
                 style={{ fontSize: '12px' }}
+                tickFormatter={(value) => 
+                  new Intl.NumberFormat('pt-BR', {
+                    notation: 'compact',
+                    compactDisplay: 'short'
+                  }).format(value)
+                }
               />
               <RechartsTooltip
                 contentStyle={{
@@ -111,6 +117,14 @@ export default function PasswordReleasesChart({ products, projects = [], visible
                   borderRadius: '8px',
                   color: '#fff'
                 }}
+                formatter={(value) =>
+                  new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL',
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                  }).format(value)
+                }
               />
               <Legend />
               <Bar
