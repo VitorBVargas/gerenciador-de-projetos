@@ -1062,32 +1062,44 @@ Seja conciso, profissional e em português.`;
                   // Buscar cronograma da vertical
                   const cronograma = allCronogramas.find(c => c.project_id === project.id && c.vertical === vertical);
                   
-                  // Buscar etapa migracao_prd_blackout - tenta por cronograma_id primeiro, depois por product_id dos produtos
-                  let migEvent = null;
+                  // Se cronograma existe com evento, usa para todos os produtos
                   if (cronograma) {
-                    migEvent = allTimelineEvents.find(e => 
+                    const migEvent = allTimelineEvents.find(e => 
                       e.cronograma_id === cronograma.id && e.phase === 'migracao_prd_blackout'
                     );
+                    
+                    if (migEvent && migEvent.start_date) {
+                      const migMonth = migEvent.start_date.substring(0, 7);
+                      if (monthlyData[migMonth]) {
+                        const totalInclusao = prods.reduce((sum, p) => sum + (p.inclusion_value || 0), 0);
+                        monthlyData[migMonth].recorrente += totalInclusao;
+
+                        prods.forEach(prod => {
+                          monthlyRecorrenteProducts[migMonth].push({
+                            product: prod,
+                            project,
+                            vertical,
+                            startDate: migEvent.start_date,
+                            inclusionValue: prod.inclusion_value || 0
+                          });
+                        });
+                      }
+                      return;
+                    }
                   }
                   
-                  // Se não encontrou por cronograma_id, tenta buscar entre os produtos da vertical
-                  if (!migEvent) {
-                    const prodIds = prods.map(p => p.id);
-                    migEvent = allTimelineEvents.find(e => 
-                      prodIds.includes(e.product_id) && e.phase === 'migracao_prd_blackout'
-                    );
-                  }
-                  
-                  if (!migEvent || !migEvent.start_date) return;
-
-                  const migMonth = migEvent.start_date.substring(0, 7);
-                  if (!monthlyData[migMonth]) return;
-
-                  // Valor de inclusão = soma dos produtos da vertical
-                  const totalInclusao = prods.reduce((sum, p) => sum + (p.inclusion_value || 0), 0);
-                  monthlyData[migMonth].recorrente += totalInclusao;
-
+                  // Se não encontrou por cronograma, busca cada produto individualmente
                   prods.forEach(prod => {
+                    const migEvent = allTimelineEvents.find(e => 
+                      e.product_id === prod.id && e.phase === 'migracao_prd_blackout'
+                    );
+                    
+                    if (!migEvent || !migEvent.start_date) return;
+                    
+                    const migMonth = migEvent.start_date.substring(0, 7);
+                    if (!monthlyData[migMonth]) return;
+
+                    monthlyData[migMonth].recorrente += (prod.inclusion_value || 0);
                     monthlyRecorrenteProducts[migMonth].push({
                       product: prod,
                       project,
