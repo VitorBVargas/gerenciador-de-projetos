@@ -1001,10 +1001,17 @@ Seja conciso, profissional e em português.`;
             // Para alterar de onde buscamos a data de implantação de cada projeto,
             // edite APENAS esta função:
             const getImplantacaoMonth = (project) => {
-              // FONTE ATUAL: Prazo Contratual (project.deadline)
-              // Para mudar para outra fonte, substitua project.deadline pelo campo desejado.
-              // Ex: para usar Go Live do cronograma, busque o evento aqui e retorne sua data.
-              return project.deadline ? project.deadline.substring(0, 7) : null; // retorna 'YYYY-MM'
+              // FONTE ATUAL: Fim da Operação Assistida
+              const operacaoAssistidaEvent = allTimelineEvents.find(e => 
+                e.project_id === project.id && e.phase === 'operacao_assistida'
+              );
+              
+              if (operacaoAssistidaEvent && operacaoAssistidaEvent.end_date) {
+                return operacaoAssistidaEvent.end_date.substring(0, 7);
+              }
+              
+              // Fallback para prazo contratual se não encontrar evento
+              return project.deadline ? project.deadline.substring(0, 7) : null;
             };
             // ─────────────────────────────────────────────────────────────────────
 
