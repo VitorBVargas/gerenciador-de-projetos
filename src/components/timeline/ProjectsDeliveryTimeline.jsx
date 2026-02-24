@@ -63,25 +63,47 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents, pro
     }).filter(p => p.deliveryDate && !p.isProjectCompleted);
   }, [projects, timelineEvents, products]);
 
-  // Generate months for the timeline
+  // Generate 12 months from now
   const months = useMemo(() => {
     const monthsList = [];
-    let current = new Date(timelineStart);
-    
-    while (isBefore(current, timelineEnd) || current.getTime() === timelineEnd.getTime()) {
-      monthsList.push(new Date(current));
-      current = addMonths(current, 1);
+    for (let i = 0; i < 12; i++) {
+      monthsList.push(addMonths(startOfMonth(new Date()), i));
     }
-    
     return monthsList;
-  }, [timelineStart, timelineEnd]);
+  }, []);
 
-  // Calculate position of a date in the timeline (percentage)
-  const getDatePosition = (date) => {
-    const totalDays = (timelineEnd - timelineStart) / (1000 * 60 * 60 * 24);
-    const daysFromStart = (new Date(date) - timelineStart) / (1000 * 60 * 60 * 24);
-    return Math.max(0, Math.min(100, (daysFromStart / totalDays) * 100));
-  };
+  // Group projects by month
+  const projectsByMonth = useMemo(() => {
+    const grouped = {};
+    
+    months.forEach(month => {
+      grouped[format(month, 'yyyy-MM')] = {
+        month,
+        goLive: [],
+        closing: []
+      };
+    });
+
+    projectsWithDelivery.forEach(project => {
+      // Add to Go Live month
+      if (project.goLiveDate) {
+        const goLiveMonth = format(new Date(project.goLiveDate), 'yyyy-MM');
+        if (grouped[goLiveMonth]) {
+          grouped[goLiveMonth].goLive.push(project);
+        }
+      }
+
+      // Add to Closing month
+      if (project.deliveryDate) {
+        const closingMonth = format(new Date(project.deliveryDate), 'yyyy-MM');
+        if (grouped[closingMonth]) {
+          grouped[closingMonth].closing.push(project);
+        }
+      }
+    });
+
+    return grouped;
+  }, [months, projectsWithDelivery]);
 
   // Status icons and colors
   const statusConfig = {
