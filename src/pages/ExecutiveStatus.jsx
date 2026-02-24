@@ -1055,24 +1055,25 @@ Seja conciso, profissional e em português.`;
                          }
                        />
                        <RechartsTooltip
-                         contentStyle={{
-                           backgroundColor: '#1e293b',
-                           border: '1px solid #334155',
-                           borderRadius: '8px',
-                           color: '#fff'
-                         }}
-                         formatter={(value) =>
-                           new Intl.NumberFormat('pt-BR', {
-                             style: 'currency',
-                             currency: 'BRL'
-                           }).format(value)
-                         }
-                       />
-                       <Bar 
-                         dataKey="implantacao" 
-                         fill="#10b981" 
-                         name="Implantação" 
-                         cursor="pointer"
+                          contentStyle={{
+                            backgroundColor: '#1e293b',
+                            border: '1px solid #334155',
+                            borderRadius: '8px',
+                            color: '#fff'
+                          }}
+                          formatter={(value, name) => [
+                            new Intl.NumberFormat('pt-BR', {
+                              style: 'currency',
+                              currency: 'BRL'
+                            }).format(value),
+                            name
+                          ]}
+                        />
+                        <Bar 
+                          dataKey="implantacao" 
+                          fill="#10b981" 
+                          name="A Receber" 
+                          cursor="pointer"
                          onClick={(data) => {
                            const monthKey = Object.keys(monthlyData).find(
                              key => monthlyData[key].month === data.month
