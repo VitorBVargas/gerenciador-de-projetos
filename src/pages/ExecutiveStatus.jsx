@@ -1272,63 +1272,63 @@ Seja conciso, profissional e em português.`;
                   );
                   })()}
 
-          {/* Gráfico de Senhas */}
-          <PasswordReleasesChart 
-            products={allProducts}
-            projects={allProjectsData}
-            visibleCharts={visibleCharts}
-            onVisibilityChange={handleChartVisibility}
-          />
+                  {/* Gráfico de Senhas */}
+                  <PasswordReleasesChart 
+                  products={allProducts}
+                  projects={allProjectsData}
+                  visibleCharts={visibleCharts}
+                  onVisibilityChange={handleChartVisibility}
+                  />
 
                   {/* Lista de produtos do mês selecionado */}
-          {selectedMonth && (() => {
-            const monthLabel = format(new Date(selectedMonth + '-01'), 'MMMM/yyyy', { locale: ptBR });
-            
-            // Se clicou em recorrente (previsão de inclusão)
-            if (selectedMonthType === 'recorrente') {
-              const recorrenteProds = monthlyRecorrenteProducts[selectedMonth] || [];
-              if (recorrenteProds.length === 0) return null;
+                  {selectedMonth && (() => {
+                  const monthLabel = format(new Date(selectedMonth + '-01'), 'MMMM/yyyy', { locale: ptBR });
 
-              return (
-                <Card className="bg-slate-800 border-slate-600">
+                  // Se clicou em recorrente (previsão de inclusão)
+                  if (selectedMonthType === 'recorrente') {
+                  const recorrenteProds = recorrenteProductsMap[selectedMonth] || [];
+                  if (recorrenteProds.length === 0) return null;
+
+                  return (
+                  <Card className="bg-slate-800 border-slate-600">
                   <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-white">Previsão de Inclusão — {monthLabel}</CardTitle>
-                      <Button variant="ghost" size="sm" onClick={() => { setSelectedMonth(null); setSelectedMonthType(null); }} className="text-slate-400 hover:text-white">Fechar</Button>
-                    </div>
+                   <div className="flex items-center justify-between">
+                     <CardTitle className="text-white">Previsão de Inclusão — {monthLabel}</CardTitle>
+                     <Button variant="ghost" size="sm" onClick={() => { setSelectedMonth(null); setSelectedMonthType(null); }} className="text-slate-400 hover:text-white">Fechar</Button>
+                   </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-2">
-                      {recorrenteProds.map(({ product, project, vertical, startDate, inclusionValue }, idx) => (
-                        <div key={`${product.id}-${idx}`} className="p-3 bg-blue-900/20 rounded-lg border border-blue-700/50">
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex-1">
-                              <div className="font-semibold text-white text-sm">{product.name}</div>
-                              <div className="text-xs text-slate-400">Projeto: {project.name}</div>
-                              {vertical && <div className="text-xs text-blue-400">Vertical: {vertical}</div>}
-                              {startDate && <div className="text-xs text-slate-500">Início migração prd: {format(new Date(startDate), 'dd/MM/yyyy', { locale: ptBR })}</div>}
-                            </div>
-                            <div className="text-right shrink-0">
-                              <div className="text-sm font-semibold text-blue-400">
-                                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(inclusionValue)}/mês
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="mt-3 pt-3 border-t border-slate-600 flex justify-end">
-                      <div className="text-sm text-blue-300 font-semibold">
-                        Total: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(recorrenteProds.reduce((s, r) => s + r.inclusionValue, 0))}/mês
-                      </div>
-                    </div>
+                   <div className="space-y-2">
+                     {recorrenteProds.map(({ product, project, vertical, startDate, inclusionValue }, idx) => (
+                       <div key={`${product.id}-${idx}`} className="p-3 bg-blue-900/20 rounded-lg border border-blue-700/50">
+                         <div className="flex items-start justify-between gap-4">
+                           <div className="flex-1">
+                             <div className="font-semibold text-white text-sm">{product.name}</div>
+                             <div className="text-xs text-slate-400">Projeto: {project.name}</div>
+                             {vertical && <div className="text-xs text-blue-400">Vertical: {vertical}</div>}
+                             {startDate && <div className="text-xs text-slate-500">Início migração prd: {format(new Date(startDate), 'dd/MM/yyyy', { locale: ptBR })}</div>}
+                           </div>
+                           <div className="text-right shrink-0">
+                             <div className="text-sm font-semibold text-blue-400">
+                               {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(inclusionValue)}/mês
+                             </div>
+                           </div>
+                         </div>
+                       </div>
+                     ))}
+                   </div>
+                   <div className="mt-3 pt-3 border-t border-slate-600 flex justify-end">
+                     <div className="text-sm text-blue-300 font-semibold">
+                       Total: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(recorrenteProds.reduce((s, r) => s + r.inclusionValue, 0))}/mês
+                     </div>
+                   </div>
                   </CardContent>
-                </Card>
-              );
-            }
+                  </Card>
+                  );
+                  }
 
-            // Se clicou em reconhecido
-            if (selectedMonthType === 'reconhecido_implantacao' || selectedMonthType === 'reconhecido_recorrente') {
+                  // Se clicou em reconhecido
+                  if (selectedMonthType === 'reconhecido_implantacao' || selectedMonthType === 'reconhecido_recorrente') {
               // Buscar receitas reconhecidas neste mês
               const recognizedInMonth = allRecognizedRevenues.filter(r => {
                 const recMonth = r.recognition_month.substring(0, 7);
