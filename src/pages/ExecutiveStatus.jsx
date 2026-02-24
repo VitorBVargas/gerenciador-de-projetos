@@ -1237,7 +1237,21 @@ Seja conciso, profissional e em português.`;
                             }).format(value)
                           }
                         />
-                        <Bar dataKey="recorrente" fill="#3b82f6" name="Recorrente" cursor="pointer" />
+                        <Bar 
+                          dataKey="recorrente" 
+                          fill="#3b82f6" 
+                          name="Previsão Inclusão" 
+                          cursor="pointer"
+                          onClick={(data) => {
+                            const monthKey = Object.keys(monthlyData).find(
+                              key => monthlyData[key].month === data.month
+                            );
+                            if (monthKey) {
+                              setSelectedMonth(monthKey);
+                              setSelectedMonthType('recorrente');
+                            }
+                          }}
+                        />
                       </BarChart>
                     </ResponsiveContainer>
                     <div className="mt-4 text-center">
