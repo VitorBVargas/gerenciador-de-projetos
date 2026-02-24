@@ -159,45 +159,33 @@ export default function MarcosRadar({ projects, timelineEvents, products = [] })
               <g key={project.id}>
                 {/* Go Live - Triângulo */}
                 {project.daysToGoLive !== null && (
-                  <g>
+                  <g title={`${project.name} - Go Live${project.daysToGoLive >= 0 ? ` em ${project.daysToGoLive}d` : ` (${Math.abs(project.daysToGoLive)}d atrás)`}${project.goLiveDate ? ` - ${format(new Date(project.goLiveDate), 'dd/MM/yy')}` : ''}`}>
                     <polygon
-                      points={`${goLivePos.x},${goLivePos.y - 8} ${goLivePos.x - 8},${goLivePos.y + 8} ${goLivePos.x + 8},${goLivePos.y + 8}`}
-                      fill={goLiveColor.bg.replace('bg-', '').replace('-500', '')}
-                      className={goLiveColor.bg}
-                      opacity="0.8"
+                      points={`${goLivePos.x},${goLivePos.y - 10} ${goLivePos.x - 10},${goLivePos.y + 10} ${goLivePos.x + 10},${goLivePos.y + 10}`}
+                      fill={goLiveColor.bg === 'bg-red-500' ? '#ef4444' : goLiveColor.bg === 'bg-yellow-500' ? '#eab308' : goLiveColor.bg === 'bg-blue-500' ? '#3b82f6' : '#22c55e'}
+                      opacity="0.9"
                       style={{
-                        filter: 'drop-shadow(0 0 8px rgba(0,0,0,0.5))',
+                        filter: 'drop-shadow(0 0 6px rgba(0,0,0,0.7))',
                         cursor: 'pointer'
                       }}
                     />
-                    <title>
-                      {project.name} - Go Live
-                      {project.daysToGoLive >= 0 ? ` em ${project.daysToGoLive}d` : ` (${Math.abs(project.daysToGoLive)}d atrás)`}
-                      {project.goLiveDate && ` - ${format(new Date(project.goLiveDate), 'dd/MM/yy')}`}
-                    </title>
                   </g>
                 )}
 
                 {/* Fim do Projeto - Círculo */}
                 {project.daysToDelivery !== null && (
-                  <g>
+                  <g title={`${project.name} - Fim do Projeto${project.daysToDelivery >= 0 ? ` em ${project.daysToDelivery}d` : ` (${Math.abs(project.daysToDelivery)}d atrás)`}${project.deliveryDate ? ` - ${format(new Date(project.deliveryDate), 'dd/MM/yy')}` : ''}`}>
                     <circle
                       cx={deliveryPos.x}
                       cy={deliveryPos.y}
-                      r="8"
-                      fill={deliveryColor.bg.replace('bg-', '').replace('-500', '')}
-                      className={deliveryColor.bg}
-                      opacity="0.8"
+                      r="10"
+                      fill={deliveryColor.bg === 'bg-red-500' ? '#ef4444' : deliveryColor.bg === 'bg-yellow-500' ? '#eab308' : deliveryColor.bg === 'bg-blue-500' ? '#3b82f6' : '#22c55e'}
+                      opacity="0.9"
                       style={{
-                        filter: 'drop-shadow(0 0 8px rgba(0,0,0,0.5))',
+                        filter: 'drop-shadow(0 0 6px rgba(0,0,0,0.7))',
                         cursor: 'pointer'
                       }}
                     />
-                    <title>
-                      {project.name} - Fim do Projeto
-                      {project.daysToDelivery >= 0 ? ` em ${project.daysToDelivery}d` : ` (${Math.abs(project.daysToDelivery)}d atrás)`}
-                      {project.deliveryDate && ` - ${format(new Date(project.deliveryDate), 'dd/MM/yy')}`}
-                    </title>
                   </g>
                 )}
               </g>

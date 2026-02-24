@@ -661,7 +661,7 @@ Seja conciso, profissional e em português.`;
             Visão Geral
           </TabsTrigger>
           <TabsTrigger value="timeline" className="data-[state=active]:bg-blue-600">
-            Linha do Tempo de Entregas
+            Radar de Marcos
           </TabsTrigger>
           <TabsTrigger value="financeiro" className="data-[state=active]:bg-blue-600">
             Financeiro
