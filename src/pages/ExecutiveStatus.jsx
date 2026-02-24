@@ -24,7 +24,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { cn } from "@/lib/utils";
 import { createPageUrl } from '../utils';
 import { Link } from 'react-router-dom';
-import ProjectsDeliveryTimeline from '../components/timeline/ProjectsDeliveryTimeline';
+import MarcosRadar from '../components/timeline/MarcosRadar';
 import PasswordReleasesChart from '../components/executive/PasswordReleasesChart';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { format, addMonths } from 'date-fns';
@@ -944,7 +944,7 @@ Seja conciso, profissional e em português.`;
 
         {/* Timeline Tab */}
         <TabsContent value="timeline" className="space-y-6">
-          <ProjectsDeliveryTimeline 
+          <MarcosRadar 
             projects={allProjectsData}
             timelineEvents={allTimelineEvents}
             products={allProducts}
