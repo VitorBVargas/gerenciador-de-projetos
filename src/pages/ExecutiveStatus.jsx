@@ -661,9 +661,6 @@ Seja conciso, profissional e em português.`;
           <TabsTrigger value="overview" className="data-[state=active]:bg-blue-600">
             Visão Geral
           </TabsTrigger>
-          <TabsTrigger value="timeline" className="data-[state=active]:bg-blue-600">
-            Radar de Marcos
-          </TabsTrigger>
           <TabsTrigger value="financeiro" className="data-[state=active]:bg-blue-600">
             Financeiro
           </TabsTrigger>
