@@ -952,6 +952,8 @@ Seja conciso, profissional e em português.`;
 
             // Calcular valores por mês
             const monthlyData = {};
+            // monthlyRecorrenteProducts: { [monthKey]: [{product, project, cronograma, startDate}] }
+            const monthlyRecorrenteProducts = {};
             const now = new Date();
             
             // Gerar próximos 12 meses
@@ -960,15 +962,15 @@ Seja conciso, profissional e em português.`;
               const key = format(month, 'yyyy-MM');
               monthlyData[key] = {
                 month: format(month, 'MMM/yy', { locale: ptBR }),
-                implantacao: 0,      // valor bruto (para referência)
-                a_receber: 0,        // pendente = bruto - reconhecido (barra verde)
+                implantacao: 0,
+                a_receber: 0,
                 recorrente: 0,
                 reconhecido: 0
               };
+              monthlyRecorrenteProducts[key] = [];
             }
 
-            // Pré-calcular total reconhecido por projeto (todos os meses somados)
-            // Usa `projects` (já filtrado: apenas ativos)
+            // Pré-calcular total reconhecido por projeto
             const activeProjectIds = new Set(projects.map(p => p.id));
             const totalRecognizedByProject = {};
             allRecognizedRevenues.forEach(recognized => {
@@ -983,8 +985,7 @@ Seja conciso, profissional e em português.`;
               }
             });
 
-            // Processar apenas projetos ATIVOS (não concluídos)
-            // Verde = implantação total - soma de todos os reconhecidos (no mês do prazo contratual)
+            // Processar implantação (por prazo contratual do projeto)
             projects.forEach(project => {
               const implantacaoMonth = getImplantacaoMonth(project);
               if (!implantacaoMonth || !monthlyData[implantacaoMonth]) return;
@@ -996,14 +997,75 @@ Seja conciso, profissional e em português.`;
                 monthlyData[implantacaoMonth].implantacao += project.implementation_value;
                 monthlyData[implantacaoMonth].a_receber += pendente;
               }
+            });
 
-              if (project.recurring_value > 0) {
-                const pendente = Math.max(0, project.recurring_value - recognized.recorrente);
-                monthlyData[implantacaoMonth].recorrente += pendente;
+            // Processar recorrente: por data de início da etapa migracao_prd_blackout por produto
+            // Se projeto for por vertical: todos os produtos daquela vertical entram juntos
+            projects.forEach(project => {
+              const projectProducts = allProducts.filter(p => p.project_id === project.id);
+              if (!projectProducts.length) return;
+
+              if (project.scheduling_type === 'por_vertical') {
+                // Agrupar produtos por vertical
+                const verticalGroups = {};
+                projectProducts.forEach(prod => {
+                  const v = prod.vertical || 'outros';
+                  if (!verticalGroups[v]) verticalGroups[v] = [];
+                  verticalGroups[v].push(prod);
+                });
+
+                Object.entries(verticalGroups).forEach(([vertical, prods]) => {
+                  // Buscar cronograma da vertical
+                  const cronograma = allCronogramas.find(c => c.project_id === project.id && c.vertical === vertical);
+                  if (!cronograma) return;
+                  
+                  // Buscar etapa migracao_prd_blackout deste cronograma
+                  const migEvent = allTimelineEvents.find(e => 
+                    e.cronograma_id === cronograma.id && e.phase === 'migracao_prd_blackout'
+                  );
+                  if (!migEvent || !migEvent.start_date) return;
+
+                  const migMonth = migEvent.start_date.substring(0, 7);
+                  if (!monthlyData[migMonth]) return;
+
+                  // Valor de inclusão = soma dos produtos da vertical
+                  const totalInclusao = prods.reduce((sum, p) => sum + (p.inclusion_value || 0), 0);
+                  monthlyData[migMonth].recorrente += totalInclusao;
+
+                  prods.forEach(prod => {
+                    monthlyRecorrenteProducts[migMonth].push({
+                      product: prod,
+                      project,
+                      vertical,
+                      startDate: migEvent.start_date,
+                      inclusionValue: prod.inclusion_value || 0
+                    });
+                  });
+                });
+              } else {
+                // Por produto: cada produto tem seu próprio cronograma
+                projectProducts.forEach(prod => {
+                  // Buscar TimelineEvents do produto com fase migracao_prd_blackout
+                  const migEvent = allTimelineEvents.find(e =>
+                    e.product_id === prod.id && e.phase === 'migracao_prd_blackout'
+                  );
+                  if (!migEvent || !migEvent.start_date) return;
+
+                  const migMonth = migEvent.start_date.substring(0, 7);
+                  if (!monthlyData[migMonth]) return;
+
+                  monthlyData[migMonth].recorrente += (prod.inclusion_value || 0);
+                  monthlyRecorrenteProducts[migMonth].push({
+                    product: prod,
+                    project,
+                    startDate: migEvent.start_date,
+                    inclusionValue: prod.inclusion_value || 0
+                  });
+                });
               }
             });
 
-            // Roxo = cada reconhecimento aparece no seu próprio mês de reconhecimento
+            // Roxo = cada reconhecimento de implantação aparece no seu próprio mês
             allRecognizedRevenues.forEach(recognized => {
               if (recognized.type !== 'implantacao') return;
               const project = allProjectsData.find(p => p.id === recognized.project_id);
