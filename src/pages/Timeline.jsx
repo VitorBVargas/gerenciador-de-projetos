@@ -261,135 +261,24 @@ export default function Timeline() {
                 </Button>
               }
             />
+          ) : schedulingType === 'por_vertical' ? (
+            <TimelineByVertical
+              verticals={verticals}
+              entityProducts={entityProducts}
+              timelineEvents={timelineEvents}
+              onStatusChange={handleStatusChange}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
           ) : (
-            <>
-              {/* Vertical Tabs */}
-              <Tabs value={activeVertical} onValueChange={setActiveVertical} className="space-y-4">
-                <TabsList className="bg-slate-800 border border-slate-700 flex-wrap h-auto p-2 gap-2">
-                  {verticals.map(vertical => (
-                    <TabsTrigger key={vertical} value={vertical} className="data-[state=active]:bg-blue-600">
-                      {verticalLabels[vertical] || vertical}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-
-                {verticals.map(vertical => {
-                  const verticalProgress = getVerticalProgress();
-                  const productsInVert = entityProducts.filter(p => p.vertical === vertical);
-
-                  return (
-                    <TabsContent key={vertical} value={vertical} className="space-y-4">
-                      {/* Vertical Progress Bar */}
-                      <div className="flex items-center gap-4 bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
-                        <div className="text-sm text-slate-400 min-w-[160px]">
-                          Progresso {verticalLabels[vertical] || vertical}
-                        </div>
-                        <div className="flex-1">
-                          <Progress value={verticalProgress} className="h-3" />
-                        </div>
-                        <div className="text-lg font-bold text-white min-w-[50px] text-right">
-                          {verticalProgress}%
-                        </div>
-                      </div>
-
-                      {/* Products Tabs */}
-                      {productsInVert.length > 0 && (
-                       <div className="space-y-4">
-                         {/* Product Tabs */}
-                         <Tabs value={selectedProductId} onValueChange={setSelectedProductId} className="space-y-4">
-                           <TabsList className="bg-slate-800 border border-slate-700 flex-wrap h-auto p-2 gap-2">
-                             {productsInVert.map(product => (
-                               <TabsTrigger key={product.id} value={product.id} className="data-[state=active]:bg-blue-600 text-sm">
-                                 {product.name}
-                               </TabsTrigger>
-                             ))}
-                           </TabsList>
-
-                           {productsInVert.map(product => (
-                             <TabsContent key={product.id} value={product.id} className="space-y-4">
-
-                              {(() => {
-                                const productEvents = timelineEvents
-                                  .filter(e => e.product_id === product.id)
-                                  .sort((a, b) => (a.order || 0) - (b.order || 0));
-
-                                return (
-                                  <div className="overflow-x-auto bg-slate-800 rounded-lg border border-slate-700">
-                                    <table className="w-full">
-                                      <thead>
-                                        <tr className="border-b border-slate-700 bg-slate-900/50">
-                                          <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Atividade</th>
-                                          <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Status</th>
-                                          <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Data Início</th>
-                                          <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Data Fim</th>
-                                          <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Progresso</th>
-                                          <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400"></th>
-                                        </tr>
-                                      </thead>
-                                      <tbody>
-                                        {productEvents.map((event) => (
-                                          <tr key={event.id} className="border-b border-slate-700/30 hover:bg-slate-700/20">
-                                            <td className="px-4 py-3 text-sm text-white">
-                                              {phaseLabels[event.phase] || event.title}
-                                            </td>
-                                            <td className="px-4 py-3">
-                                              <select
-                                                value={event.status}
-                                                onChange={(e) => handleStatusChange(event.id, e.target.value)}
-                                                className={`px-3 py-1 rounded text-xs font-medium text-white border-0 ${statusColors[event.status]} cursor-pointer hover:opacity-80`}
-                                              >
-                                                {Object.entries(statusLabels).map(([key, label]) => (
-                                                  <option key={key} value={key}>{label}</option>
-                                                ))}
-                                              </select>
-                                            </td>
-                                            <td className="px-4 py-3 text-sm text-slate-300">
-                                              {event.start_date ? new Date(event.start_date).toLocaleDateString('pt-BR') : '-'}
-                                            </td>
-                                            <td className="px-4 py-3 text-sm text-slate-300">
-                                              {event.end_date ? new Date(event.end_date).toLocaleDateString('pt-BR') : '-'}
-                                            </td>
-                                            <td className="px-4 py-3">
-                                              <div className="flex items-center gap-2 max-w-xs">
-                                                <Progress value={event.progress || 0} className="h-2 flex-1" />
-                                                <span className="text-xs text-slate-400 min-w-[35px] text-right">
-                                                  {event.progress || 0}%
-                                                </span>
-                                              </div>
-                                            </td>
-                                            <td className="px-4 py-3">
-                                               <div className="flex gap-3">
-                                                 <button
-                                                   onClick={() => handleEdit(event, product.id)}
-                                                   className="text-slate-400 hover:text-blue-400 transition"
-                                                 >
-                                                   <Pencil className="w-4 h-4" />
-                                                 </button>
-                                                 <button
-                                                   onClick={() => handleDelete(event.id)}
-                                                   className="text-slate-400 hover:text-red-400 transition"
-                                                 >
-                                                   <Trash2 className="w-4 h-4" />
-                                                 </button>
-                                               </div>
-                                             </td>
-                                          </tr>
-                                        ))}
-                                      </tbody>
-                                    </table>
-                                  </div>
-                                );
-                              })()}
-                            </TabsContent>
-                            ))}
-                          </Tabs>
-                        </div>
-                      )}
-                    </TabsContent>
-                  );
-                })}
-              </Tabs>
-            </>
+            <TimelineByProduct
+              verticals={verticals}
+              entityProducts={entityProducts}
+              timelineEvents={timelineEvents}
+              onStatusChange={handleStatusChange}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
           )}
         </TabsContent>
 
