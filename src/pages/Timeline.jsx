@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { Plus, Calendar, Edit3, Pencil, Trash2 } from 'lucide-react';
+import { Calendar, Edit3 } from 'lucide-react';
 import TimelineEventModal from '../components/modals/TimelineEventModal';
 import BulkEditDatesModal from '../components/modals/BulkEditDatesModal';
 import EmptyState from '../components/ui/EmptyState';
