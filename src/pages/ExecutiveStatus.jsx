@@ -1299,29 +1299,29 @@ Seja conciso, profissional e em português.`;
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {productsInMonth.map(({ product, project, endDate }) => (
-                      <div 
-                        key={product.id}
-                        className="p-4 bg-slate-900/50 rounded-lg border border-slate-700/50 hover:border-slate-600 transition-colors"
-                      >
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <Badge className="bg-emerald-600 text-white text-xs">Go Live</Badge>
-                              <div className="font-semibold text-white">{product.name}</div>
-                            </div>
-                            <div className="text-sm text-slate-400">Projeto: {project.name}</div>
-                          </div>
-                          {endDate && (
-                            <div className="text-right">
-                              <div className="text-xs text-slate-500">Encerramento</div>
-                              <div className="text-sm text-white">
-                                {format(new Date(endDate), 'dd/MM/yyyy', { locale: ptBR })}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                    {productsInMonth.map(({ product, project, deadline }) => (
+                     <div 
+                       key={product.id}
+                       className="p-4 bg-slate-900/50 rounded-lg border border-slate-700/50 hover:border-slate-600 transition-colors"
+                     >
+                       <div className="flex items-start justify-between gap-4">
+                         <div className="flex-1">
+                           <div className="flex items-center gap-2 mb-1">
+                             <Badge className="bg-emerald-600 text-white text-xs">Implantação</Badge>
+                             <div className="font-semibold text-white">{product.name}</div>
+                           </div>
+                           <div className="text-sm text-slate-400">Projeto: {project.name}</div>
+                         </div>
+                         {deadline && (
+                           <div className="text-right">
+                             <div className="text-xs text-slate-500">Prazo Contratual</div>
+                             <div className="text-sm text-white">
+                               {format(new Date(deadline), 'dd/MM/yyyy', { locale: ptBR })}
+                             </div>
+                           </div>
+                         )}
+                       </div>
+                     </div>
                     ))}
                   </div>
                 </CardContent>
