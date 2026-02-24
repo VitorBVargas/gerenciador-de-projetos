@@ -38,7 +38,7 @@ const navigation = [
 ];
 
 export default function Layout({ children, currentPageName }) {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const [user, setUser] = useState(null);
 
   useEffect(() => {
