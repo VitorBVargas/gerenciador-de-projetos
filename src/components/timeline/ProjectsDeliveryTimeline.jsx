@@ -107,21 +107,21 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents, pro
   return (
     <div className="space-y-6">
       {/* Legend */}
-      <div className="flex flex-wrap gap-4 justify-end">
-        <div className="flex items-center gap-2">
-          <div className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-b-[8px] border-b-blue-500" />
-          <span className="text-xs text-slate-400">Go Live</span>
-        </div>
-        {Object.entries(statusConfig).filter(([key]) => key !== 'go_live').map(([key, config]) => {
-          const Icon = config.icon;
-          return (
-            <div key={key} className="flex items-center gap-2">
-              <Icon className={`w-4 h-4 ${config.color}`} />
-              <span className="text-xs text-slate-400">{config.label}</span>
-            </div>
-          );
-        })}
-      </div>
+       <div className="flex flex-wrap gap-4 justify-end">
+         <div className="flex items-center gap-2">
+           <div className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-b-[8px] border-b-blue-500" />
+           <span className="text-xs text-slate-400">Go Live</span>
+         </div>
+         {Object.entries(statusConfig).filter(([key]) => key !== 'go_live' && key !== 'client_release').map(([key, config]) => {
+           const Icon = config.icon;
+           return (
+             <div key={key} className="flex items-center gap-2">
+               <Icon className={`w-4 h-4 ${config.color}`} />
+               <span className="text-xs text-slate-400">{config.label}</span>
+             </div>
+           );
+         })}
+       </div>
 
       {/* Timeline Header */}
       <div className="relative">
