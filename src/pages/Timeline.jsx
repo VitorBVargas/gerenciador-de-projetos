@@ -70,6 +70,9 @@ export default function Timeline() {
     queryFn: () => base44.entities.Project.list('-created_date')
   });
 
+  const activeProject = projects.find(p => p.id === projectId);
+  const schedulingType = activeProject?.scheduling_type || 'por_produto';
+
   const { data: products = [] } = useQuery({
     queryKey: ['products', projectId],
     queryFn: () => projectId ? base44.entities.Product.filter({ project_id: projectId }) : [],
@@ -81,9 +84,6 @@ export default function Timeline() {
     queryFn: () => projectId ? base44.entities.TimelineEvent.filter({ project_id: projectId }) : [],
     enabled: !!projectId
   });
-
-  const activeProject = projects.find(p => p.id === projectId);
-  const schedulingType = activeProject?.scheduling_type || 'por_produto';
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.TimelineEvent.create(data),
