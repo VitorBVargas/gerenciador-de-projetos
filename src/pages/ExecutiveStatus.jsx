@@ -949,6 +949,17 @@ Seja conciso, profissional e em português.`;
           </div>
 
            {(() => {
+            // ─── CONFIGURAÇÃO DE DATAS ────────────────────────────────────────────
+            // Para alterar de onde buscamos a data de implantação de cada projeto,
+            // edite APENAS esta função:
+            const getImplantacaoMonth = (project) => {
+              // FONTE ATUAL: Prazo Contratual (project.deadline)
+              // Para mudar para outra fonte, substitua project.deadline pelo campo desejado.
+              // Ex: para usar Go Live do cronograma, busque o evento aqui e retorne sua data.
+              return project.deadline ? project.deadline.substring(0, 7) : null; // retorna 'YYYY-MM'
+            };
+            // ─────────────────────────────────────────────────────────────────────
+
             // Calcular valores por mês
             const monthlyData = {};
             const now = new Date();
@@ -965,77 +976,37 @@ Seja conciso, profissional e em português.`;
               };
             }
 
-            // Processar cada projeto ativo
+            // Processar apenas projetos ATIVOS (não concluídos)
             projects.forEach(project => {
-              const events = allTimelineEvents.filter(e => e.project_id === project.id);
-              
-              // Encontrar Go Live (evento de produção/operação)
-              const goLiveEvent = events.find(e => 
-                (e.phase && (e.phase === 'migracao_producao' || e.phase === 'operacao_assistida')) ||
-                e.title?.toLowerCase().includes('go live') ||
-                e.title?.toLowerCase().includes('go-live') ||
-                e.title?.toLowerCase().includes('producao') ||
-                e.title?.toLowerCase().includes('produção') ||
-                e.title?.toLowerCase().includes('prd') ||
-                e.title?.toLowerCase().includes('migração em produção') ||
-                e.title?.toLowerCase().includes('migracao em producao')
-              );
-              
-              // Encontrar data de encerramento (último evento)
-              const sortedEvents = events
-                .filter(e => e.end_date)
-                .sort((a, b) => new Date(b.end_date) - new Date(a.end_date));
-              const endEvent = sortedEvents[0];
+              const implantacaoMonth = getImplantacaoMonth(project);
+              if (!implantacaoMonth) return;
 
-              // Implantação: acontece no mês do Go Live
-              if (goLiveEvent?.end_date && project.implementation_value > 0) {
-                const goLiveMonth = format(new Date(goLiveEvent.end_date), 'yyyy-MM');
-                if (monthlyData[goLiveMonth]) {
-                  monthlyData[goLiveMonth].implantacao += project.implementation_value;
-                }
+              // Implantação: no mês do Prazo Contratual
+              if (project.implementation_value > 0 && monthlyData[implantacaoMonth]) {
+                monthlyData[implantacaoMonth].implantacao += project.implementation_value;
               }
 
-              // Recorrente: entra apenas no mês do Go Live
-              if (goLiveEvent?.end_date && project.recurring_value > 0) {
-                const goLiveMonth = format(new Date(goLiveEvent.end_date), 'yyyy-MM');
-                if (monthlyData[goLiveMonth]) {
-                  monthlyData[goLiveMonth].recorrente += project.recurring_value;
-                }
+              // Recorrente: no mês do Prazo Contratual
+              if (project.recurring_value > 0 && monthlyData[implantacaoMonth]) {
+                monthlyData[implantacaoMonth].recorrente += project.recurring_value;
               }
             });
 
             // Processar valores reconhecidos - subtrair dos gráficos originais e adicionar na barra roxa do mês reconhecido
             allRecognizedRevenues.forEach(recognized => {
-              // Extrair mês diretamente da string (formato YYYY-MM-DD)
               const recognizedMonth = recognized.recognition_month.substring(0, 7); // YYYY-MM
               
-              // Encontrar o projeto correspondente
               const project = allProjectsData.find(p => p.id === recognized.project_id);
-              if (!project) return;
+              if (!project || project.status === 'concluido') return;
               
-              const events = allTimelineEvents.filter(e => e.project_id === project.id);
-              const goLiveEvent = events.find(e => 
-                (e.phase && (e.phase === 'migracao_producao' || e.phase === 'operacao_assistida')) ||
-                e.title?.toLowerCase().includes('go live') ||
-                e.title?.toLowerCase().includes('go-live') ||
-                e.title?.toLowerCase().includes('producao') ||
-                e.title?.toLowerCase().includes('produção') ||
-                e.title?.toLowerCase().includes('prd') ||
-                e.title?.toLowerCase().includes('migração em produção') ||
-                e.title?.toLowerCase().includes('migracao em producao')
-              );
+              const originalMonth = getImplantacaoMonth(project);
               
-              // Subtrair do mês original (Go Live)
-              if (goLiveEvent?.end_date) {
-                const originalMonth = format(new Date(goLiveEvent.end_date), 'yyyy-MM');
-                
-                // Subtrair do mês original baseado no tipo
-                if (monthlyData[originalMonth]) {
-                  if (recognized.type === 'implantacao') {
-                    monthlyData[originalMonth].implantacao = Math.max(0, monthlyData[originalMonth].implantacao - recognized.amount);
-                  } else {
-                    monthlyData[originalMonth].recorrente = Math.max(0, monthlyData[originalMonth].recorrente - recognized.amount);
-                  }
+              // Subtrair do mês original baseado no tipo
+              if (originalMonth && monthlyData[originalMonth]) {
+                if (recognized.type === 'implantacao') {
+                  monthlyData[originalMonth].implantacao = Math.max(0, monthlyData[originalMonth].implantacao - recognized.amount);
+                } else {
+                  monthlyData[originalMonth].recorrente = Math.max(0, monthlyData[originalMonth].recorrente - recognized.amount);
                 }
               }
               
