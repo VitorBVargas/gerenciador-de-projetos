@@ -6,7 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { phaseLabels } from '@/components/timeline/phaseLabels';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 
 export default function BulkEditDatesModal({ 
   open, 
@@ -105,15 +105,15 @@ export default function BulkEditDatesModal({
       return;
     }
 
+    setApplying(true);
+    setConfirmOpen(false);
+
     const phaseEvents = getEventsByPhase(selectedPhase);
     const eventsToUpdate = phaseEvents.map(event => ({
       id: event.id,
       start_date: phaseStartDate || event.start_date,
       end_date: phaseEndDate || event.end_date
     }));
-
-    setApplying(true);
-    setConfirmOpen(false);
 
     if (eventsToUpdate.length > 0) {
       await onApply(eventsToUpdate);
@@ -327,7 +327,7 @@ export default function BulkEditDatesModal({
               disabled={!hasChanges || applying}
             >
               {applying ? (
-                <><span className="animate-spin mr-2">⏳</span>Aplicando...</>
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Aplicando...</>
               ) : (
                 <>Aplicar em Lote {phaseEvents.length > 0 && `(${phaseEvents.length})`}</>
               )}
