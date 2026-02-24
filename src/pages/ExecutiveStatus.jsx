@@ -1044,6 +1044,7 @@ Seja conciso, profissional e em português.`;
 
             // Processar recorrente: por data de início da etapa migracao_prd_blackout por produto
             // Se projeto for por vertical: todos os produtos daquela vertical entram juntos
+            // Se for por produto: cada produto tem seu próprio timeline
             projects.forEach(project => {
               const projectProducts = allProducts.filter(p => p.project_id === project.id);
               if (!projectProducts.length) return;
@@ -1062,7 +1063,7 @@ Seja conciso, profissional e em português.`;
                   const cronograma = allCronogramas.find(c => c.project_id === project.id && c.vertical === vertical);
                   if (!cronograma) return;
                   
-                  // Buscar etapa migracao_prd_blackout deste cronograma
+                  // Buscar etapa migracao_prd_blackout deste cronograma - usando cronograma_id
                   const migEvent = allTimelineEvents.find(e => 
                     e.cronograma_id === cronograma.id && e.phase === 'migracao_prd_blackout'
                   );
@@ -1086,7 +1087,7 @@ Seja conciso, profissional e em português.`;
                   });
                 });
               } else {
-                // Por produto: cada produto tem seu próprio cronograma
+                // Por produto: cada produto tem seu próprio cronograma/timeline
                 projectProducts.forEach(prod => {
                   // Buscar TimelineEvents do produto com fase migracao_prd_blackout
                   const migEvent = allTimelineEvents.find(e =>
