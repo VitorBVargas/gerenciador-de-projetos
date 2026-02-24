@@ -745,10 +745,36 @@ Seja conciso, profissional e em português.`;
           </div>
 
            {/* Projects Grid */}
-          <div>
-            <h2 className="text-xl font-bold text-white mb-4">Projetos Ativos</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {projectsWithMetrics.map(project => (
+           <div>
+             <h2 className="text-xl font-bold text-white mb-4">
+               {selectedStatusFilter ? (
+                 <>
+                   Projetos {
+                     selectedStatusFilter === 'emDias' ? 'Em Dia' :
+                     selectedStatusFilter === 'emAlerta' ? 'Em Alerta' :
+                     selectedStatusFilter === 'atrasado' ? 'Atrasados' :
+                     'Concluídos'
+                   }
+                   <button 
+                     onClick={() => setSelectedStatusFilter(null)}
+                     className="ml-3 text-sm text-slate-400 hover:text-white"
+                   >
+                     ✕ Limpar filtro
+                   </button>
+                 </>
+               ) : (
+                 'Projetos Ativos'
+               )}
+             </h2>
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+           {projectsWithMetrics.filter(project => {
+             if (!selectedStatusFilter) return true;
+             if (selectedStatusFilter === 'emDias') return project.healthScore > 60;
+             if (selectedStatusFilter === 'emAlerta') return project.healthScore >= 50 && project.healthScore <= 60;
+             if (selectedStatusFilter === 'atrasado') return project.healthScore < 50;
+             if (selectedStatusFilter === 'concluidos') return project.status === 'concluido';
+             return true;
+           }).map(project => (
             <div key={project.id} className="relative">
               <Card className="bg-slate-800 border-slate-600 hover:bg-slate-700 transition-all h-full group">
                 <Link 
