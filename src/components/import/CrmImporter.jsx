@@ -194,37 +194,32 @@ export default function CrmImporter({ open, onOpenChange }) {
 
     // 3. Criar eventos de cronograma com datas dos cronogramas configurados
     const allEvents = [];
-    const cronogramaMap = {};
-    
-    // Mapear datas por vertical
+    const cronogramaByVertical = {};  // vertical -> dates
+    const cronogramaByProduct = {};   // productName -> dates
+
     if (formData.cronogramas && formData.cronogramas.length > 0) {
       formData.cronogramas.forEach(crono => {
-        crono.verticals.forEach(vertical => {
-          cronogramaMap[vertical] = crono.dates;
-        });
+        if (crono.type === 'vertical') {
+          crono.verticals.forEach(v => { cronogramaByVertical[v] = crono.dates; });
+        } else if (crono.type === 'produto') {
+          cronogramaByProduct[crono.productName] = crono.dates;
+        }
       });
     }
 
     createdProducts.forEach((product, pIdx) => {
-      STANDARD_PHASES.forEach((phase, phaseIdx) => {
-        const phaseKey = phase; // já está em format snake_case
-        const startDateKey = `${phaseKey}_start`;
-        const endDateKey = `${phaseKey}_end`;
-        const crondates = cronogramaMap[product.vertical] || {};
-        
-        console.log(`📅 Produto: ${product.name} (${product.vertical}) - Phase: ${phase}`, {
-          startDate: crondates[startDateKey],
-          endDate: crondates[endDateKey]
-        });
-        
+      // por produto tem prioridade sobre por vertical
+      const crondates = cronogramaByProduct[product.name] || cronogramaByVertical[product.vertical] || {};
+
+      STANDARD_PHASES.forEach(({ key, title }, phaseIdx) => {
         allEvents.push({
           project_id: project.id,
           product_id: product.id,
-          title: phase,
-          phase: phaseKey,
+          title: title,
+          phase: key,
           vertical: product.vertical,
-          start_date: crondates[startDateKey] || null,
-          end_date: crondates[endDateKey] || null,
+          start_date: crondates[`${key}_start`] || null,
+          end_date: crondates[`${key}_end`] || null,
           status: 'nao_iniciado',
           progress: 0,
           order: pIdx * 100 + phaseIdx
