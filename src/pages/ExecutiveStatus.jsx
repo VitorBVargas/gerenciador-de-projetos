@@ -977,10 +977,11 @@ Seja conciso, profissional e em português.`;
             }
 
             // Pré-calcular total reconhecido por projeto (todos os meses somados)
+            // Usa `projects` (já filtrado: apenas ativos)
+            const activeProjectIds = new Set(projects.map(p => p.id));
             const totalRecognizedByProject = {};
             allRecognizedRevenues.forEach(recognized => {
-              const project = allProjectsData.find(p => p.id === recognized.project_id);
-              if (!project || project.status === 'concluido') return;
+              if (!activeProjectIds.has(recognized.project_id)) return;
               if (!totalRecognizedByProject[recognized.project_id]) {
                 totalRecognizedByProject[recognized.project_id] = { implantacao: 0, recorrente: 0 };
               }
