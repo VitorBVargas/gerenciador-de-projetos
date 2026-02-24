@@ -1319,10 +1319,11 @@ Seja conciso, profissional e em português.`;
               });
             });
 
-            // Reconhecidos neste mês (roxo)
+            // Reconhecidos neste mês (roxo) — apenas projetos ativos
+            const activeProjectIdsLocal = new Set(projects.map(p => p.id));
             const recognizedInMonth = allRecognizedRevenues.filter(r => {
               const recMonth = r.recognition_month.substring(0, 7);
-              return recMonth === selectedMonth && r.type === 'implantacao';
+              return recMonth === selectedMonth && r.type === 'implantacao' && activeProjectIdsLocal.has(r.project_id);
             });
             
             if (productsInMonth.length === 0 && recognizedInMonth.length === 0) return null;
