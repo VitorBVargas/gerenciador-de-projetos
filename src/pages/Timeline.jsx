@@ -113,11 +113,11 @@ export default function Timeline() {
 
   const bulkUpdateMutation = useMutation({
     mutationFn: async (events) => {
-      // Process sequentially with delay to avoid rate limiting
+      // Process sequentially with 500ms delay between requests to avoid rate limiting
       for (const event of events) {
         await base44.entities.TimelineEvent.update(event.id, event);
-        // 100ms delay between requests
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // 500ms delay between requests
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
     },
     onSuccess: () => {
