@@ -549,6 +549,7 @@ export default function ProjectRegistrationFlow({ open, onOpenChange, parsedData
           manager: projectInfo.managers.join(', '),
         },
         cronogramas,
+        schedulingType,
         team: team.map(m => ({ ...m, is_leader: teamLeaders.includes(m.id) })),
         stakeholders,
         risks,
