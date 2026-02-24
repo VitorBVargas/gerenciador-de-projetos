@@ -3,9 +3,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { X, Plus, ChevronRight } from 'lucide-react';
+import { X, Plus, Layers, Package } from 'lucide-react';
 import { phaseLabels } from '../timeline/phaseLabels';
+
+const PHASE_KEYS = [
+  'planejamento_contrato', 'kickoff', 'diagnostico', 'onboarding_cliente',
+  'configuracao_migracao_hml', 'homologacao_base', 'migracao_prd_blackout',
+  'configuracao_prd', 'treinamento', 'go_live', 'operacao_assistida',
+  'encerramento_bastao'
+];
 
 const VERTICAL_LABELS = {
   arrecadacao: 'Arrecadação', compras: 'Compras', contabil: 'Contábil',
@@ -27,157 +33,238 @@ const VERTICAL_COLORS = {
   atendimento: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
 };
 
-const STANDARD_PHASES = [
-  'planejamento_contrato', 'kickoff', 'diagnostico', 'onboarding_cliente',
-  'configuracao_migracao_hml', 'homologacao_base', 'migracao_prd_blackout',
-  'configuracao_prd', 'treinamento', 'go_live', 'operacao_assistida',
-  'encerramento_bastao'
-];
+function DatesForm({ dates, onChange }) {
+  return (
+    <div className="space-y-1.5 max-h-72 overflow-y-auto pr-1">
+      <div className="grid grid-cols-[1fr_130px_130px] gap-2 mb-2 sticky top-0 bg-slate-800 pb-1">
+        <span className="text-xs text-slate-500 font-semibold">Etapa</span>
+        <span className="text-xs text-slate-500 font-semibold text-center">Início</span>
+        <span className="text-xs text-slate-500 font-semibold text-center">Fim</span>
+      </div>
+      {PHASE_KEYS.map(phase => (
+        <div key={phase} className="grid grid-cols-[1fr_130px_130px] gap-2 items-center">
+          <span className="text-xs text-slate-400 truncate">{phaseLabels[phase]}</span>
+          <Input
+            type="date"
+            value={dates[`${phase}_start`] || ''}
+            onChange={e => onChange(prev => ({ ...prev, [`${phase}_start`]: e.target.value }))}
+            className="bg-slate-700 border-slate-600 text-white h-7 text-xs px-2"
+          />
+          <Input
+            type="date"
+            value={dates[`${phase}_end`] || ''}
+            onChange={e => onChange(prev => ({ ...prev, [`${phase}_end`]: e.target.value }))}
+            className="bg-slate-700 border-slate-600 text-white h-7 text-xs px-2"
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
 
-export default function StepCronograma({ cronogramas, setCronogramas, availableVerticals = [] }) {
+export default function StepCronograma({ cronogramas, setCronogramas, schedulingType, setSchedulingType, availableProducts = [] }) {
   const [selectedVerticals, setSelectedVerticals] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const [currentDates, setCurrentDates] = useState({});
 
-  const allVerticals = availableVerticals.length > 0 ? availableVerticals : Object.keys(VERTICAL_LABELS);
+  const availableVerticals = [...new Set(availableProducts.map(p => p.vertical).filter(Boolean))];
 
-  const addVerticals = () => {
-    if (selectedVerticals.length === 0) return;
-    
-    // Validar se tem pelo menos uma data preenchida
-    const hasDates = Object.values(currentDates).some(v => v);
-    if (!hasDates) {
-      alert('Por favor, preencha pelo menos uma data de etapa');
-      return;
-    }
-    
-    const newCronograma = {
-      id: Date.now(),
+  const addedProductNames = cronogramas.filter(c => c.type === 'produto').map(c => c.productName);
+  const remainingProducts = availableProducts.filter(p => !addedProductNames.includes(p.name));
+
+  const addedVerticals = cronogramas.filter(c => c.type === 'vertical').flatMap(c => c.verticals);
+  const remainingVerticals = availableVerticals.filter(v => !addedVerticals.includes(v));
+
+  const hasDates = Object.values(currentDates).some(v => v);
+
+  const handleChangeType = (type) => {
+    setSchedulingType(type);
+    setCronogramas([]);
+    setCurrentDates({});
+    setSelectedProduct(null);
+    setSelectedVerticals([]);
+  };
+
+  const handleAddVertical = () => {
+    if (selectedVerticals.length === 0 || !hasDates) return;
+    setCronogramas(prev => [...prev, {
+      id: Date.now(), type: 'vertical',
       verticals: selectedVerticals,
       dates: { ...currentDates }
-    };
-    
-    console.log('✅ Adicionando cronograma:', newCronograma);
-    setCronogramas([...cronogramas, newCronograma]);
+    }]);
     setSelectedVerticals([]);
     setCurrentDates({});
   };
 
-  const removeCronograma = (id) => {
-    setCronogramas(cronogramas.filter(c => c.id !== id));
-  };
-
-  const toggleVertical = (vertical) => {
-    setSelectedVerticals(prev => {
-      if (prev.includes(vertical)) {
-        return prev.filter(v => v !== vertical);
-      }
-      return [...prev, vertical];
-    });
-  };
-
-  const handleDateChange = (phase, dateType, value) => {
-    setCurrentDates(prev => ({
-      ...prev,
-      [`${phase}_${dateType}`]: value
-    }));
+  const handleAddProduct = () => {
+    if (!selectedProduct || !hasDates) return;
+    setCronogramas(prev => [...prev, {
+      id: Date.now(), type: 'produto',
+      productName: selectedProduct.name,
+      vertical: selectedProduct.vertical,
+      dates: { ...currentDates }
+    }]);
+    setSelectedProduct(null);
+    setCurrentDates({});
   };
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-slate-400">
-        Configure os cronogramas das verticais. Selecione as verticais, defina as datas das etapas, e estas serão replicadas em todos os produtos daquela vertical.
-      </p>
-
-      {/* Seleção de verticais */}
-      <div className="space-y-2">
-        <Label className="text-slate-300 text-sm">Selecione as Verticais *</Label>
-        <div className="flex flex-wrap gap-2">
-          {allVerticals.map(vertical => (
-            <button
-              key={vertical}
-              onClick={() => toggleVertical(vertical)}
-              className={`px-3 py-2 rounded-lg border transition-all ${
-                selectedVerticals.includes(vertical)
-                  ? `${VERTICAL_COLORS[vertical]}`
-                  : 'bg-slate-700/30 border-slate-600 text-slate-400 hover:text-slate-300'
-              }`}
-            >
-              {VERTICAL_LABELS[vertical] || vertical}
-            </button>
-          ))}
+      {/* Tipo de cronograma */}
+      <div>
+        <Label className="text-slate-300 text-sm mb-2 block">Tipo de Cronograma *</Label>
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={() => handleChangeType('por_vertical')}
+            className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all ${
+              schedulingType === 'por_vertical'
+                ? 'border-blue-500 bg-blue-600/15 text-blue-300'
+                : 'border-slate-600 bg-slate-700/30 text-slate-400 hover:border-slate-500'
+            }`}
+          >
+            <Layers className="w-5 h-5" />
+            <div className="text-center">
+              <p className="text-sm font-semibold">Por Vertical</p>
+              <p className="text-xs opacity-70">Mesmas datas para todos os produtos da vertical</p>
+            </div>
+          </button>
+          <button
+            onClick={() => handleChangeType('por_produto')}
+            className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all ${
+              schedulingType === 'por_produto'
+                ? 'border-purple-500 bg-purple-600/15 text-purple-300'
+                : 'border-slate-600 bg-slate-700/30 text-slate-400 hover:border-slate-500'
+            }`}
+          >
+            <Package className="w-5 h-5" />
+            <div className="text-center">
+              <p className="text-sm font-semibold">Por Produto</p>
+              <p className="text-xs opacity-70">Datas específicas para cada produto</p>
+            </div>
+          </button>
         </div>
       </div>
 
-      {/* Seleção de datas para fases */}
-      {selectedVerticals.length > 0 && (
-        <Card className="bg-slate-700/30 border-slate-600">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm text-slate-300">
-              Datas das Etapas
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {STANDARD_PHASES.map(phase => (
-              <div key={phase} className="space-y-1.5">
-                <Label className="text-xs text-slate-400">{phaseLabels[phase]}</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  <Input
-                    type="date"
-                    value={currentDates[`${phase}_start`] || ''}
-                    onChange={(e) => handleDateChange(phase, 'start', e.target.value)}
-                    className="bg-slate-700 border-slate-600 text-white h-8 text-sm"
-                    placeholder="Início"
-                  />
-                  <Input
-                    type="date"
-                    value={currentDates[`${phase}_end`] || ''}
-                    onChange={(e) => handleDateChange(phase, 'end', e.target.value)}
-                    className="bg-slate-700 border-slate-600 text-white h-8 text-sm"
-                    placeholder="Fim"
-                  />
-                </div>
+      {/* Form - Por Vertical */}
+      {schedulingType === 'por_vertical' && (
+        <div className="space-y-3">
+          <div>
+            <Label className="text-slate-300 text-xs mb-1 block">Selecione as Verticais *</Label>
+            {remainingVerticals.length === 0 && availableVerticals.length > 0 ? (
+              <p className="text-xs text-green-400">✓ Todas as verticais já possuem cronograma</p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {(remainingVerticals.length > 0 ? remainingVerticals : Object.keys(VERTICAL_LABELS)).map(v => (
+                  <button
+                    key={v}
+                    onClick={() => setSelectedVerticals(prev =>
+                      prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v]
+                    )}
+                    className={`px-3 py-1.5 rounded-lg border text-xs transition-all ${
+                      selectedVerticals.includes(v)
+                        ? (VERTICAL_COLORS[v] || 'bg-blue-500/20 text-blue-300 border-blue-500/30')
+                        : 'bg-slate-700/30 border-slate-600 text-slate-400 hover:text-slate-300'
+                    }`}
+                  >
+                    {VERTICAL_LABELS[v] || v}
+                  </button>
+                ))}
               </div>
-            ))}
-            <Button
-              onClick={addVerticals}
-              disabled={selectedVerticals.length === 0}
-              className="w-full bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 border border-blue-600/30 mt-2"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Adicionar Cronogramas
-            </Button>
-          </CardContent>
-        </Card>
+            )}
+          </div>
+
+          {selectedVerticals.length > 0 && (
+            <div className="bg-slate-800 border border-slate-600 rounded-lg p-3 space-y-3">
+              <DatesForm dates={currentDates} onChange={setCurrentDates} />
+              <Button onClick={handleAddVertical} disabled={!hasDates} size="sm"
+                className="w-full bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 border border-blue-600/30">
+                <Plus className="w-3.5 h-3.5 mr-1.5" />
+                Adicionar Cronograma das Verticais Selecionadas
+              </Button>
+              {!hasDates && (
+                <p className="text-xs text-amber-500 text-center">Preencha pelo menos uma data para continuar</p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Form - Por Produto */}
+      {schedulingType === 'por_produto' && (
+        <div className="space-y-3">
+          <div>
+            <Label className="text-slate-300 text-xs mb-1 block">Selecione o Produto *</Label>
+            {remainingProducts.length === 0 ? (
+              <p className="text-xs text-green-400">✓ Todos os produtos já possuem cronograma</p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {remainingProducts.map(p => (
+                  <button
+                    key={p.name}
+                    onClick={() => { setSelectedProduct(selectedProduct?.name === p.name ? null : p); setCurrentDates({}); }}
+                    className={`px-3 py-1.5 rounded-lg border text-xs transition-all ${
+                      selectedProduct?.name === p.name
+                        ? 'border-purple-500 bg-purple-600/15 text-purple-300'
+                        : 'bg-slate-700/30 border-slate-600 text-slate-400 hover:text-slate-300'
+                    }`}
+                  >
+                    {p.name}
+                    <span className="ml-1 opacity-50">({VERTICAL_LABELS[p.vertical] || p.vertical})</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {selectedProduct && (
+            <div className="bg-slate-800 border border-slate-600 rounded-lg p-3 space-y-3">
+              <p className="text-xs text-purple-300 font-semibold">{selectedProduct.name}</p>
+              <DatesForm dates={currentDates} onChange={setCurrentDates} />
+              <Button onClick={handleAddProduct} disabled={!hasDates} size="sm"
+                className="w-full bg-purple-600/20 hover:bg-purple-600/40 text-purple-300 border border-purple-600/30">
+                <Plus className="w-3.5 h-3.5 mr-1.5" />
+                Adicionar Cronograma do Produto
+              </Button>
+              {!hasDates && (
+                <p className="text-xs text-amber-500 text-center">Preencha pelo menos uma data para continuar</p>
+              )}
+            </div>
+          )}
+        </div>
       )}
 
       {/* Lista de cronogramas adicionados */}
       {cronogramas.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs font-semibold text-slate-500 uppercase">Cronogramas Configurados</p>
-          {cronogramas.map((crono) => (
-            <div key={crono.id} className="flex items-center justify-between bg-slate-700/40 border border-slate-700 rounded-lg px-3 py-2">
-              <div className="flex flex-wrap gap-1">
-                {crono.verticals.map(v => (
-                  <Badge key={v} className={`${VERTICAL_COLORS[v]}`}>
-                    {VERTICAL_LABELS[v] || v}
-                  </Badge>
-                ))}
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Cronogramas Configurados ({cronogramas.length})</p>
+          {cronogramas.map(crono => {
+            const dateCount = Object.values(crono.dates).filter(v => v).length;
+            return (
+              <div key={crono.id} className="flex items-center justify-between bg-slate-700/40 border border-slate-700 rounded-lg px-3 py-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  {crono.type === 'vertical' ? (
+                    crono.verticals.map(v => (
+                      <Badge key={v} className={`text-xs ${VERTICAL_COLORS[v] || ''}`}>{VERTICAL_LABELS[v] || v}</Badge>
+                    ))
+                  ) : (
+                    <Badge className="text-xs bg-purple-500/20 text-purple-300 border-purple-500/30">{crono.productName}</Badge>
+                  )}
+                  <span className="text-xs text-slate-500">{dateCount} data(s)</span>
+                </div>
+                <button onClick={() => setCronogramas(prev => prev.filter(c => c.id !== crono.id))}
+                  className="text-slate-500 hover:text-red-400 ml-2 flex-shrink-0">
+                  <X className="w-4 h-4" />
+                </button>
               </div>
-              <button
-                onClick={() => removeCronograma(crono.id)}
-                className="text-slate-500 hover:text-red-400 transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
-      {cronogramas.length === 0 && (
-        <p className="text-center text-slate-600 text-sm py-4">
-          Nenhum cronograma adicionado ainda. Você pode adicionar depois.
-        </p>
+      {cronogramas.length === 0 && schedulingType && (
+        <div className="text-center py-3 text-sm text-amber-500 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+          ⚠️ Adicione pelo menos um cronograma com datas para prosseguir
+        </div>
       )}
     </div>
   );
