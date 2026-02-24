@@ -78,20 +78,22 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents, pro
     return monthsList;
   }, [timelineRange]);
 
-  // Calcular posição relativa de uma data no timeline
+  // Calcular posição relativa de uma data no timeline (em pixels)
   const getDatePosition = (date) => {
-    if (!timelineRange) return 0;
+    if (!timelineRange || months.length === 0) return 0;
     const totalMs = timelineRange.end - timelineRange.start;
     const dateMs = new Date(date) - timelineRange.start;
-    return Math.max(0, Math.min(100, (dateMs / totalMs) * 100));
+    const timelineWidth = Math.max(100, months.length * 80);
+    return (dateMs / totalMs) * timelineWidth;
   };
 
-  // Calcular largura da barra
+  // Calcular largura da barra (em pixels)
   const getBarWidth = (startDate, endDate) => {
-    if (!timelineRange) return 0;
+    if (!timelineRange || months.length === 0) return 0;
     const totalMs = timelineRange.end - timelineRange.start;
     const barMs = new Date(endDate) - new Date(startDate);
-    return Math.max(2, (barMs / totalMs) * 100);
+    const timelineWidth = Math.max(100, months.length * 80);
+    return Math.max(4, (barMs / totalMs) * timelineWidth);
   };
 
   if (projectsWithDelivery.length === 0 || !timelineRange) {
