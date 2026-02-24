@@ -489,10 +489,35 @@ export default function ProjectRegistrationFlow({ open, onOpenChange, parsedData
     portfolio: '', deadline: '', budget: '', contract_link: '',
   });
   const [cronogramas, setCronogramas] = useState([]);
+  const [schedulingType, setSchedulingType] = useState('por_vertical');
   const [team, setTeam] = useState([]);
   const [teamLeaders, setTeamLeaders] = useState([]); // array of collab ids
   const [stakeholders, setStakeholders] = useState([]);
   const [risks, setRisks] = useState([]);
+
+  // Build product list from parsedData for StepCronograma
+  const parsedProducts = React.useMemo(() => {
+    if (!parsedData) return [];
+    const { entityProductMap } = parsedData;
+    const list = [];
+    Object.entries(entityProductMap || {}).forEach(([entityCode, products]) => {
+      Object.keys(products).forEach(productName => {
+        // We need vertical - replicate inferVertical logic inline
+        const name = productName.toLowerCase();
+        let vertical = 'plataforma';
+        if (name.includes('contabilidade') || name.includes('tesouraria') || name.includes('orçamento') || name.includes('orcamento') || name.includes('convênios') || name.includes('convenios') || name.includes('controladoria') || name.includes('planejamento') || name.includes('controle de caixa')) vertical = 'contabil';
+        else if (name.includes('compras') || name.includes('contratos') || name.includes('almoxarifado') || name.includes('patrimônio') || name.includes('patrimonio') || name.includes('frotas') || name.includes('obras')) vertical = 'compras';
+        else if (name.includes('folha') || name.includes('pessoal') || name.includes('recursos humanos') || name.includes('esocial') || name.includes('minha folha') || name.includes('ponto') || name.includes('pontual')) vertical = 'pessoal';
+        else if (name.includes('arrecadação') || name.includes('arrecadacao') || name.includes('tributos') || name.includes('iss') || name.includes('procuradoria') || name.includes('e-nota') || name.includes('enota') || name.includes('cadastro imobiliário') || name.includes('cidadão web')) vertical = 'arrecadacao';
+        else if (name.includes('saúde') || name.includes('saude') || name.includes('social')) vertical = 'saude';
+        else if (name.includes('educação') || name.includes('educacao') || name.includes('biblioteca') || name.includes('merenda')) vertical = 'educacao';
+        else if (name.includes('protocolo') || name.includes('atendimento') || name.includes('transparência') || name.includes('gov digital') || name.includes('portal') || name.includes('cidadão') || name.includes('app minha cidade')) vertical = 'atendimento';
+        else if (name.includes('alvará') || name.includes('alvara') || name.includes('controle interno') || name.includes('cemitério')) vertical = 'parceiros';
+        list.push({ name: productName, vertical, entity: entityCode });
+      });
+    });
+    return list;
+  }, [parsedData]);
 
   const toggleTeam = (collab) => {
     setTeam(prev => {
