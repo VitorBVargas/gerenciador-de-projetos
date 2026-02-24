@@ -1289,29 +1289,40 @@ Seja conciso, profissional e em português.`;
             // Se clicou na barra normal (implantação ou recorrente do mês)
             const productsInMonth = [];
             
-            // Usar mesma lógica de data: Prazo Contratual (project.deadline)
+            // Projetos cujo prazo contratual cai neste mês (A Receber - verde)
             projects.forEach(project => {
               const implMonth = project.deadline ? project.deadline.substring(0, 7) : null;
               if (!implMonth || implMonth !== selectedMonth) return;
+
+              const recognized = totalRecognizedByProject[project.id] || { implantacao: 0, recorrente: 0 };
+              const pendente = Math.max(0, (project.implementation_value || 0) - recognized.implantacao);
 
               const projectProducts = allProducts.filter(p => p.project_id === project.id);
               projectProducts.forEach(product => {
                 productsInMonth.push({
                   product,
                   project,
-                  deadline: project.deadline
+                  deadline: project.deadline,
+                  tipo: 'a_receber',
+                  pendente
                 });
               });
             });
+
+            // Reconhecidos neste mês (roxo)
+            const recognizedInMonth = allRecognizedRevenues.filter(r => {
+              const recMonth = r.recognition_month.substring(0, 7);
+              return recMonth === selectedMonth && r.type === 'implantacao';
+            });
             
-            if (productsInMonth.length === 0) return null;
+            if (productsInMonth.length === 0 && recognizedInMonth.length === 0) return null;
             
             return (
               <Card className="bg-slate-800 border-slate-600">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-white">
-                      Produtos em {monthLabel} - {selectedMonthType === 'implantacao' ? 'Implantação (Go Live)' : 'Recorrente (Go Live)'}
+                      Implantação — {monthLabel}
                     </CardTitle>
                     <Button
                       variant="ghost"
@@ -1326,33 +1337,65 @@ Seja conciso, profissional e em português.`;
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {productsInMonth.map(({ product, project, deadline }) => (
-                     <div 
-                       key={product.id}
-                       className="p-4 bg-slate-900/50 rounded-lg border border-slate-700/50 hover:border-slate-600 transition-colors"
-                     >
-                       <div className="flex items-start justify-between gap-4">
-                         <div className="flex-1">
-                           <div className="flex items-center gap-2 mb-1">
-                             <Badge className="bg-emerald-600 text-white text-xs">Implantação</Badge>
-                             <div className="font-semibold text-white">{product.name}</div>
-                           </div>
-                           <div className="text-sm text-slate-400">Projeto: {project.name}</div>
-                         </div>
-                         {deadline && (
-                           <div className="text-right">
-                             <div className="text-xs text-slate-500">Prazo Contratual</div>
-                             <div className="text-sm text-white">
-                               {format(new Date(deadline), 'dd/MM/yyyy', { locale: ptBR })}
-                             </div>
-                           </div>
-                         )}
-                       </div>
-                     </div>
-                    ))}
-                  </div>
+                <CardContent className="space-y-4">
+                  {/* A Receber (verde) */}
+                  {productsInMonth.length > 0 && (
+                    <div>
+                      <div className="text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-2">A Receber (Prazo Contratual)</div>
+                      <div className="space-y-2">
+                        {productsInMonth.map(({ product, project, deadline }) => (
+                          <div 
+                            key={product.id}
+                            className="p-3 bg-emerald-900/20 rounded-lg border border-emerald-700/50"
+                          >
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex-1">
+                                <div className="font-semibold text-white text-sm">{product.name}</div>
+                                <div className="text-xs text-slate-400">Projeto: {project.name}</div>
+                              </div>
+                              {deadline && (
+                                <div className="text-right shrink-0">
+                                  <div className="text-xs text-slate-500">Prazo</div>
+                                  <div className="text-xs text-white">
+                                    {format(new Date(deadline), 'dd/MM/yyyy', { locale: ptBR })}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Reconhecidos (roxo) */}
+                  {recognizedInMonth.length > 0 && (
+                    <div>
+                      <div className="text-xs font-semibold text-purple-400 uppercase tracking-wider mb-2">Reconhecidos neste mês</div>
+                      <div className="space-y-2">
+                        {recognizedInMonth.map((rec) => {
+                          const product = allProducts.find(p => p.id === rec.product_id);
+                          const project = allProjectsData.find(p => p.id === rec.project_id);
+                          return (
+                            <div key={rec.id} className="p-3 bg-purple-900/20 rounded-lg border border-purple-700/50">
+                              <div className="flex items-start justify-between gap-4">
+                                <div className="flex-1">
+                                  <div className="font-semibold text-white text-sm">{product?.name || rec.vertical_name || 'N/A'}</div>
+                                  <div className="text-xs text-slate-400">Projeto: {project?.name || 'N/A'}</div>
+                                  {rec.vertical_name && <div className="text-xs text-purple-400">Vertical: {rec.vertical_name}</div>}
+                                </div>
+                                <div className="text-right shrink-0">
+                                  <div className="text-sm font-semibold text-purple-400">
+                                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(rec.amount)}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             );
