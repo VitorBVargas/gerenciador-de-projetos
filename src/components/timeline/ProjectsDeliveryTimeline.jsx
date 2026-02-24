@@ -37,15 +37,10 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents, pro
       let status = 'pending';
       if (deliveryDate) {
         const now = new Date();
-        const oneWeekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
         
-        // Se todas as etapas concluídas e tem produto sem aceite -> Aguardando Aceite
-        if (allEventsCompleted && hasProductWithoutAcceptance) {
+        // Aguardando Aceite: todos os produtos com aceite E data de encerramento já passou
+        if (!hasProductWithoutAcceptance && deliveryDate < now) {
           status = 'awaiting_release';
-        } else if (deliveryDate < now) {
-          status = 'awaiting_release'; // Aguardando Aceite (laranja)
-        } else if (deliveryDate <= oneWeekFromNow) {
-          status = 'client_release'; // Liberação Cliente (azul)
         } else {
           status = 'project_end'; // Fim do Projeto (verde)
         }
