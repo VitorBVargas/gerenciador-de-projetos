@@ -113,11 +113,15 @@ export default function Timeline() {
 
   const bulkUpdateMutation = useMutation({
     mutationFn: async (events) => {
-      // Process in chunks of 5 to avoid rate limiting
-      const chunkSize = 5;
+      // Process in chunks of 15 with 200ms delay between chunks
+      const chunkSize = 15;
       for (let i = 0; i < events.length; i += chunkSize) {
         const chunk = events.slice(i, i + chunkSize);
         await Promise.all(chunk.map(event => base44.entities.TimelineEvent.update(event.id, event)));
+        // Delay between chunks to avoid rate limiting
+        if (i + chunkSize < events.length) {
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
       }
     },
     onSuccess: () => {
