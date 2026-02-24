@@ -1061,12 +1061,23 @@ Seja conciso, profissional e em português.`;
                 Object.entries(verticalGroups).forEach(([vertical, prods]) => {
                   // Buscar cronograma da vertical
                   const cronograma = allCronogramas.find(c => c.project_id === project.id && c.vertical === vertical);
-                  if (!cronograma) return;
                   
-                  // Buscar etapa migracao_prd_blackout deste cronograma - usando cronograma_id
-                  const migEvent = allTimelineEvents.find(e => 
-                    e.cronograma_id === cronograma.id && e.phase === 'migracao_prd_blackout'
-                  );
+                  // Buscar etapa migracao_prd_blackout - tenta por cronograma_id primeiro, depois por product_id dos produtos
+                  let migEvent = null;
+                  if (cronograma) {
+                    migEvent = allTimelineEvents.find(e => 
+                      e.cronograma_id === cronograma.id && e.phase === 'migracao_prd_blackout'
+                    );
+                  }
+                  
+                  // Se não encontrou por cronograma_id, tenta buscar entre os produtos da vertical
+                  if (!migEvent) {
+                    const prodIds = prods.map(p => p.id);
+                    migEvent = allTimelineEvents.find(e => 
+                      prodIds.includes(e.product_id) && e.phase === 'migracao_prd_blackout'
+                    );
+                  }
+                  
                   if (!migEvent || !migEvent.start_date) return;
 
                   const migMonth = migEvent.start_date.substring(0, 7);
