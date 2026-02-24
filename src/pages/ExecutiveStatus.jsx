@@ -1003,7 +1003,8 @@ Seja conciso, profissional e em português.`;
 
               if (project.implementation_value > 0) {
                 const pendente = Math.max(0, project.implementation_value - recognized.implantacao);
-                monthlyData[implantacaoMonth].implantacao += pendente;
+                monthlyData[implantacaoMonth].implantacao += project.implementation_value;
+                monthlyData[implantacaoMonth].a_receber += pendente;
               }
 
               if (project.recurring_value > 0) {
