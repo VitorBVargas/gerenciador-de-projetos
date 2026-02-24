@@ -1079,7 +1079,7 @@ Seja conciso, profissional e em português.`;
                            }}
                          />
                          <Bar 
-                           dataKey="implantacao" 
+                           dataKey="a_receber" 
                            fill="#10b981" 
                            name="A Receber" 
                            cursor="pointer"
