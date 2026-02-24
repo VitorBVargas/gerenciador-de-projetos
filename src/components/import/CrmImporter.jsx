@@ -197,16 +197,16 @@ export default function CrmImporter({ open, onOpenChange }) {
 
     if (formData.cronogramas && formData.cronogramas.length > 0) {
       formData.cronogramas.forEach(crono => {
-        if (crono.type === 'vertical') {
+        // Ambos os tipos ('vertical' e 'produto') agora usam seleção por vertical
+        if (crono.verticals) {
           crono.verticals.forEach(v => { cronogramaByVertical[v] = crono.dates; });
-        } else if (crono.type === 'produto') {
+        } else if (crono.type === 'produto' && crono.productName) {
           cronogramaByProduct[crono.productName] = crono.dates;
         }
       });
     }
 
     createdProducts.forEach((product, pIdx) => {
-      // por produto tem prioridade sobre por vertical
       const crondates = cronogramaByProduct[product.name] || cronogramaByVertical[product.vertical] || {};
 
       STANDARD_PHASES.forEach(({ key, title }, phaseIdx) => {
