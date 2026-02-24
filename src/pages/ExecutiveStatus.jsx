@@ -976,38 +976,40 @@ Seja conciso, profissional e em português.`;
               };
             }
 
-            // Processar apenas projetos ATIVOS (não concluídos)
-            projects.forEach(project => {
-              const implantacaoMonth = getImplantacaoMonth(project);
-              if (!implantacaoMonth) return;
-
-              // Implantação: no mês do Prazo Contratual
-              if (project.implementation_value > 0 && monthlyData[implantacaoMonth]) {
-                monthlyData[implantacaoMonth].implantacao += project.implementation_value;
-              }
-
-              // Recorrente: no mês do Prazo Contratual
-              if (project.recurring_value > 0 && monthlyData[implantacaoMonth]) {
-                monthlyData[implantacaoMonth].recorrente += project.recurring_value;
-              }
-            });
-
-            // Processar valores reconhecidos:
-            // - Subtrai do verde (mês do prazo contratual do projeto)
-            // - Adiciona no roxo (mesmo mês do prazo contratual), mostrando o que já foi recebido
+            // Pré-calcular total reconhecido por projeto (todos os meses somados)
+            const totalRecognizedByProject = {};
             allRecognizedRevenues.forEach(recognized => {
               const project = allProjectsData.find(p => p.id === recognized.project_id);
               if (!project || project.status === 'concluido') return;
-              
-              const originalMonth = getImplantacaoMonth(project);
-              if (!originalMonth || !monthlyData[originalMonth]) return;
-
+              if (!totalRecognizedByProject[recognized.project_id]) {
+                totalRecognizedByProject[recognized.project_id] = { implantacao: 0, recorrente: 0 };
+              }
               if (recognized.type === 'implantacao') {
-                // Subtrai do verde e acumula no roxo — ambos no mês do prazo contratual
-                monthlyData[originalMonth].implantacao = Math.max(0, monthlyData[originalMonth].implantacao - recognized.amount);
-                monthlyData[originalMonth].reconhecido += recognized.amount;
+                totalRecognizedByProject[recognized.project_id].implantacao += recognized.amount;
               } else {
-                monthlyData[originalMonth].recorrente = Math.max(0, monthlyData[originalMonth].recorrente - recognized.amount);
+                totalRecognizedByProject[recognized.project_id].recorrente += recognized.amount;
+              }
+            });
+
+            // Processar apenas projetos ATIVOS (não concluídos)
+            projects.forEach(project => {
+              const implantacaoMonth = getImplantacaoMonth(project);
+              if (!implantacaoMonth || !monthlyData[implantacaoMonth]) return;
+
+              const recognized = totalRecognizedByProject[project.id] || { implantacao: 0, recorrente: 0 };
+
+              // Verde = valor total - tudo que já foi reconhecido (de qualquer mês)
+              if (project.implementation_value > 0) {
+                const pendente = Math.max(0, project.implementation_value - recognized.implantacao);
+                monthlyData[implantacaoMonth].implantacao += pendente;
+                // Roxo = total já reconhecido de implantação deste projeto
+                monthlyData[implantacaoMonth].reconhecido += recognized.implantacao;
+              }
+
+              // Recorrente: também desconta o já reconhecido
+              if (project.recurring_value > 0) {
+                const pendente = Math.max(0, project.recurring_value - recognized.recorrente);
+                monthlyData[implantacaoMonth].recorrente += pendente;
               }
             });
 
