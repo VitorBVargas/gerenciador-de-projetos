@@ -157,24 +157,48 @@ export default function MarcosRadar({ projects, timelineEvents, products = [] })
           {projectsData.map((project, idx) => {
             const goLivePos = getPosition(Math.max(0, project.daysToGoLive), project.id);
             const deliveryPos = getPosition(Math.max(0, project.daysToDelivery), project.id + '_delivery');
-            
+
             const goLiveColor = getColor(Math.max(0, project.daysToGoLive));
             const deliveryColor = getColor(Math.max(0, project.daysToDelivery));
 
+            const goLiveHex = goLiveColor.bg === 'bg-red-500' ? '#ef4444' : goLiveColor.bg === 'bg-yellow-500' ? '#eab308' : goLiveColor.bg === 'bg-blue-500' ? '#3b82f6' : '#22c55e';
+            const deliveryHex = deliveryColor.bg === 'bg-red-500' ? '#ef4444' : deliveryColor.bg === 'bg-yellow-500' ? '#eab308' : deliveryColor.bg === 'bg-blue-500' ? '#3b82f6' : '#22c55e';
+
             return (
-              <g key={project.id}>
+              <g key={project.id} opacity="0.85">
+                {/* Linha conectando Go Live ao Fim */}
+                <line
+                  x1={goLivePos.x}
+                  y1={goLivePos.y}
+                  x2={deliveryPos.x}
+                  y2={deliveryPos.y}
+                  stroke="#64748b"
+                  strokeDasharray="3,3"
+                  strokeWidth="1"
+                  opacity="0.4"
+                />
+
                 {/* Go Live - Triângulo */}
                 {project.daysToGoLive !== null && (
                   <g title={`${project.name} - Go Live${project.daysToGoLive >= 0 ? ` em ${project.daysToGoLive}d` : ` (${Math.abs(project.daysToGoLive)}d atrás)`}${project.goLiveDate ? ` - ${format(new Date(project.goLiveDate), 'dd/MM/yy')}` : ''}`}>
                     <polygon
                       points={`${goLivePos.x},${goLivePos.y - 10} ${goLivePos.x - 10},${goLivePos.y + 10} ${goLivePos.x + 10},${goLivePos.y + 10}`}
-                      fill={goLiveColor.bg === 'bg-red-500' ? '#ef4444' : goLiveColor.bg === 'bg-yellow-500' ? '#eab308' : goLiveColor.bg === 'bg-blue-500' ? '#3b82f6' : '#22c55e'}
+                      fill={goLiveHex}
                       opacity="0.9"
                       style={{
                         filter: 'drop-shadow(0 0 6px rgba(0,0,0,0.7))',
                         cursor: 'pointer'
                       }}
                     />
+                    <text
+                      x={goLivePos.x}
+                      y={goLivePos.y + 25}
+                      className="text-xs fill-slate-300"
+                      textAnchor="middle"
+                      style={{ pointerEvents: 'none' }}
+                    >
+                      {project.name.substring(0, 12)}
+                    </text>
                   </g>
                 )}
 
@@ -185,7 +209,7 @@ export default function MarcosRadar({ projects, timelineEvents, products = [] })
                       cx={deliveryPos.x}
                       cy={deliveryPos.y}
                       r="10"
-                      fill={deliveryColor.bg === 'bg-red-500' ? '#ef4444' : deliveryColor.bg === 'bg-yellow-500' ? '#eab308' : deliveryColor.bg === 'bg-blue-500' ? '#3b82f6' : '#22c55e'}
+                      fill={deliveryHex}
                       opacity="0.9"
                       style={{
                         filter: 'drop-shadow(0 0 6px rgba(0,0,0,0.7))',
