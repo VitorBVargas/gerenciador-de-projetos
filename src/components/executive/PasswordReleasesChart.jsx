@@ -147,9 +147,14 @@ export default function PasswordReleasesChart({ products, projects = [], visible
           </ResponsiveContainer>
           <div className="mt-4 text-center">
             <div className="text-2xl font-bold text-emerald-400">
-              {products.filter(p => p.production_password).length}
+              {new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+              }).format(products.filter(p => p.production_password).reduce((sum, p) => sum + (p.inclusion_value || 0), 0))}
             </div>
-            <div className="text-sm text-slate-400">Total de senhas liberadas</div>
+            <div className="text-sm text-slate-400">Valor total de senhas liberadas</div>
           </div>
         </CardContent>
         </Card>
