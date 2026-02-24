@@ -970,7 +970,8 @@ Seja conciso, profissional e em português.`;
               const key = format(month, 'yyyy-MM');
               monthlyData[key] = {
                 month: format(month, 'MMM/yy', { locale: ptBR }),
-                implantacao: 0,
+                implantacao: 0,      // valor bruto (para referência)
+                a_receber: 0,        // pendente = bruto - reconhecido (barra verde)
                 recorrente: 0,
                 reconhecido: 0
               };
