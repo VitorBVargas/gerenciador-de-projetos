@@ -1040,15 +1040,17 @@ Seja conciso, profissional e em português.`;
                       <BarChart 
                        data={chartData}
                        onClick={(data) => {
-                         if (data && data.activePayload && data.activePayload[0]) {
-                           const clickedMonth = data.activePayload[0].payload.month;
+                         if (data && data.activeLabel) {
                            const monthKey = Object.keys(monthlyData).find(
-                             key => monthlyData[key].month === clickedMonth
+                             key => monthlyData[key].month === data.activeLabel
                            );
-                           setSelectedMonth(monthKey);
-                           setSelectedMonthType('implantacao');
+                           if (monthKey) {
+                             setSelectedMonth(monthKey);
+                             setSelectedMonthType('implantacao');
+                           }
                          }
                        }}
+                       style={{ cursor: 'pointer' }}
                       >
                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                        <XAxis 
