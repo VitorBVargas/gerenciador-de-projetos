@@ -55,6 +55,25 @@ function toDisplay(iso) {
 function DateInput({ value, onChange }) {
   const [raw, setRaw] = React.useState(toDisplay(value));
 
+  const handleChange = (e) => {
+    // Remove tudo que não é dígito
+    const digits = e.target.value.replace(/\D/g, '').slice(0, 4);
+    // Monta "DD/MM" automaticamente
+    let formatted = digits;
+    if (digits.length > 2) {
+      formatted = digits.slice(0, 2) + '/' + digits.slice(2);
+    }
+    setRaw(formatted);
+
+    // Se tiver 4 dígitos, parseia e dispara onChange
+    if (digits.length === 4) {
+      const parsed = parseDayMonth(formatted);
+      if (parsed) onChange(parsed);
+    } else if (digits.length === 0) {
+      onChange('');
+    }
+  };
+
   const handleBlur = () => {
     if (!raw.trim()) { onChange(''); return; }
     const parsed = parseDayMonth(raw);
@@ -72,9 +91,10 @@ function DateInput({ value, onChange }) {
   return (
     <Input
       value={raw}
-      onChange={e => setRaw(e.target.value)}
+      onChange={handleChange}
       onBlur={handleBlur}
       placeholder="DD/MM"
+      maxLength={5}
       className="bg-slate-700 border-slate-600 text-white h-7 text-xs px-2"
     />
   );
