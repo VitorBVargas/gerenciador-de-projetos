@@ -249,6 +249,27 @@ export default function ProjectsList() {
 
   return (
     <div className="min-h-screen bg-slate-900">
+      {/* Top Navigation Bar */}
+      <div className="border-b border-slate-700 bg-slate-800/50 backdrop-blur">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-4 flex items-center justify-between">
+          <Link to={createPageUrl('Home')} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center flex-shrink-0">
+              <span className="text-white font-bold text-xl">B</span>
+            </div>
+            <div>
+              <p className="text-white font-semibold text-sm">Gerenciador</p>
+              <p className="text-slate-500 text-xs">de Projetos</p>
+            </div>
+          </Link>
+          <Link to={createPageUrl('Home')}>
+            <Button variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-700">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Voltar
+            </Button>
+          </Link>
+        </div>
+      </div>
+
       <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-6">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
