@@ -430,12 +430,27 @@ Seja conciso e executivo.`
         });
         Object.entries(verticalGroups).forEach(([vertical, prods]) => {
           const cronograma = allCronogramas.find(c => c.project_id === project.id && c.vertical === vertical);
-          if (!cronograma) return;
-          const migEvent = allTimelineEvents.find(e => e.cronograma_id === cronograma.id && e.phase === 'migracao_prd_blackout');
-          if (!migEvent || !migEvent.start_date) return;
-          const migMonth = migEvent.start_date.substring(0, 7);
-          if (!map[migMonth]) return;
+          
+          // Se cronograma existe com evento, usa para todos
+          if (cronograma) {
+            const migEvent = allTimelineEvents.find(e => e.cronograma_id === cronograma.id && e.phase === 'migracao_prd_blackout');
+            if (migEvent && migEvent.start_date) {
+              const migMonth = migEvent.start_date.substring(0, 7);
+              if (map[migMonth]) {
+                prods.forEach(prod => {
+                  map[migMonth].push({ product: prod, project, vertical, startDate: migEvent.start_date, inclusionValue: prod.inclusion_value || 0 });
+                });
+              }
+              return;
+            }
+          }
+          
+          // Se não encontrou por cronograma, busca cada produto individualmente
           prods.forEach(prod => {
+            const migEvent = allTimelineEvents.find(e => e.product_id === prod.id && e.phase === 'migracao_prd_blackout');
+            if (!migEvent || !migEvent.start_date) return;
+            const migMonth = migEvent.start_date.substring(0, 7);
+            if (!map[migMonth]) return;
             map[migMonth].push({ product: prod, project, vertical, startDate: migEvent.start_date, inclusionValue: prod.inclusion_value || 0 });
           });
         });
