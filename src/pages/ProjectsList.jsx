@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, FolderOpen, Trash2, Upload, Calendar, DollarSign, TrendingUp, GripVertical } from 'lucide-react';
+import { Plus, FolderOpen, Trash2, Upload, Calendar, DollarSign, TrendingUp, GripVertical, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { format } from 'date-fns';
