@@ -992,27 +992,22 @@ Seja conciso, profissional e em português.`;
               }
             });
 
-            // Processar valores reconhecidos - subtrair dos gráficos originais e adicionar na barra roxa do mês reconhecido
+            // Processar valores reconhecidos:
+            // - Subtrai do verde (mês do prazo contratual do projeto)
+            // - Adiciona no roxo (mesmo mês do prazo contratual), mostrando o que já foi recebido
             allRecognizedRevenues.forEach(recognized => {
-              const recognizedMonth = recognized.recognition_month.substring(0, 7); // YYYY-MM
-              
               const project = allProjectsData.find(p => p.id === recognized.project_id);
               if (!project || project.status === 'concluido') return;
               
               const originalMonth = getImplantacaoMonth(project);
-              
-              // Subtrair do mês original baseado no tipo
-              if (originalMonth && monthlyData[originalMonth]) {
-                if (recognized.type === 'implantacao') {
-                  monthlyData[originalMonth].implantacao = Math.max(0, monthlyData[originalMonth].implantacao - recognized.amount);
-                } else {
-                  monthlyData[originalMonth].recorrente = Math.max(0, monthlyData[originalMonth].recorrente - recognized.amount);
-                }
-              }
-              
-              // Adicionar na barra roxa (reconhecido) do mês selecionado
-              if (monthlyData[recognizedMonth]) {
-                monthlyData[recognizedMonth].reconhecido += recognized.amount;
+              if (!originalMonth || !monthlyData[originalMonth]) return;
+
+              if (recognized.type === 'implantacao') {
+                // Subtrai do verde e acumula no roxo — ambos no mês do prazo contratual
+                monthlyData[originalMonth].implantacao = Math.max(0, monthlyData[originalMonth].implantacao - recognized.amount);
+                monthlyData[originalMonth].reconhecido += recognized.amount;
+              } else {
+                monthlyData[originalMonth].recorrente = Math.max(0, monthlyData[originalMonth].recorrente - recognized.amount);
               }
             });
 
