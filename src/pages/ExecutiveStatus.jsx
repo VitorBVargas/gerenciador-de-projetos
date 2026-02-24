@@ -65,6 +65,7 @@ const statusColors = {
 
 export default function ExecutiveStatus() {
   const [activeTab, setActiveTab] = useState('overview');
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
   const [isRevenueModalOpen, setIsRevenueModalOpen] = useState(false);
   const [isRecognizeAllModalOpen, setIsRecognizeAllModalOpen] = useState(false);
