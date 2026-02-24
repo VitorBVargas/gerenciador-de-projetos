@@ -105,6 +105,9 @@ export default function BulkEditDatesModal({
       return;
     }
 
+    setApplying(true);
+    setConfirmOpen(false);
+
     const phaseEvents = getEventsByPhase(selectedPhase);
     const eventsToUpdate = phaseEvents.map(event => ({
       id: event.id,
@@ -115,8 +118,8 @@ export default function BulkEditDatesModal({
     if (eventsToUpdate.length > 0) {
       await onApply(eventsToUpdate);
     }
-    
-    setConfirmOpen(false);
+
+    setApplying(false);
     onOpenChange(false);
   };
 
