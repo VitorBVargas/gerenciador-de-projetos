@@ -1188,21 +1188,24 @@ Seja conciso, profissional e em português.`;
                   {visibleCharts.recorrente !== false && (
                   <Card className="bg-slate-800 border-slate-600">
                   <CardHeader>
-                    <CardTitle className="text-white">Receita Recorrente (MRR)</CardTitle>
+                    <CardTitle className="text-white">Previsão de Inclusão (Recorrente)</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <ResponsiveContainer width="100%" height={300}>
                       <BarChart 
                        data={chartData}
                        onClick={(data) => {
-                         if (data && data.activePayload && data.activePayload[0]) {
+                         if (data && data.activeLabel) {
                            const monthKey = Object.keys(monthlyData).find(
-                             key => monthlyData[key].month === data.activePayload[0].payload.month
+                             key => monthlyData[key].month === data.activeLabel
                            );
-                           setSelectedMonth(monthKey);
-                           setSelectedMonthType('recorrente');
+                           if (monthKey) {
+                             setSelectedMonth(monthKey);
+                             setSelectedMonthType('recorrente');
+                           }
                          }
                        }}
+                       style={{ cursor: 'pointer' }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                         <XAxis 
