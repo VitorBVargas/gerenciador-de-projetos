@@ -66,6 +66,8 @@ export default function Layout({ children, currentPageName }) {
           "fixed inset-y-0 left-0 z-50 flex flex-col bg-slate-900 border-r border-slate-800 transition-all duration-300",
           collapsed ? "w-20" : "w-64"
         )}
+        onMouseEnter={() => setCollapsed(false)}
+        onMouseLeave={() => setCollapsed(true)}
       >
         {/* Logo */}
         <Link to={createPageUrl('Home')} className="flex items-center h-16 px-4 border-b border-slate-800 hover:bg-slate-800 transition-colors">
