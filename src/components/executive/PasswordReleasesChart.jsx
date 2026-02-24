@@ -30,9 +30,11 @@ export default function PasswordReleasesChart({ products, projects = [], visible
     // Processar cada produto com senha liberada
     products.forEach(product => {
       if (product.production_password) {
+        const inclusionValue = product.inclusion_value || 0;
+        
         // Se tem carência até uma data
         if (product.password_grace_period_until) {
-          // Contar em COM CARÊNCIA de hoje até o mês da carência
+          // Somar em COM CARÊNCIA de hoje até o mês da carência
           const graceEndDate = new Date(product.password_grace_period_until);
           const graceEndMonth = format(graceEndDate, 'yyyy-MM');
           
@@ -42,7 +44,7 @@ export default function PasswordReleasesChart({ products, projects = [], visible
           // Percorrer todos os meses de hoje até o fim da carência
           while (currentMonth <= graceEndMonth) {
             if (monthlyData[currentMonth]) {
-              monthlyData[currentMonth].comCarencia += 1;
+              monthlyData[currentMonth].comCarencia += inclusionValue;
               if (!monthlyData[currentMonth].products.includes(product)) {
                 monthlyData[currentMonth].products.push(product);
               }
@@ -51,21 +53,21 @@ export default function PasswordReleasesChart({ products, projects = [], visible
             currentMonth = format(checkDate, 'yyyy-MM');
           }
           
-          // Contar no mês SEGUINTE ao fim da carência como LIBERADA
+          // Somar no mês SEGUINTE ao fim da carência como LIBERADA
           const nextMonthAfterGrace = addMonths(new Date(product.password_grace_period_until), 1);
           const countMonth = format(new Date(nextMonthAfterGrace.getFullYear(), nextMonthAfterGrace.getMonth(), 1), 'yyyy-MM');
           
           if (monthlyData[countMonth]) {
-            monthlyData[countMonth].liberadas += 1;
+            monthlyData[countMonth].liberadas += inclusionValue;
             if (!monthlyData[countMonth].products.includes(product)) {
               monthlyData[countMonth].products.push(product);
             }
           }
         } else {
-          // Senha liberada SEM carência: contar no mês atual
+          // Senha liberada SEM carência: somar no mês atual
           const currentMonth = format(now, 'yyyy-MM');
           if (monthlyData[currentMonth]) {
-            monthlyData[currentMonth].liberadas += 1;
+            monthlyData[currentMonth].liberadas += inclusionValue;
             monthlyData[currentMonth].products.push(product);
           }
         }
