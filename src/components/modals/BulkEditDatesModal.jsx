@@ -37,6 +37,7 @@ export default function BulkEditDatesModal({
       setPhaseStartDate('');
       setPhaseEndDate('');
       setEditAllMode(false);
+      setApplying(false);
     }
   }, [open]);
 
