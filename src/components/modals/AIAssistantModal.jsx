@@ -84,8 +84,8 @@ export default function AIAssistantModal({ isOpen, onClose, projectId, conversat
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md h-[600px] p-0 flex flex-col bg-slate-900 border-slate-700">
-        <DialogHeader className="p-4 border-b border-slate-700 flex items-center justify-between">
+      <DialogContent className="max-w-2xl w-full h-[80vh] max-h-[700px] p-0 flex flex-col bg-slate-900 border-slate-700">
+        <DialogHeader className="p-4 border-b border-slate-700 flex items-center justify-between flex-shrink-0">
           <DialogTitle className="text-white">Assistente IA</DialogTitle>
           <button onClick={handleClose} className="text-slate-400 hover:text-white">
             <X className="w-5 h-5" />
@@ -93,7 +93,7 @@ export default function AIAssistantModal({ isOpen, onClose, projectId, conversat
         </DialogHeader>
 
         {/* Messages Container */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full text-center">
               <div className="text-slate-400 text-sm space-y-2">
