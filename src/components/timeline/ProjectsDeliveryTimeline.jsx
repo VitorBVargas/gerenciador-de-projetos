@@ -19,15 +19,8 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents, pro
       // Verificar se o projeto já está concluído
       const isProjectCompleted = project.status === 'concluido';
       
-      // Find Go Live event (production migration or similar)
-      const goLiveEvent = projectEvents.find(e => 
-        e.phase && (
-          e.phase === 'migracao_producao' || 
-          e.phase === 'operacao_assistida' ||
-          e.title?.toLowerCase().includes('go live') ||
-          e.title?.toLowerCase().includes('produção')
-        )
-      );
+      // Find Go Live event
+      const goLiveEvent = projectEvents.find(e => e.phase === 'go_live');
       
       // Find the last event end_date (project end)
       const deliveryDate = projectEvents.reduce((latest, event) => {
