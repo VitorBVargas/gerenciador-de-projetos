@@ -5,22 +5,19 @@ import { format, addMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export default function ProjectsDeliveryTimeline({ projects, timelineEvents, products = [] }) {
-  const [expandedProjects, setExpandedProjects] = useState({});
-
   // Group projects with their delivery dates
   const projectsWithDelivery = useMemo(() => {
     return projects.map(project => {
       const projectProducts = products.filter(p => p.project_id === project.id);
       const productIds = projectProducts.map(p => p.id);
       
-      // Buscar eventos: tanto os com project_id quanto os com product_id dos produtos do projeto
       const projectEvents = timelineEvents.filter(e => 
         e.project_id === project.id || (e.product_id && productIds.includes(e.product_id))
       );
       
       const isProjectCompleted = project.status === 'concluido';
       
-      // Liberação (Go Live): data MAIS TARDE entre todos os go_live de produtos e verticais
+      // Go Live: data MAIS TARDE entre todos os go_live
       const goLiveEvents = projectEvents.filter(e => e.phase === 'go_live' && e.end_date);
       const goLiveDate = goLiveEvents.length > 0 
         ? goLiveEvents.reduce((latest, event) => {
@@ -38,77 +35,63 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents, pro
           }).end_date
         : null;
 
-      // Verificar se há algum produto sem aceite
-      const hasProductWithoutAcceptance = projectProducts.some(p => !p.implementation_accepted);
-
-      // Status: se passou da data de encerramento e todos com aceite = aguardando_release, senão = project_end
-      let status = 'pending';
-      if (deliveryDate) {
-        const now = new Date();
-        if (!hasProductWithoutAcceptance && new Date(deliveryDate) < now) {
-          status = 'awaiting_release';
-        } else {
-          status = 'project_end';
-        }
-      }
-
       return {
         ...project,
         goLiveDate,
         deliveryDate,
-        status,
         isProjectCompleted
       };
     }).filter(p => p.deliveryDate && !p.isProjectCompleted);
   }, [projects, timelineEvents, products]);
 
-  // Generate 12 months from now
-  const months = useMemo(() => {
-    const monthsList = [];
-    for (let i = 0; i < 12; i++) {
-      monthsList.push(addMonths(startOfMonth(new Date()), i));
-    }
-    return monthsList;
-  }, []);
-
-  // Group projects by month
-  const projectsByMonth = useMemo(() => {
-    const grouped = {};
+  // Calcular intervalo de tempo
+  const timelineRange = useMemo(() => {
+    if (projectsWithDelivery.length === 0) return null;
     
-    months.forEach(month => {
-      grouped[format(month, 'yyyy-MM')] = {
-        month,
-        goLive: [],
-        closing: []
-      };
+    let minDate = new Date();
+    let maxDate = new Date();
+    
+    projectsWithDelivery.forEach(p => {
+      const goDate = new Date(p.goLiveDate);
+      const endDate = new Date(p.deliveryDate);
+      
+      if (goDate < minDate) minDate = goDate;
+      if (endDate > maxDate) maxDate = endDate;
     });
+    
+    return { start: minDate, end: maxDate };
+  }, [projectsWithDelivery]);
 
-    projectsWithDelivery.forEach(project => {
-      // Add to Go Live month
-      if (project.goLiveDate) {
-        const goLiveMonth = format(new Date(project.goLiveDate), 'yyyy-MM');
-        if (grouped[goLiveMonth]) {
-          grouped[goLiveMonth].goLive.push(project);
-        }
-      }
+  // Gerar meses para o timeline
+  const months = useMemo(() => {
+    if (!timelineRange) return [];
+    
+    const monthsList = [];
+    let current = startOfMonth(new Date(timelineRange.start));
+    const timelineEnd = endOfMonth(timelineRange.end);
+    
+    while (current <= timelineEnd) {
+      monthsList.push(new Date(current));
+      current = addMonths(current, 1);
+    }
+    
+    return monthsList;
+  }, [timelineRange]);
 
-      // Add to Closing month
-      if (project.deliveryDate) {
-        const closingMonth = format(new Date(project.deliveryDate), 'yyyy-MM');
-        if (grouped[closingMonth]) {
-          grouped[closingMonth].closing.push(project);
-        }
-      }
-    });
+  // Calcular posição relativa de uma data no timeline
+  const getDatePosition = (date) => {
+    if (!timelineRange) return 0;
+    const totalMs = timelineRange.end - timelineRange.start;
+    const dateMs = new Date(date) - timelineRange.start;
+    return Math.max(0, Math.min(100, (dateMs / totalMs) * 100));
+  };
 
-    return grouped;
-  }, [months, projectsWithDelivery]);
-
-  const toggleProject = (projectId) => {
-    setExpandedProjects(prev => ({
-      ...prev,
-      [projectId]: !prev[projectId]
-    }));
+  // Calcular largura da barra
+  const getBarWidth = (startDate, endDate) => {
+    if (!timelineRange) return 0;
+    const totalMs = timelineRange.end - timelineRange.start;
+    const barMs = new Date(endDate) - new Date(startDate);
+    return Math.max(2, (barMs / totalMs) * 100);
   };
 
   if (projectsWithDelivery.length === 0) {
