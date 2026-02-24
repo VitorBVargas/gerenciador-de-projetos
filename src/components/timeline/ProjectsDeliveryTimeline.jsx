@@ -13,8 +13,13 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents, pro
   // Group projects with their delivery dates
   const projectsWithDelivery = useMemo(() => {
     return projects.map(project => {
-      const projectEvents = timelineEvents.filter(e => e.project_id === project.id);
       const projectProducts = products.filter(p => p.project_id === project.id);
+      const productIds = projectProducts.map(p => p.id);
+      
+      // Buscar eventos: tanto os com project_id quanto os com product_id dos produtos do projeto
+      const projectEvents = timelineEvents.filter(e => 
+        e.project_id === project.id || (e.product_id && productIds.includes(e.product_id))
+      );
       
       // Verificar se o projeto já está concluído
       const isProjectCompleted = project.status === 'concluido';
