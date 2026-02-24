@@ -155,7 +155,7 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents, pro
             {projectsWithDelivery.map((project) => (
               <div
                 key={project.id}
-                className="h-14 px-4 py-3 border-b border-slate-700 last:border-b-0 flex items-center"
+                className="h-20 px-4 py-2 border-b border-slate-700 last:border-b-0 flex items-center"
               >
                 <span className="text-sm font-medium text-slate-200 truncate">{project.name}</span>
               </div>
@@ -163,14 +163,15 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents, pro
           </div>
 
           {/* Timeline bars */}
-          <div className="flex-1 overflow-x-auto scrollbar-thin scrollbar-thumb-slate-600 relative">
-            <div style={{ width: `${Math.max(100, months.length * 60)}px` }} className="relative">
+          <div className="flex-1 overflow-x-auto scrollbar-thin scrollbar-thumb-slate-600">
+            <div style={{ width: `${Math.max(100, months.length * 80)}px` }} className="relative">
               {/* Vertical grid lines */}
               <div className="absolute inset-0 flex pointer-events-none">
                 {months.map((month, idx) => (
                   <div
                     key={idx}
-                    className="flex-1 border-r border-slate-700/20 last:border-r-0 min-w-[60px]"
+                    className="border-r border-slate-700/20 last:border-r-0"
+                    style={{ width: '80px' }}
                   />
                 ))}
               </div>
@@ -183,38 +184,36 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents, pro
                 return (
                   <div
                     key={project.id}
-                    className="h-14 py-3 px-2 border-b border-slate-700 last:border-b-0 relative flex items-center"
+                    className="h-20 border-b border-slate-700 last:border-b-0 relative"
                   >
-                    {/* Bar container */}
-                    <div className="absolute top-0 bottom-0 flex items-center" style={{ left: `${startPos}%` }}>
+                    <div className="absolute top-0 bottom-0 flex items-center" style={{ left: `${startPos}px` }}>
                       {/* Bar background */}
                       <div
-                        className="h-6 bg-gradient-to-r from-blue-500 to-blue-600 rounded opacity-70 hover:opacity-100 transition-opacity relative group"
-                        style={{ width: `${barWidth}%`, minWidth: '8px' }}
+                        className="h-6 bg-gradient-to-r from-blue-500 to-blue-600 rounded opacity-70 hover:opacity-100 transition-opacity relative group cursor-pointer"
+                        style={{ width: `${barWidth}px`, minWidth: '8px' }}
                       >
                         {/* Tooltip */}
-                        <div className="hidden group-hover:block absolute z-10 bottom-full left-0 mb-2 whitespace-nowrap">
+                        <div className="hidden group-hover:block absolute z-10 bottom-full left-1/2 -translate-x-1/2 mb-2 whitespace-nowrap">
                           <div className="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200">
-                            {format(new Date(project.goLiveDate), 'dd MMM', { locale: ptBR })} - {format(new Date(project.deliveryDate), 'dd MMM', { locale: ptBR })}
+                            {format(new Date(project.goLiveDate), 'dd/MM/yy')} - {format(new Date(project.deliveryDate), 'dd/MM/yy')}
                           </div>
                         </div>
                       </div>
 
                       {/* Go Live marker */}
-                      <div className="absolute top-1/2 -translate-y-1/2" style={{ left: 0 }}>
-                        <div className="w-0 h-0 border-l-[3px] border-l-transparent border-r-[3px] border-r-transparent border-b-[6px] border-b-blue-500 relative" style={{ marginLeft: '-3px' }}>
-                          <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 text-xs text-slate-400 font-semibold whitespace-nowrap pointer-events-none">
-                            {format(new Date(project.goLiveDate), 'dd/MM', { locale: ptBR })}
-                          </div>
-                        </div>
+                      <div className="absolute top-1/4 -translate-y-1/2 flex flex-col items-center" style={{ left: 0 }}>
+                        <div className="w-0 h-0 border-l-[3px] border-l-transparent border-r-[3px] border-r-transparent border-b-[6px] border-b-blue-500" style={{ marginLeft: '-3px' }} />
+                        <span className="text-xs text-blue-300 font-bold mt-6">
+                          {format(new Date(project.goLiveDate), 'dd/MM')}
+                        </span>
                       </div>
 
                       {/* Delivery marker */}
-                      <div className="absolute top-1/2 -translate-y-1/2" style={{ left: `${barWidth}%` }}>
-                        <Circle className="w-4 h-4 text-green-500 fill-green-500 relative" style={{ marginLeft: '-8px' }} />
-                        <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 text-xs text-slate-400 font-semibold whitespace-nowrap pointer-events-none">
-                          {format(new Date(project.deliveryDate), 'dd/MM', { locale: ptBR })}
-                        </div>
+                      <div className="absolute top-1/4 -translate-y-1/2 flex flex-col items-center" style={{ left: `${barWidth}px` }}>
+                        <Circle className="w-3 h-3 text-green-500 fill-green-500" style={{ marginLeft: '-6px' }} />
+                        <span className="text-xs text-green-300 font-bold mt-6">
+                          {format(new Date(project.deliveryDate), 'dd/MM')}
+                        </span>
                       </div>
                     </div>
                   </div>
