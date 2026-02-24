@@ -1039,6 +1039,16 @@ Seja conciso, profissional e em português.`;
                     <ResponsiveContainer width="100%" height={300}>
                       <BarChart 
                        data={chartData}
+                       onClick={(data) => {
+                         if (data && data.activePayload && data.activePayload[0]) {
+                           const clickedMonth = data.activePayload[0].payload.month;
+                           const monthKey = Object.keys(monthlyData).find(
+                             key => monthlyData[key].month === clickedMonth
+                           );
+                           setSelectedMonth(monthKey);
+                           setSelectedMonthType('implantacao');
+                         }
+                       }}
                       >
                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                        <XAxis 
