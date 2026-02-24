@@ -23,62 +23,48 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents, pro
         e.project_id === project.id || (e.product_id && productIds.includes(e.product_id))
       );
       
-      // Verificar se o projeto já está concluído
       const isProjectCompleted = project.status === 'concluido';
       
-      // Find the most recent Go Live event (latest end_date)
-      const goLiveEvents = projectEvents.filter(e => e.phase === 'go_live');
-      const goLiveEvent = goLiveEvents.reduce((latest, event) => {
-        if (event.end_date) {
-          const eventDate = new Date(event.end_date);
-          if (!latest || eventDate > new Date(latest.end_date)) {
-            return event;
-          }
-        }
-        return latest;
-      }, null);
+      // Liberação (Go Live): data MAIS TARDE entre todos os go_live de produtos e verticais
+      const goLiveEvents = projectEvents.filter(e => e.phase === 'go_live' && e.end_date);
+      const goLiveDate = goLiveEvents.length > 0 
+        ? goLiveEvents.reduce((latest, event) => {
+            const eventDate = new Date(event.end_date);
+            return eventDate > new Date(latest.end_date) ? event : latest;
+          }).end_date
+        : null;
       
-      // Find the furthest encerramento_bastao event end_date (project end)
-      const closureEvents = projectEvents.filter(e => e.phase === 'encerramento_bastao');
-      const closureEvent = closureEvents.reduce((latest, event) => {
-        if (event.end_date) {
-          const eventDate = new Date(event.end_date);
-          if (!latest || eventDate > new Date(latest.end_date)) {
-            return event;
-          }
-        }
-        return latest;
-      }, null);
-      const deliveryDate = closureEvent?.end_date ? new Date(closureEvent.end_date) : null;
+      // Fim do Projeto: data MAIS TARDE de encerramento_bastao
+      const closureEvents = projectEvents.filter(e => e.phase === 'encerramento_bastao' && e.end_date);
+      const deliveryDate = closureEvents.length > 0
+        ? closureEvents.reduce((latest, event) => {
+            const eventDate = new Date(event.end_date);
+            return eventDate > new Date(latest.end_date) ? event : latest;
+          }).end_date
+        : null;
 
-      // Verificar se todas as etapas do cronograma estão concluídas
-      const allEventsCompleted = projectEvents.length > 0 && 
-        projectEvents.every(e => e.status === 'concluido');
-      
       // Verificar se há algum produto sem aceite
       const hasProductWithoutAcceptance = projectProducts.some(p => !p.implementation_accepted);
 
-      // Determine status based on delivery date and conditions
+      // Status: se passou da data de encerramento e todos com aceite = aguardando_release, senão = project_end
       let status = 'pending';
       if (deliveryDate) {
         const now = new Date();
-        
-        // Aguardando Aceite: todos os produtos com aceite E data de encerramento já passou
-        if (!hasProductWithoutAcceptance && deliveryDate < now) {
+        if (!hasProductWithoutAcceptance && new Date(deliveryDate) < now) {
           status = 'awaiting_release';
         } else {
-          status = 'project_end'; // Fim do Projeto (verde)
+          status = 'project_end';
         }
       }
 
       return {
         ...project,
-        goLiveDate: goLiveEvent?.end_date,
+        goLiveDate,
         deliveryDate,
         status,
         isProjectCompleted
       };
-    }).filter(p => p.deliveryDate && !p.isProjectCompleted); // Only show projects with delivery dates and not completed
+    }).filter(p => p.deliveryDate && !p.isProjectCompleted);
   }, [projects, timelineEvents, products]);
 
   // Generate months for the timeline
