@@ -700,28 +700,40 @@ Seja conciso, profissional e em português.`;
 
               return (
                 <>
-                  <Card className="bg-green-900/30 border-green-700/50 flex-1 min-w-[100px]">
+                  <Card 
+                    className={cn("bg-slate-800 border-slate-600 flex-1 min-w-[100px] cursor-pointer hover:bg-slate-700 transition-colors", selectedStatusFilter === 'emDias' && 'ring-2 ring-green-500')}
+                    onClick={() => setSelectedStatusFilter(selectedStatusFilter === 'emDias' ? null : 'emDias')}
+                  >
                     <CardContent className="p-2 text-center flex flex-col items-center justify-center h-full">
                       <div className="text-base font-bold text-green-400 mb-0.5">{emDias}</div>
                       <div className="text-xs text-green-300">Em Dia</div>
                     </CardContent>
                   </Card>
 
-                  <Card className="bg-yellow-900/30 border-yellow-700/50 flex-1 min-w-[100px]">
+                  <Card 
+                    className={cn("bg-slate-800 border-slate-600 flex-1 min-w-[100px] cursor-pointer hover:bg-slate-700 transition-colors", selectedStatusFilter === 'emAlerta' && 'ring-2 ring-yellow-500')}
+                    onClick={() => setSelectedStatusFilter(selectedStatusFilter === 'emAlerta' ? null : 'emAlerta')}
+                  >
                     <CardContent className="p-2 text-center flex flex-col items-center justify-center h-full">
                       <div className="text-base font-bold text-yellow-400 mb-0.5">{emAlerta}</div>
                       <div className="text-xs text-yellow-300">Alerta</div>
                     </CardContent>
                   </Card>
 
-                  <Card className="bg-red-900/30 border-red-700/50 flex-1 min-w-[100px]">
+                  <Card 
+                    className={cn("bg-slate-800 border-slate-600 flex-1 min-w-[100px] cursor-pointer hover:bg-slate-700 transition-colors", selectedStatusFilter === 'atrasado' && 'ring-2 ring-red-500')}
+                    onClick={() => setSelectedStatusFilter(selectedStatusFilter === 'atrasado' ? null : 'atrasado')}
+                  >
                     <CardContent className="p-2 text-center flex flex-col items-center justify-center h-full">
                       <div className="text-base font-bold text-red-400 mb-0.5">{atrasado}</div>
                       <div className="text-xs text-red-300">Atrasado</div>
                     </CardContent>
                   </Card>
 
-                  <Card className="bg-purple-900/30 border-purple-700/50 flex-1 min-w-[100px]">
+                  <Card 
+                    className={cn("bg-slate-800 border-slate-600 flex-1 min-w-[100px] cursor-pointer hover:bg-slate-700 transition-colors", selectedStatusFilter === 'concluidos' && 'ring-2 ring-purple-500')}
+                    onClick={() => setSelectedStatusFilter(selectedStatusFilter === 'concluidos' ? null : 'concluidos')}
+                  >
                     <CardContent className="p-2 text-center flex flex-col items-center justify-center h-full">
                       <div className="text-base font-bold text-purple-400 mb-0.5">{concluidos}</div>
                       <div className="text-xs text-purple-300">Concluídos</div>
