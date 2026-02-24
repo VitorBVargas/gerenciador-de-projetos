@@ -117,119 +117,143 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents, pro
 
   return (
     <div className="space-y-6">
-      {/* Legend */}
-       <div className="flex flex-wrap gap-4 justify-end">
-         <div className="flex items-center gap-2">
-           <div className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-b-[8px] border-b-blue-500" />
-           <span className="text-xs text-slate-400">Go Live</span>
-         </div>
-         {Object.entries(statusConfig).filter(([key]) => key !== 'go_live' && key !== 'client_release').map(([key, config]) => {
-           const Icon = config.icon;
-           return (
-             <div key={key} className="flex items-center gap-2">
-               <Icon className={`w-4 h-4 ${config.color}`} />
-               <span className="text-xs text-slate-400">{config.label}</span>
-             </div>
-           );
-         })}
-       </div>
+      {/* Legend - Professional Style */}
+      <div className="flex flex-wrap gap-6 px-4 py-3 bg-gradient-to-r from-slate-800/50 to-slate-900/50 border border-slate-700 rounded-lg">
+        <div className="flex items-center gap-2">
+          <div className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-b-[8px] border-b-blue-500" />
+          <span className="text-xs text-slate-300 font-medium">Go Live</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Circle className="w-4 h-4 text-green-500 fill-green-500" />
+          <span className="text-xs text-slate-300 font-medium">Fim do Projeto</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+          <span className="text-xs text-slate-300 font-medium">Aguardando Aceite</span>
+        </div>
+      </div>
 
-      {/* Timeline Header with Fixed Column */}
-      <div className="relative border border-slate-700 rounded">
-        <div className="flex">
-          {/* Fixed Project Names Header */}
-          <div className="w-64 shrink-0 border-r border-slate-700 bg-slate-900 py-2 px-4 sticky left-0 z-20">
-            <div className="text-xs font-medium text-white">Projeto</div>
+      {/* Gantt Chart Container */}
+      <div className="rounded-lg border border-slate-700 overflow-hidden bg-slate-900/20 backdrop-blur-sm">
+        {/* Header */}
+        <div className="flex border-b border-slate-700">
+          {/* Fixed Column Header */}
+          <div className="w-72 shrink-0 sticky left-0 z-20 bg-gradient-to-b from-slate-800 to-slate-800/50 border-r border-slate-700 p-4">
+            <div className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Projeto</div>
           </div>
-          
-          {/* Scrollable Month Header */}
+
+          {/* Scrollable Timeline Header */}
           <div className="flex-1 overflow-x-auto">
-            <div className="flex border-b border-slate-700 min-w-[1200px]">
+            <div className="flex min-w-[1400px]">
               {months.map((month, idx) => (
-                <div 
-                  key={idx} 
-                  className="flex-1 text-center py-2 border-r border-slate-700 last:border-r-0 bg-slate-800/50"
+                <div
+                  key={idx}
+                  className="flex-1 px-3 py-4 border-r border-slate-700/50 last:border-r-0 text-center bg-slate-800/30"
                 >
-                  <div className="text-xs font-medium text-white">
-                    {format(month, 'MMM/yy', { locale: ptBR })}
+                  <div className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                    {format(month, 'MMM', { locale: ptBR })}
+                  </div>
+                  <div className="text-xs text-slate-500 mt-0.5">
+                    {format(month, 'yy', { locale: ptBR })}
                   </div>
                 </div>
               ))}
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Projects Timeline with Fixed Column */}
-      <div className="border border-slate-700 rounded overflow-hidden">
-        {projectsWithDelivery.map((project, idx) => {
-          const config = statusConfig[project.status];
-          const Icon = config.icon;
-          const deliveryPosition = getDatePosition(project.deliveryDate);
-          const goLivePosition = project.goLiveDate ? getDatePosition(new Date(project.goLiveDate)) : null;
+        {/* Timeline Rows */}
+        {projectsWithDelivery.length === 0 ? (
+          <div className="p-8 text-center text-slate-400">
+            <Info className="w-10 h-10 mx-auto mb-3 opacity-50" />
+            <p className="text-sm">Nenhum projeto com data de entrega definida</p>
+          </div>
+        ) : (
+          projectsWithDelivery.map((project, idx) => {
+            const config = statusConfig[project.status];
+            const Icon = config.icon;
+            const deliveryPosition = getDatePosition(project.deliveryDate);
+            const goLivePosition = project.goLiveDate ? getDatePosition(new Date(project.goLiveDate)) : null;
+            const daysBetween = project.goLiveDate && project.deliveryDate
+              ? differenceInDays(new Date(project.deliveryDate), new Date(project.goLiveDate))
+              : null;
 
-          return (
-            <div key={project.id} className="flex border-b border-slate-700 last:border-b-0 h-20">
-              {/* Fixed Project Name */}
-              <div className="w-64 shrink-0 flex items-center px-4 bg-slate-900/50 border-r border-slate-700 sticky left-0 z-10">
-                <div className="text-sm text-white font-medium truncate">
-                  {project.name}
+            return (
+              <div key={project.id} className="flex border-b border-slate-700 last:border-b-0 hover:bg-slate-800/30 transition-colors">
+                {/* Fixed Project Info */}
+                <div className="w-72 shrink-0 sticky left-0 z-10 bg-slate-900/60 border-r border-slate-700 px-4 py-5 flex flex-col justify-center">
+                  <div className="text-sm font-semibold text-white truncate">
+                    {project.name}
+                  </div>
+                  <div className="text-xs text-slate-400 mt-1">
+                    {daysBetween && `${daysBetween}d de duração`}
+                  </div>
                 </div>
-              </div>
 
-              {/* Timeline Bar */}
-              <div className="flex-1 relative bg-slate-800/30 overflow-x-auto">
-                <div className="relative h-full min-w-[1200px] flex items-center">
-                  {/* Go Live Marker (Blue Triangle) */}
-                  {goLivePosition !== null && goLivePosition >= 0 && goLivePosition <= 100 && (
-                    <div 
-                      className="absolute flex items-center z-10"
-                      style={{ left: `${goLivePosition}%`, transform: 'translateX(-50%) translateY(-50%)', top: '50%' }}
-                    >
-                      <div className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-b-[8px] border-b-blue-500 shadow-lg" />
-                      <div className="text-xs text-slate-300 ml-2 whitespace-nowrap bg-slate-900/80 px-2 py-1 rounded">
-                        {format(new Date(project.goLiveDate), 'dd/MM', { locale: ptBR })}
-                      </div>
+                {/* Timeline Bar */}
+                <div className="flex-1 relative overflow-x-auto">
+                  <div className="relative min-w-[1400px] h-16 flex items-center">
+                    {/* Month Grid Lines */}
+                    <div className="absolute inset-0 flex pointer-events-none">
+                      {months.map((_, idx) => (
+                        <div
+                          key={idx}
+                          className="flex-1 border-r border-slate-700/30 last:border-r-0"
+                        />
+                      ))}
                     </div>
-                  )}
 
-                  {/* Status Marker (Circle for project_end, Star for awaiting_release) */}
-                  {deliveryPosition >= 0 && deliveryPosition <= 100 && (
-                    <div 
-                      className="absolute flex items-center z-10"
-                      style={{ left: `${deliveryPosition}%`, transform: 'translateX(-50%) translateY(-50%)', top: '50%' }}
-                    >
-                      <Icon className={`w-5 h-5 ${config.color} shadow-lg`} />
-                      <div className="text-xs text-slate-300 ml-2 whitespace-nowrap bg-slate-900/80 px-2 py-1 rounded">
-                        {format(new Date(project.deliveryDate), 'dd/MM', { locale: ptBR })}
+                    {/* Background Bar (Project Duration) */}
+                    {goLivePosition !== null && deliveryPosition !== null && (
+                      <div
+                        className="absolute h-8 bg-gradient-to-r from-blue-500/20 to-emerald-500/20 rounded border border-slate-600/50"
+                        style={{
+                          left: `calc(${goLivePosition}% + 1.5px)`,
+                          right: `calc(100% - ${deliveryPosition}%)`,
+                          minWidth: '2px'
+                        }}
+                      />
+                    )}
+
+                    {/* Go Live Marker */}
+                    {goLivePosition !== null && goLivePosition >= 0 && goLivePosition <= 100 && (
+                      <div
+                        className="absolute flex flex-col items-center z-20 -translate-x-1/2"
+                        style={{ left: `${goLivePosition}%` }}
+                      >
+                        <div className="relative flex flex-col items-center">
+                          <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[10px] border-b-blue-500 drop-shadow-lg" />
+                          <div className="text-xs font-semibold text-slate-200 mt-1 bg-blue-950/80 px-2 py-1 rounded whitespace-nowrap border border-blue-700/50">
+                            {format(new Date(project.goLiveDate), 'dd MMM', { locale: ptBR })}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {/* Month Grid Lines */}
-                  <div className="absolute inset-0 flex pointer-events-none">
-                    {months.map((_, idx) => (
-                      <div key={idx} className="flex-1 border-r border-slate-700/30 last:border-r-0" />
-                    ))}
+                    {/* Delivery Marker */}
+                    {deliveryPosition >= 0 && deliveryPosition <= 100 && (
+                      <div
+                        className="absolute flex flex-col items-center z-20 -translate-x-1/2"
+                        style={{ left: `${deliveryPosition}%` }}
+                      >
+                        <div className="relative flex flex-col items-center">
+                          <Icon className={`w-6 h-6 ${config.color} drop-shadow-lg filter`} />
+                          <div className={`text-xs font-semibold text-slate-200 mt-1 px-2 py-1 rounded whitespace-nowrap border ${
+                            config.color.includes('green') ? 'bg-green-950/80 border-green-700/50' :
+                            config.color.includes('orange') ? 'bg-orange-950/80 border-orange-700/50' :
+                            'bg-slate-950/80 border-slate-700/50'
+                          }`}>
+                            {format(new Date(project.deliveryDate), 'dd MMM', { locale: ptBR })}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Debug Info */}
-      <div className="mt-8 p-4 bg-slate-800/50 border border-slate-700 rounded text-xs text-slate-400 space-y-2">
-        <div className="font-semibold text-slate-300">Debug Info:</div>
-        {projectsWithDelivery.map((project) => (
-          <div key={project.id} className="space-y-1">
-            <div className="font-medium text-slate-300">{project.name}</div>
-            <div>• Go Live: {project.goLiveDate ? format(new Date(project.goLiveDate), 'dd/MM/yyyy') : 'N/A'}</div>
-            <div>• Entrega: {project.deliveryDate ? format(new Date(project.deliveryDate), 'dd/MM/yyyy') : 'N/A'}</div>
-            <div>• Status: {project.status}</div>
-          </div>
-        ))}
+            );
+          })
+        )}
       </div>
     </div>
   );
