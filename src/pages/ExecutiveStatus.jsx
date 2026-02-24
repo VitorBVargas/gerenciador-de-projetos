@@ -673,7 +673,10 @@ Seja conciso, profissional e em português.`;
         <TabsContent value="overview" className="space-y-6">
           {/* Cards com dados adicionais + Farois */}
           <div className="flex gap-2 items-stretch flex-wrap">
-            <Card className="bg-slate-800 border-slate-600 flex-1 min-w-[120px]">
+            <Card 
+              className={cn("bg-slate-800 border-slate-600 flex-1 min-w-[120px] cursor-pointer hover:bg-slate-700 transition-colors", !selectedStatusFilter && 'ring-2 ring-blue-500')}
+              onClick={() => setSelectedStatusFilter(null)}
+            >
               <CardContent className="p-2 text-center flex flex-col items-center justify-center h-full">
                 <div className="text-base font-bold text-white mb-0.5">{projects.length}</div>
                 <div className="text-xs text-slate-300">Total Programas</div>
