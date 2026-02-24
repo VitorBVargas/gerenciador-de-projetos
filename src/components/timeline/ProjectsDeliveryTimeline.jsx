@@ -129,17 +129,18 @@ export default function ProjectsDeliveryTimeline({ projects, timelineEvents, pro
 
           {/* Timeline header */}
           <div className="flex-1 overflow-x-auto scrollbar-thin scrollbar-thumb-slate-600">
-            <div className="flex" style={{ width: `${Math.max(100, months.length * 60)}px` }}>
+            <div className="flex" style={{ width: `${Math.max(100, months.length * 80)}px` }}>
               {months.map((month, idx) => (
                 <div
                   key={idx}
-                  className="flex-1 px-2 py-3 border-r border-slate-700/50 last:border-r-0 min-w-[60px] text-center bg-slate-800/30"
+                  className="px-2 py-3 border-r border-slate-700/50 last:border-r-0 text-center bg-slate-800/30"
+                  style={{ width: '80px' }}
                 >
                   <div className="text-xs font-bold text-slate-300">
                     {format(month, 'MMM', { locale: ptBR })}
                   </div>
                   <div className="text-xs text-slate-500">
-                    {format(month, 'yy', { locale: ptBR })}
+                    {format(month, 'dd', { locale: ptBR })}
                   </div>
                 </div>
               ))}
