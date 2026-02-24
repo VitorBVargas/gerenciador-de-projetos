@@ -26,6 +26,7 @@ export default function BulkEditDatesModal({
   const [phaseEndDate, setPhaseEndDate] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [editAllMode, setEditAllMode] = useState(false);
+  const [applying, setApplying] = useState(false);
 
   React.useEffect(() => {
     if (open) {
