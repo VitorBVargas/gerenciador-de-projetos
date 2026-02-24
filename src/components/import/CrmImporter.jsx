@@ -7,22 +7,20 @@ import * as XLSX from 'xlsx';
 import { base44 } from '@/api/base44Client';
 import ProjectRegistrationFlow from './ProjectRegistrationFlow';
 
-// 12 etapas padrão do cronograma por produto
+// 12 etapas padrão — chave snake_case é a phase key, label é o título
 const STANDARD_PHASES = [
-  "Planejamento/Contrato",
-  "Kickoff",
-  "Diagnóstico",
-  "Onboarding Cliente",
-  "Configuração/Migração de Homologação",
-  "Homologação da Base",
-  "Migração de PRD (Blackout)",
-  "Configuração de PRD",
-  "Treinamento",
-  "Go-Live",
-  "Operação Assistida",
-  "Encerramento/Passagem de Bastão",
-  "Módulo único: Cadastros (Entidade, Configurações, Pessoa)",
-  "Módulo único: Processos (Liberação de acesso, AIDF, Contador, Notas Avulsas)"
+  { key: 'planejamento_contrato', title: 'Planejamento/Contrato' },
+  { key: 'kickoff', title: 'Kickoff' },
+  { key: 'diagnostico', title: 'Diagnóstico' },
+  { key: 'onboarding_cliente', title: 'Onboarding Cliente' },
+  { key: 'configuracao_migracao_hml', title: 'Configuração/Migração de Homologação' },
+  { key: 'homologacao_base', title: 'Homologação da Base' },
+  { key: 'migracao_prd_blackout', title: 'Migração de PRD (Blackout)' },
+  { key: 'configuracao_prd', title: 'Configuração de PRD' },
+  { key: 'treinamento', title: 'Treinamento' },
+  { key: 'go_live', title: 'Go-Live' },
+  { key: 'operacao_assistida', title: 'Operação Assistida' },
+  { key: 'encerramento_bastao', title: 'Encerramento/Passagem de Bastão' },
 ];
 
 const inferEntityCode = (entityName) => {
