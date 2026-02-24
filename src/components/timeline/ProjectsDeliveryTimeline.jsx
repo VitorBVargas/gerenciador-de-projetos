@@ -1,8 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Triangle, Circle, ChevronDown, ChevronUp } from 'lucide-react';
-import { format, addMonths, startOfMonth, endOfMonth, isBefore, isAfter, getDaysInMonth, getMonth, getYear } from 'date-fns';
+import { Triangle, Circle } from 'lucide-react';
+import { format, addMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export default function ProjectsDeliveryTimeline({ projects, timelineEvents, products = [] }) {
