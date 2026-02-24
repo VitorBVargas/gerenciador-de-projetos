@@ -6,11 +6,7 @@ import { format, addMonths, startOfMonth, endOfMonth, isBefore, isAfter, getDays
 import { ptBR } from 'date-fns/locale';
 
 export default function ProjectsDeliveryTimeline({ projects, timelineEvents, products = [] }) {
-  const scrollContainerRef = React.useRef(null);
-  
-  // Calculate timeline range (show 6 months from now)
-  const timelineStart = useMemo(() => startOfMonth(new Date()), []);
-  const timelineEnd = useMemo(() => endOfMonth(addMonths(new Date(), 5)), []);
+  const [expandedProjects, setExpandedProjects] = useState({});
 
   // Group projects with their delivery dates
   const projectsWithDelivery = useMemo(() => {
