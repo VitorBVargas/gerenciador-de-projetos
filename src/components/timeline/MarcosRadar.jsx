@@ -65,8 +65,14 @@ export default function MarcosRadar({ projects, timelineEvents, products = [] })
   // Rings em 30, 60, 90, 120+ dias
   const rings = [30, 60, 90, 120];
 
-  const getPosition = (days) => {
-    const angle = Math.random() * Math.PI * 2; // Random angle para distribuir
+  const getPosition = (days, projectId) => {
+    // Gerar ângulo determinístico baseado no projectId
+    let hash = 0;
+    for (let i = 0; i < projectId.length; i++) {
+      hash = ((hash << 5) - hash) + projectId.charCodeAt(i);
+      hash = hash & hash;
+    }
+    const angle = ((hash % 360) / 180) * Math.PI;
     const radius = (Math.min(days, maxDays) / maxDays) * maxRadius;
     return {
       x: center + radius * Math.cos(angle),
@@ -149,8 +155,8 @@ export default function MarcosRadar({ projects, timelineEvents, products = [] })
 
           {/* Projetos */}
           {projectsData.map((project, idx) => {
-            const goLivePos = getPosition(Math.max(0, project.daysToGoLive));
-            const deliveryPos = getPosition(Math.max(0, project.daysToDelivery));
+            const goLivePos = getPosition(Math.max(0, project.daysToGoLive), project.id);
+            const deliveryPos = getPosition(Math.max(0, project.daysToDelivery), project.id + '_delivery');
             
             const goLiveColor = getColor(Math.max(0, project.daysToGoLive));
             const deliveryColor = getColor(Math.max(0, project.daysToDelivery));
