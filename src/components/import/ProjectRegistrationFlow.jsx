@@ -534,7 +534,11 @@ export default function ProjectRegistrationFlow({ open, onOpenChange, parsedData
     setTeamLeaders(prev => prev.includes(id) ? prev.filter(l => l !== id) : [...prev, id]);
   };
 
-  const canNext = () => step === 0 ? projectInfo.name.trim().length > 0 : true;
+  const canNext = () => {
+    if (step === 0) return projectInfo.name.trim().length > 0;
+    if (step === 1) return cronogramas.length > 0;
+    return true;
+  };
 
   const handleFinish = async () => {
     setSaving(true);
