@@ -33,28 +33,71 @@ const VERTICAL_COLORS = {
   atendimento: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
 };
 
+// Converte "DD/MM" para "YYYY-MM-DD" usando o ano atual
+function parseDayMonth(raw) {
+  const currentYear = new Date().getFullYear();
+  const match = raw.trim().match(/^(\d{1,2})[\/\-\.](\d{1,2})(?:[\/\-\.](\d{2,4}))?$/);
+  if (!match) return '';
+  const d = match[1].padStart(2, '0');
+  const m = match[2].padStart(2, '0');
+  const y = match[3] ? (match[3].length === 2 ? `20${match[3]}` : match[3]) : String(currentYear);
+  if (parseInt(m) < 1 || parseInt(m) > 12 || parseInt(d) < 1 || parseInt(d) > 31) return '';
+  return `${y}-${m}-${d}`;
+}
+
+// Converte "YYYY-MM-DD" para "DD/MM" para exibição
+function toDisplay(iso) {
+  if (!iso) return '';
+  const [y, m, d] = iso.split('-');
+  return `${d}/${m}`;
+}
+
+function DateInput({ value, onChange }) {
+  const [raw, setRaw] = React.useState(toDisplay(value));
+
+  const handleBlur = () => {
+    if (!raw.trim()) { onChange(''); return; }
+    const parsed = parseDayMonth(raw);
+    if (parsed) {
+      onChange(parsed);
+      setRaw(toDisplay(parsed));
+    } else {
+      setRaw(toDisplay(value));
+    }
+  };
+
+  // Sync when value changes externally
+  React.useEffect(() => { setRaw(toDisplay(value)); }, [value]);
+
+  return (
+    <Input
+      value={raw}
+      onChange={e => setRaw(e.target.value)}
+      onBlur={handleBlur}
+      placeholder="DD/MM"
+      className="bg-slate-700 border-slate-600 text-white h-7 text-xs px-2"
+    />
+  );
+}
+
 function DatesForm({ dates, onChange }) {
   return (
     <div className="space-y-1.5 max-h-72 overflow-y-auto pr-1">
-      <div className="grid grid-cols-[1fr_130px_130px] gap-2 mb-2 sticky top-0 bg-slate-800 pb-1">
+      <div className="grid grid-cols-[1fr_100px_100px] gap-2 mb-2 sticky top-0 bg-slate-800 pb-1">
         <span className="text-xs text-slate-500 font-semibold">Etapa</span>
         <span className="text-xs text-slate-500 font-semibold text-center">Início</span>
         <span className="text-xs text-slate-500 font-semibold text-center">Fim</span>
       </div>
       {PHASE_KEYS.map(phase => (
-        <div key={phase} className="grid grid-cols-[1fr_130px_130px] gap-2 items-center">
+        <div key={phase} className="grid grid-cols-[1fr_100px_100px] gap-2 items-center">
           <span className="text-xs text-slate-400 truncate">{phaseLabels[phase]}</span>
-          <Input
-            type="date"
+          <DateInput
             value={dates[`${phase}_start`] || ''}
-            onChange={e => onChange(prev => ({ ...prev, [`${phase}_start`]: e.target.value }))}
-            className="bg-slate-700 border-slate-600 text-white h-7 text-xs px-2"
+            onChange={v => onChange(prev => ({ ...prev, [`${phase}_start`]: v }))}
           />
-          <Input
-            type="date"
+          <DateInput
             value={dates[`${phase}_end`] || ''}
-            onChange={e => onChange(prev => ({ ...prev, [`${phase}_end`]: e.target.value }))}
-            className="bg-slate-700 border-slate-600 text-white h-7 text-xs px-2"
+            onChange={v => onChange(prev => ({ ...prev, [`${phase}_end`]: v }))}
           />
         </div>
       ))}
