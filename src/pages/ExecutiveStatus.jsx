@@ -1055,25 +1055,32 @@ Seja conciso, profissional e em português.`;
                          }
                        />
                        <RechartsTooltip
-                          contentStyle={{
-                            backgroundColor: '#1e293b',
-                            border: '1px solid #334155',
-                            borderRadius: '8px',
-                            color: '#fff'
-                          }}
-                          formatter={(value, name) => [
-                            new Intl.NumberFormat('pt-BR', {
-                              style: 'currency',
-                              currency: 'BRL'
-                            }).format(value),
-                            name
-                          ]}
-                        />
-                        <Bar 
-                          dataKey="implantacao" 
-                          fill="#10b981" 
-                          name="A Receber" 
-                          cursor="pointer"
+                           contentStyle={{
+                             backgroundColor: '#1e293b',
+                             border: '1px solid #334155',
+                             borderRadius: '8px',
+                             color: '#fff'
+                           }}
+                           content={({ active, payload, label }) => {
+                             if (!active || !payload || !payload.length) return null;
+                             const fmt = (v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+                             return (
+                               <div style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: 8, padding: '8px 12px', color: '#fff', fontSize: 13 }}>
+                                 <div style={{ marginBottom: 4, fontWeight: 600 }}>{label}</div>
+                                 {payload.map((entry) => (
+                                   <div key={entry.dataKey} style={{ color: entry.fill }}>
+                                     {entry.name} : {fmt(entry.value)}
+                                   </div>
+                                 ))}
+                               </div>
+                             );
+                           }}
+                         />
+                         <Bar 
+                           dataKey="implantacao" 
+                           fill="#10b981" 
+                           name="A Receber" 
+                           cursor="pointer"
                          onClick={(data) => {
                            const monthKey = Object.keys(monthlyData).find(
                              key => monthlyData[key].month === data.month
