@@ -670,26 +670,65 @@ Seja conciso, profissional e em português.`;
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
-          {/* Cards com dados adicionais */}
-          <div className="grid grid-cols-2 gap-3">
-            <Card className="bg-slate-800 border-slate-600">
-              <CardContent className="p-3 text-center flex flex-col items-center justify-center h-full">
-                <div className="text-lg font-bold text-white mb-0.5">{projects.length}</div>
+          {/* Cards com dados adicionais + Farois */}
+          <div className="flex gap-2 items-stretch flex-wrap">
+            <Card className="bg-slate-800 border-slate-600 flex-1 min-w-[120px]">
+              <CardContent className="p-2 text-center flex flex-col items-center justify-center h-full">
+                <div className="text-base font-bold text-white mb-0.5">{projects.length}</div>
                 <div className="text-xs text-slate-300">Total Programas</div>
               </CardContent>
             </Card>
 
-            <Card className="bg-slate-800 border-slate-600">
-              <CardContent className="p-3 text-center flex flex-col items-center justify-center h-full">
-                <div className="text-lg font-bold text-white mb-0.5">
+            <Card className="bg-slate-800 border-slate-600 flex-1 min-w-[140px]">
+              <CardContent className="p-2 text-center flex flex-col items-center justify-center h-full">
+                <div className="text-base font-bold text-white mb-0.5">
                   {allProducts.filter(p => {
                     const project = allProjectsData.find(proj => proj.id === p.project_id);
                     return project && project.status !== 'concluido';
                   }).length}
                 </div>
-                <div className="text-xs text-slate-300">Produtos em Implantação</div>
+                <div className="text-xs text-slate-300">Prod. Implantação</div>
               </CardContent>
             </Card>
+
+            {(() => {
+              const emDias = projectsWithMetrics.filter(p => p.healthScore > 60).length;
+              const emAlerta = projectsWithMetrics.filter(p => p.healthScore >= 50 && p.healthScore <= 60).length;
+              const atrasado = projectsWithMetrics.filter(p => p.healthScore < 50).length;
+              const concluidos = allProjectsData.filter(p => p.status === 'concluido').length;
+
+              return (
+                <>
+                  <Card className="bg-green-900/30 border-green-700/50 flex-1 min-w-[100px]">
+                    <CardContent className="p-2 text-center flex flex-col items-center justify-center h-full">
+                      <div className="text-base font-bold text-green-400 mb-0.5">{emDias}</div>
+                      <div className="text-xs text-green-300">Em Dia</div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-yellow-900/30 border-yellow-700/50 flex-1 min-w-[100px]">
+                    <CardContent className="p-2 text-center flex flex-col items-center justify-center h-full">
+                      <div className="text-base font-bold text-yellow-400 mb-0.5">{emAlerta}</div>
+                      <div className="text-xs text-yellow-300">Alerta</div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-red-900/30 border-red-700/50 flex-1 min-w-[100px]">
+                    <CardContent className="p-2 text-center flex flex-col items-center justify-center h-full">
+                      <div className="text-base font-bold text-red-400 mb-0.5">{atrasado}</div>
+                      <div className="text-xs text-red-300">Atrasado</div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-purple-900/30 border-purple-700/50 flex-1 min-w-[100px]">
+                    <CardContent className="p-2 text-center flex flex-col items-center justify-center h-full">
+                      <div className="text-base font-bold text-purple-400 mb-0.5">{concluidos}</div>
+                      <div className="text-xs text-purple-300">Concluídos</div>
+                    </CardContent>
+                  </Card>
+                </>
+              );
+            })()}
           </div>
 
            {/* Projects Grid */}
