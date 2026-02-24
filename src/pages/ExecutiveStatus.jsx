@@ -101,19 +101,6 @@ export default function ExecutiveStatus() {
     initConversation();
   }, []);
 
-  // Check if it's the first time accessing ExecutiveStatus today - only open after data loads
-  useEffect(() => {
-    if (allTimelineEvents.length === 0) return; // wait for data
-    const lastVisitKey = 'executiveStatus_lastVisit';
-    const today = new Date().toDateString();
-    const lastVisit = localStorage.getItem(lastVisitKey);
-
-    if (lastVisit !== today) {
-      localStorage.setItem(lastVisitKey, today);
-      setIsWeeklySummaryOpen(true);
-    }
-  }, [allTimelineEvents.length]);
-
   const handleChartVisibility = (chart, visible) => {
     setVisibleCharts(prev => ({
       ...prev,
