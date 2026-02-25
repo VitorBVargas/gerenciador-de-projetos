@@ -284,7 +284,21 @@ export default function InternalProjectWizard({ open, onOpenChange, onComplete }
           {/* Step 1: Cronograma */}
           {step === 1 && (
             <div className="space-y-4">
-              <p className="text-sm text-slate-400">Adicione as etapas do cronograma com início e fim.</p>
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-slate-400">Adicione as etapas do cronograma com início e fim.</p>
+                <div>
+                  <input ref={fileInputRef} type="file" accept=".xlsx,.xls" onChange={handleImportExcel} className="hidden" />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={importing}
+                    className="border-slate-600 text-slate-300 hover:bg-slate-700 text-xs"
+                  >
+                    <Upload className="w-3.5 h-3.5 mr-1.5" />{importing ? 'Importando...' : 'Importar Excel'}
+                  </Button>
+                </div>
+              </div>
               <div className="grid grid-cols-3 gap-3">
                 <div className="space-y-1 col-span-3 sm:col-span-1">
                   <Label className="text-slate-300 text-xs">Nome da Etapa *</Label>
