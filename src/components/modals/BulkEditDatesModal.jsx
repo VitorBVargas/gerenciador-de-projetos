@@ -24,6 +24,7 @@ export default function BulkEditDatesModal({
   const [expandedPhase, setExpandedPhase] = useState(null);
   const [phaseStartDate, setPhaseStartDate] = useState('');
   const [phaseEndDate, setPhaseEndDate] = useState('');
+  const [phaseStatus, setPhaseStatus] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [editAllMode, setEditAllMode] = useState(false);
   const [applying, setApplying] = useState(false);
