@@ -252,12 +252,10 @@ export default function Travels() {
         title: '',
         start_date: format(start, 'yyyy-MM-dd'),
         end_date: format(end, 'yyyy-MM-dd'),
-        location: '',
-        travel_type: 'presencial',
+        travel_type: 'carro',
         vertical: '',
         attendees: [dragMember.name],
         status: 'planejada',
-        notes: ''
       });
       setModalOpen(true);
     } else {
