@@ -474,6 +474,12 @@ export default function ProjectsList() {
         onSuccess={handleImportSuccess}
       />
 
+      {/* Recognition Importer */}
+      <RecognitionImporter
+        open={recognitionImporterOpen}
+        onOpenChange={setRecognitionImporterOpen}
+      />
+
       {/* Delete Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className="bg-slate-800 border-slate-700">
