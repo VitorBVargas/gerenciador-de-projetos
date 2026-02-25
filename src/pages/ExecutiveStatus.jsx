@@ -1114,54 +1114,8 @@ Seja conciso, profissional e em português.`;
           </div>
 
            {useMemo(() => {
-                      // ─── CONFIGURAÇÃO DE DATAS ────────────────────────────────────────────
-                      // Para alterar de onde buscamos a data de implantação de cada projeto,
-                      // edite APENAS esta função:
-                      const getImplantacaoMonth = (project) => {
-               // FONTE ATUAL: Fim da Operação Assistida
-               let operacaoAssistidaEvent = null;
-
-               // Se é por vertical, busca nos cronogramas
-               if (project.scheduling_type === 'por_vertical') {
-                 const projectCronogramas = allCronogramas.filter(c => c.project_id === project.id);
-                 for (const cron of projectCronogramas) {
-                   const event = allTimelineEvents.find(e => 
-                     e.cronograma_id === cron.id && e.phase === 'operacao_assistida' && e.end_date
-                   );
-                   if (event) {
-                     operacaoAssistidaEvent = event;
-                     break;
-                   }
-                 }
-               } 
-               // Se é por produto, busca nos produtos
-               else if (project.scheduling_type === 'por_produto') {
-                 const projectProducts = allProducts.filter(p => p.project_id === project.id);
-                 for (const prod of projectProducts) {
-                   const event = allTimelineEvents.find(e => 
-                     e.product_id === prod.id && e.phase === 'operacao_assistida' && e.end_date
-                   );
-                   if (event) {
-                     operacaoAssistidaEvent = event;
-                     break;
-                   }
-                 }
-               }
-
-               // Fallback: buscar por project_id direto
-               if (!operacaoAssistidaEvent) {
-                 operacaoAssistidaEvent = allTimelineEvents.find(e => 
-                   e.project_id === project.id && e.phase === 'operacao_assistida' && e.end_date
-                 );
-               }
-
-               if (operacaoAssistidaEvent && operacaoAssistidaEvent.end_date) {
-                 return operacaoAssistidaEvent.end_date.substring(0, 7);
-               }
-
-               return null;
-             };
-             // ─────────────────────────────────────────────────────────────────────
+             // getImplantacaoMonth foi extraída para fora do useMemo para ser acessível em múltiplos lugares
+             // Veja a definição acima
 
              // Calcular valores por mês
              const monthlyData = {};
