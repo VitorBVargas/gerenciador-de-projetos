@@ -1065,11 +1065,11 @@ Seja conciso, profissional e em português.`;
             </div>
           </div>
 
-           {(() => {
-             // ─── CONFIGURAÇÃO DE DATAS ────────────────────────────────────────────
-             // Para alterar de onde buscamos a data de implantação de cada projeto,
-             // edite APENAS esta função:
-             const getImplantacaoMonth = (project) => {
+           {useMemo(() => {
+                      // ─── CONFIGURAÇÃO DE DATAS ────────────────────────────────────────────
+                      // Para alterar de onde buscamos a data de implantação de cada projeto,
+                      // edite APENAS esta função:
+                      const getImplantacaoMonth = (project) => {
                // FONTE ATUAL: Fim da Operação Assistida
                let operacaoAssistidaEvent = null;
 
