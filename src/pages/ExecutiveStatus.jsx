@@ -1362,8 +1362,10 @@ Seja conciso, profissional e em português.`;
                            const monthKey = Object.keys(monthlyData).find(
                              key => monthlyData[key].month === data.month
                            );
-                           setSelectedMonth(monthKey);
-                           setSelectedMonthType('reconhecido_implantacao');
+                           if (monthKey) {
+                             setSelectedMonth(monthKey);
+                             setSelectedMonthType('reconhecido_implantacao');
+                           }
                          }}
                        />
                       </BarChart>
