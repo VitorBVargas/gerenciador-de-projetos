@@ -18,6 +18,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from "@/lib/utils";
 import ExpenseModal from '../components/modals/ExpenseModal';
+import ExpenseImporter from '../components/import/ExpenseImporter';
 import {
   AlertDialog,
   AlertDialogAction,
