@@ -18,35 +18,29 @@ export default function BulkEditDatesModal({
   onApply,
   editAll = false
 }) {
-  const [selectedEntity, setSelectedEntity] = useState('');
+  const [selectedEntities, setSelectedEntities] = useState([]);
   const [selectedVertical, setSelectedVertical] = useState('');
-  const [selectedPhase, setSelectedPhase] = useState(null);
-  const [expandedPhase, setExpandedPhase] = useState(null);
-  const [phaseStartDate, setPhaseStartDate] = useState('');
-  const [phaseEndDate, setPhaseEndDate] = useState('');
-  const [phaseStatus, setPhaseStatus] = useState('');
+  const [expandedPhases, setExpandedPhases] = useState([]);
+  const [phaseEdits, setPhaseEdits] = useState({});
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [editAllMode, setEditAllMode] = useState(false);
   const [applying, setApplying] = useState(false);
 
   React.useEffect(() => {
     if (open) {
-      setSelectedEntity('');
+      setSelectedEntities([]);
       setSelectedVertical('');
-      setSelectedPhase(null);
-      setExpandedPhase(null);
-      setPhaseStartDate('');
-      setPhaseEndDate('');
-      setPhaseStatus('');
+      setExpandedPhases([]);
+      setPhaseEdits({});
       setEditAllMode(false);
       setApplying(false);
     }
   }, [open]);
 
   const getFilteredVerticals = () => {
-    if (!selectedEntity) return [];
+    if (selectedEntities.length === 0) return [];
     return [...new Set(products
-      .filter(p => p.entity === selectedEntity)
+      .filter(p => selectedEntities.includes(p.entity))
       .map(p => p.vertical))].sort();
   };
 
@@ -62,10 +56,10 @@ export default function BulkEditDatesModal({
         .sort((a, b) => (a.order || 0) - (b.order || 0));
     }
     
-    if (!selectedVertical) return [];
+    if (!selectedVertical || selectedEntities.length === 0) return [];
     
     const entityProducts = products.filter(
-      p => p.entity === selectedEntity && p.vertical === selectedVertical
+      p => selectedEntities.includes(p.entity) && p.vertical === selectedVertical
     );
     
     const seenIds = new Set();
@@ -83,27 +77,59 @@ export default function BulkEditDatesModal({
     return filteredEvents.filter(e => e.phase === phase);
   };
 
-  const handlePhaseSelect = (phase) => {
-    if (expandedPhase === phase) {
-      // Recolher
-      setExpandedPhase(null);
-      setSelectedPhase(null);
-    } else {
-      // Expandir
-      setExpandedPhase(phase);
-      setSelectedPhase(phase);
-    }
-    setPhaseStartDate('');
-    setPhaseEndDate('');
-    setPhaseStatus('');
+  const togglePhaseExpand = (phase) => {
+    setExpandedPhases(prev => 
+      prev.includes(phase) 
+        ? prev.filter(p => p !== phase)
+        : [...prev, phase]
+    );
+  };
+
+  const updatePhaseEdit = (phase, field, value) => {
+    setPhaseEdits(prev => ({
+      ...prev,
+      [phase]: {
+        ...prev[phase],
+        [field]: value
+      }
+    }));
+  };
+
+  const getPhaseEdit = (phase) => {
+    return phaseEdits[phase] || { start_date: '', end_date: '', status: '' };
   };
 
   const handleApplyClick = () => {
     setConfirmOpen(true);
   };
 
+  const getEventsToUpdate = () => {
+    const eventsToUpdate = [];
+    
+    Object.entries(phaseEdits).forEach(([phase, edits]) => {
+      if (!edits.start_date && !edits.end_date && !edits.status) return;
+      
+      const phaseEvents = getEventsByPhase(phase);
+      phaseEvents.forEach(event => {
+        const update = {
+          id: event.id,
+          start_date: edits.start_date || event.start_date,
+          end_date: edits.end_date || event.end_date
+        };
+        if (edits.status) {
+          update.status = edits.status;
+        }
+        eventsToUpdate.push(update);
+      });
+    });
+
+    return eventsToUpdate;
+  };
+
   const handleConfirm = async () => {
-    if (!selectedPhase || (!phaseStartDate && !phaseEndDate && !phaseStatus)) {
+    const eventsToUpdate = getEventsToUpdate();
+    
+    if (eventsToUpdate.length === 0) {
       setConfirmOpen(false);
       return;
     }
@@ -111,31 +137,16 @@ export default function BulkEditDatesModal({
     setApplying(true);
     setConfirmOpen(false);
 
-    const phaseEvents = getEventsByPhase(selectedPhase);
-    const eventsToUpdate = phaseEvents.map(event => {
-      const update = {
-        id: event.id,
-        start_date: phaseStartDate || event.start_date,
-        end_date: phaseEndDate || event.end_date
-      };
-      if (phaseStatus) {
-        update.status = phaseStatus;
-      }
-      return update;
-    });
-
-    if (eventsToUpdate.length > 0) {
-      await onApply(eventsToUpdate);
-    }
+    await onApply(eventsToUpdate);
 
     setApplying(false);
     onOpenChange(false);
   };
 
   const filteredVerticals = getFilteredVerticals();
-  const phaseEvents = selectedPhase ? getEventsByPhase(selectedPhase) : [];
-  const hasChanges = selectedPhase && (phaseStartDate || phaseEndDate || phaseStatus);
-  const isValidSelection = editAllMode || (selectedEntity && selectedVertical);
+  const eventsToUpdate = getEventsToUpdate();
+  const hasChanges = eventsToUpdate.length > 0;
+  const isValidSelection = editAllMode || (selectedEntities.length > 0 && selectedVertical);
 
   return (
     <>
@@ -143,9 +154,9 @@ export default function BulkEditDatesModal({
         <DialogContent className="bg-slate-800 border-slate-700 max-w-2xl max-h-[80vh]">
           <DialogHeader>
             <DialogTitle className="text-white">Editar Datas em Lote</DialogTitle>
-            {selectedPhase && (
+            {hasChanges && (
               <p className="text-xs text-slate-400 mt-1">
-                Será alterado {phaseEvents.length} etapa(s) - {phaseLabels[selectedPhase]}
+                Será alterado {eventsToUpdate.length} etapa(s)
               </p>
             )}
           </DialogHeader>
@@ -176,38 +187,48 @@ export default function BulkEditDatesModal({
 
             {!editAllMode && (
               <>
-                {/* Entity Selection */}
+                {/* Entity Selection - Multiple */}
                 <div>
-                  <label className="text-sm text-slate-300 block mb-2">Entidade <span className="text-red-400">*</span></label>
-                  <select
-                    value={selectedEntity}
-                    onChange={(e) => {
-                      setSelectedEntity(e.target.value);
-                      setSelectedVertical('');
-                      setSelectedPhase(null);
-                      setPhaseStartDate('');
-                      setPhaseEndDate('');
-                    }}
-                    className="w-full bg-slate-700 border border-slate-600 text-white rounded px-3 py-2 text-sm"
-                  >
-                    <option value="">Selecione uma entidade</option>
+                  <label className="text-sm text-slate-300 block mb-2">Entidades <span className="text-red-400">*</span></label>
+                  <div className="space-y-2">
                     {entities.map(entity => (
-                      <option key={entity} value={entity}>{entity}</option>
+                      <div key={entity} className="flex items-center gap-2">
+                        <Checkbox
+                          id={`entity-${entity}`}
+                          checked={selectedEntities.includes(entity)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedEntities([...selectedEntities, entity]);
+                            } else {
+                              setSelectedEntities(selectedEntities.filter(e => e !== entity));
+                            }
+                            setSelectedVertical('');
+                            setExpandedPhases([]);
+                            setPhaseEdits({});
+                          }}
+                          className="border-slate-500"
+                        />
+                        <Label
+                          htmlFor={`entity-${entity}`}
+                          className="text-sm text-slate-300 cursor-pointer"
+                        >
+                          {entity}
+                        </Label>
+                      </div>
                     ))}
-                  </select>
+                  </div>
                 </div>
 
                 {/* Vertical Selection */}
-                {selectedEntity && (
+                {selectedEntities.length > 0 && (
                   <div>
                     <label className="text-sm text-slate-300 block mb-2">Vertical <span className="text-red-400">*</span></label>
                     <select
                       value={selectedVertical}
                       onChange={(e) => {
                         setSelectedVertical(e.target.value);
-                        setSelectedPhase(null);
-                        setPhaseStartDate('');
-                        setPhaseEndDate('');
+                        setExpandedPhases([]);
+                        setPhaseEdits({});
                       }}
                       className="w-full bg-slate-700 border border-slate-600 text-white rounded px-3 py-2 text-sm"
                     >
@@ -220,12 +241,12 @@ export default function BulkEditDatesModal({
                 )}
 
                 {/* Validation Message */}
-                {!selectedEntity && (
+                {selectedEntities.length === 0 && (
                   <div className="p-3 bg-amber-600/20 border border-amber-600/50 rounded text-xs text-amber-300">
-                    ⚠️ Selecione uma entidade e uma vertical para continuar
+                    ⚠️ Selecione uma ou mais entidades para continuar
                   </div>
                 )}
-                {selectedEntity && !selectedVertical && (
+                {selectedEntities.length > 0 && !selectedVertical && (
                   <div className="p-3 bg-amber-600/20 border border-amber-600/50 rounded text-xs text-amber-300">
                     ⚠️ Selecione uma vertical para ver as etapas
                   </div>
@@ -258,80 +279,81 @@ export default function BulkEditDatesModal({
                     });
 
                     return uniqueActivities.map(event => {
-                      const isExpanded = expandedPhase === event.phase;
-                      const eventCount = filteredEvents.filter(e => 
-                        (e.title || phaseLabels[e.phase] || e.phase) === (event.title || phaseLabels[event.phase] || event.phase)
-                      ).length;
+                       const isExpanded = expandedPhases.includes(event.phase);
+                       const eventCount = filteredEvents.filter(e => 
+                         (e.title || phaseLabels[e.phase] || e.phase) === (event.title || phaseLabels[event.phase] || event.phase)
+                       ).length;
+                       const edit = getPhaseEdit(event.phase);
 
-                      return (
-                        <div key={event.id}>
-                          <button
-                            onClick={() => handlePhaseSelect(event.phase)}
-                            className={`w-full flex items-center justify-between p-3 rounded border transition ${
-                              isExpanded
-                                ? 'bg-blue-600/20 border-blue-600 text-blue-300'
-                                : 'bg-slate-700/50 border-slate-600 text-white hover:bg-slate-700/70'
-                            }`}
-                          >
-                            <div className="flex items-center gap-2 flex-1 text-left">
-                              <span className="text-sm">
-                                {event.title || phaseLabels[event.phase] || event.phase}
-                              </span>
-                              <span className="text-xs text-slate-500">
-                                ({eventCount} produto{eventCount > 1 ? 's' : ''})
-                              </span>
+                       return (
+                         <div key={event.id}>
+                           <button
+                             onClick={() => togglePhaseExpand(event.phase)}
+                             className={`w-full flex items-center justify-between p-3 rounded border transition ${
+                               isExpanded
+                                 ? 'bg-blue-600/20 border-blue-600 text-blue-300'
+                                 : 'bg-slate-700/50 border-slate-600 text-white hover:bg-slate-700/70'
+                             }`}
+                           >
+                             <div className="flex items-center gap-2 flex-1 text-left">
+                               <span className="text-sm">
+                                 {event.title || phaseLabels[event.phase] || event.phase}
+                               </span>
+                               <span className="text-xs text-slate-500">
+                                 ({eventCount} produto{eventCount > 1 ? 's' : ''})
+                               </span>
+                             </div>
+                             {isExpanded ? (
+                               <ChevronUp className="w-4 h-4" />
+                             ) : (
+                               <ChevronDown className="w-4 h-4" />
+                             )}
+                           </button>
+
+                           {isExpanded && (
+                            <div className="mt-2 p-3 bg-slate-700/30 rounded border border-slate-600 space-y-3">
+                              <p className="text-xs text-slate-400">Editar datas e status para esta atividade em {eventCount} produto{eventCount > 1 ? 's' : ''}:</p>
+                              <div>
+                                <label className="text-xs text-slate-400 block mb-1">Data Início</label>
+                                <Input
+                                  type="date"
+                                  value={edit.start_date}
+                                  onChange={(e) => updatePhaseEdit(event.phase, 'start_date', e.target.value)}
+                                  className="bg-slate-700 border-slate-600 text-white"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-xs text-slate-400 block mb-1">Data Fim</label>
+                                <Input
+                                  type="date"
+                                  value={edit.end_date}
+                                  onChange={(e) => updatePhaseEdit(event.phase, 'end_date', e.target.value)}
+                                  className="bg-slate-700 border-slate-600 text-white"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-xs text-slate-400 block mb-1">Status</label>
+                                <select
+                                  value={edit.status}
+                                  onChange={(e) => updatePhaseEdit(event.phase, 'status', e.target.value)}
+                                  className="w-full bg-slate-700 border border-slate-600 text-white rounded px-3 py-2 text-sm"
+                                >
+                                  <option value="">Não alterar</option>
+                                  <option value="nao_iniciado">Não Iniciado</option>
+                                  <option value="em_andamento">Em Andamento</option>
+                                  <option value="concluido">Concluído</option>
+                                  <option value="atrasado">Atrasado</option>
+                                </select>
+                              </div>
                             </div>
-                            {isExpanded ? (
-                              <ChevronUp className="w-4 h-4" />
-                            ) : (
-                              <ChevronDown className="w-4 h-4" />
-                            )}
-                          </button>
-
-                          {isExpanded && (
-                           <div className="mt-2 p-3 bg-slate-700/30 rounded border border-slate-600 space-y-3">
-                             <p className="text-xs text-slate-400">Editar datas e status para esta atividade em {eventCount} produto{eventCount > 1 ? 's' : ''}:</p>
-                             <div>
-                               <label className="text-xs text-slate-400 block mb-1">Data Início</label>
-                               <Input
-                                 type="date"
-                                 value={phaseStartDate}
-                                 onChange={(e) => setPhaseStartDate(e.target.value)}
-                                 className="bg-slate-700 border-slate-600 text-white"
-                               />
-                             </div>
-                             <div>
-                               <label className="text-xs text-slate-400 block mb-1">Data Fim</label>
-                               <Input
-                                 type="date"
-                                 value={phaseEndDate}
-                                 onChange={(e) => setPhaseEndDate(e.target.value)}
-                                 className="bg-slate-700 border-slate-600 text-white"
-                               />
-                             </div>
-                             <div>
-                               <label className="text-xs text-slate-400 block mb-1">Status</label>
-                               <select
-                                 value={phaseStatus}
-                                 onChange={(e) => setPhaseStatus(e.target.value)}
-                                 className="w-full bg-slate-700 border border-slate-600 text-white rounded px-3 py-2 text-sm"
-                               >
-                                 <option value="">Não alterar</option>
-                                 <option value="nao_iniciado">Não Iniciado</option>
-                                 <option value="em_andamento">Em Andamento</option>
-                                 <option value="concluido">Concluído</option>
-                                 <option value="atrasado">Atrasado</option>
-                               </select>
-                             </div>
-                           </div>
-                          )}
-                        </div>
-                      );
-                    });
-                  })()}
-                </div>
-              </div>
-            )}
+                           )}
+                         </div>
+                       );
+                     });
+                    })()}
+                    </div>
+                    </div>
+                    )}
 
 
           </div>
@@ -352,7 +374,7 @@ export default function BulkEditDatesModal({
               {applying ? (
                 <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Aplicando...</>
               ) : (
-                <>Aplicar em Lote {phaseEvents.length > 0 && `(${phaseEvents.length})`}</>
+                <>Aplicar em Lote {eventsToUpdate.length > 0 && `(${eventsToUpdate.length})`}</>
               )}
             </Button>
           </DialogFooter>
@@ -364,7 +386,7 @@ export default function BulkEditDatesModal({
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white">Confirmar alterações</AlertDialogTitle>
             <AlertDialogDescription className="text-slate-400">
-              Tem certeza que deseja alterar as datas de {phaseEvents.length} etapa(s)?
+              Tem certeza que deseja alterar {eventsToUpdate.length} etapa(s)?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
