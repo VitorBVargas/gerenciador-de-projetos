@@ -412,7 +412,7 @@ export default function Travels() {
                             </tr>
                             {membersByVertical[vertical].map(member => (
                               <tr key={member.id} className="border-b border-slate-700/30 hover:bg-slate-700/20">
-                                <td className="sticky left-0 z-20 bg-slate-800 px-4 py-3 text-sm text-white border-r border-slate-700/50 w-[200px] min-w-[200px]">
+                                <td className="sticky left-0 z-20 bg-slate-800 px-4 py-3 text-sm text-white border-r border-slate-700/50 min-w-[180px] w-[180px]">
                                   {member.name}
                                 </td>
                                 {daysInMonth.map(day => {
