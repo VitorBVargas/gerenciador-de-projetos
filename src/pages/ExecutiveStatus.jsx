@@ -1071,13 +1071,10 @@ Seja conciso, profissional e em português.`;
              // edite APENAS esta função:
              const getImplantacaoMonth = (project) => {
                // FONTE ATUAL: Fim da Operação Assistida
-               // Buscar por project_id primeiro
-               let operacaoAssistidaEvent = allTimelineEvents.find(e => 
-                 e.project_id === project.id && e.phase === 'operacao_assistida' && e.end_date
-               );
+               let operacaoAssistidaEvent = null;
 
-               // Se não encontrou, buscar entre os cronogramas do projeto
-               if (!operacaoAssistidaEvent) {
+               // Se é por vertical, busca nos cronogramas
+               if (project.scheduling_type === 'por_vertical') {
                  const projectCronogramas = allCronogramas.filter(c => c.project_id === project.id);
                  for (const cron of projectCronogramas) {
                    const event = allTimelineEvents.find(e => 
@@ -1088,10 +1085,9 @@ Seja conciso, profissional e em português.`;
                      break;
                    }
                  }
-               }
-
-               // Se não encontrou ainda, buscar entre os produtos do projeto
-               if (!operacaoAssistidaEvent) {
+               } 
+               // Se é por produto, busca nos produtos
+               else if (project.scheduling_type === 'por_produto') {
                  const projectProducts = allProducts.filter(p => p.project_id === project.id);
                  for (const prod of projectProducts) {
                    const event = allTimelineEvents.find(e => 
@@ -1102,6 +1098,13 @@ Seja conciso, profissional e em português.`;
                      break;
                    }
                  }
+               }
+
+               // Fallback: buscar por project_id direto
+               if (!operacaoAssistidaEvent) {
+                 operacaoAssistidaEvent = allTimelineEvents.find(e => 
+                   e.project_id === project.id && e.phase === 'operacao_assistida' && e.end_date
+                 );
                }
 
                if (operacaoAssistidaEvent && operacaoAssistidaEvent.end_date) {
