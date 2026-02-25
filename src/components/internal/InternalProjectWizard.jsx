@@ -177,6 +177,7 @@ export default function InternalProjectWizard({ open, onOpenChange, onComplete }
 
           let displayTitle = title;
           if (level === 1) displayTitle = `▌ ${title}`;
+          else if (level === 2) displayTitle = `▌ ${title}`;
           else if (level === 3) displayTitle = `    • ${title}`;
           else if (level >= 4) displayTitle = `        ◦ ${title}`;
 
