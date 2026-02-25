@@ -211,6 +211,15 @@ export default function CrmImporter({ open, onOpenChange }) {
       });
     }
 
+    // Função para corrigir datas (adiciona 1 dia para compensar timezone shift do SDK)
+    const fixDateTimezoneShift = (dateStr) => {
+      if (!dateStr) return null;
+      const [year, month, day] = dateStr.split('-').map(Number);
+      const date = new Date(year, month - 1, day);
+      date.setDate(date.getDate() + 1);
+      return date.toISOString().split('T')[0];
+    };
+
     createdProducts.forEach((product, pIdx) => {
        const crondates = cronogramaByProduct[product.name] || cronogramaByVertical[product.vertical] || {};
 
@@ -221,8 +230,8 @@ export default function CrmImporter({ open, onOpenChange }) {
            title: title,
            phase: key,
            vertical: product.vertical,
-           start_date: crondates[`${key}_start`] || null,
-           end_date: crondates[`${key}_end`] || null,
+           start_date: crondates[`${key}_start`] ? fixDateTimezoneShift(crondates[`${key}_start`]) : null,
+           end_date: crondates[`${key}_end`] ? fixDateTimezoneShift(crondates[`${key}_end`]) : null,
            status: 'nao_iniciado',
            progress: 0,
            order: pIdx * 100 + phaseIdx
