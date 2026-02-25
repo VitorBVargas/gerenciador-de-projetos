@@ -334,9 +334,9 @@ export default function Travels() {
               description="Adicione membros à equipe para visualizar o calendário de viagens"
             />
           ) : (
-            <div onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}>
+            <div onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp} className="rounded-xl border border-slate-700/50 bg-slate-800/50">
               {/* Month Navigation */}
-              <div className="rounded-xl border border-slate-700/50 bg-slate-800/50">
+              <div>
                 <div className="border-b border-slate-700/50 p-4">
                   <div className="flex items-center justify-between">
                     <Button
