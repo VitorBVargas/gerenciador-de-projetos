@@ -580,7 +580,7 @@ function ScheduleTab({ projectId }) {
   const deleteM = useMutation({ mutationFn: id => base44.entities.InternalSchedule.delete(id), onSuccess: () => { queryClient.invalidateQueries(['internalSchedule', projectId]); setDeleteOpen(false); setToDelete(null); } });
 
   const openCreate = () => { setSelected(null); setForm(defaultForm); setModalOpen(true); };
-  const openEdit = (s) => { setSelected(s); setForm({ title: s.title, start_date: s.start_date || '', end_date: s.end_date || '', status: s.status || 'nao_iniciado' }); setModalOpen(true); };
+  const openEdit = (s) => { setSelected(s); setForm({ title: s.title, responsible: s.responsible || '', start_date: s.start_date || '', end_date: s.end_date || '', real_start_date: s.real_start_date || '', real_end_date: s.real_end_date || '', progress: s.progress || 0, status: s.status || 'nao_iniciado' }); setModalOpen(true); };
   const handleSave = () => { if (selected) updateM.mutate({ id: selected.id, data: { ...form, project_id: projectId } }); else createM.mutate({ ...form, project_id: projectId, order: schedule.length }); };
 
   const parseExcelDate = (val) => {
