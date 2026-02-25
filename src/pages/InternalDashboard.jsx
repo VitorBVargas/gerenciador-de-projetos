@@ -178,10 +178,13 @@ function OverviewTab({ project, teamMembers, checklist, risks, schedule, budget 
                     <span className="text-emerald-400">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(project.budget)}</span>
                   </div>
                 )}
-                {project?.description && (
-                  <div className="col-span-2 text-slate-400 text-xs mt-1">{project.description}</div>
-                )}
               </div>
+              {project?.description && (
+                <div className="mt-4 pt-4 border-t border-white/10">
+                  <p className="text-xs text-slate-500 uppercase font-semibold mb-1">Objetivo / Descrição</p>
+                  <p className="text-slate-300 text-sm leading-relaxed">{project.description}</p>
+                </div>
+              )}
             </div>
           </div>
 
