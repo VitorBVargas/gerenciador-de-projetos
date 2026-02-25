@@ -1446,7 +1446,25 @@ Seja conciso, profissional e em português.`;
 
                   // Se clicou em recorrente (previsão de inclusão)
                   if (selectedMonthType === 'recorrente') {
-                  const recorrenteProds = recorrenteProductsMap[selectedMonth] || [];
+                  let recorrenteProds = recorrenteProductsMap[selectedMonth] || [];
+
+                  // Se não encontrou no mapa (ex: janeiro sem eventos), preenche dinamicamente
+                  if (recorrenteProds.length === 0) {
+                    recorrenteProds = [];
+                    projects.forEach(project => {
+                      const projectProducts = allProducts.filter(p => p.project_id === project.id && (p.inclusion_value || 0) > 0);
+                      projectProducts.forEach(prod => {
+                        recorrenteProds.push({
+                          product: prod,
+                          project,
+                          vertical: prod.vertical,
+                          startDate: null,
+                          inclusionValue: prod.inclusion_value || 0
+                        });
+                      });
+                    });
+                  }
+
                   if (recorrenteProds.length === 0) return null;
 
                   return (
