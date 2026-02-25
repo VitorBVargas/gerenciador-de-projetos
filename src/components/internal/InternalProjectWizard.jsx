@@ -167,31 +167,34 @@ export default function InternalProjectWizard({ open, onOpenChange, onComplete }
         const getEdtLevel = (edt) => (edt.match(/\./g) || []).length + 1;
 
         for (const row of rows) {
-          const title = String(row['Nome da Tarefa'] || '').trim();
-          if (!title) continue;
-          const edtRaw = row['EDT'];
-          const isHeader = !edtRaw || edtRaw === '' || edtRaw === null;
-          const edt = String(edtRaw || '').trim();
-          if (!title || (edt.toLowerCase() === 'edt')) continue;
+           const title = String(row['Nome da Tarefa'] || '').trim();
+           if (!title) continue;
+           const edtRaw = row['EDT'];
+           const edt = String(edtRaw || '').trim();
+           if (!title || (edt.toLowerCase() === 'edt')) continue;
 
-          const previsaoInicio = row['Previsão\nInício'] || row['Previsão Início'] || row['PrevisaoInicio'] || '';
-          const previsaoFim = row['Previsão\nTérmino'] || row['Previsão Término'] || row['PrevisaoTermino'] || '';
+           // Detect headers: EDT is empty OR EDT doesn't match X.Y or X.Y.Z format (e.g., "Macro", "Iniciação", etc.)
+           const isNormalEdt = /^\d+(\.\d+)+$/.test(edt);
+           const isHeader = !edt || !isNormalEdt;
 
-          let displayTitle = title;
-          if (isHeader) {
-            displayTitle = `▌ ${title}`;
-          } else {
-            const level = getEdtLevel(edt);
-            if (level === 3) displayTitle = `    • ${title}`;
-            else if (level >= 4) displayTitle = `        ◦ ${title}`;
-          }
+           const previsaoInicio = row['Previsão\nInício'] || row['Previsão Início'] || row['PrevisaoInicio'] || '';
+           const previsaoFim = row['Previsão\nTérmino'] || row['Previsão Término'] || row['PrevisaoTermino'] || '';
 
-          toImport.push({
-            title: displayTitle,
-            start_date: parseDateField(previsaoInicio),
-            end_date: parseDateField(previsaoFim),
-          });
-        }
+           let displayTitle = title;
+           if (isHeader) {
+             displayTitle = `▌ ${title}`;
+           } else {
+             const level = getEdtLevel(edt);
+             if (level === 3) displayTitle = `    • ${title}`;
+             else if (level >= 4) displayTitle = `        ◦ ${title}`;
+           }
+
+           toImport.push({
+             title: displayTitle,
+             start_date: parseDateField(previsaoInicio),
+             end_date: parseDateField(previsaoFim),
+           });
+         }
       } else {
         const rawRows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
         const headerKeywords = ['etapa', 'nome', 'título', 'titulo', 'tarefa', 'atividade', 'inicio', 'início', 'fim'];
