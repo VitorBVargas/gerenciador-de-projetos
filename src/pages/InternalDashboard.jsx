@@ -673,6 +673,7 @@ function ScheduleTab({ projectId }) {
 
           toCreate.push({
             title: displayTitle,
+            edt, // salva o EDT original
             responsible,
             start_date: parseDateField(previsaoInicio),
             end_date: parseDateField(previsaoFim),
@@ -776,7 +777,8 @@ function ScheduleTab({ projectId }) {
           <table className="w-full">
             <thead>
               <tr className="border-b border-slate-700 bg-slate-900/50">
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 w-[30%]">Etapa</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 w-16">EDT</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 w-[28%]">Etapa</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Status</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Responsável</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Previsão Início</th>
@@ -799,6 +801,7 @@ function ScheduleTab({ projectId }) {
                 if (isHeader) {
                   return (
                     <tr key={item.id} className="border-b border-slate-700/50 bg-slate-900/40 group">
+                      <td className="px-3 py-3 text-xs text-slate-500 font-mono">{item.edt || ''}</td>
                       <td className="px-4 py-3" colSpan={8}>
                         <span className={cn("font-semibold text-white", isGroup ? "text-base" : "text-sm pl-2")}>
                           {isGroup ? item.title.replace('▌ ', '') : item.title}
@@ -816,6 +819,7 @@ function ScheduleTab({ projectId }) {
 
                 return (
                   <tr key={item.id} className="border-b border-slate-700/30 hover:bg-slate-700/20 group">
+                    <td className="px-3 py-3 text-xs text-slate-500 font-mono">{item.edt || ''}</td>
                     <td className="px-4 py-3 text-sm text-white font-medium">{item.title}</td>
                     <td className="px-4 py-3">
                       <span className={cn("px-2.5 py-1 rounded text-xs font-medium text-white", statusColorMap[item.status] || 'bg-slate-600')}>
