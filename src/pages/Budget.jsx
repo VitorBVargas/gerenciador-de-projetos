@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { 
   Plus, 
+  Upload,
   DollarSign, 
   TrendingUp, 
   TrendingDown,
