@@ -3,6 +3,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Pencil, Trash2 } from 'lucide-react';
 import { phaseLabels } from './phaseLabels';
+import { formatDateForDisplay } from './dateFormatter';
 
 const verticalLabels = {
   arrecadacao: 'Arrecadação', compras: 'Compras/Contratos', contabil: 'Contábil',
@@ -111,10 +112,10 @@ export default function TimelineByProduct({ verticals, entityProducts, timelineE
                                 </select>
                               </td>
                               <td className="px-4 py-3 text-sm text-slate-300">
-                                {event.start_date ? new Date(event.start_date).toLocaleDateString('pt-BR') : '-'}
+                                {formatDateForDisplay(event.start_date)}
                               </td>
                               <td className="px-4 py-3 text-sm text-slate-300">
-                                {event.end_date ? new Date(event.end_date).toLocaleDateString('pt-BR') : '-'}
+                                {formatDateForDisplay(event.end_date)}
                               </td>
                               <td className="px-4 py-3">
                                 <div className="flex items-center gap-2 max-w-xs">
