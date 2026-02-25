@@ -1600,9 +1600,12 @@ Seja conciso, profissional e em português.`;
               if (!implMonth || implMonth !== selectedMonth) return;
 
               const recognized = totalRecognizedByProjectLocal[project.id] || { implantacao: 0, recorrente: 0 };
-              const pendente = Math.max(0, (project.implementation_value || 0) - recognized.implantacao);
 
-              const projectProducts = allProducts.filter(p => p.project_id === project.id);
+              // Somar implementation_value dos produtos
+              const projectProducts = allProducts.filter(p => p.project_id === project.id && (p.implementation_value || 0) > 0);
+              const totalImplValue = projectProducts.reduce((sum, p) => sum + (p.implementation_value || 0), 0);
+              const pendente = Math.max(0, totalImplValue - recognized.implantacao);
+
               projectProducts.forEach(product => {
                 productsInMonth.push({
                   product,
