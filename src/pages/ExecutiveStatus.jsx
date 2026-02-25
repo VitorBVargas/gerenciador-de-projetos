@@ -1129,9 +1129,13 @@ Seja conciso, profissional e em português.`;
 
               const recognized = totalRecognizedByProject[project.id] || { implantacao: 0, recorrente: 0 };
 
-              if (project.implementation_value > 0) {
-                const pendente = Math.max(0, project.implementation_value - recognized.implantacao);
-                monthlyData[implantacaoMonth].implantacao += project.implementation_value;
+              // Somar implementation_value dos produtos do projeto
+              const projectProducts = allProducts.filter(p => p.project_id === project.id);
+              const totalImplValue = projectProducts.reduce((sum, p) => sum + (p.implementation_value || 0), 0);
+
+              if (totalImplValue > 0) {
+                const pendente = Math.max(0, totalImplValue - recognized.implantacao);
+                monthlyData[implantacaoMonth].implantacao += totalImplValue;
                 monthlyData[implantacaoMonth].a_receber += pendente;
               }
             });
