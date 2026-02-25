@@ -336,8 +336,8 @@ export default function Travels() {
           ) : (
             <div onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}>
               {/* Month Navigation */}
-              <Card className="bg-slate-800/50 border-slate-700/50">
-                <CardHeader className="border-b border-slate-700/50">
+              <div className="rounded-xl border border-slate-700/50 bg-slate-800/50">
+                <div className="border-b border-slate-700/50 p-4">
                   <div className="flex items-center justify-between">
                     <Button
                       variant="ghost"
@@ -347,9 +347,9 @@ export default function Travels() {
                     >
                       <ChevronLeft className="w-5 h-5" />
                     </Button>
-                    <CardTitle className="text-xl text-white">
+                    <span className="text-xl font-semibold text-white">
                       {format(currentMonth, "MMMM 'de' yyyy", { locale: ptBR })} - {format(addMonths(currentMonth, 5), "MMMM 'de' yyyy", { locale: ptBR })}
-                    </CardTitle>
+                    </span>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -359,10 +359,9 @@ export default function Travels() {
                       <ChevronRight className="w-5 h-5" />
                     </Button>
                   </div>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div style={{overflowX: 'auto', overflowY: 'visible'}}>
-                    <table className="border-collapse" style={{minWidth: 'max-content'}}>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="border-collapse" style={{minWidth: 'max-content'}}>
                       <thead>
                         {/* Month headers row */}
                         <tr className="border-b border-slate-700/50">
