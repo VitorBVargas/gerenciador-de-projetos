@@ -564,6 +564,8 @@ function ScheduleTab({ projectId }) {
   const [selected, setSelected] = useState(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [toDelete, setToDelete] = useState(null);
+  const [importing, setImporting] = useState(false);
+  const fileInputRef = React.useRef(null);
   const defaultForm = { title: '', start_date: '', end_date: '', status: 'nao_iniciado' };
   const [form, setForm] = useState(defaultForm);
 
