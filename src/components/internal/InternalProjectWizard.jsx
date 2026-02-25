@@ -207,7 +207,8 @@ export default function InternalProjectWizard({ open, onOpenChange, onComplete }
         toast.error('Nenhuma etapa encontrada no arquivo.');
       } else {
         setScheduleItems(toImport);
-        toast.success(`${toImport.length} etapa(s) importada(s) com sucesso!`);
+        toast.success(`${toImport.length} etapa(s) importada(s)! Avançando...`);
+        setTimeout(() => setStep(s => s + 1), 800);
       }
     } catch {
       toast.error('Erro ao ler o arquivo. Verifique o formato.');
