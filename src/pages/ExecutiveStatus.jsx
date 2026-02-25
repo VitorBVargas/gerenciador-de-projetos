@@ -1465,7 +1465,7 @@ Seja conciso, profissional e em português.`;
                   )}
                   </div>
                   );
-                  }, [projects, allProducts, allTimelineEvents, allCronogramas, allRecognizedRevenues, allProjectsData, visibleCharts]))}
+                  }, [projects, allProducts, allTimelineEvents, allCronogramas, allRecognizedRevenues, allProjectsData, visibleCharts])}
 
                   {/* Gráfico de Senhas */}
                   <PasswordReleasesChart 
