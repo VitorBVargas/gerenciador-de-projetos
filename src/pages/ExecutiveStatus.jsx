@@ -1401,12 +1401,15 @@ Seja conciso, profissional e em português.`;
                        data={chartData}
                        onClick={(data) => {
                          if (data && data.activeLabel) {
-                           const monthKey = Object.keys(monthlyData).find(
-                             key => monthlyData[key].month === data.activeLabel
-                           );
-                           if (monthKey) {
-                             setSelectedMonth(monthKey);
-                             setSelectedMonthType('recorrente');
+                           const monthData = chartData.find(item => item.month === data.activeLabel);
+                           if (monthData) {
+                             const monthKey = Object.keys(monthlyData).find(
+                               key => monthlyData[key].month === monthData.month && monthlyData[key].recorrente > 0
+                             );
+                             if (monthKey) {
+                               setSelectedMonth(monthKey);
+                               setSelectedMonthType('recorrente');
+                             }
                            }
                          }
                        }}
