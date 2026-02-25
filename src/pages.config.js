@@ -52,6 +52,7 @@ import Dashboard from './pages/Dashboard';
 import ExecutiveStatus from './pages/ExecutiveStatus';
 import Home from './pages/Home';
 import Homologation from './pages/Homologation';
+import InternalProjectsList from './pages/InternalProjectsList';
 import Migration from './pages/Migration';
 import Products from './pages/Products';
 import ProjectsList from './pages/ProjectsList';
@@ -63,7 +64,6 @@ import Team from './pages/Team';
 import Timeline from './pages/Timeline';
 import Trainings from './pages/Trainings';
 import Travels from './pages/Travels';
-import InternalProjectsList from './pages/InternalProjectsList';
 import __Layout from './Layout.jsx';
 
 
@@ -73,6 +73,7 @@ export const PAGES = {
     "ExecutiveStatus": ExecutiveStatus,
     "Home": Home,
     "Homologation": Homologation,
+    "InternalProjectsList": InternalProjectsList,
     "Migration": Migration,
     "Products": Products,
     "ProjectsList": ProjectsList,
@@ -84,7 +85,6 @@ export const PAGES = {
     "Timeline": Timeline,
     "Trainings": Trainings,
     "Travels": Travels,
-    "InternalProjectsList": InternalProjectsList,
 }
 
 export const pagesConfig = {

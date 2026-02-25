@@ -53,8 +53,13 @@ export default function Layout({ children, currentPageName }) {
   const urlParams = new URLSearchParams(window.location.search);
   const projectId = urlParams.get('project_id');
 
-  // Don't show sidebar on Home, ProjectsList page and ExecutiveStatus
-  if (currentPageName === 'Home' || currentPageName === 'ProjectsList' || currentPageName === 'ExecutiveStatus') {
+  // Don't show sidebar on Home, ProjectsList, InternalProjectsList, ExecutiveStatus
+  if (
+    currentPageName === 'Home' ||
+    currentPageName === 'ProjectsList' ||
+    currentPageName === 'InternalProjectsList' ||
+    currentPageName === 'ExecutiveStatus'
+  ) {
     return children;
   }
 
