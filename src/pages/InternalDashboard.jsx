@@ -789,11 +789,12 @@ function ScheduleTab({ projectId }) {
             </thead>
             <tbody>
               {sorted.map(item => {
-                // Detect header/group rows by prefix markers set during import
+                // Detect header/group rows ONLY by prefix markers set during import
                 const isGroup = item.title?.startsWith('▌ ');
-                const isKey = !isGroup && !item.title?.startsWith('    •') && !item.title?.startsWith('        ◦');
-                // A "header" row = has no dates, no responsible, no progress (pure encapsulator)
-                const isHeader = (isGroup || isKey) && !item.responsible && !item.start_date && !item.end_date && (item.progress || 0) === 0;
+                // Level-2 EDT items (ex: "1.2 Planejamento") have no prefix — they are key stages
+                // We can only safely identify them if they have the ▌ prefix (level 1) 
+                // All other rows (with or without sub-task prefix) render normally UNLESS they are ▌
+                const isHeader = isGroup;
 
                 if (isHeader) {
                   return (
