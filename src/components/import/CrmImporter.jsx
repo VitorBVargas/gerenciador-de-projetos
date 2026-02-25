@@ -85,7 +85,12 @@ const parseCrmData = (workbook) => {
     const productName = String(row['Produto'] || '').trim();
     const chamado = String(row['Chamado'] || '').trim();
     const tipo = String(row['Tipo'] || '').trim().toLowerCase();
-    const valor = parseFloat(String(row['Valor'] || '0').replace(',', '.')) || 0;
+    const valor = parseFloat(
+      String(row['Valor'] || '0')
+        .replace(/R\$\s*/g, '')  // Remove R$ e espaços
+        .replace(/\./g, '')      // Remove todos os pontos (separadores de milhares)
+        .replace(',', '.')       // Converte vírgula em ponto decimal
+    ) || 0;
 
     if (!entityFull || !productName) return;
 
