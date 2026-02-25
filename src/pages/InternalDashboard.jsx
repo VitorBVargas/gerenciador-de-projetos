@@ -731,9 +731,9 @@ function ScheduleTab({ projectId }) {
 
       {/* Excel format hint */}
       <div className="bg-slate-800/40 border border-slate-700/50 rounded-lg px-4 py-3 text-xs text-slate-400">
-        <span className="font-semibold text-slate-300">Formato do Excel:</span> O arquivo deve ter 3 colunas —{' '}
-        <span className="text-white">Coluna A: Nome da etapa</span> · <span className="text-white">Coluna B: Data de início (DD/MM/AAAA)</span> · <span className="text-white">Coluna C: Data de fim (DD/MM/AAAA)</span>.
-        A primeira linha pode ser cabeçalho (será ignorada automaticamente).
+        <span className="font-semibold text-slate-300">Formatos aceitos:</span>{' '}
+        <span className="text-white">Modelo padrão interno</span> (colunas: EDT, Nome da Tarefa, Responsável, % Conclusão, Previsão Início, Previsão Término, Real Início, Real Término) ou{' '}
+        <span className="text-white">planilha simples</span> (col A: nome · col B: início · col C: fim). A aba "Cronograma" é detectada automaticamente.
       </div>
 
       {sorted.length > 0 && (
