@@ -1111,8 +1111,7 @@ Seja conciso, profissional e em português.`;
                  return operacaoAssistidaEvent.end_date.substring(0, 7);
                }
 
-               // Fallback para prazo contratual se não encontrar evento
-               return project.deadline ? project.deadline.substring(0, 7) : null;
+               return null;
              };
              // ─────────────────────────────────────────────────────────────────────
 
