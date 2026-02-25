@@ -61,7 +61,9 @@ export default function ProductModal({ open, onOpenChange, product, onSave, proj
     e.preventDefault();
     onSave({
       ...formData,
-      project_id: projectId
+      project_id: projectId,
+      implementation_value: parseFloat(formData.implementation_value) || 0,
+      inclusion_value: parseFloat(formData.inclusion_value) || 0
     });
   };
 

@@ -162,6 +162,18 @@ export default function ProjectsList() {
   };
 
   const renderProjectCard = (project, index, isDraggable = false) => {
+    // Calculate total implementation and inclusion values from products
+    const [projectProducts, setProjectProducts] = React.useState([]);
+
+    React.useEffect(() => {
+      if (project.id) {
+        base44.entities.Product.filter({ project_id: project.id }).then(setProjectProducts);
+      }
+    }, [project.id]);
+
+    const totalImplementation = projectProducts.reduce((sum, p) => sum + (p.implementation_value || 0), 0);
+    const totalInclusion = projectProducts.reduce((sum, p) => sum + (p.inclusion_value || 0), 0);
+
     const cardContent = (
       <Card 
         className={`bg-slate-800/50 border-slate-700 hover:bg-slate-800 transition-all group ${
@@ -213,7 +225,21 @@ export default function ProjectsList() {
         {project.implementation_value > 0 && (
           <div className="flex items-center gap-2 text-sm text-slate-400">
             <DollarSign className="w-4 h-4" />
-            <span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(project.implementation_value)}</span>
+            <span>Impl: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(project.implementation_value)}</span>
+          </div>
+        )}
+
+        {totalImplementation > 0 && (
+          <div className="flex items-center gap-2 text-sm text-emerald-400">
+            <DollarSign className="w-4 h-4" />
+            <span>Impl. Produtos: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(totalImplementation)}</span>
+          </div>
+        )}
+
+        {totalInclusion > 0 && (
+          <div className="flex items-center gap-2 text-sm text-blue-400">
+            <DollarSign className="w-4 h-4" />
+            <span>Inclusão: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(totalInclusion)}</span>
           </div>
         )}
 

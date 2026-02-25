@@ -174,6 +174,11 @@ export default function Dashboard() {
     queryClient.invalidateQueries();
   };
 
+  const handleProductSave = (data) => {
+    queryClient.invalidateQueries({ queryKey: ['products', projectId] });
+    queryClient.invalidateQueries({ queryKey: ['projects'] });
+  };
+
   // Inicializa os marcos padrão se não existirem
   const [milestonesInitialized, setMilestonesInitialized] = React.useState(false);
   
