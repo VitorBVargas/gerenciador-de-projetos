@@ -55,40 +55,36 @@ function toDisplay(iso) {
 }
 
 function DateInput({ value, onChange }) {
-  const [raw, setRaw] = React.useState(toDisplay(value));
+   const [raw, setRaw] = React.useState(toDisplay(value));
 
-  const handleChange = (e) => {
-    // Remove tudo que não é dígito
-    const digits = e.target.value.replace(/\D/g, '').slice(0, 4);
-    // Monta "DD/MM" automaticamente
-    let formatted = digits;
-    if (digits.length > 2) {
-      formatted = digits.slice(0, 2) + '/' + digits.slice(2);
-    }
-    setRaw(formatted);
+   const handleChange = (e) => {
+     const digits = e.target.value.replace(/\D/g, '').slice(0, 4);
+     let formatted = digits;
+     if (digits.length > 2) {
+       formatted = digits.slice(0, 2) + '/' + digits.slice(2);
+     }
+     setRaw(formatted);
 
-    // Se tiver 4 dígitos, parseia e dispara onChange
-    if (digits.length === 4) {
-      const parsed = parseDayMonth(formatted);
-      if (parsed) onChange(parsed);
-    } else if (digits.length === 0) {
-      onChange('');
-    }
-  };
+     if (digits.length === 4) {
+       const parsed = parseDayMonth(formatted);
+       if (parsed) onChange(parsed);
+     } else if (digits.length === 0) {
+       onChange('');
+     }
+   };
 
-  const handleBlur = () => {
-    if (!raw.trim()) { onChange(''); return; }
-    const parsed = parseDayMonth(raw);
-    if (parsed) {
-      onChange(parsed);
-      setRaw(toDisplay(parsed));
-    } else {
-      setRaw(toDisplay(value));
-    }
-  };
+   const handleBlur = () => {
+     if (!raw.trim()) { onChange(''); return; }
+     const parsed = parseDayMonth(raw);
+     if (parsed) {
+       onChange(parsed);
+       setRaw(toDisplay(parsed));
+     } else {
+       setRaw(toDisplay(value));
+     }
+   };
 
-  // Sync when value changes externally
-  React.useEffect(() => { setRaw(toDisplay(value)); }, [value]);
+   React.useEffect(() => { setRaw(toDisplay(value)); }, [value]);
 
   return (
     <Input
@@ -151,27 +147,49 @@ export default function StepCronograma({ cronogramas, setCronogramas, scheduling
   };
 
   const handleAddVertical = () => {
-    if (selectedVerticals.length === 0 || !hasDates) return;
-    setCronogramas(prev => [...prev, {
-      id: Date.now(), type: 'vertical',
-      verticals: selectedVerticals,
-      dates: { ...currentDates }
-    }]);
-    setSelectedVerticals([]);
-    setCurrentDates({});
-  };
+       if (selectedVerticals.length === 0 || !hasDates) return;
+       // Força a interpretação das datas como local (não UTC)
+       const fixedDates = {};
+       Object.entries(currentDates).forEach(([k, v]) => {
+         if (v) {
+           const [y, m, d] = v.split('-');
+           const localDate = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+           fixedDates[k] = localDate.toISOString().split('T')[0];
+         } else {
+           fixedDates[k] = v;
+         }
+       });
+       setCronogramas(prev => [...prev, {
+         id: Date.now(), type: 'vertical',
+         verticals: selectedVerticals,
+         dates: fixedDates
+       }]);
+       setSelectedVerticals([]);
+       setCurrentDates({});
+     };
 
   const handleAddProduct = () => {
-    if (!selectedProduct || !hasDates) return;
-    setCronogramas(prev => [...prev, {
-      id: Date.now(), type: 'produto',
-      productName: selectedProduct.name,
-      vertical: selectedProduct.vertical,
-      dates: { ...currentDates }
-    }]);
-    setSelectedProduct(null);
-    setCurrentDates({});
-  };
+       if (!selectedProduct || !hasDates) return;
+       // Força a interpretação das datas como local (não UTC)
+       const fixedDates = {};
+       Object.entries(currentDates).forEach(([k, v]) => {
+         if (v) {
+           const [y, m, d] = v.split('-');
+           const localDate = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+           fixedDates[k] = localDate.toISOString().split('T')[0];
+         } else {
+           fixedDates[k] = v;
+         }
+       });
+       setCronogramas(prev => [...prev, {
+         id: Date.now(), type: 'produto',
+         productName: selectedProduct.name,
+         vertical: selectedProduct.vertical,
+         dates: fixedDates
+       }]);
+       setSelectedProduct(null);
+       setCurrentDates({});
+     };
 
   return (
     <div className="space-y-4">
