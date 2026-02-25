@@ -85,12 +85,32 @@ const parseCrmData = (workbook) => {
     const productName = String(row['Produto'] || '').trim();
     const chamado = String(row['Chamado'] || '').trim();
     const tipo = String(row['Tipo'] || '').trim().toLowerCase();
-    const valor = parseFloat(
-      String(row['Valor'] || '0')
-        .replace(/R\$\s*/g, '')  // Remove R$ e espaços
-        .replace(/\./g, '')      // Remove todos os pontos (separadores de milhares)
-        .replace(',', '.')       // Converte vírgula em ponto decimal
-    ) || 0;
+
+    // Parse valor com suporte a formato brasileiro (1.000,00) e americano (1,000.00)
+    let valorStr = String(row['Valor'] || '0')
+      .replace(/R\$\s*/g, '')  // Remove R$ e espaços
+      .trim();
+
+    let valor = 0;
+    if (valorStr && valorStr !== '0') {
+      // Se tem vírgula e ponto, último é decimal (1.000,00 ou 1,000.00)
+      if (valorStr.includes(',') && valorStr.includes('.')) {
+        const lastCommaIdx = valorStr.lastIndexOf(',');
+        const lastDotIdx = valorStr.lastIndexOf('.');
+        if (lastCommaIdx > lastDotIdx) {
+          // Formato brasileiro: 1.000,00
+          valorStr = valorStr.replace(/\./g, '').replace(',', '.');
+        } else {
+          // Formato americano: 1,000.00
+          valorStr = valorStr.replace(/,/g, '');
+        }
+      } else if (valorStr.includes(',')) {
+        // Só vírgula: assume decimal
+        valorStr = valorStr.replace(',', '.');
+      }
+      // Se só ponto, não faz nada (já é formato decimal americano)
+      valor = parseFloat(valorStr) || 0;
+    }
 
     if (!entityFull || !productName) return;
 
