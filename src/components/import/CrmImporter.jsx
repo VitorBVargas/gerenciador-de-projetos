@@ -211,19 +211,6 @@ export default function CrmImporter({ open, onOpenChange }) {
       });
     }
 
-    // Função para adicionar offset de timezone à data
-    const fixDateForTimezone = (dateStr) => {
-      if (!dateStr) return null;
-      const [y, m, d] = dateStr.split('-');
-      const date = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
-      const offset = date.getTimezoneOffset(); // em minutos (positivo para UTC-)
-      date.setMinutes(date.getMinutes() + offset);
-      const newY = date.getFullYear();
-      const newM = String(date.getMonth() + 1).padStart(2, '0');
-      const newD = String(date.getDate()).padStart(2, '0');
-      return `${newY}-${newM}-${newD}`;
-    };
-
     createdProducts.forEach((product, pIdx) => {
        const crondates = cronogramaByProduct[product.name] || cronogramaByVertical[product.vertical] || {};
 
@@ -234,8 +221,8 @@ export default function CrmImporter({ open, onOpenChange }) {
            title: title,
            phase: key,
            vertical: product.vertical,
-           start_date: fixDateForTimezone(crondates[`${key}_start`]) || null,
-           end_date: fixDateForTimezone(crondates[`${key}_end`]) || null,
+           start_date: crondates[`${key}_start`] || null,
+           end_date: crondates[`${key}_end`] || null,
            status: 'nao_iniciado',
            progress: 0,
            order: pIdx * 100 + phaseIdx
