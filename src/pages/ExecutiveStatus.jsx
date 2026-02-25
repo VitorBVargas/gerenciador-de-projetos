@@ -1555,7 +1555,8 @@ Seja conciso, profissional e em português.`;
 
                   {/* Lista de produtos do mês selecionado */}
                   {selectedMonth && (() => {
-                    const monthLabel = format(new Date(selectedMonth + '-01'), 'MMMM/yyyy', { locale: ptBR });
+                    const [year, month] = selectedMonth.split('-');
+                    const monthLabel = format(new Date(year, parseInt(month) - 1, 1), 'MMMM/yyyy', { locale: ptBR });
 
                     // Produtos a receber (verde) - operação assistida cai neste mês
                     const aReceberProds = [];
