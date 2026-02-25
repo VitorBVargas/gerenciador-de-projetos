@@ -1480,276 +1480,123 @@ Seja conciso, profissional e em português.`;
                   />
 
                   {/* Lista de produtos do mês selecionado */}
-                  {selectedMonth && selectedMonthType === 'recorrente' && (() => {
-                  const monthLabel = format(new Date(selectedMonth + '-01'), 'MMMM/yyyy', { locale: ptBR });
-                  let recorrenteProds = recorrenteProductsMap[selectedMonth] || [];
+                  {selectedMonth && (() => {
+                    const monthLabel = format(new Date(selectedMonth + '-01'), 'MMMM/yyyy', { locale: ptBR });
 
-                  if (recorrenteProds.length === 0) {
-                    recorrenteProds = [];
+                    // Produtos a receber (verde) - operação assistida cai neste mês
+                    const aReceberProds = [];
                     projects.forEach(project => {
-                      const projectProducts = allProducts.filter(p => p.project_id === project.id && (p.inclusion_value || 0) > 0);
-                      projectProducts.forEach(prod => {
-                        recorrenteProds.push({
-                          product: prod,
+                      const implMonth = getImplantacaoMonth(project);
+                      if (!implMonth || implMonth !== selectedMonth) return;
+
+                      const projectProducts = allProducts.filter(p => p.project_id === project.id && (p.implementation_value || 0) > 0);
+                      let operacaoEvent = null;
+                      if (project.scheduling_type === 'por_vertical') {
+                        const cronograma = allCronogramas.find(c => c.project_id === project.id);
+                        if (cronograma) {
+                          operacaoEvent = allTimelineEvents.find(e => 
+                            e.cronograma_id === cronograma.id && e.phase === 'operacao_assistida'
+                          );
+                        }
+                      } else {
+                        operacaoEvent = projectProducts.length > 0 ? 
+                          allTimelineEvents.find(e => 
+                            e.product_id === projectProducts[0].id && e.phase === 'operacao_assistida'
+                          ) : null;
+                      }
+
+                      projectProducts.forEach(product => {
+                        aReceberProds.push({
+                          product,
                           project,
-                          vertical: prod.vertical,
-                          startDate: null,
-                          inclusionValue: prod.inclusion_value || 0
+                          deadline: operacaoEvent?.end_date,
+                          amount: product.implementation_value || 0
                         });
                       });
                     });
-                  }
 
-                  if (recorrenteProds.length === 0) return null;
+                    // Produtos reconhecidos (roxo) - reconhecimento neste mês
+                    const recognizedProds = allRecognizedRevenues.filter(r => {
+                      const recMonth = r.recognition_month.substring(0, 7);
+                      return recMonth === selectedMonth && r.type === 'implantacao';
+                    }).map(rec => {
+                      const product = allProducts.find(p => p.id === rec.product_id);
+                      const project = allProjectsData.find(p => p.id === rec.project_id);
+                      return { rec, product, project };
+                    });
 
-                  return (
-                  <Card className="bg-slate-800 border-slate-600">
-                  <CardHeader>
-                   <div className="flex items-center justify-between">
-                     <CardTitle className="text-white">Previsão de Inclusão — {monthLabel}</CardTitle>
-                     <Button variant="ghost" size="sm" onClick={() => { setSelectedMonth(null); setSelectedMonthType(null); }} className="text-slate-400 hover:text-white">Fechar</Button>
-                   </div>
-                  </CardHeader>
-                  <CardContent>
-                   <div className="space-y-2">
-                     {recorrenteProds.map(({ product, project, vertical, startDate, inclusionValue }, idx) => (
-                       <div key={`${product.id}-${idx}`} className="p-3 bg-blue-900/20 rounded-lg border border-blue-700/50">
-                         <div className="flex items-start justify-between gap-4">
-                           <div className="flex-1">
-                             <div className="font-semibold text-white text-sm">{product.name}</div>
-                             <div className="text-xs text-slate-400">Projeto: {project.name}</div>
-                             {vertical && <div className="text-xs text-blue-400">Vertical: {vertical}</div>}
-                             {startDate && <div className="text-xs text-slate-500">Início migração prd: {format(new Date(startDate), 'dd/MM/yyyy', { locale: ptBR })}</div>}
-                           </div>
-                           <div className="text-right shrink-0">
-                             <div className="text-sm font-semibold text-blue-400">
-                               {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(inclusionValue)}/mês
-                             </div>
-                           </div>
-                         </div>
-                       </div>
-                     ))}
-                   </div>
-                   <div className="mt-3 pt-3 border-t border-slate-600 flex justify-end">
-                     <div className="text-sm text-blue-300 font-semibold">
-                       Total: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(recorrenteProds.reduce((s, r) => s + r.inclusionValue, 0))}/mês
-                     </div>
-                   </div>
-                  </CardContent>
-                  </Card>
-                  );
-                  })()}
+                    if (aReceberProds.length === 0 && recognizedProds.length === 0) return null;
 
-                  {selectedMonth && (selectedMonthType === 'reconhecido_implantacao' || selectedMonthType === 'reconhecido_recorrente') && (() => {
-                  const monthLabel = format(new Date(selectedMonth + '-01'), 'MMMM/yyyy', { locale: ptBR });
-                  const recognizedInMonth = allRecognizedRevenues.filter(r => {
-                  const recMonth = r.recognition_month.substring(0, 7);
-                  const typeMatch = selectedMonthType === 'reconhecido_implantacao' ? r.type === 'implantacao' : r.type === 'recorrente';
-                  return recMonth === selectedMonth && typeMatch;
-                  });
-
-                  if (recognizedInMonth.length === 0) return null;
-
-                  return (
-                  <Card className="bg-slate-800 border-slate-600">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-white">
-                        Reconhecido em {monthLabel} - {selectedMonthType === 'reconhecido_implantacao' ? 'Implantação' : 'Recorrente'}
-                      </CardTitle>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedMonth(null);
-                          setSelectedMonthType(null);
-                        }}
-                        className="text-slate-400 hover:text-white"
-                      >
-                        Fechar
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {recognizedInMonth.map((recognized) => {
-                        const product = allProducts.find(p => p.id === recognized.product_id);
-                        const project = allProjectsData.find(p => p.id === recognized.project_id);
-
-                        return (
-                          <div 
-                            key={recognized.id}
-                            className="p-4 bg-purple-900/20 rounded-lg border border-purple-700/50 hover:border-purple-600 transition-colors"
-                          >
-                            <div className="flex items-start justify-between gap-4">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <Badge className="bg-purple-600 text-white text-xs">Reconhecido</Badge>
-                                  <div className="font-semibold text-white">{product?.name || 'Produto deletado'}</div>
-                                </div>
-                                <div className="text-sm text-slate-400">Projeto: {project?.name || 'N/A'}</div>
-                                {recognized.vertical_name && (
-                                  <div className="text-xs text-purple-400 mt-1">Vertical: {recognized.vertical_name}</div>
-                                )}
-                              </div>
-                              <div className="text-right">
-                                <div className="text-sm font-semibold text-purple-400">
-                                  {new Intl.NumberFormat('pt-BR', {
-                                    style: 'currency',
-                                    currency: 'BRL',
-                                    minimumFractionDigits: 0
-                                  }).format(recognized.amount)}
-                                </div>
-                              </div>
-                            </div>
+                    return (
+                      <Card className="bg-slate-800 border-slate-600">
+                        <CardHeader>
+                          <div className="flex items-center justify-between">
+                            <CardTitle className="text-white">Implantação — {monthLabel}</CardTitle>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedMonth(null);
+                                setSelectedMonthType(null);
+                              }}
+                              className="text-slate-400 hover:text-white"
+                            >
+                              Fechar
+                            </Button>
                           </div>
-                        );
-                      })}
-                    </div>
-                  </CardContent>
-                  </Card>
-                  );
-                  })()}
-
-                  {selectedMonth && selectedMonthType === 'implantacao' && (() => {
-                  const monthLabel = format(new Date(selectedMonth + '-01'), 'MMMM/yyyy', { locale: ptBR });
-                  const productsInMonth = [];
-
-                  const totalRecognizedByProjectLocal = {};
-                  allRecognizedRevenues.forEach(r => {
-                  if (!totalRecognizedByProjectLocal[r.project_id]) {
-                  totalRecognizedByProjectLocal[r.project_id] = { implantacao: 0, recorrente: 0 };
-                  }
-                  if (r.type === 'implantacao') totalRecognizedByProjectLocal[r.project_id].implantacao += r.amount;
-                  else totalRecognizedByProjectLocal[r.project_id].recorrente += r.amount;
-                  });
-
-                  projects.forEach(project => {
-                  const implMonth = getImplantacaoMonth(project);
-                  if (!implMonth || implMonth !== selectedMonth) return;
-
-                  const recognized = totalRecognizedByProjectLocal[project.id] || { implantacao: 0, recorrente: 0 };
-
-                  const projectProducts = allProducts.filter(p => p.project_id === project.id && (p.implementation_value || 0) > 0);
-                  const totalImplValue = projectProducts.reduce((sum, p) => sum + (p.implementation_value || 0), 0);
-                  const pendente = Math.max(0, totalImplValue - recognized.implantacao);
-
-                  let operacaoEvent = null;
-                  if (project.scheduling_type === 'por_vertical') {
-                  const cronograma = allCronogramas.find(c => c.project_id === project.id);
-                  if (cronograma) {
-                  operacaoEvent = allTimelineEvents.find(e => 
-                    e.cronograma_id === cronograma.id && e.phase === 'operacao_assistida'
-                  );
-                  }
-                  } else {
-                  operacaoEvent = projectProducts.length > 0 ? 
-                  allTimelineEvents.find(e => 
-                    e.product_id === projectProducts[0].id && e.phase === 'operacao_assistida'
-                  ) : null;
-                  }
-
-                  projectProducts.forEach(product => {
-                  productsInMonth.push({
-                  product,
-                  project,
-                  deadline: operacaoEvent?.end_date,
-                  tipo: 'a_receber',
-                  pendente
-                  });
-                  });
-                  });
-
-                  const activeProjectIdsLocal = new Set(projects.map(p => p.id));
-                  const recognizedInMonth = allRecognizedRevenues.filter(r => {
-                  const recMonth = r.recognition_month.substring(0, 7);
-                  return recMonth === selectedMonth && r.type === 'implantacao' && activeProjectIdsLocal.has(r.project_id);
-                  });
-
-                  if (productsInMonth.length === 0 && recognizedInMonth.length === 0) return null;
-
-                  return (
-                  <Card className="bg-slate-800 border-slate-600">
-                  <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-white">
-                      Implantação — {monthLabel}
-                    </CardTitle>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedMonth(null);
-                        setSelectedMonthType(null);
-                      }}
-                      className="text-slate-400 hover:text-white"
-                    >
-                      Fechar
-                    </Button>
-                  </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                  {/* A Receber (verde) */}
-                  {productsInMonth.length > 0 && (
-                    <div>
-                      <div className="text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-2">A Receber (Prazo Contratual)</div>
-                      <div className="space-y-2">
-                        {productsInMonth.map(({ product, project, deadline }) => (
-                          <div 
-                            key={product.id}
-                            className="p-3 bg-emerald-900/20 rounded-lg border border-emerald-700/50"
-                          >
-                            <div className="flex items-start justify-between gap-4">
-                              <div className="flex-1">
-                                <div className="font-semibold text-white text-sm">{product.name}</div>
-                                <div className="text-xs text-slate-400">Projeto: {project.name}</div>
-                              </div>
-                              {deadline && (
-                                <div className="text-right shrink-0">
-                                  <div className="text-xs text-slate-500">Prazo</div>
-                                  <div className="text-xs text-white">
-                                    {format(new Date(deadline), 'dd/MM/yyyy', { locale: ptBR })}
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          {/* A Receber */}
+                          {aReceberProds.length > 0 && (
+                            <div>
+                              <div className="text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-2">A Receber</div>
+                              <div className="space-y-2">
+                                {aReceberProds.map(({ product, project, deadline, amount }) => (
+                                  <div key={product.id} className="p-3 bg-emerald-900/20 rounded-lg border border-emerald-700/50">
+                                    <div className="flex items-start justify-between gap-4">
+                                      <div className="flex-1">
+                                        <div className="font-semibold text-white text-sm">{product.name}</div>
+                                        <div className="text-xs text-slate-400">Projeto: {project.name}</div>
+                                      </div>
+                                      <div className="text-right shrink-0">
+                                        <div className="text-sm font-semibold text-emerald-400">
+                                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(amount)}
+                                        </div>
+                                        {deadline && <div className="text-xs text-slate-500">{format(new Date(deadline), 'dd/MM/yyyy', { locale: ptBR })}</div>}
+                                      </div>
+                                    </div>
                                   </div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Reconhecidos (roxo) */}
-                  {recognizedInMonth.length > 0 && (
-                    <div>
-                      <div className="text-xs font-semibold text-purple-400 uppercase tracking-wider mb-2">Reconhecidos neste mês</div>
-                      <div className="space-y-2">
-                        {recognizedInMonth.map((rec) => {
-                          const product = allProducts.find(p => p.id === rec.product_id);
-                          const project = allProjectsData.find(p => p.id === rec.project_id);
-                          return (
-                            <div key={rec.id} className="p-3 bg-purple-900/20 rounded-lg border border-purple-700/50">
-                              <div className="flex items-start justify-between gap-4">
-                                <div className="flex-1">
-                                  <div className="font-semibold text-white text-sm">{product?.name || rec.vertical_name || 'N/A'}</div>
-                                  <div className="text-xs text-slate-400">Projeto: {project?.name || 'N/A'}</div>
-                                  {rec.vertical_name && <div className="text-xs text-purple-400">Vertical: {rec.vertical_name}</div>}
-                                </div>
-                                <div className="text-right shrink-0">
-                                  <div className="text-sm font-semibold text-purple-400">
-                                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(rec.amount)}
-                                  </div>
-                                </div>
+                                ))}
                               </div>
                             </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-                  </CardContent>
-                  </Card>
-                  );
+                          )}
+
+                          {/* Reconhecidos */}
+                          {recognizedProds.length > 0 && (
+                            <div>
+                              <div className="text-xs font-semibold text-purple-400 uppercase tracking-wider mb-2">Reconhecidos</div>
+                              <div className="space-y-2">
+                                {recognizedProds.map(({ rec, product, project }) => (
+                                  <div key={rec.id} className="p-3 bg-purple-900/20 rounded-lg border border-purple-700/50">
+                                    <div className="flex items-start justify-between gap-4">
+                                      <div className="flex-1">
+                                        <div className="font-semibold text-white text-sm">{product?.name || 'N/A'}</div>
+                                        <div className="text-xs text-slate-400">Projeto: {project?.name || 'N/A'}</div>
+                                      </div>
+                                      <div className="text-right shrink-0">
+                                        <div className="text-sm font-semibold text-purple-400">
+                                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(rec.amount)}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
                   })()}
           </TabsContent>
           </Tabs>
