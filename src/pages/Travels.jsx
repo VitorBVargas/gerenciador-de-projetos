@@ -96,12 +96,10 @@ export default function Travels() {
     title: '',
     start_date: '',
     end_date: '',
-    location: '',
-    travel_type: 'presencial',
+    travel_type: 'carro',
     vertical: '',
     attendees: [],
     status: 'planejada',
-    notes: ''
   });
 
   const urlParams = new URLSearchParams(window.location.search);
