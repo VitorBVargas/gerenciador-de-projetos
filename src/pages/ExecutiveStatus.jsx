@@ -1476,7 +1476,9 @@ Seja conciso, profissional e em português.`;
                   />
 
                   {/* Lista de produtos do mês selecionado */}
-                  {selectedMonth && (() => {
+                  {useMemo(() => {
+                  if (!selectedMonth) return null;
+
                   const monthLabel = format(new Date(selectedMonth + '-01'), 'MMMM/yyyy', { locale: ptBR });
 
                   // Se clicou em recorrente (previsão de inclusão)
