@@ -133,8 +133,15 @@ export default function InternalProjectWizard({ open, onOpenChange, onComplete }
   const parseExcelDate = (val) => {
     if (!val) return '';
     if (typeof val === 'number') {
-      const date = new Date(Math.round((val - 25569) * 86400 * 1000));
-      return date.toISOString().split('T')[0];
+      // Excel serial: número de dias desde 1900-01-01
+      // 25569 = dias entre 1900-01-01 e 1970-01-01
+      const daysSince1970 = val - 25569;
+      const date = new Date(daysSince1970 * 86400 * 1000);
+      // Pega ano/mês/dia locais (sem conversão UTC)
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
     }
     const str = String(val).trim();
     const brMatch = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
