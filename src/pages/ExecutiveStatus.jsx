@@ -296,49 +296,11 @@ Seja conciso e executivo.`
     return Math.round(totalProgress / projectEvents.length);
   };
 
-  // Classify project status based on timeline and health
-  const classifyProjectStatus = (project) => {
-    // If project is completed
-    if (project.status === 'concluido') return 'concluido';
-    
-    const projectEvents = allTimelineEvents.filter(e => e.project_id === project.id);
-    
-    // Check if project hasn't started
-    const hasStartedEvents = projectEvents.some(e => 
-      e.status === 'em_andamento' || e.status === 'concluido' || e.status === 'atrasado'
-    );
-    if (!hasStartedEvents && projectEvents.length > 0) return 'nao_iniciado';
-    if (projectEvents.length === 0) return 'nao_iniciado';
-    
-    // Check for paused timeline events
-    const hasPausedEvents = projectEvents.some(e => e.status === 'pausado');
-    if (hasPausedEvents) return 'pausado';
-    
-    // Check for delayed events (past deadline)
-    const now = new Date();
-    const hasDelayedEvents = projectEvents.some(e => {
-      if (e.end_date) {
-        const endDate = new Date(e.end_date);
-        return endDate < now && e.status !== 'concluido';
-      }
-      return false;
-    });
-    if (hasDelayedEvents) return 'atrasado';
-    
-    // Check for attention (health < 60% AND events ending this week)
-    const healthScore = calculateHealthScore(project);
-    const oneWeekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-    const hasEventsThisWeek = projectEvents.some(e => {
-      if (e.end_date && e.status !== 'concluido') {
-        const endDate = new Date(e.end_date);
-        return endDate >= now && endDate <= oneWeekFromNow;
-      }
-      return false;
-    });
-    if (healthScore < 60 && hasEventsThisWeek) return 'atencao';
-    
-    // Default: Em dia
-    return 'em_dia';
+  // Classify project status based on health score only (igual aos cards)
+  const getStatusFromHealthScore = (healthScore) => {
+    if (healthScore > 60) return 'em_dia';
+    if (healthScore >= 50 && healthScore <= 60) return 'atencao';
+    return 'atrasado';
   };
 
   // Status counts - count cronogramas from Cronograma entity
@@ -474,11 +436,12 @@ Seja conciso e executivo.`
       const recognizedRevenues = allRecognizedRevenues.filter(r => r.project_id === project.id);
       const totalRecognized = recognizedRevenues.reduce((sum, r) => sum + (r.amount || 0), 0);
       
+      const healthScore = calculateHealthScore(project);
       return {
         ...project,
-        healthScore: calculateHealthScore(project),
+        healthScore,
         progress: calculateProjectProgress(project),
-        dynamicStatus: classifyProjectStatus(project),
+        dynamicStatus: getStatusFromHealthScore(healthScore),
         totalRecognized
       };
     }).sort((a, b) => {
