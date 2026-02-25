@@ -815,8 +815,8 @@ function ScheduleTab({ projectId }) {
                     <tr key={item.id} className="border-b border-slate-700/50 bg-slate-900/40 group">
                       <td className="px-3 py-3 text-xs text-slate-500 font-mono">{/^\d+$/.test(item.edt) ? '' : (item.edt || '')}</td>
                       <td className="px-4 py-3" colSpan={8}>
-                        <span className={cn("font-semibold text-white", isGroup ? "text-base" : "text-sm")}>
-                          {isGroup ? item.title.replace('▌ ', '') : isKeyStage ? item.title.replace('► ', '') : item.title}
+                        <span className={cn("font-semibold text-white", isGroup ? "text-base" : "text-sm pl-2")}>
+                          {isGroup ? item.title.replace('▌ ', '') : item.title}
                         </span>
                       </td>
                       <td className="px-4 py-3">
