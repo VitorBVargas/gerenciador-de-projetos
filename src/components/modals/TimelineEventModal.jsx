@@ -31,13 +31,20 @@ export default function TimelineEventModal({ open, onOpenChange, event, onSave, 
     vertical: ''
   });
 
+  const subtractOneDay = (dateStr) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr + 'T00:00:00');
+    date.setDate(date.getDate() - 1);
+    return date.toISOString().split('T')[0];
+  };
+
   useEffect(() => {
     if (event) {
       setFormData({
         title: event.title || '',
         phase: event.phase || 'planejamento',
-        start_date: event.start_date || '',
-        end_date: event.end_date || '',
+        start_date: subtractOneDay(event.start_date),
+        end_date: subtractOneDay(event.end_date),
         status: event.status || 'nao_iniciado',
         progress: event.progress || 0,
         vertical: event.vertical || ''
