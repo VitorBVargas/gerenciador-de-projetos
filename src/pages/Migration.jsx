@@ -252,7 +252,10 @@ export default function Migration() {
       ));
       
       toast.success(allCompleted ? 'Tarefas desmarcadas!' : 'Todas as tarefas foram marcadas!');
-      queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
+      // Aguarda um pouco para garantir que a query se atualize
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
+      }, 300);
     } catch (error) {
       toast.error('Erro ao atualizar tarefas');
       console.error(error);
