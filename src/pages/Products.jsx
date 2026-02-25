@@ -13,7 +13,8 @@ import {
   Pencil,
   Trash2,
   Check,
-  Sparkles
+  Sparkles,
+  X
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import ProductModal from '../components/modals/ProductModal';
