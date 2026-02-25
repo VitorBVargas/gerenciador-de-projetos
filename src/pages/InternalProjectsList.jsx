@@ -230,11 +230,11 @@ export default function InternalProjectsList() {
         </Tabs>
       </div>
 
-      {/* Modal Criar Projeto */}
-      <InternalProjectModal
+      {/* Wizard Criar Projeto */}
+      <InternalProjectWizard
         open={modalOpen}
         onOpenChange={setModalOpen}
-        onSave={(data) => createMutation.mutate(data)}
+        onComplete={() => queryClient.invalidateQueries({ queryKey: ['internalProjects'] })}
       />
 
       {/* Delete Dialog */}
