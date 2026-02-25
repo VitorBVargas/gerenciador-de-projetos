@@ -158,7 +158,9 @@ Seja conciso e executivo.`
   // Fetch all projects
   const { data: allProjectsData = [], isLoading } = useQuery({
     queryKey: ['projects'],
-    queryFn: () => base44.entities.Project.list('-created_date')
+    queryFn: () => base44.entities.Project.list('-created_date'),
+    staleTime: 60000, // 1 min
+    gcTime: 300000 // 5 min
   });
   
   // Filter out completed projects from overview
@@ -169,7 +171,9 @@ Seja conciso e executivo.`
   // Fetch all cronogramas
   const { data: allCronogramas = [] } = useQuery({
     queryKey: ['allCronogramas'],
-    queryFn: () => base44.entities.Cronograma.list()
+    queryFn: () => base44.entities.Cronograma.list(),
+    staleTime: 60000,
+    gcTime: 300000
   });
 
   // Fetch all timeline events
@@ -178,39 +182,51 @@ Seja conciso e executivo.`
     queryFn: async () => {
       const events = await base44.entities.TimelineEvent.list();
       return events;
-    }
+    },
+    staleTime: 60000,
+    gcTime: 300000
   });
 
-  // Fetch all tasks
+  // Fetch all tasks - DISABLED (not used on this page)
   const { data: allHomologationTasks = [] } = useQuery({
     queryKey: ['allHomologationTasks'],
-    queryFn: () => base44.entities.HomologationTask.list()
+    queryFn: () => base44.entities.HomologationTask.list(),
+    enabled: false // Não carrega se não estiver sendo usado
   });
 
   const { data: allMigrationTasks = [] } = useQuery({
     queryKey: ['allMigrationTasks'],
-    queryFn: () => base44.entities.MigrationTask.list()
+    queryFn: () => base44.entities.MigrationTask.list(),
+    enabled: false // Não carrega se não estiver sendo usado
   });
 
   // Fetch all risks
   const { data: allRisks = [] } = useQuery({
     queryKey: ['allRisks'],
-    queryFn: () => base44.entities.Risk.list()
+    queryFn: () => base44.entities.Risk.list(),
+    staleTime: 60000,
+    gcTime: 300000
   });
 
   const { data: allExpenses = [] } = useQuery({
     queryKey: ['allExpenses'],
-    queryFn: () => base44.entities.Expense.list()
+    queryFn: () => base44.entities.Expense.list(),
+    staleTime: 60000,
+    gcTime: 300000
   });
 
   const { data: allProducts = [] } = useQuery({
     queryKey: ['allProducts'],
-    queryFn: () => base44.entities.Product.list()
+    queryFn: () => base44.entities.Product.list(),
+    staleTime: 60000,
+    gcTime: 300000
   });
 
   const { data: allRecognizedRevenues = [] } = useQuery({
     queryKey: ['allRecognizedRevenues'],
-    queryFn: () => base44.entities.RecognizedRevenue.list()
+    queryFn: () => base44.entities.RecognizedRevenue.list(),
+    staleTime: 60000,
+    gcTime: 300000
   });
 
   const createRecognizedRevenueMutation = useMutation({
