@@ -1637,6 +1637,22 @@ Seja conciso, profissional e em português.`;
               const totalImplValue = projectProducts.reduce((sum, p) => sum + (p.implementation_value || 0), 0);
               const pendente = Math.max(0, totalImplValue - recognized.implantacao);
 
+              // Buscar evento de operação assistida para pegar a data
+              let operacaoEvent = null;
+              if (project.scheduling_type === 'por_vertical') {
+                const cronograma = allCronogramas.find(c => c.project_id === project.id);
+                if (cronograma) {
+                  operacaoEvent = allTimelineEvents.find(e => 
+                    e.cronograma_id === cronograma.id && e.phase === 'operacao_assistida'
+                  );
+                }
+              } else {
+                operacaoEvent = projectProducts.length > 0 ? 
+                  allTimelineEvents.find(e => 
+                    e.product_id === projectProducts[0].id && e.phase === 'operacao_assistida'
+                  ) : null;
+              }
+
               projectProducts.forEach(product => {
                 productsInMonth.push({
                   product,
