@@ -228,8 +228,9 @@ export default function CrmImporter({ open, onOpenChange }) {
            order: pIdx * 100 + phaseIdx
          });
        });
-     });
-    if (allEvents.length > 0) await base44.entities.TimelineEvent.bulkCreate(allEvents);
+      });
+     console.log('DEBUG: eventos antes de salvar:', JSON.stringify(allEvents.slice(0, 2), null, 2));
+     if (allEvents.length > 0) await base44.entities.TimelineEvent.bulkCreate(allEvents);
 
     // Normalize vertical from PortfolioCollaborator (may have accents/capitals) to TeamMember enum
     const normalizeVertical = (v) => {
