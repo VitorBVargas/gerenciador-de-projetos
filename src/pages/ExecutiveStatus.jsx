@@ -1221,7 +1221,7 @@ Seja conciso, profissional e em português.`;
                }
              });
 
-             // Calcular "a receber" descontando reconhecimentos por produto
+             // Calcular "a receber" descontando reconhecimentos por produto (de QUALQUER mês)
              Object.keys(monthlyData).forEach(monthKey => {
                const productsThisMonth = implantacaoProductsMap[monthKey] || [];
                let totalImplValue = 0;
@@ -1229,9 +1229,9 @@ Seja conciso, profissional e em português.`;
 
                productsThisMonth.forEach(({ product, project, amount }) => {
                  totalImplValue += amount;
-                 // Buscar reconhecimentos deste produto neste mês
+                 // Buscar reconhecimentos deste produto em QUALQUER mês (não apenas este mês)
                  const productRecognitions = allRecognizedRevenues.filter(r => 
-                   r.product_id === product.id && r.recognition_month.substring(0, 7) === monthKey && r.type === 'implantacao'
+                   r.product_id === product.id && r.type === 'implantacao'
                  );
                  totalRecognized += productRecognitions.reduce((sum, r) => sum + r.amount, 0);
                });
