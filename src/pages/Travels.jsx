@@ -336,32 +336,31 @@ export default function Travels() {
           ) : (
             <div onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp} className="rounded-xl border border-slate-700/50 bg-slate-800/50">
               {/* Month Navigation */}
-              <div>
-                <div className="border-b border-slate-700/50 p-4">
-                  <div className="flex items-center justify-between">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-                      className="text-slate-400 hover:text-white hover:bg-slate-700"
-                    >
-                      <ChevronLeft className="w-5 h-5" />
-                    </Button>
-                    <span className="text-xl font-semibold text-white">
-                      {format(currentMonth, "MMMM 'de' yyyy", { locale: ptBR })} - {format(addMonths(currentMonth, 5), "MMMM 'de' yyyy", { locale: ptBR })}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-                      className="text-slate-400 hover:text-white hover:bg-slate-700"
-                    >
-                      <ChevronRight className="w-5 h-5" />
-                    </Button>
-                  </div>
+              <div className="border-b border-slate-700/50 p-4">
+                <div className="flex items-center justify-between">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+                    className="text-slate-400 hover:text-white hover:bg-slate-700"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </Button>
+                  <span className="text-xl font-semibold text-white">
+                    {format(currentMonth, "MMMM 'de' yyyy", { locale: ptBR })} - {format(addMonths(currentMonth, 5), "MMMM 'de' yyyy", { locale: ptBR })}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+                    className="text-slate-400 hover:text-white hover:bg-slate-700"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </Button>
                 </div>
-                <div className="overflow-x-auto">
-                  <table className="border-collapse" style={{minWidth: 'max-content', tableLayout: 'auto'}}>
+              </div>
+              <div style={{overflowX: 'auto'}}>
+                  <table className="border-collapse" style={{minWidth: 'max-content'}}>
                       <thead>
                         {/* Month headers row */}
                         <tr className="border-b border-slate-700/50">
