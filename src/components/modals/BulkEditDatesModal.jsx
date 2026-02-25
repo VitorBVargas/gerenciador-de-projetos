@@ -100,13 +100,6 @@ export default function BulkEditDatesModal({
     return phaseEdits[phase] || { start_date: '', end_date: '', status: '' };
   };
 
-  const getDisplayDate = (dateStr) => {
-    if (!dateStr) return '';
-    const date = new Date(dateStr + 'T00:00:00');
-    date.setDate(date.getDate() - 1);
-    return date.toISOString().split('T')[0];
-  };
-
   const handleApplyClick = () => {
     setConfirmOpen(true);
   };
@@ -325,7 +318,7 @@ export default function BulkEditDatesModal({
                                 <label className="text-xs text-slate-400 block mb-1">Data Início</label>
                                 <Input
                                   type="date"
-                                  value={edit.start_date ? getDisplayDate(edit.start_date) : ''}
+                                  value={edit.start_date}
                                   onChange={(e) => updatePhaseEdit(event.phase, 'start_date', e.target.value)}
                                   className="bg-slate-700 border-slate-600 text-white"
                                 />
@@ -334,7 +327,7 @@ export default function BulkEditDatesModal({
                                 <label className="text-xs text-slate-400 block mb-1">Data Fim</label>
                                 <Input
                                   type="date"
-                                  value={edit.end_date ? getDisplayDate(edit.end_date) : ''}
+                                  value={edit.end_date}
                                   onChange={(e) => updatePhaseEdit(event.phase, 'end_date', e.target.value)}
                                   className="bg-slate-700 border-slate-600 text-white"
                                 />
