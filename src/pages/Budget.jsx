@@ -56,6 +56,7 @@ export default function Budget() {
   const [selectedExpense, setSelectedExpense] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [expenseToDelete, setExpenseToDelete] = useState(null);
+  const [importerOpen, setImporterOpen] = useState(false);
 
   // Get project_id from URL
   const urlParams = new URLSearchParams(window.location.search);
