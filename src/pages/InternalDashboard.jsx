@@ -566,7 +566,7 @@ function ScheduleTab({ projectId }) {
   const [toDelete, setToDelete] = useState(null);
   const [importing, setImporting] = useState(false);
   const fileInputRef = React.useRef(null);
-  const defaultForm = { title: '', start_date: '', end_date: '', status: 'nao_iniciado' };
+  const defaultForm = { title: '', responsible: '', start_date: '', end_date: '', real_start_date: '', real_end_date: '', progress: 0, status: 'nao_iniciado' };
   const [form, setForm] = useState(defaultForm);
 
   const { data: schedule = [] } = useQuery({
