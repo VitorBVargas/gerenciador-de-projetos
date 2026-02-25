@@ -39,13 +39,7 @@ export default function InternalProjectsList() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['internalProjects'] })
   });
 
-  const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.InternalProject.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['internalProjects'] });
-      setModalOpen(false);
-    }
-  });
+  // createMutation not needed - wizard handles creation internally
 
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.InternalProject.delete(id),
