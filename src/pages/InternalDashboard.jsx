@@ -33,6 +33,8 @@ import {
 import EmptyState from '../components/ui/EmptyState';
 import ExpenseModal from '../components/modals/ExpenseModal';
 import ExpenseImporter from '../components/import/ExpenseImporter';
+import * as XLSX from 'xlsx';
+import { toast } from 'sonner';
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
 const NAV = [
