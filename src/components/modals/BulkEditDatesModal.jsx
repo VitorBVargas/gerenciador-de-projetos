@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { phaseLabels } from '@/components/timeline/phaseLabels';
+import { formatDateForDisplay } from '@/components/timeline/dateFormatter';
 import { ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 
 export default function BulkEditDatesModal({ 
@@ -97,6 +98,13 @@ export default function BulkEditDatesModal({
 
   const getPhaseEdit = (phase) => {
     return phaseEdits[phase] || { start_date: '', end_date: '', status: '' };
+  };
+
+  const getDisplayDate = (dateStr) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr + 'T00:00:00');
+    date.setDate(date.getDate() - 1);
+    return date.toISOString().split('T')[0];
   };
 
   const handleApplyClick = () => {
@@ -317,7 +325,7 @@ export default function BulkEditDatesModal({
                                 <label className="text-xs text-slate-400 block mb-1">Data Início</label>
                                 <Input
                                   type="date"
-                                  value={edit.start_date}
+                                  value={edit.start_date ? getDisplayDate(edit.start_date) : ''}
                                   onChange={(e) => updatePhaseEdit(event.phase, 'start_date', e.target.value)}
                                   className="bg-slate-700 border-slate-600 text-white"
                                 />
@@ -326,7 +334,7 @@ export default function BulkEditDatesModal({
                                 <label className="text-xs text-slate-400 block mb-1">Data Fim</label>
                                 <Input
                                   type="date"
-                                  value={edit.end_date}
+                                  value={edit.end_date ? getDisplayDate(edit.end_date) : ''}
                                   onChange={(e) => updatePhaseEdit(event.phase, 'end_date', e.target.value)}
                                   className="bg-slate-700 border-slate-600 text-white"
                                 />
