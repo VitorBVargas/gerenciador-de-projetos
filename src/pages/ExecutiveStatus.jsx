@@ -1625,13 +1625,9 @@ Seja conciso, profissional e em português.`;
               else totalRecognizedByProjectLocal[r.project_id].recorrente += r.amount;
             });
             
-            // Projetos cujo prazo contratual cai neste mês (A Receber - verde)
+            // Projetos cuja operação assistida cai neste mês (A Receber - verde)
             projects.forEach(project => {
-              // Buscar data de fim da operacao_assistida
-              const operacaoEvent = allTimelineEvents.find(e => 
-                e.project_id === project.id && e.phase === 'operacao_assistida' && e.end_date
-              );
-              const implMonth = operacaoEvent?.end_date ? operacaoEvent.end_date.substring(0, 7) : null;
+              const implMonth = getImplantacaoMonth(project);
               if (!implMonth || implMonth !== selectedMonth) return;
 
               const recognized = totalRecognizedByProjectLocal[project.id] || { implantacao: 0, recorrente: 0 };
