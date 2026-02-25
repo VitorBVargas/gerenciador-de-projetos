@@ -764,6 +764,7 @@ function ScheduleTab({ projectId }) {
                       <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="font-medium text-white">{item.title}</h3>
                         <Badge className={cn("border text-xs", cfg.badge)}>{cfg.label}</Badge>
+                        {item.responsible && <span className="text-xs text-slate-500">{item.responsible}</span>}
                       </div>
                       {(item.start_date || item.end_date) && (
                         <p className="text-xs text-slate-400 mt-1">
@@ -771,6 +772,12 @@ function ScheduleTab({ projectId }) {
                           {item.start_date && item.end_date && ' → '}
                           {item.end_date && format(new Date(item.end_date), 'dd/MM/yyyy', { locale: ptBR })}
                         </p>
+                      )}
+                      {item.progress > 0 && (
+                        <div className="flex items-center gap-2 mt-1.5">
+                          <Progress value={item.progress} className="h-1.5 flex-1" />
+                          <span className="text-xs text-slate-400 w-8 text-right">{item.progress}%</span>
+                        </div>
                       )}
                     </div>
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
