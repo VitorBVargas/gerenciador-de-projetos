@@ -20,23 +20,20 @@ export default function RecognitionImporter({ open, onOpenChange }) {
     return str.toLowerCase()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
-      .replace(/prefeitura municipal (de|do|da|dos|das) /gi, '')
-      .replace(/municipio (de|do|da|dos|das) /gi, '')
-      .replace(/prefeitura (de|do|da|dos|das) /gi, '')
-      .replace(/município (de|do|da|dos|das) /gi, '')
       .trim();
   };
 
-  const namesMatch = (sheetName, projectName) => {
-    const a = normalizeStr(sheetName);
-    const b = normalizeStr(projectName);
-    return b.includes(a) || a.includes(b);
+  const entityMatch = (sheetAccount, productEntity) => {
+    if (!sheetAccount || !productEntity) return false;
+    const a = normalizeStr(sheetAccount);
+    const b = normalizeStr(productEntity);
+    return a === b || a.includes(b) || b.includes(a);
   };
 
   const productsMatch = (sheetProduct, productName) => {
-    const a = sheetProduct.toLowerCase().trim();
-    const b = productName.toLowerCase().trim();
-    return b.includes(a) || a.includes(b);
+    const a = normalizeStr(sheetProduct);
+    const b = normalizeStr(productName);
+    return a === b || b.includes(a) || a.includes(b);
   };
 
   const handleImport = async () => {
@@ -50,24 +47,22 @@ export default function RecognitionImporter({ open, onOpenChange }) {
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
       const rows = XLSX.utils.sheet_to_json(sheet);
 
-      // Load all projects and products
-      const [projects, products] = await Promise.all([
-        base44.entities.Project.list(),
-        base44.entities.Product.list()
+      // Load all products (with entity field) and existing recognitions
+      const [products, existingRecognitions] = await Promise.all([
+        base44.entities.Product.list(),
+        base44.entities.RecognizedRevenue.list()
       ]);
 
       const matched = [];
       const notFound = [];
       const alreadyExists = [];
 
-      // Load existing recognitions to avoid duplicates
-      const existingRecognitions = await base44.entities.RecognizedRevenue.list();
-
       for (const row of rows) {
         const accountName = row['Nome da conta'];
         const productName = row['Produto'];
         const dateRaw = row['Data'];
         const valor = row['Valor'] || 0;
+        const chamado = row['Chamado'] || '';
         const tipo = (row['Tipo'] || '').toLowerCase().includes('recorr') ? 'recorrente' : 'implantacao';
 
         if (!accountName || !productName) continue;
@@ -75,7 +70,6 @@ export default function RecognitionImporter({ open, onOpenChange }) {
         // Parse date
         let recognitionMonth;
         if (typeof dateRaw === 'number') {
-          // Excel serial date
           const d = XLSX.SSF.parse_date_code(dateRaw);
           recognitionMonth = `${d.y}-${String(d.m).padStart(2, '0')}-01`;
         } else {
@@ -90,18 +84,22 @@ export default function RecognitionImporter({ open, onOpenChange }) {
           continue;
         }
 
-        // Find matching project
-        const matchedProject = projects.find(p => namesMatch(accountName, p.name));
-        if (!matchedProject) {
-          notFound.push({ accountName, productName, reason: 'Projeto não encontrado' });
-          continue;
+        // Find matching product by: ticket_number (if available) OR (entity + product name)
+        let matchedProduct = null;
+
+        if (chamado) {
+          matchedProduct = products.find(p => p.ticket_number && p.ticket_number.trim() === chamado.trim());
         }
 
-        // Find matching product within project
-        const projectProducts = products.filter(p => p.project_id === matchedProject.id);
-        const matchedProduct = projectProducts.find(p => productsMatch(productName, p.name));
         if (!matchedProduct) {
-          notFound.push({ accountName, productName, reason: `Produto não encontrado no projeto "${matchedProject.name}"` });
+          // Match by entity name + product name
+          matchedProduct = products.find(p =>
+            entityMatch(accountName, p.entity) && productsMatch(productName, p.name)
+          );
+        }
+
+        if (!matchedProduct) {
+          notFound.push({ accountName, productName, reason: 'Entidade/Produto não encontrado' });
           continue;
         }
 
