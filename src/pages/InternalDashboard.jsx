@@ -607,29 +607,83 @@ function ScheduleTab({ projectId }) {
     try {
       const data = await file.arrayBuffer();
       const wb = XLSX.read(data, { cellDates: false });
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
 
-      // Skip header row(s): find first row where col 0 is not empty and not "etapa"/"nome"/"título"
-      const headerKeywords = ['etapa', 'nome', 'título', 'titulo', 'stage', 'name', 'tarefa', 'atividade', 'inicio', 'início', 'fim', 'term', 'start', 'end', 'status'];
-      const isHeader = (row) => row.some(c => headerKeywords.includes(String(c).toLowerCase().trim()));
+      // Try to find the "Cronograma" sheet, fallback to first
+      const sheetName = wb.SheetNames.find(n => n.toLowerCase().includes('cronograma')) || wb.SheetNames[0];
+      const ws = wb.Sheets[sheetName];
+      const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
 
-      let startIdx = 0;
-      if (rows.length > 0 && isHeader(rows[0])) startIdx = 1;
+      // Check if it's the standard model (has "Nome da Tarefa" column)
+      const isStandardModel = rows.length > 0 && 'Nome da Tarefa' in rows[0];
 
       const toCreate = [];
-      for (let i = startIdx; i < rows.length; i++) {
-        const row = rows[i];
-        const title = String(row[0] || '').trim();
-        if (!title) continue;
-        toCreate.push({
-          title,
-          start_date: parseExcelDate(row[1]),
-          end_date: parseExcelDate(row[2]),
-          status: 'nao_iniciado',
-          project_id: projectId,
-          order: schedule.length + toCreate.length,
-        });
+
+      if (isStandardModel) {
+        // Standard model: EDT, Nome da Tarefa, Responsável, % Conclusão, Previsão Início, Previsão Término, Real Início, Real Término
+        for (const row of rows) {
+          const title = String(row['Nome da Tarefa'] || '').trim();
+          if (!title) continue;
+          // Skip "header-like" rows (EDT is not a number-like value or is title row)
+          const edt = String(row['EDT'] || '').trim();
+          if (!edt || edt.toLowerCase() === 'edt') continue;
+
+          const progressRaw = row['% Conclusão'];
+          const progress = typeof progressRaw === 'number' ? Math.round(progressRaw * 100) : 0;
+
+          // Determine status from progress
+          let status = 'nao_iniciado';
+          if (progress >= 100) status = 'concluido';
+          else if (progress > 0) status = 'em_andamento';
+
+          // Parse dates from string like "2026-01-01 00:00:00"
+          const parseDateField = (val) => {
+            if (!val || val === '') return '';
+            const str = String(val).trim();
+            const m = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+            if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+            return parseExcelDate(val);
+          };
+
+          // Column names may have newlines
+          const previsaoInicio = row['Previsão\nInício'] || row['Previsão Início'] || row['PrevisaoInicio'] || '';
+          const previsaoFim = row['Previsão\nTérmino'] || row['Previsão Término'] || row['PrevisaoTermino'] || '';
+          const realInicio = row['Real\nInício'] || row['Real Início'] || '';
+          const realFim = row['Real\nTérmino'] || row['Real Término'] || '';
+          const responsible = String(row['Responsável'] || '').trim();
+
+          toCreate.push({
+            title,
+            responsible,
+            start_date: parseDateField(previsaoInicio),
+            end_date: parseDateField(previsaoFim),
+            real_start_date: parseDateField(realInicio),
+            real_end_date: parseDateField(realFim),
+            progress,
+            status,
+            project_id: projectId,
+            order: schedule.length + toCreate.length,
+          });
+        }
+      } else {
+        // Generic model: col A = nome, col B = início, col C = fim
+        const rawRows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+        const headerKeywords = ['etapa', 'nome', 'título', 'titulo', 'tarefa', 'atividade', 'inicio', 'início', 'fim'];
+        const isHeader = (row) => row.some(c => headerKeywords.includes(String(c).toLowerCase().trim()));
+        let startIdx = rawRows.length > 0 && isHeader(rawRows[0]) ? 1 : 0;
+        for (let i = startIdx; i < rawRows.length; i++) {
+          const row = rawRows[i];
+          const title = String(row[0] || '').trim();
+          if (!title) continue;
+          toCreate.push({
+            title,
+            start_date: parseExcelDate(row[1]),
+            end_date: parseExcelDate(row[2]),
+            status: 'nao_iniciado',
+            progress: 0,
+            project_id: projectId,
+            order: schedule.length + toCreate.length,
+          });
+        }
       }
 
       if (toCreate.length === 0) {
