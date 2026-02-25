@@ -211,24 +211,37 @@ export default function CrmImporter({ open, onOpenChange }) {
       });
     }
 
-    createdProducts.forEach((product, pIdx) => {
-      const crondates = cronogramaByProduct[product.name] || cronogramaByVertical[product.vertical] || {};
+    // Função para adicionar offset de timezone à data
+    const fixDateForTimezone = (dateStr) => {
+      if (!dateStr) return null;
+      const [y, m, d] = dateStr.split('-');
+      const date = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+      const offset = date.getTimezoneOffset(); // em minutos (positivo para UTC-)
+      date.setMinutes(date.getMinutes() + offset);
+      const newY = date.getFullYear();
+      const newM = String(date.getMonth() + 1).padStart(2, '0');
+      const newD = String(date.getDate()).padStart(2, '0');
+      return `${newY}-${newM}-${newD}`;
+    };
 
-      STANDARD_PHASES.forEach(({ key, title }, phaseIdx) => {
-        allEvents.push({
-          project_id: project.id,
-          product_id: product.id,
-          title: title,
-          phase: key,
-          vertical: product.vertical,
-          start_date: crondates[`${key}_start`] || null,
-          end_date: crondates[`${key}_end`] || null,
-          status: 'nao_iniciado',
-          progress: 0,
-          order: pIdx * 100 + phaseIdx
-        });
-      });
-    });
+    createdProducts.forEach((product, pIdx) => {
+       const crondates = cronogramaByProduct[product.name] || cronogramaByVertical[product.vertical] || {};
+
+       STANDARD_PHASES.forEach(({ key, title }, phaseIdx) => {
+         allEvents.push({
+           project_id: project.id,
+           product_id: product.id,
+           title: title,
+           phase: key,
+           vertical: product.vertical,
+           start_date: fixDateForTimezone(crondates[`${key}_start`]) || null,
+           end_date: fixDateForTimezone(crondates[`${key}_end`]) || null,
+           status: 'nao_iniciado',
+           progress: 0,
+           order: pIdx * 100 + phaseIdx
+         });
+       });
+     });
     if (allEvents.length > 0) await base44.entities.TimelineEvent.bulkCreate(allEvents);
 
     // Normalize vertical from PortfolioCollaborator (may have accents/capitals) to TeamMember enum
