@@ -20,7 +20,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import InternalProjectModal from '../components/internal/InternalProjectModal';
+import InternalProjectModal from '@/components/internal/InternalProjectModal';
 
 export default function InternalProjectsList() {
   const queryClient = useQueryClient();
