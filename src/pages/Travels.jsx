@@ -170,12 +170,10 @@ export default function Travels() {
       title: travel.title || '',
       start_date: travel.start_date || '',
       end_date: travel.end_date || '',
-      location: travel.location || '',
-      travel_type: travel.travel_type || 'presencial',
+      travel_type: travel.travel_type || 'carro',
       vertical: travel.vertical || '',
       attendees: travel.attendees || [],
       status: travel.status || 'planejada',
-      notes: travel.notes || ''
     });
     setModalOpen(true);
   };
