@@ -1560,33 +1560,64 @@ Seja conciso, profissional e em português.`;
                     // Produtos a receber (verde) - operação assistida cai neste mês
                     const aReceberProds = [];
                     projects.forEach(project => {
-                      const implMonth = getImplantacaoMonth(project);
-                      if (!implMonth || implMonth !== selectedMonth) return;
-
                       const projectProducts = allProducts.filter(p => p.project_id === project.id && (p.implementation_value || 0) > 0);
-                      let operacaoEvent = null;
-                      if (project.scheduling_type === 'por_vertical') {
-                        const cronograma = allCronogramas.find(c => c.project_id === project.id);
-                        if (cronograma) {
-                          operacaoEvent = allTimelineEvents.find(e => 
-                            e.cronograma_id === cronograma.id && e.phase === 'operacao_assistida'
-                          );
-                        }
-                      } else {
-                        operacaoEvent = projectProducts.length > 0 ? 
-                          allTimelineEvents.find(e => 
-                            e.product_id === projectProducts[0].id && e.phase === 'operacao_assistida'
-                          ) : null;
-                      }
+                      if (!projectProducts.length) return;
 
-                      projectProducts.forEach(product => {
-                        aReceberProds.push({
-                          product,
-                          project,
-                          deadline: operacaoEvent?.end_date,
-                          amount: product.implementation_value || 0
+                      if (project.scheduling_type === 'por_vertical') {
+                        const verticalGroups = {};
+                        projectProducts.forEach(prod => {
+                          const v = prod.vertical || 'outros';
+                          if (!verticalGroups[v]) verticalGroups[v] = [];
+                          verticalGroups[v].push(prod);
                         });
-                      });
+
+                        Object.entries(verticalGroups).forEach(([vertical, prods]) => {
+                          const cronograma = allCronogramas.find(c => c.project_id === project.id && c.vertical === vertical);
+                          let operacaoEvent = null;
+
+                          if (cronograma) {
+                            operacaoEvent = allTimelineEvents.find(e => 
+                              e.cronograma_id === cronograma.id && e.phase === 'operacao_assistida' && e.end_date
+                            );
+                          }
+
+                          if (!operacaoEvent && prods.length > 0) {
+                            operacaoEvent = allTimelineEvents.find(e => 
+                              e.product_id === prods[0].id && e.phase === 'operacao_assistida' && e.end_date
+                            );
+                          }
+
+                          if (!operacaoEvent || !operacaoEvent.end_date) return;
+                          const implMonth = operacaoEvent.end_date.substring(0, 7);
+                          if (implMonth !== selectedMonth) return;
+
+                          prods.forEach(product => {
+                            aReceberProds.push({
+                              product,
+                              project,
+                              deadline: operacaoEvent?.end_date,
+                              amount: product.implementation_value || 0
+                            });
+                          });
+                        });
+                      } else {
+                        projectProducts.forEach(product => {
+                          const operacaoEvent = allTimelineEvents.find(e => 
+                            e.product_id === product.id && e.phase === 'operacao_assistida' && e.end_date
+                          );
+
+                          if (!operacaoEvent || !operacaoEvent.end_date) return;
+                          const implMonth = operacaoEvent.end_date.substring(0, 7);
+                          if (implMonth !== selectedMonth) return;
+
+                          aReceberProds.push({
+                            product,
+                            project,
+                            deadline: operacaoEvent?.end_date,
+                            amount: product.implementation_value || 0
+                          });
+                        });
+                      }
                     });
 
                     // Produtos reconhecidos (roxo) - reconhecimento neste mês
