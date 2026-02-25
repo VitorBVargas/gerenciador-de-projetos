@@ -1071,9 +1071,38 @@ Seja conciso, profissional e em português.`;
              // edite APENAS esta função:
              const getImplantacaoMonth = (project) => {
                // FONTE ATUAL: Fim da Operação Assistida
-               const operacaoAssistidaEvent = allTimelineEvents.find(e => 
-                 e.project_id === project.id && e.phase === 'operacao_assistida'
+               // Buscar por project_id primeiro
+               let operacaoAssistidaEvent = allTimelineEvents.find(e => 
+                 e.project_id === project.id && e.phase === 'operacao_assistida' && e.end_date
                );
+
+               // Se não encontrou, buscar entre os cronogramas do projeto
+               if (!operacaoAssistidaEvent) {
+                 const projectCronogramas = allCronogramas.filter(c => c.project_id === project.id);
+                 for (const cron of projectCronogramas) {
+                   const event = allTimelineEvents.find(e => 
+                     e.cronograma_id === cron.id && e.phase === 'operacao_assistida' && e.end_date
+                   );
+                   if (event) {
+                     operacaoAssistidaEvent = event;
+                     break;
+                   }
+                 }
+               }
+
+               // Se não encontrou ainda, buscar entre os produtos do projeto
+               if (!operacaoAssistidaEvent) {
+                 const projectProducts = allProducts.filter(p => p.project_id === project.id);
+                 for (const prod of projectProducts) {
+                   const event = allTimelineEvents.find(e => 
+                     e.product_id === prod.id && e.phase === 'operacao_assistida' && e.end_date
+                   );
+                   if (event) {
+                     operacaoAssistidaEvent = event;
+                     break;
+                   }
+                 }
+               }
 
                if (operacaoAssistidaEvent && operacaoAssistidaEvent.end_date) {
                  return operacaoAssistidaEvent.end_date.substring(0, 7);
