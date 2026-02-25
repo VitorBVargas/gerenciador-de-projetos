@@ -134,7 +134,7 @@ export default function BulkEditDatesModal({
 
   const filteredVerticals = getFilteredVerticals();
   const phaseEvents = selectedPhase ? getEventsByPhase(selectedPhase) : [];
-  const hasChanges = selectedPhase && (phaseStartDate || phaseEndDate);
+  const hasChanges = selectedPhase && (phaseStartDate || phaseEndDate || phaseStatus);
   const isValidSelection = editAllMode || (selectedEntity && selectedVertical);
 
   return (
