@@ -555,26 +555,15 @@ export default function Travels() {
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Objetivo da Viagem</Label>
-                <Input
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="bg-slate-700 border-slate-600 text-white"
-                  placeholder="Ex: Kick-off do projeto"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Local de Destino</Label>
-                <Input
-                  value={formData.location}
-                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  className="bg-slate-700 border-slate-600 text-white"
-                  placeholder="Ex: São Paulo, SP"
-                />
-              </div>
+            <div className="space-y-2">
+              <Label>Objetivo da Viagem</Label>
+              <Input
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                className="bg-slate-700 border-slate-600 text-white"
+                placeholder="Ex: Kick-off do projeto"
+                required
+              />
             </div>
 
             <div className="grid grid-cols-3 gap-4">
@@ -604,7 +593,6 @@ export default function Travels() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-700 border-slate-600">
-                    <SelectItem value="presencial">Presencial</SelectItem>
                     <SelectItem value="carro">Carro</SelectItem>
                     <SelectItem value="aviao">Avião</SelectItem>
                   </SelectContent>
@@ -636,7 +624,6 @@ export default function Travels() {
                     <SelectItem value="planejada">Planejada</SelectItem>
                     <SelectItem value="confirmada">Confirmada</SelectItem>
                     <SelectItem value="realizada">Realizada</SelectItem>
-                    <SelectItem value="cancelada">Cancelada</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -644,10 +631,10 @@ export default function Travels() {
 
             <div className="space-y-2">
               <Label>Participantes</Label>
-              <div className="flex flex-wrap gap-2 p-3 bg-slate-700 border border-slate-600 rounded-md min-h-[60px]">
+              <div className="flex flex-wrap gap-2 p-3 bg-slate-700 border border-slate-600 rounded-md min-h-[48px]">
                 {formData.attendees.map((attendee, idx) => (
-                  <Badge 
-                    key={idx} 
+                  <Badge
+                    key={idx}
                     className="bg-blue-600 text-white cursor-pointer hover:bg-red-600"
                     onClick={() => setFormData({
                       ...formData,
@@ -658,8 +645,8 @@ export default function Travels() {
                   </Badge>
                 ))}
               </div>
-              <Select 
-                value="" 
+              <Select
+                value=""
                 onValueChange={(v) => {
                   if (v && !formData.attendees.includes(v)) {
                     setFormData({ ...formData, attendees: [...formData.attendees, v] });
@@ -679,22 +666,28 @@ export default function Travels() {
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label>Observações</Label>
-              <Textarea
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                className="bg-slate-700 border-slate-600 text-white h-20"
-              />
-            </div>
-
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setModalOpen(false)} className="border-slate-600 text-slate-300 hover:bg-slate-700">
-                Cancelar
-              </Button>
-              <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
-                {selectedTravel ? 'Salvar' : 'Criar'}
-              </Button>
+            <DialogFooter className="flex items-center justify-between gap-2">
+              <div>
+                {selectedTravel && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="text-red-400 hover:text-red-300 hover:bg-red-500/20"
+                    onClick={() => { setModalOpen(false); handleDelete(selectedTravel); }}
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Excluir
+                  </Button>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" onClick={() => setModalOpen(false)} className="border-slate-600 text-slate-300 hover:bg-slate-700">
+                  Cancelar
+                </Button>
+                <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+                  {selectedTravel ? 'Salvar' : 'Criar'}
+                </Button>
+              </div>
             </DialogFooter>
           </form>
         </DialogContent>
