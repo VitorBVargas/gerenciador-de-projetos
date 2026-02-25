@@ -26,7 +26,9 @@ export default function ProductModal({ open, onOpenChange, product, onSave, proj
     entity: '',
     ticket_number: '',
     priority: 'media',
-    production_password: false
+    production_password: false,
+    implementation_value: 0,
+    inclusion_value: 0
   });
 
   useEffect(() => {
