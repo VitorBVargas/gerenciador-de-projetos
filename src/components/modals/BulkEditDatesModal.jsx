@@ -95,6 +95,7 @@ export default function BulkEditDatesModal({
     }
     setPhaseStartDate('');
     setPhaseEndDate('');
+    setPhaseStatus('');
   };
 
   const handleApplyClick = () => {
