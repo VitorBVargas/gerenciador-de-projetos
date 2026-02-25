@@ -1624,8 +1624,6 @@ Seja conciso, profissional e em português.`;
               return recMonth === selectedMonth && r.type === 'implantacao' && activeProjectIdsLocal.has(r.project_id);
             });
             
-            if (productsInMonth.length === 0 && recognizedInMonth.length === 0) return null;
-            
             return (
               <Card className="bg-slate-800 border-slate-600">
                 <CardHeader>
