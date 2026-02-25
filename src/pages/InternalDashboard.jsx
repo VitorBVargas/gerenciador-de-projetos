@@ -799,9 +799,18 @@ function ScheduleTab({ projectId }) {
           <DialogHeader><DialogTitle>{selected ? 'Editar Etapa' : 'Nova Etapa'}</DialogTitle></DialogHeader>
           <div className="space-y-3">
             <div className="space-y-1"><Label className="text-slate-300 text-xs">Nome da Etapa *</Label><Input value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} className="bg-slate-700 border-slate-600 text-white" /></div>
+            <div className="space-y-1"><Label className="text-slate-300 text-xs">Responsável</Label><Input value={form.responsible || ''} onChange={e => setForm(p => ({ ...p, responsible: e.target.value }))} placeholder="Nome do responsável" className="bg-slate-700 border-slate-600 text-white" /></div>
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1"><Label className="text-slate-300 text-xs">Início</Label><Input type="date" value={form.start_date} onChange={e => setForm(p => ({ ...p, start_date: e.target.value }))} className="bg-slate-700 border-slate-600 text-white" /></div>
-              <div className="space-y-1"><Label className="text-slate-300 text-xs">Fim</Label><Input type="date" value={form.end_date} onChange={e => setForm(p => ({ ...p, end_date: e.target.value }))} className="bg-slate-700 border-slate-600 text-white" /></div>
+              <div className="space-y-1"><Label className="text-slate-300 text-xs">Previsão Início</Label><Input type="date" value={form.start_date} onChange={e => setForm(p => ({ ...p, start_date: e.target.value }))} className="bg-slate-700 border-slate-600 text-white" /></div>
+              <div className="space-y-1"><Label className="text-slate-300 text-xs">Previsão Fim</Label><Input type="date" value={form.end_date} onChange={e => setForm(p => ({ ...p, end_date: e.target.value }))} className="bg-slate-700 border-slate-600 text-white" /></div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1"><Label className="text-slate-300 text-xs">Real Início</Label><Input type="date" value={form.real_start_date || ''} onChange={e => setForm(p => ({ ...p, real_start_date: e.target.value }))} className="bg-slate-700 border-slate-600 text-white" /></div>
+              <div className="space-y-1"><Label className="text-slate-300 text-xs">Real Fim</Label><Input type="date" value={form.real_end_date || ''} onChange={e => setForm(p => ({ ...p, real_end_date: e.target.value }))} className="bg-slate-700 border-slate-600 text-white" /></div>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-slate-300 text-xs">% Conclusão: {form.progress || 0}%</Label>
+              <input type="range" min="0" max="100" step="5" value={form.progress || 0} onChange={e => setForm(p => ({ ...p, progress: Number(e.target.value) }))} className="w-full accent-indigo-500" />
             </div>
             <div className="space-y-1">
               <Label className="text-slate-300 text-xs">Status</Label>
