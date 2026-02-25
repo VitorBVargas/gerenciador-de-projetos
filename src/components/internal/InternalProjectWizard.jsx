@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { ChevronRight, ChevronLeft, Check, Plus, X, Pencil, Trash2 } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Check, Plus, X, Pencil, Trash2, Upload } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useQueryClient } from '@tanstack/react-query';
 
