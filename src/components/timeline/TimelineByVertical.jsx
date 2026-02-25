@@ -22,6 +22,22 @@ const statusColors = {
   concluido: 'bg-green-600', atrasado: 'bg-red-600'
 };
 
+const calculateProgressFromDates = (event) => {
+  if (event.status === 'concluido') return 100;
+  if (!event.start_date || !event.end_date) return event.progress || 0;
+
+  const now = new Date();
+  const start = new Date(event.start_date);
+  const end = new Date(event.end_date);
+
+  if (now < start) return 0;
+  if (now >= end) return 100;
+
+  const total = end.getTime() - start.getTime();
+  const elapsed = now.getTime() - start.getTime();
+  return Math.min(100, Math.round((elapsed / total) * 100));
+};
+
 /**
  * Visão Por Vertical: 1 linha por etapa, mostrando a data "comum" da vertical
  * (pega do primeiro produto da vertical, pois as datas são compartilhadas)
@@ -85,7 +101,7 @@ export default function TimelineByVertical({ verticals, entityProducts, timeline
                 </thead>
                 <tbody>
                   {events.map(event => (
-                    <tr key={event.id} className="border-b border-slate-700/30 hover:bg-slate-700/20">
+                    <tr key={event.id} className="border-b border-slate-700/30 hover:bg-slate-700/20 cursor-pointer" onDoubleClick={() => onEdit(event, representativeProduct?.id)}>
                       <td className="px-4 py-3 text-sm text-white">{phaseLabels[event.phase] || event.title}</td>
                       <td className="px-4 py-3">
                         <select
@@ -106,8 +122,8 @@ export default function TimelineByVertical({ verticals, entityProducts, timeline
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2 max-w-xs">
-                          <Progress value={event.progress || 0} className="h-2 flex-1" />
-                          <span className="text-xs text-slate-400 min-w-[35px] text-right">{event.progress || 0}%</span>
+                          <Progress value={calculateProgressFromDates(event)} className="h-2 flex-1" />
+                          <span className="text-xs text-slate-400 min-w-[35px] text-right">{calculateProgressFromDates(event)}%</span>
                         </div>
                       </td>
                       <td className="px-4 py-3">
