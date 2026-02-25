@@ -361,8 +361,8 @@ export default function Travels() {
                   </div>
                 </CardHeader>
                 <CardContent className="p-0">
-                  <div className="overflow-x-auto" style={{overflowX: 'auto'}}>
-                    <table className="border-collapse" style={{tableLayout: 'fixed', minWidth: 'max-content', width: '100%'}}>
+                  <div className="overflow-x-auto">
+                    <table className="border-collapse" style={{minWidth: 'max-content'}}>
                       <thead>
                         {/* Month headers row */}
                         <tr className="border-b border-slate-700/50">
