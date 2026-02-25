@@ -1757,9 +1757,9 @@ Seja conciso, profissional e em português.`;
                 </CardContent>
               </Card>
             );
-          })()}
-        </TabsContent>
-      </Tabs>
+          }, [selectedMonth, selectedMonthType, recorrenteProductsMap, projects, allProducts, allTimelineEvents, allCronogramas, allRecognizedRevenues, getImplantacaoMonth])}
+          </TabsContent>
+          </Tabs>
 
       {/* Weekly Summary Modal */}
       {weeklySummary && (
