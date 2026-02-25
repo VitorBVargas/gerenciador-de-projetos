@@ -45,6 +45,7 @@ const statusLabels = {
 export default function ProjectsList() {
   const queryClient = useQueryClient();
   const [importModalOpen, setImportModalOpen] = useState(false);
+  const [recognitionImporterOpen, setRecognitionImporterOpen] = useState(false);
   const [crmImportModalOpen, setCrmImportModalOpen] = useState(false);
   const [setupWizardOpen, setSetupWizardOpen] = useState(false);
   const [wizardProject, setWizardProject] = useState(null);
