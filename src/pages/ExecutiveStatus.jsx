@@ -1526,8 +1526,8 @@ Seja conciso, profissional e em português.`;
                     // Produtos reconhecidos (roxo) - reconhecimento neste mês
                      const recognizedProds = allRecognizedRevenues.filter(r => {
                        const recMonth = r.recognition_month.substring(0, 7);
-                       const product = allProducts.find(p => p.id === rec.product_id);
-                       const project = allProjectsData.find(p => p.id === rec.project_id);
+                       const product = allProducts.find(p => p.id === r.product_id);
+                       const project = allProjectsData.find(p => p.id === r.project_id);
                        // Validar que produto e projeto existem
                        return recMonth === selectedMonth && r.type === 'implantacao' && product && project;
                      }).map(rec => {
