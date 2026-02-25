@@ -421,7 +421,40 @@ export default function Travels() {
                                   );
                                   const travel = dayTravels[0];
                                   const isInRange = isInDragRange(day) && dragMember?.id === member.id;
-                                  
+
+                                  let cellContent = null;
+                                  if (travel) {
+                                    const start = parseISO(travel.start_date);
+                                    const end = travel.end_date ? parseISO(travel.end_date) : start;
+                                    const isFirst = isSameDay(day, start);
+                                    const isLast = isSameDay(day, end);
+                                    const initial = member.name.trim().charAt(0).toUpperCase();
+                                    const Icon = travelTypeIcons[travel.travel_type];
+                                    const color = travelTypeColors[travel.travel_type];
+
+                                    if (isFirst || isLast) {
+                                      cellContent = (
+                                        <div
+                                          className={cn("w-8 h-8 mx-auto rounded-full flex items-center justify-center cursor-pointer transition-transform hover:scale-110", color)}
+                                          onClick={(e) => { e.stopPropagation(); handleEdit(travel); }}
+                                          title={`${travel.title}`}
+                                        >
+                                          <Icon className="w-4 h-4 text-white" />
+                                        </div>
+                                      );
+                                    } else {
+                                      cellContent = (
+                                        <div
+                                          className={cn("w-8 h-8 mx-auto rounded-full flex items-center justify-center cursor-pointer transition-transform hover:scale-110 font-bold text-sm text-white", color, "opacity-70")}
+                                          onClick={(e) => { e.stopPropagation(); handleEdit(travel); }}
+                                          title={`${travel.title}`}
+                                        >
+                                          {initial}
+                                        </div>
+                                      );
+                                    }
+                                  }
+
                                   return (
                                     <td 
                                       key={day.toString()} 
@@ -432,23 +465,7 @@ export default function Travels() {
                                       onMouseDown={() => handleMouseDown(day, member)}
                                       onMouseEnter={() => handleMouseEnter(day)}
                                     >
-                                      {travel && (
-                                        <div 
-                                          className={cn(
-                                            "w-8 h-8 mx-auto rounded-full flex items-center justify-center cursor-pointer transition-transform hover:scale-110",
-                                            travelTypeColors[travel.travel_type]
-                                          )}
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleEdit(travel);
-                                          }}
-                                          title={`${travel.title} - ${travel.location || 'Sem local'}`}
-                                        >
-                                          {React.createElement(travelTypeIcons[travel.travel_type], { 
-                                            className: "w-4 h-4 text-white" 
-                                          })}
-                                        </div>
-                                      )}
+                                      {cellContent}
                                     </td>
                                   );
                                 })}
