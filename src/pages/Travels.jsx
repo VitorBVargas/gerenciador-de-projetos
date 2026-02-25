@@ -405,7 +405,7 @@ export default function Travels() {
                         {verticals.map(vertical => (
                           <React.Fragment key={vertical}>
                             <tr className="bg-slate-700/30">
-                              <td className="sticky left-0 z-20 px-4 py-2 text-sm font-semibold text-cyan-400 bg-slate-800 w-[200px] min-w-[200px]">
+                              <td className="sticky left-0 z-20 px-4 py-2 text-sm font-semibold text-cyan-400 bg-slate-800 min-w-[180px] w-[180px]">
                                 {verticalLabels[vertical] || vertical}
                               </td>
                               <td colSpan={daysInMonth.length} className="bg-slate-700/30" />
