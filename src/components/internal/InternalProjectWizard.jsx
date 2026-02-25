@@ -32,6 +32,8 @@ export default function InternalProjectWizard({ open, onOpenChange, onComplete }
   const queryClient = useQueryClient();
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const fileInputRef = React.useRef(null);
 
   const [general, setGeneral] = useState(defaultGeneral);
   const [scheduleItems, setScheduleItems] = useState([]);
