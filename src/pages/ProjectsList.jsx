@@ -293,12 +293,12 @@ export default function ProjectsList() {
               <Upload className="w-4 h-4 mr-2" />
               Cadastrar Novo Projeto
             </Button>
-            <Button 
-              onClick={() => setImportModalOpen(true)}
+            <Button
+              onClick={() => setRecognitionImporterOpen(true)}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              <Upload className="w-4 h-4 mr-2" />
-              Importar Excel
+              <BarChart2 className="w-4 h-4 mr-2" />
+              Reconhecimento
             </Button>
           </div>
         </div>
