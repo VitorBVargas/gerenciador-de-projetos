@@ -41,7 +41,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -54,19 +54,16 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const travelTypeIcons = {
-  presencial: Home,
   carro: Car,
   aviao: Plane
 };
 
 const travelTypeColors = {
-  presencial: 'bg-slate-500',
   carro: 'bg-blue-500',
   aviao: 'bg-purple-500'
 };
 
 const travelTypeLabels = {
-  presencial: 'Presencial',
   carro: 'Carro',
   aviao: 'Avião'
 };
