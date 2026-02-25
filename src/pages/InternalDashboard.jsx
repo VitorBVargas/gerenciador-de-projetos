@@ -806,10 +806,9 @@ function ScheduleTab({ projectId }) {
             </thead>
             <tbody>
               {sorted.map(item => {
-                // Detect header/group rows by prefix markers set during import
+                // Detect header/group rows ONLY by prefix markers set during import
                 const isGroup = item.title?.startsWith('▌ ');
-                const isKeyStage = item.title?.startsWith('► ');
-                const isHeader = isGroup || isKeyStage;
+                const isHeader = isGroup;
 
                 if (isHeader) {
                   return (
