@@ -390,7 +390,7 @@ export default function Travels() {
                         </tr>
                         {/* Days row */}
                         <tr className="border-b border-slate-700/50">
-                          <th className="sticky left-0 z-20 bg-slate-800/95 px-4 py-3 text-left text-sm font-semibold text-slate-400 min-w-[200px] border-r border-slate-700/50">
+                          <th className="sticky left-0 z-20 bg-slate-800 px-4 py-3 text-left text-sm font-semibold text-slate-400 w-[200px] min-w-[200px] border-r border-slate-700/50">
                             Implantador
                           </th>
                           {daysInMonth.map(day => (
