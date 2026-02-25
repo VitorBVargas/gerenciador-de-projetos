@@ -39,7 +39,9 @@ export default function ProductModal({ open, onOpenChange, product, onSave, proj
         entity: product.entity || '',
         ticket_number: product.ticket_number || '',
         priority: product.priority || 'media',
-        production_password: product.production_password || false
+        production_password: product.production_password || false,
+        implementation_value: product.implementation_value || 0,
+        inclusion_value: product.inclusion_value || 0
       });
     } else {
       setFormData({
