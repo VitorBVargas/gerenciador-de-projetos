@@ -128,6 +128,92 @@ export default function InternalProjectWizard({ open, onOpenChange, onComplete }
 
   const canProceed = () => step === 0 ? general.name.trim().length > 0 : true;
 
+  const parseExcelDate = (val) => {
+    if (!val) return '';
+    if (typeof val === 'number') {
+      const date = new Date(Math.round((val - 25569) * 86400 * 1000));
+      return date.toISOString().split('T')[0];
+    }
+    const str = String(val).trim();
+    const brMatch = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (brMatch) return `${brMatch[3]}-${brMatch[2].padStart(2,'0')}-${brMatch[1].padStart(2,'0')}`;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+    return '';
+  };
+
+  const handleImportExcel = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImporting(true);
+    try {
+      const data = await file.arrayBuffer();
+      const wb = XLSX.read(data, { cellDates: false });
+      const sheetName = wb.SheetNames.find(n => n.toLowerCase().includes('cronograma')) || wb.SheetNames[0];
+      const ws = wb.Sheets[sheetName];
+      const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+      const isStandardModel = rows.length > 0 && 'Nome da Tarefa' in rows[0];
+      const toImport = [];
+
+      if (isStandardModel) {
+        const parseDateField = (val) => {
+          if (!val || val === '') return '';
+          const str = String(val).trim();
+          const m = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+          if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+          return parseExcelDate(val);
+        };
+        const getEdtLevel = (edt) => (edt.match(/\./g) || []).length + 1;
+
+        for (const row of rows) {
+          const title = String(row['Nome da Tarefa'] || '').trim();
+          if (!title) continue;
+          const edt = String(row['EDT'] || '').trim();
+          if (!edt || edt.toLowerCase() === 'edt') continue;
+          const level = getEdtLevel(edt);
+          const previsaoInicio = row['Previsão\nInício'] || row['Previsão Início'] || row['PrevisaoInicio'] || '';
+          const previsaoFim = row['Previsão\nTérmino'] || row['Previsão Término'] || row['PrevisaoTermino'] || '';
+
+          let displayTitle = title;
+          if (level === 1) displayTitle = `▌ ${title}`;
+          else if (level === 3) displayTitle = `    • ${title}`;
+          else if (level >= 4) displayTitle = `        ◦ ${title}`;
+
+          toImport.push({
+            title: displayTitle,
+            start_date: parseDateField(previsaoInicio),
+            end_date: parseDateField(previsaoFim),
+          });
+        }
+      } else {
+        const rawRows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+        const headerKeywords = ['etapa', 'nome', 'título', 'titulo', 'tarefa', 'atividade', 'inicio', 'início', 'fim'];
+        const isHeader = (row) => row.some(c => headerKeywords.includes(String(c).toLowerCase().trim()));
+        let startIdx = rawRows.length > 0 && isHeader(rawRows[0]) ? 1 : 0;
+        for (let i = startIdx; i < rawRows.length; i++) {
+          const row = rawRows[i];
+          const title = String(row[0] || '').trim();
+          if (!title) continue;
+          toImport.push({
+            title,
+            start_date: parseExcelDate(row[1]),
+            end_date: parseExcelDate(row[2]),
+          });
+        }
+      }
+
+      if (toImport.length === 0) {
+        toast.error('Nenhuma etapa encontrada no arquivo.');
+      } else {
+        setScheduleItems(toImport);
+        toast.success(`${toImport.length} etapa(s) importada(s) com sucesso!`);
+      }
+    } catch {
+      toast.error('Erro ao ler o arquivo. Verifique o formato.');
+    }
+    setImporting(false);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="bg-slate-800 border-slate-700 text-white max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
