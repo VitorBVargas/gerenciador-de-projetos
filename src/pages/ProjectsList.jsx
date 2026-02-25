@@ -222,13 +222,6 @@ export default function ProjectsList() {
           </div>
         )}
 
-        {project.implementation_value > 0 && (
-          <div className="flex items-center gap-2 text-sm text-slate-400">
-            <DollarSign className="w-4 h-4" />
-            <span>Impl: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(project.implementation_value)}</span>
-          </div>
-        )}
-
         {totalImplementation > 0 && (
           <div className="flex items-center gap-2 text-sm text-emerald-400">
             <DollarSign className="w-4 h-4" />
