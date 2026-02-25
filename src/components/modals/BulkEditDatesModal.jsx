@@ -286,9 +286,8 @@ export default function BulkEditDatesModal({
 
                     return uniqueActivities.map(event => {
                        const isExpanded = expandedPhases.includes(event.phase);
-                       const eventCount = filteredEvents.filter(e => 
-                         (e.title || phaseLabels[e.phase] || e.phase) === (event.title || phaseLabels[event.phase] || event.phase)
-                       ).length;
+                       const phaseEvents = filteredEvents.filter(e => e.phase === event.phase);
+                       const eventCount = phaseEvents.length;
                        const edit = getPhaseEdit(event.phase);
 
                        return (
