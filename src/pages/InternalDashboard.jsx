@@ -679,11 +679,13 @@ function ScheduleTab({ projectId }) {
           // Format title with hierarchy indentation prefix
           let displayTitle = title;
           if (level === 1) {
-            displayTitle = `▌ ${title}`; // grupo principal — destaque
+          displayTitle = `▌ ${title}`; // grupo principal — destaque
+          } else if (level === 2) {
+          displayTitle = `► ${title}`; // etapa chave — destaque
           } else if (level === 3) {
-            displayTitle = `    • ${title}`; // sub-etapa — indentada
+          displayTitle = `    • ${title}`; // sub-etapa — indentada
           } else if (level >= 4) {
-            displayTitle = `        ◦ ${title}`; // sub-sub-etapa
+          displayTitle = `        ◦ ${title}`; // sub-sub-etapa
           }
 
           toCreate.push({
