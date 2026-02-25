@@ -1518,14 +1518,17 @@ Seja conciso, profissional e em português.`;
                     });
 
                     // Produtos reconhecidos (roxo) - reconhecimento neste mês
-                    const recognizedProds = allRecognizedRevenues.filter(r => {
-                      const recMonth = r.recognition_month.substring(0, 7);
-                      return recMonth === selectedMonth && r.type === 'implantacao';
-                    }).map(rec => {
-                      const product = allProducts.find(p => p.id === rec.product_id);
-                      const project = allProjectsData.find(p => p.id === rec.project_id);
-                      return { rec, product, project };
-                    });
+                     const recognizedProds = allRecognizedRevenues.filter(r => {
+                       const recMonth = r.recognition_month.substring(0, 7);
+                       const product = allProducts.find(p => p.id === rec.product_id);
+                       const project = allProjectsData.find(p => p.id === rec.project_id);
+                       // Validar que produto e projeto existem
+                       return recMonth === selectedMonth && r.type === 'implantacao' && product && project;
+                     }).map(rec => {
+                       const product = allProducts.find(p => p.id === rec.product_id);
+                       const project = allProjectsData.find(p => p.id === rec.project_id);
+                       return { rec, product, project };
+                     });
 
                     if (aReceberProds.length === 0 && recognizedProds.length === 0) return null;
 
