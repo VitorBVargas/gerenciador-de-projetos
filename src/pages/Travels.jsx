@@ -405,9 +405,10 @@ export default function Travels() {
                         {verticals.map(vertical => (
                           <React.Fragment key={vertical}>
                             <tr className="bg-slate-700/30">
-                              <td colSpan={daysInMonth.length + 1} className="sticky left-0 z-20 px-4 py-2 text-sm font-semibold text-cyan-400 bg-slate-700/30">
+                              <td className="sticky left-0 z-20 px-4 py-2 text-sm font-semibold text-cyan-400 bg-slate-700/30">
                                 {verticalLabels[vertical] || vertical}
                               </td>
+                              <td colSpan={daysInMonth.length} className="bg-slate-700/30" />
                             </tr>
                             {membersByVertical[vertical].map(member => (
                               <tr key={member.id} className="border-b border-slate-700/30 hover:bg-slate-700/20">
