@@ -1593,12 +1593,21 @@ Seja conciso, profissional e em português.`;
                           if (implMonth !== selectedMonth) return;
 
                           prods.forEach(product => {
-                            aReceberProds.push({
-                              product,
-                              project,
-                              deadline: operacaoEvent?.end_date,
-                              amount: product.implementation_value || 0
-                            });
+                            // Calcular quanto falta reconhecer (descontar de QUALQUER mês)
+                            const totalRecognized = allRecognizedRevenues
+                              .filter(r => r.product_id === product.id && r.type === 'implantacao')
+                              .reduce((sum, r) => sum + r.amount, 0);
+                            const implValue = product.implementation_value || 0;
+                            const pendente = Math.max(0, implValue - totalRecognized);
+
+                            if (pendente > 0) {
+                              aReceberProds.push({
+                                product,
+                                project,
+                                deadline: operacaoEvent?.end_date,
+                                amount: pendente
+                              });
+                            }
                           });
                         });
                       } else {
