@@ -398,17 +398,17 @@ export default function Dashboard() {
                             <span className="text-slate-500">Gerente de Portfólio:</span> <span className="text-white">{activeProject.portfolio_manager}</span>
                           </div>
                         )}
-                        {activeProject.implementation_value > 0 && (
+                        {filteredProducts.reduce((sum, p) => sum + (p.implementation_value || 0), 0) > 0 && (
                           <div className="text-slate-400">
                             <span className="text-slate-500">Implantação:</span> <span className="text-emerald-400">
-                              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(activeProject.implementation_value)}
+                              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(filteredProducts.reduce((sum, p) => sum + (p.implementation_value || 0), 0))}
                             </span>
                           </div>
                         )}
-                        {activeProject.recurring_value > 0 && (
+                        {filteredProducts.reduce((sum, p) => sum + (p.inclusion_value || 0), 0) > 0 && (
                            <div className="text-slate-400">
-                             <span className="text-slate-500">Recorrente:</span> <span className="text-emerald-400">
-                               {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(activeProject.recurring_value)}
+                             <span className="text-slate-500">Inclusão:</span> <span className="text-emerald-400">
+                               {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(filteredProducts.reduce((sum, p) => sum + (p.inclusion_value || 0), 0))}
                              </span>
                            </div>
                          )}
