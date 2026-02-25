@@ -1239,11 +1239,11 @@ Seja conciso, profissional e em português.`;
                monthlyData[monthKey].a_receber = Math.max(0, totalImplValue - totalRecognized);
              });
 
-            // Processar recorrente: por data de início da etapa migracao_prd_blackout por produto
+            // Processar recorrente: por data de Go-Live de cada produto
             // Se projeto for por vertical: todos os produtos daquela vertical entram juntos
             // Se for por produto: cada produto tem seu próprio timeline
             projects.forEach(project => {
-              const projectProducts = allProducts.filter(p => p.project_id === project.id);
+              const projectProducts = allProducts.filter(p => p.project_id === project.id && (p.inclusion_value || 0) > 0);
               if (!projectProducts.length) return;
 
               if (project.scheduling_type === 'por_vertical') {
@@ -1259,24 +1259,24 @@ Seja conciso, profissional e em português.`;
                   // Buscar cronograma da vertical
                   const cronograma = allCronogramas.find(c => c.project_id === project.id && c.vertical === vertical);
                   
-                  // Se cronograma existe com evento, usa para todos os produtos
+                  // Se cronograma existe com evento go_live, usa para todos os produtos
                   if (cronograma) {
-                    const migEvent = allTimelineEvents.find(e => 
-                      e.cronograma_id === cronograma.id && e.phase === 'migracao_prd_blackout'
+                    const goLiveEvent = allTimelineEvents.find(e => 
+                      e.cronograma_id === cronograma.id && e.phase === 'go_live' && e.start_date
                     );
                     
-                    if (migEvent && migEvent.start_date) {
-                      const migMonth = migEvent.start_date.substring(0, 7);
-                      if (monthlyData[migMonth]) {
+                    if (goLiveEvent) {
+                      const goLiveMonth = goLiveEvent.start_date.substring(0, 7);
+                      if (monthlyData[goLiveMonth]) {
                         const totalInclusao = prods.reduce((sum, p) => sum + (p.inclusion_value || 0), 0);
-                        monthlyData[migMonth].recorrente += totalInclusao;
+                        monthlyData[goLiveMonth].recorrente += totalInclusao;
 
                         prods.forEach(prod => {
-                          monthlyRecorrenteProducts[migMonth].push({
+                          monthlyRecorrenteProducts[goLiveMonth].push({
                             product: prod,
                             project,
                             vertical,
-                            startDate: migEvent.start_date,
+                            startDate: goLiveEvent.start_date,
                             inclusionValue: prod.inclusion_value || 0
                           });
                         });
@@ -1287,42 +1287,42 @@ Seja conciso, profissional e em português.`;
                   
                   // Se não encontrou por cronograma, busca cada produto individualmente
                   prods.forEach(prod => {
-                    const migEvent = allTimelineEvents.find(e => 
-                      e.product_id === prod.id && e.phase === 'migracao_prd_blackout'
+                    const goLiveEvent = allTimelineEvents.find(e => 
+                      e.product_id === prod.id && e.phase === 'go_live' && e.start_date
                     );
                     
-                    if (!migEvent || !migEvent.start_date) return;
+                    if (!goLiveEvent || !goLiveEvent.start_date) return;
                     
-                    const migMonth = migEvent.start_date.substring(0, 7);
-                    if (!monthlyData[migMonth]) return;
+                    const goLiveMonth = goLiveEvent.start_date.substring(0, 7);
+                    if (!monthlyData[goLiveMonth]) return;
 
-                    monthlyData[migMonth].recorrente += (prod.inclusion_value || 0);
-                    monthlyRecorrenteProducts[migMonth].push({
+                    monthlyData[goLiveMonth].recorrente += (prod.inclusion_value || 0);
+                    monthlyRecorrenteProducts[goLiveMonth].push({
                       product: prod,
                       project,
                       vertical,
-                      startDate: migEvent.start_date,
+                      startDate: goLiveEvent.start_date,
                       inclusionValue: prod.inclusion_value || 0
                     });
                   });
                 });
               } else {
-                // Por produto: cada produto tem seu próprio cronograma/timeline
+                // Por produto: cada produto tem seu próprio go_live
                 projectProducts.forEach(prod => {
-                  // Buscar TimelineEvents do produto com fase migracao_prd_blackout
-                  const migEvent = allTimelineEvents.find(e =>
-                    e.product_id === prod.id && e.phase === 'migracao_prd_blackout'
+                  // Buscar TimelineEvent do produto com fase go_live
+                  const goLiveEvent = allTimelineEvents.find(e =>
+                    e.product_id === prod.id && e.phase === 'go_live' && e.start_date
                   );
-                  if (!migEvent || !migEvent.start_date) return;
+                  if (!goLiveEvent || !goLiveEvent.start_date) return;
 
-                  const migMonth = migEvent.start_date.substring(0, 7);
-                  if (!monthlyData[migMonth]) return;
+                  const goLiveMonth = goLiveEvent.start_date.substring(0, 7);
+                  if (!monthlyData[goLiveMonth]) return;
 
-                  monthlyData[migMonth].recorrente += (prod.inclusion_value || 0);
-                  monthlyRecorrenteProducts[migMonth].push({
+                  monthlyData[goLiveMonth].recorrente += (prod.inclusion_value || 0);
+                  monthlyRecorrenteProducts[goLiveMonth].push({
                     product: prod,
                     project,
-                    startDate: migEvent.start_date,
+                    startDate: goLiveEvent.start_date,
                     inclusionValue: prod.inclusion_value || 0
                   });
                 });
