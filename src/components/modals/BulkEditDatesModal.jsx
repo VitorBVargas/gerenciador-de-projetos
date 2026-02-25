@@ -108,16 +108,21 @@ export default function BulkEditDatesModal({
     const eventsToUpdate = [];
     
     Object.entries(phaseEdits).forEach(([phase, edits]) => {
-      if (!edits.start_date && !edits.end_date && !edits.status) return;
+      // Verifica se há alterações reais (não vazio)
+      const hasStartDate = edits.start_date && edits.start_date.trim();
+      const hasEndDate = edits.end_date && edits.end_date.trim();
+      const hasStatus = edits.status && edits.status.trim();
+      
+      if (!hasStartDate && !hasEndDate && !hasStatus) return;
       
       const phaseEvents = getEventsByPhase(phase);
       phaseEvents.forEach(event => {
         const update = {
           id: event.id,
-          start_date: edits.start_date || event.start_date,
-          end_date: edits.end_date || event.end_date
+          start_date: hasStartDate ? edits.start_date : event.start_date,
+          end_date: hasEndDate ? edits.end_date : event.end_date
         };
-        if (edits.status) {
+        if (hasStatus) {
           update.status = edits.status;
         }
         eventsToUpdate.push(update);
