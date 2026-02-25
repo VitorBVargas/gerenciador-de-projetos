@@ -1476,16 +1476,10 @@ Seja conciso, profissional e em português.`;
                   />
 
                   {/* Lista de produtos do mês selecionado */}
-                  {useMemo(() => {
-                  if (!selectedMonth) return null;
-
+                  {selectedMonth && selectedMonthType === 'recorrente' && (() => {
                   const monthLabel = format(new Date(selectedMonth + '-01'), 'MMMM/yyyy', { locale: ptBR });
-
-                  // Se clicou em recorrente (previsão de inclusão)
-                  if (selectedMonthType === 'recorrente') {
                   let recorrenteProds = recorrenteProductsMap[selectedMonth] || [];
 
-                  // Se não encontrou no mapa (ex: janeiro sem eventos), preenche dinamicamente
                   if (recorrenteProds.length === 0) {
                     recorrenteProds = [];
                     projects.forEach(project => {
@@ -1540,21 +1534,20 @@ Seja conciso, profissional e em português.`;
                   </CardContent>
                   </Card>
                   );
-                  }
+                  })()}
 
-                  // Se clicou em reconhecido
-                  if (selectedMonthType === 'reconhecido_implantacao' || selectedMonthType === 'reconhecido_recorrente') {
-              // Buscar receitas reconhecidas neste mês
-              const recognizedInMonth = allRecognizedRevenues.filter(r => {
-                const recMonth = r.recognition_month.substring(0, 7);
-                const typeMatch = selectedMonthType === 'reconhecido_implantacao' ? r.type === 'implantacao' : r.type === 'recorrente';
-                return recMonth === selectedMonth && typeMatch;
-              });
-              
-              if (recognizedInMonth.length === 0) return null;
-              
-              return (
-                <Card className="bg-slate-800 border-slate-600">
+                  {selectedMonth && (selectedMonthType === 'reconhecido_implantacao' || selectedMonthType === 'reconhecido_recorrente') && (() => {
+                  const monthLabel = format(new Date(selectedMonth + '-01'), 'MMMM/yyyy', { locale: ptBR });
+                  const recognizedInMonth = allRecognizedRevenues.filter(r => {
+                  const recMonth = r.recognition_month.substring(0, 7);
+                  const typeMatch = selectedMonthType === 'reconhecido_implantacao' ? r.type === 'implantacao' : r.type === 'recorrente';
+                  return recMonth === selectedMonth && typeMatch;
+                  });
+
+                  if (recognizedInMonth.length === 0) return null;
+
+                  return (
+                  <Card className="bg-slate-800 border-slate-600">
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-white">
@@ -1578,7 +1571,7 @@ Seja conciso, profissional e em português.`;
                       {recognizedInMonth.map((recognized) => {
                         const product = allProducts.find(p => p.id === recognized.product_id);
                         const project = allProjectsData.find(p => p.id === recognized.project_id);
-                        
+
                         return (
                           <div 
                             key={recognized.id}
@@ -1610,74 +1603,70 @@ Seja conciso, profissional e em português.`;
                       })}
                     </div>
                   </CardContent>
-                </Card>
-              );
-            }
-            
-            // Se clicou na barra normal (implantação ou recorrente do mês)
-            const productsInMonth = [];
+                  </Card>
+                  );
+                  })()}
 
-            // Recalcular totalRecognizedByProject para uso aqui
-            const totalRecognizedByProjectLocal = {};
-            allRecognizedRevenues.forEach(r => {
-              if (!totalRecognizedByProjectLocal[r.project_id]) {
-                totalRecognizedByProjectLocal[r.project_id] = { implantacao: 0, recorrente: 0 };
-              }
-              if (r.type === 'implantacao') totalRecognizedByProjectLocal[r.project_id].implantacao += r.amount;
-              else totalRecognizedByProjectLocal[r.project_id].recorrente += r.amount;
-            });
+                  {selectedMonth && selectedMonthType === 'implantacao' && (() => {
+                  const monthLabel = format(new Date(selectedMonth + '-01'), 'MMMM/yyyy', { locale: ptBR });
+                  const productsInMonth = [];
 
-            // Projetos cuja operação assistida cai neste mês (A Receber - verde)
-            projects.forEach(project => {
-              const implMonth = getImplantacaoMonth(project);
-              if (!implMonth || implMonth !== selectedMonth) return;
+                  const totalRecognizedByProjectLocal = {};
+                  allRecognizedRevenues.forEach(r => {
+                  if (!totalRecognizedByProjectLocal[r.project_id]) {
+                  totalRecognizedByProjectLocal[r.project_id] = { implantacao: 0, recorrente: 0 };
+                  }
+                  if (r.type === 'implantacao') totalRecognizedByProjectLocal[r.project_id].implantacao += r.amount;
+                  else totalRecognizedByProjectLocal[r.project_id].recorrente += r.amount;
+                  });
 
-              const recognized = totalRecognizedByProjectLocal[project.id] || { implantacao: 0, recorrente: 0 };
+                  projects.forEach(project => {
+                  const implMonth = getImplantacaoMonth(project);
+                  if (!implMonth || implMonth !== selectedMonth) return;
 
-              // Somar implementation_value dos produtos
-              const projectProducts = allProducts.filter(p => p.project_id === project.id && (p.implementation_value || 0) > 0);
-              const totalImplValue = projectProducts.reduce((sum, p) => sum + (p.implementation_value || 0), 0);
-              const pendente = Math.max(0, totalImplValue - recognized.implantacao);
+                  const recognized = totalRecognizedByProjectLocal[project.id] || { implantacao: 0, recorrente: 0 };
 
-              // Buscar evento de operação assistida para pegar a data
-              let operacaoEvent = null;
-              if (project.scheduling_type === 'por_vertical') {
-                const cronograma = allCronogramas.find(c => c.project_id === project.id);
-                if (cronograma) {
+                  const projectProducts = allProducts.filter(p => p.project_id === project.id && (p.implementation_value || 0) > 0);
+                  const totalImplValue = projectProducts.reduce((sum, p) => sum + (p.implementation_value || 0), 0);
+                  const pendente = Math.max(0, totalImplValue - recognized.implantacao);
+
+                  let operacaoEvent = null;
+                  if (project.scheduling_type === 'por_vertical') {
+                  const cronograma = allCronogramas.find(c => c.project_id === project.id);
+                  if (cronograma) {
                   operacaoEvent = allTimelineEvents.find(e => 
                     e.cronograma_id === cronograma.id && e.phase === 'operacao_assistida'
                   );
-                }
-              } else {
-                operacaoEvent = projectProducts.length > 0 ? 
+                  }
+                  } else {
+                  operacaoEvent = projectProducts.length > 0 ? 
                   allTimelineEvents.find(e => 
                     e.product_id === projectProducts[0].id && e.phase === 'operacao_assistida'
                   ) : null;
-              }
+                  }
 
-              projectProducts.forEach(product => {
-                productsInMonth.push({
+                  projectProducts.forEach(product => {
+                  productsInMonth.push({
                   product,
                   project,
                   deadline: operacaoEvent?.end_date,
                   tipo: 'a_receber',
                   pendente
-                });
-              });
-            });
+                  });
+                  });
+                  });
 
-            // Reconhecidos neste mês (roxo) — apenas projetos ativos
-            const activeProjectIdsLocal = new Set(projects.map(p => p.id));
-            const recognizedInMonth = allRecognizedRevenues.filter(r => {
-              const recMonth = r.recognition_month.substring(0, 7);
-              return recMonth === selectedMonth && r.type === 'implantacao' && activeProjectIdsLocal.has(r.project_id);
-            });
+                  const activeProjectIdsLocal = new Set(projects.map(p => p.id));
+                  const recognizedInMonth = allRecognizedRevenues.filter(r => {
+                  const recMonth = r.recognition_month.substring(0, 7);
+                  return recMonth === selectedMonth && r.type === 'implantacao' && activeProjectIdsLocal.has(r.project_id);
+                  });
 
-            if (productsInMonth.length === 0 && recognizedInMonth.length === 0) return null;
+                  if (productsInMonth.length === 0 && recognizedInMonth.length === 0) return null;
 
-            return (
-              <Card className="bg-slate-800 border-slate-600">
-                <CardHeader>
+                  return (
+                  <Card className="bg-slate-800 border-slate-600">
+                  <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-white">
                       Implantação — {monthLabel}
@@ -1694,8 +1683,8 @@ Seja conciso, profissional e em português.`;
                       Fechar
                     </Button>
                   </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
+                  </CardHeader>
+                  <CardContent className="space-y-4">
                   {/* A Receber (verde) */}
                   {productsInMonth.length > 0 && (
                     <div>
@@ -1754,10 +1743,10 @@ Seja conciso, profissional e em português.`;
                       </div>
                     </div>
                   )}
-                </CardContent>
-              </Card>
-            );
-          }, [selectedMonth, selectedMonthType, recorrenteProductsMap, projects, allProducts, allTimelineEvents, allCronogramas, allRecognizedRevenues, getImplantacaoMonth])}
+                  </CardContent>
+                  </Card>
+                  );
+                  })()}
           </TabsContent>
           </Tabs>
 
