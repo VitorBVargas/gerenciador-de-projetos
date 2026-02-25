@@ -620,45 +620,65 @@ function ScheduleTab({ projectId }) {
 
       if (isStandardModel) {
         // Standard model: EDT, Nome da Tarefa, Responsável, % Conclusão, Previsão Início, Previsão Término, Real Início, Real Término
+        const parseDateField = (val) => {
+          if (!val || val === '') return '';
+          const str = String(val).trim();
+          const m = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+          if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+          return parseExcelDate(val);
+        };
+
+        // Helper: count dots to determine level
+        // "1"     → 0 dots → level 1 (grupo principal) — skip, só agrupa
+        // "1.2"   → 1 dot  → level 2 (etapa chave)
+        // "1.1.1" → 2 dots → level 3 (sub-etapa)
+        const getEdtLevel = (edt) => (edt.match(/\./g) || []).length + 1;
+
         for (const row of rows) {
           const title = String(row['Nome da Tarefa'] || '').trim();
           if (!title) continue;
-          // Skip "header-like" rows (EDT is not a number-like value or is title row)
           const edt = String(row['EDT'] || '').trim();
           if (!edt || edt.toLowerCase() === 'edt') continue;
 
+          const level = getEdtLevel(edt);
+
+          // Level 1 (ex: "1", "2") = grupo principal — importa como separador/título
+          // Level 2 (ex: "1.2") = etapa chave
+          // Level 3+ (ex: "1.1.1") = sub-etapa
+
           const progressRaw = row['% Conclusão'];
-          const progress = typeof progressRaw === 'number' ? Math.round(progressRaw * 100) : 0;
+          const progressVal = typeof progressRaw === 'number'
+            ? (progressRaw <= 1 ? Math.round(progressRaw * 100) : Math.round(progressRaw))
+            : 0;
 
-          // Determine status from progress
           let status = 'nao_iniciado';
-          if (progress >= 100) status = 'concluido';
-          else if (progress > 0) status = 'em_andamento';
+          if (progressVal >= 100) status = 'concluido';
+          else if (progressVal > 0) status = 'em_andamento';
 
-          // Parse dates from string like "2026-01-01 00:00:00"
-          const parseDateField = (val) => {
-            if (!val || val === '') return '';
-            const str = String(val).trim();
-            const m = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
-            if (m) return `${m[1]}-${m[2]}-${m[3]}`;
-            return parseExcelDate(val);
-          };
-
-          // Column names may have newlines
           const previsaoInicio = row['Previsão\nInício'] || row['Previsão Início'] || row['PrevisaoInicio'] || '';
           const previsaoFim = row['Previsão\nTérmino'] || row['Previsão Término'] || row['PrevisaoTermino'] || '';
           const realInicio = row['Real\nInício'] || row['Real Início'] || '';
           const realFim = row['Real\nTérmino'] || row['Real Término'] || '';
           const responsible = String(row['Responsável'] || '').trim();
 
+          // Format title with hierarchy indentation prefix
+          let displayTitle = title;
+          if (level === 1) {
+            displayTitle = `▌ ${title}`; // grupo principal — destaque
+          } else if (level === 3) {
+            displayTitle = `    • ${title}`; // sub-etapa — indentada
+          } else if (level >= 4) {
+            displayTitle = `        ◦ ${title}`; // sub-sub-etapa
+          }
+
           toCreate.push({
-            title,
+            title: displayTitle,
             responsible,
             start_date: parseDateField(previsaoInicio),
             end_date: parseDateField(previsaoFim),
             real_start_date: parseDateField(realInicio),
             real_end_date: parseDateField(realFim),
-            progress,
+            progress: progressVal,
             status,
             project_id: projectId,
             order: schedule.length + toCreate.length,
