@@ -169,17 +169,22 @@ export default function InternalProjectWizard({ open, onOpenChange, onComplete }
         for (const row of rows) {
           const title = String(row['Nome da Tarefa'] || '').trim();
           if (!title) continue;
-          const edt = String(row['EDT'] || '').trim();
-          if (!edt || edt.toLowerCase() === 'edt') continue;
-          const level = getEdtLevel(edt);
+          const edtRaw = row['EDT'];
+          const isHeader = !edtRaw || edtRaw === '' || edtRaw === null;
+          const edt = String(edtRaw || '').trim();
+          if (!title || (edt.toLowerCase() === 'edt')) continue;
+
           const previsaoInicio = row['Previsão\nInício'] || row['Previsão Início'] || row['PrevisaoInicio'] || '';
           const previsaoFim = row['Previsão\nTérmino'] || row['Previsão Término'] || row['PrevisaoTermino'] || '';
 
           let displayTitle = title;
-          if (level === 1) displayTitle = `▌ ${title}`;
-          else if (level === 2) displayTitle = `▌ ${title}`;
-          else if (level === 3) displayTitle = `    • ${title}`;
-          else if (level >= 4) displayTitle = `        ◦ ${title}`;
+          if (isHeader) {
+            displayTitle = `▌ ${title}`;
+          } else {
+            const level = getEdtLevel(edt);
+            if (level === 3) displayTitle = `    • ${title}`;
+            else if (level >= 4) displayTitle = `        ◦ ${title}`;
+          }
 
           toImport.push({
             title: displayTitle,
