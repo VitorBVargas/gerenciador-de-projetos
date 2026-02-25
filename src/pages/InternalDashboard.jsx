@@ -583,6 +583,69 @@ function ScheduleTab({ projectId }) {
   const openEdit = (s) => { setSelected(s); setForm({ title: s.title, start_date: s.start_date || '', end_date: s.end_date || '', status: s.status || 'nao_iniciado' }); setModalOpen(true); };
   const handleSave = () => { if (selected) updateM.mutate({ id: selected.id, data: { ...form, project_id: projectId } }); else createM.mutate({ ...form, project_id: projectId, order: schedule.length }); };
 
+  const parseExcelDate = (val) => {
+    if (!val) return '';
+    // Excel serial number
+    if (typeof val === 'number') {
+      const date = new Date(Math.round((val - 25569) * 86400 * 1000));
+      return date.toISOString().split('T')[0];
+    }
+    // String date
+    const str = String(val).trim();
+    // DD/MM/YYYY
+    const brMatch = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (brMatch) return `${brMatch[3]}-${brMatch[2].padStart(2,'0')}-${brMatch[1].padStart(2,'0')}`;
+    // YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+    return '';
+  };
+
+  const handleImportExcel = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImporting(true);
+    try {
+      const data = await file.arrayBuffer();
+      const wb = XLSX.read(data, { cellDates: false });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+      // Skip header row(s): find first row where col 0 is not empty and not "etapa"/"nome"/"título"
+      const headerKeywords = ['etapa', 'nome', 'título', 'titulo', 'stage', 'name', 'tarefa', 'atividade', 'inicio', 'início', 'fim', 'term', 'start', 'end', 'status'];
+      const isHeader = (row) => row.some(c => headerKeywords.includes(String(c).toLowerCase().trim()));
+
+      let startIdx = 0;
+      if (rows.length > 0 && isHeader(rows[0])) startIdx = 1;
+
+      const toCreate = [];
+      for (let i = startIdx; i < rows.length; i++) {
+        const row = rows[i];
+        const title = String(row[0] || '').trim();
+        if (!title) continue;
+        toCreate.push({
+          title,
+          start_date: parseExcelDate(row[1]),
+          end_date: parseExcelDate(row[2]),
+          status: 'nao_iniciado',
+          project_id: projectId,
+          order: schedule.length + toCreate.length,
+        });
+      }
+
+      if (toCreate.length === 0) {
+        toast.error('Nenhuma etapa encontrada no arquivo.');
+      } else {
+        await base44.entities.InternalSchedule.bulkCreate(toCreate);
+        queryClient.invalidateQueries(['internalSchedule', projectId]);
+        toast.success(`${toCreate.length} etapa(s) importada(s) com sucesso!`);
+      }
+    } catch {
+      toast.error('Erro ao ler o arquivo. Verifique o formato.');
+    }
+    setImporting(false);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
   const statusConfig = {
     nao_iniciado: { color: 'bg-slate-500', label: 'Não Iniciado', badge: 'bg-slate-500/20 text-slate-400 border-slate-500/30' },
     em_andamento: { color: 'bg-blue-500', label: 'Em Andamento', badge: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
