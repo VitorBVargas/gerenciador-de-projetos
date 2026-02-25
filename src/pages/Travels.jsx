@@ -475,8 +475,7 @@ export default function Travels() {
                       </tbody>
                     </table>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
             </div>
           )}
         </>
