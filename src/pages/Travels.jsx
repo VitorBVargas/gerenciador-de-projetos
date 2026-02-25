@@ -311,7 +311,7 @@ export default function Travels() {
         <CardContent className="p-4">
           <div className="flex flex-wrap items-center gap-4 text-sm">
             <span className="text-slate-400 font-medium">Legenda:</span>
-            {Object.entries(travelTypeLabels).map(([type, label]) => {
+            {[{ type: 'carro', label: 'Carro' }, { type: 'aviao', label: 'Avião' }].map(({ type, label }) => {
               const Icon = travelTypeIcons[type];
               return (
                 <div key={type} className="flex items-center gap-2">
