@@ -473,7 +473,7 @@ export default function Travels() {
                         ))}
                       </tbody>
                     </table>
-                </div>
+              </div>
             </div>
           )}
         </>
