@@ -246,23 +246,38 @@ function OverviewTab({ project, teamMembers, checklist, risks, schedule, budget 
         <Card className="bg-slate-800/50 border-slate-700/50">
           <CardHeader><CardTitle className="text-white text-base">Cronograma</CardTitle></CardHeader>
           <CardContent>
-            {schedule.length > 0 ? (
-              <div className="space-y-2">
-                {schedule.sort((a, b) => a.order - b.order).map(item => {
-                  const statusColor = {
-                    nao_iniciado: 'bg-slate-600', em_andamento: 'bg-blue-500',
-                    concluido: 'bg-green-500', atrasado: 'bg-red-500'
-                  };
-                  return (
-                    <div key={item.id} className="flex items-center gap-3">
-                      <div className={cn("w-2 h-2 rounded-full flex-shrink-0", statusColor[item.status] || 'bg-slate-600')} />
-                      <span className="text-sm text-slate-300 flex-1 truncate">{item.title}</span>
-                      {item.end_date && <span className="text-xs text-slate-500">{format(new Date(item.end_date), 'dd/MM', { locale: ptBR })}</span>}
+            {schedule.length > 0 ? (() => {
+              const avgProg = Math.round(schedule.reduce((s, i) => s + (i.progress || 0), 0) / schedule.length);
+              const concluded = schedule.filter(i => i.status === 'concluido').length;
+              const inProgress = schedule.filter(i => i.status === 'em_andamento').length;
+              const delayed = schedule.filter(i => i.status === 'atrasado').length;
+              return (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-400">Progresso Geral</span>
+                      <span className="text-white font-semibold">{avgProg}%</span>
                     </div>
-                  );
-                })}
-              </div>
-            ) : (
+                    <Progress value={avgProg} className="h-3" />
+                  </div>
+                  <div className="grid grid-cols-3 gap-3 text-center">
+                    <div className="bg-green-500/10 rounded-lg p-2">
+                      <p className="text-xl font-bold text-green-400">{concluded}</p>
+                      <p className="text-xs text-slate-400">Concluídas</p>
+                    </div>
+                    <div className="bg-blue-500/10 rounded-lg p-2">
+                      <p className="text-xl font-bold text-blue-400">{inProgress}</p>
+                      <p className="text-xs text-slate-400">Em Andamento</p>
+                    </div>
+                    <div className="bg-red-500/10 rounded-lg p-2">
+                      <p className="text-xl font-bold text-red-400">{delayed}</p>
+                      <p className="text-xs text-slate-400">Atrasadas</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-500 text-center">{schedule.length} etapas no total</p>
+                </div>
+              );
+            })() : (
               <p className="text-slate-500 text-sm text-center py-4">Nenhuma etapa cadastrada</p>
             )}
           </CardContent>
