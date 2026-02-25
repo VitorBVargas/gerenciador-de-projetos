@@ -54,16 +54,19 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const travelTypeIcons = {
+  presencial: Car,
   carro: Car,
   aviao: Plane
 };
 
 const travelTypeColors = {
+  presencial: 'bg-blue-500',
   carro: 'bg-blue-500',
   aviao: 'bg-purple-500'
 };
 
 const travelTypeLabels = {
+  presencial: 'Carro',
   carro: 'Carro',
   aviao: 'Avião'
 };
