@@ -111,13 +111,13 @@ export default function RecognitionImporter({ open, onOpenChange }) {
         );
 
         if (isDuplicate) {
-          alreadyExists.push({ accountName, productName, projectName: matchedProject.name });
+          alreadyExists.push({ accountName, productName, entity: matchedProduct.entity });
           continue;
         }
 
         // Create recognition
         await base44.entities.RecognizedRevenue.create({
-          project_id: matchedProject.id,
+          project_id: matchedProduct.project_id,
           product_id: matchedProduct.id,
           amount: valor,
           recognition_month: recognitionMonth,
@@ -127,7 +127,7 @@ export default function RecognitionImporter({ open, onOpenChange }) {
         matched.push({
           accountName,
           productName,
-          projectName: matchedProject.name,
+          entity: matchedProduct.entity,
           recognitionMonth
         });
       }
