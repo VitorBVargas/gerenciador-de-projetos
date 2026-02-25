@@ -154,13 +154,23 @@ export default function Budget() {
           <h1 className="text-2xl lg:text-3xl font-bold text-white">Orçamento</h1>
           <p className="text-slate-400 mt-1">Controle financeiro do projeto</p>
         </div>
-        <Button 
-          onClick={() => { setSelectedExpense(null); setExpenseModalOpen(true); }}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Nova Despesa
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setImporterOpen(true)}
+            className="border-slate-600 text-slate-300 hover:bg-slate-700"
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            Importar Excel
+          </Button>
+          <Button 
+            onClick={() => { setSelectedExpense(null); setExpenseModalOpen(true); }}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Nova Despesa
+          </Button>
+        </div>
       </div>
 
       {/* Budget Summary Cards */}
