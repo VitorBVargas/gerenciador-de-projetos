@@ -788,41 +788,67 @@ function ScheduleTab({ projectId }) {
               </tr>
             </thead>
             <tbody>
-              {sorted.map(item => (
-                <tr key={item.id} className="border-b border-slate-700/30 hover:bg-slate-700/20 group">
-                  <td className="px-4 py-3 text-sm text-white font-medium">{item.title}</td>
-                  <td className="px-4 py-3">
-                    <span className={cn("px-2.5 py-1 rounded text-xs font-medium text-white", statusColorMap[item.status] || 'bg-slate-600')}>
-                      {statusConfig[item.status]?.label || item.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-slate-300">{item.responsible || '-'}</td>
-                  <td className="px-4 py-3 text-sm text-slate-300">
-                    {item.start_date ? format(new Date(item.start_date), 'dd/MM/yyyy', { locale: ptBR }) : '-'}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-slate-300">
-                    {item.end_date ? format(new Date(item.end_date), 'dd/MM/yyyy', { locale: ptBR }) : '-'}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-slate-300">
-                    {item.real_start_date ? format(new Date(item.real_start_date), 'dd/MM/yyyy', { locale: ptBR }) : '-'}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-slate-300">
-                    {item.real_end_date ? format(new Date(item.real_end_date), 'dd/MM/yyyy', { locale: ptBR }) : '-'}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2 min-w-[100px]">
-                      <Progress value={item.progress || 0} className="h-2 flex-1" />
-                      <span className="text-xs text-slate-400 min-w-[35px] text-right">{item.progress || 0}%</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => openEdit(item)} className="text-slate-400 hover:text-blue-400 transition"><Pencil className="w-4 h-4" /></button>
-                      <button onClick={() => { setToDelete(item); setDeleteOpen(true); }} className="text-slate-400 hover:text-red-400 transition"><Trash2 className="w-4 h-4" /></button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {sorted.map(item => {
+                // Detect header/group rows by prefix markers set during import
+                const isGroup = item.title?.startsWith('▌ ');
+                const isKey = !isGroup && !item.title?.startsWith('    •') && !item.title?.startsWith('        ◦');
+                // A "header" row = has no dates, no responsible, no progress (pure encapsulator)
+                const isHeader = (isGroup || isKey) && !item.responsible && !item.start_date && !item.end_date && (item.progress || 0) === 0;
+
+                if (isHeader) {
+                  return (
+                    <tr key={item.id} className="border-b border-slate-700/50 bg-slate-900/40 group">
+                      <td className="px-4 py-3" colSpan={8}>
+                        <span className={cn("font-semibold text-white", isGroup ? "text-base" : "text-sm pl-2")}>
+                          {isGroup ? item.title.replace('▌ ', '') : item.title}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => openEdit(item)} className="text-slate-400 hover:text-blue-400 transition"><Pencil className="w-4 h-4" /></button>
+                          <button onClick={() => { setToDelete(item); setDeleteOpen(true); }} className="text-slate-400 hover:text-red-400 transition"><Trash2 className="w-4 h-4" /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                }
+
+                return (
+                  <tr key={item.id} className="border-b border-slate-700/30 hover:bg-slate-700/20 group">
+                    <td className="px-4 py-3 text-sm text-white font-medium">{item.title}</td>
+                    <td className="px-4 py-3">
+                      <span className={cn("px-2.5 py-1 rounded text-xs font-medium text-white", statusColorMap[item.status] || 'bg-slate-600')}>
+                        {statusConfig[item.status]?.label || item.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-slate-300">{item.responsible || '-'}</td>
+                    <td className="px-4 py-3 text-sm text-slate-300">
+                      {item.start_date ? format(new Date(item.start_date), 'dd/MM/yyyy', { locale: ptBR }) : '-'}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-slate-300">
+                      {item.end_date ? format(new Date(item.end_date), 'dd/MM/yyyy', { locale: ptBR }) : '-'}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-slate-300">
+                      {item.real_start_date ? format(new Date(item.real_start_date), 'dd/MM/yyyy', { locale: ptBR }) : '-'}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-slate-300">
+                      {item.real_end_date ? format(new Date(item.real_end_date), 'dd/MM/yyyy', { locale: ptBR }) : '-'}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2 min-w-[100px]">
+                        <Progress value={item.progress || 0} className="h-2 flex-1" />
+                        <span className="text-xs text-slate-400 min-w-[35px] text-right">{item.progress || 0}%</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => openEdit(item)} className="text-slate-400 hover:text-blue-400 transition"><Pencil className="w-4 h-4" /></button>
+                        <button onClick={() => { setToDelete(item); setDeleteOpen(true); }} className="text-slate-400 hover:text-red-400 transition"><Trash2 className="w-4 h-4" /></button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
