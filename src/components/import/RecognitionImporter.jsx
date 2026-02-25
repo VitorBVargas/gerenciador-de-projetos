@@ -220,7 +220,7 @@ export default function RecognitionImporter({ open, onOpenChange }) {
                   <div className="bg-slate-900 rounded-lg p-3 max-h-40 overflow-y-auto space-y-1">
                     {results.matched.map((r, i) => (
                       <div key={i} className="text-xs text-slate-300">
-                        <span className="text-white">{r.projectName}</span> → {r.productName}
+                        <span className="text-white">{r.accountName}</span> → {r.productName}
                         <span className="text-slate-500 ml-2">{r.recognitionMonth?.substring(0, 7)}</span>
                       </div>
                     ))}
