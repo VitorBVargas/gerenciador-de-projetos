@@ -1066,43 +1066,46 @@ Seja conciso, profissional e em português.`;
           </div>
 
            {(() => {
-            // ─── CONFIGURAÇÃO DE DATAS ────────────────────────────────────────────
-            // Para alterar de onde buscamos a data de implantação de cada projeto,
-            // edite APENAS esta função:
-            const getImplantacaoMonth = (project) => {
-              // FONTE ATUAL: Fim da Operação Assistida
-              const operacaoAssistidaEvent = allTimelineEvents.find(e => 
-                e.project_id === project.id && e.phase === 'operacao_assistida'
-              );
-              
-              if (operacaoAssistidaEvent && operacaoAssistidaEvent.end_date) {
-                return operacaoAssistidaEvent.end_date.substring(0, 7);
-              }
-              
-              // Fallback para prazo contratual se não encontrar evento
-              return project.deadline ? project.deadline.substring(0, 7) : null;
-            };
-            // ─────────────────────────────────────────────────────────────────────
+             // ─── CONFIGURAÇÃO DE DATAS ────────────────────────────────────────────
+             // Para alterar de onde buscamos a data de implantação de cada projeto,
+             // edite APENAS esta função:
+             const getImplantacaoMonth = (project) => {
+               // FONTE ATUAL: Fim da Operação Assistida
+               const operacaoAssistidaEvent = allTimelineEvents.find(e => 
+                 e.project_id === project.id && e.phase === 'operacao_assistida'
+               );
 
-            // Calcular valores por mês
-            const monthlyData = {};
-            // monthlyRecorrenteProducts: { [monthKey]: [{product, project, cronograma, startDate}] }
-            const monthlyRecorrenteProducts = {};
-            const now = new Date();
-            
-            // Gerar próximos 12 meses
-            for (let i = 0; i < 12; i++) {
-              const month = addMonths(now, i);
-              const key = format(month, 'yyyy-MM');
-              monthlyData[key] = {
-                month: format(month, 'MMM/yy', { locale: ptBR }),
-                implantacao: 0,
-                a_receber: 0,
-                recorrente: 0,
-                reconhecido: 0
-              };
-              monthlyRecorrenteProducts[key] = [];
-            }
+               if (operacaoAssistidaEvent && operacaoAssistidaEvent.end_date) {
+                 return operacaoAssistidaEvent.end_date.substring(0, 7);
+               }
+
+               // Fallback para prazo contratual se não encontrar evento
+               return project.deadline ? project.deadline.substring(0, 7) : null;
+             };
+             // ─────────────────────────────────────────────────────────────────────
+
+             // Calcular valores por mês
+             const monthlyData = {};
+             // monthlyRecorrenteProducts: { [monthKey]: [{product, project, cronograma, startDate}] }
+             const monthlyRecorrenteProducts = {};
+
+             // Começar do janeiro do ano atual/corrente
+             const currentYear = new Date().getFullYear();
+             const janFirst = new Date(currentYear, 0, 1); // Janeiro do ano atual
+
+             // Gerar 12 meses começando de janeiro
+             for (let i = 0; i < 12; i++) {
+               const month = addMonths(janFirst, i);
+               const key = format(month, 'yyyy-MM');
+               monthlyData[key] = {
+                 month: format(month, 'MMM/yy', { locale: ptBR }),
+                 implantacao: 0,
+                 a_receber: 0,
+                 recorrente: 0,
+                 reconhecido: 0
+               };
+               monthlyRecorrenteProducts[key] = [];
+             }
 
             // Pré-calcular total reconhecido por projeto
             const activeProjectIds = new Set(projects.map(p => p.id));
