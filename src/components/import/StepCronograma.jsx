@@ -33,11 +33,13 @@ const VERTICAL_COLORS = {
   atendimento: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
 };
 
-// Converte "DD/MM" para "YYYY-MM-DD" - constrói ISO sem usar Date para evitar timezone
+// Converte "DD/MM" para "YYYY-MM-DD" - sem timezone
 function parseDayMonth(raw) {
+  if (!raw || !raw.trim()) return '';
   const currentYear = new Date().getFullYear();
   const match = raw.trim().match(/^(\d{1,2})[\/\-\.](\d{1,2})(?:[\/\-\.](\d{2,4}))?$/);
   if (!match) return '';
+  
   const dayInt = parseInt(match[1]);
   const monthInt = parseInt(match[2]);
   const y = match[3] ? (match[3].length === 2 ? 2000 + parseInt(match[3]) : parseInt(match[3])) : currentYear;
