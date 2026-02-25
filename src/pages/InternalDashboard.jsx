@@ -581,7 +581,7 @@ function ScheduleTab({ projectId }) {
   const [toDelete, setToDelete] = useState(null);
   const [importing, setImporting] = useState(false);
   const fileInputRef = React.useRef(null);
-  const defaultForm = { title: '', responsible: '', start_date: '', end_date: '', real_start_date: '', real_end_date: '', progress: 0, status: 'nao_iniciado' };
+  const defaultForm = { title: '', responsible: '', real_start_date: '', real_end_date: '', progress: 0, status: 'nao_iniciado', parent_id: '' };
   const [form, setForm] = useState(defaultForm);
 
   const { data: schedule = [] } = useQuery({
@@ -594,9 +594,12 @@ function ScheduleTab({ projectId }) {
   const updateM = useMutation({ mutationFn: ({ id, data }) => base44.entities.InternalSchedule.update(id, data), onSuccess: () => { queryClient.invalidateQueries(['internalSchedule', projectId]); setModalOpen(false); setSelected(null); } });
   const deleteM = useMutation({ mutationFn: id => base44.entities.InternalSchedule.delete(id), onSuccess: () => { queryClient.invalidateQueries(['internalSchedule', projectId]); setDeleteOpen(false); setToDelete(null); } });
 
-  const openCreate = () => { setSelected(null); setForm(defaultForm); setModalOpen(true); };
-  const openEdit = (s) => { setSelected(s); setForm({ title: s.title, responsible: s.responsible || '', start_date: s.start_date || '', end_date: s.end_date || '', real_start_date: s.real_start_date || '', real_end_date: s.real_end_date || '', progress: s.progress || 0, status: s.status || 'nao_iniciado' }); setModalOpen(true); };
-  const handleSave = () => { if (selected) updateM.mutate({ id: selected.id, data: { ...form, project_id: projectId } }); else createM.mutate({ ...form, project_id: projectId, order: schedule.length }); };
+  // Get headers (items with ▌ prefix)
+  const macroHeaders = [...schedule].filter(s => s.title?.startsWith('▌ ')).map(s => ({ id: s.id, title: s.title.replace('▌ ', '') }));
+
+  const openCreate = () => { setSelected(null); setForm({ ...defaultForm, parent_id: macroHeaders.length > 0 ? macroHeaders[0].id : '' }); setModalOpen(true); };
+   const openEdit = (s) => { setSelected(s); setForm({ title: s.title, responsible: s.responsible || '', real_start_date: s.real_start_date || '', real_end_date: s.real_end_date || '', progress: s.progress || 0, status: s.status || 'nao_iniciado', parent_id: s.parent_id || '' }); setModalOpen(true); };
+   const handleSave = () => { const saveData = { ...form, project_id: projectId }; delete saveData.parent_id; if (selected) updateM.mutate({ id: selected.id, data: saveData }); else createM.mutate({ ...saveData, order: schedule.length }); };
 
   const parseExcelDate = (val) => {
     if (!val) return '';
@@ -796,10 +799,8 @@ function ScheduleTab({ projectId }) {
                 <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 w-[28%]">Etapa</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Status</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Responsável</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Previsão Início</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Previsão Fim</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Real Início</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Real Fim</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Data Inicial</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Data Final</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Conclusão</th>
                 <th className="px-4 py-3"></th>
               </tr>
@@ -838,18 +839,12 @@ function ScheduleTab({ projectId }) {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm text-slate-300">{item.responsible || '-'}</td>
-                    <td className="px-4 py-3 text-sm text-slate-300">
-                      {item.start_date ? format(new Date(item.start_date), 'dd/MM/yyyy', { locale: ptBR }) : '-'}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-slate-300">
-                      {item.end_date ? format(new Date(item.end_date), 'dd/MM/yyyy', { locale: ptBR }) : '-'}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-slate-300">
-                      {item.real_start_date ? format(new Date(item.real_start_date), 'dd/MM/yyyy', { locale: ptBR }) : '-'}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-slate-300">
-                      {item.real_end_date ? format(new Date(item.real_end_date), 'dd/MM/yyyy', { locale: ptBR }) : '-'}
-                    </td>
+                     <td className="px-4 py-3 text-sm text-slate-300">
+                       {item.real_start_date ? format(new Date(item.real_start_date), 'dd/MM/yyyy', { locale: ptBR }) : '-'}
+                     </td>
+                     <td className="px-4 py-3 text-sm text-slate-300">
+                       {item.real_end_date ? format(new Date(item.real_end_date), 'dd/MM/yyyy', { locale: ptBR }) : '-'}
+                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2 min-w-[100px]">
                         <Progress value={item.progress || 0} className="h-2 flex-1" />
@@ -878,13 +873,20 @@ function ScheduleTab({ projectId }) {
           <div className="space-y-3">
             <div className="space-y-1"><Label className="text-slate-300 text-xs">Nome da Etapa *</Label><Input value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} className="bg-slate-700 border-slate-600 text-white" /></div>
             <div className="space-y-1"><Label className="text-slate-300 text-xs">Responsável</Label><Input value={form.responsible || ''} onChange={e => setForm(p => ({ ...p, responsible: e.target.value }))} placeholder="Nome do responsável" className="bg-slate-700 border-slate-600 text-white" /></div>
+            {macroHeaders.length > 0 && (
+              <div className="space-y-1">
+                <Label className="text-slate-300 text-xs">Etapa Macro</Label>
+                <Select value={form.parent_id || ''} onValueChange={v => setForm(p => ({ ...p, parent_id: v }))}>
+                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white"><SelectValue placeholder="Selecionar etapa..." /></SelectTrigger>
+                  <SelectContent className="bg-slate-700 border-slate-600">
+                    {macroHeaders.map(h => <SelectItem key={h.id} value={h.id}>{h.title}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1"><Label className="text-slate-300 text-xs">Previsão Início</Label><Input type="date" value={form.start_date} onChange={e => setForm(p => ({ ...p, start_date: e.target.value }))} className="bg-slate-700 border-slate-600 text-white" /></div>
-              <div className="space-y-1"><Label className="text-slate-300 text-xs">Previsão Fim</Label><Input type="date" value={form.end_date} onChange={e => setForm(p => ({ ...p, end_date: e.target.value }))} className="bg-slate-700 border-slate-600 text-white" /></div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1"><Label className="text-slate-300 text-xs">Real Início</Label><Input type="date" value={form.real_start_date || ''} onChange={e => setForm(p => ({ ...p, real_start_date: e.target.value }))} className="bg-slate-700 border-slate-600 text-white" /></div>
-              <div className="space-y-1"><Label className="text-slate-300 text-xs">Real Fim</Label><Input type="date" value={form.real_end_date || ''} onChange={e => setForm(p => ({ ...p, real_end_date: e.target.value }))} className="bg-slate-700 border-slate-600 text-white" /></div>
+              <div className="space-y-1"><Label className="text-slate-300 text-xs">Data Inicial</Label><Input type="date" value={form.real_start_date || ''} onChange={e => setForm(p => ({ ...p, real_start_date: e.target.value }))} className="bg-slate-700 border-slate-600 text-white" /></div>
+              <div className="space-y-1"><Label className="text-slate-300 text-xs">Data Final</Label><Input type="date" value={form.real_end_date || ''} onChange={e => setForm(p => ({ ...p, real_end_date: e.target.value }))} className="bg-slate-700 border-slate-600 text-white" /></div>
             </div>
             <div className="space-y-1">
               <Label className="text-slate-300 text-xs">% Conclusão: {form.progress || 0}%</Label>
