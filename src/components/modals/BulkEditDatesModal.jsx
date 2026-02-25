@@ -68,7 +68,11 @@ export default function BulkEditDatesModal({
       .filter(e => {
         if (seenIds.has(e.id)) return false;
         seenIds.add(e.id);
-        return entityProducts.some(p => p.id === e.product_id);
+        // Filtra por product_id quando disponível, senão aceita o evento
+        if (e.product_id) {
+          return entityProducts.some(p => p.id === e.product_id);
+        }
+        return true; // Inclui eventos sem product_id (como planejamento_contrato)
       })
       .sort((a, b) => (a.order || 0) - (b.order || 0));
   };
