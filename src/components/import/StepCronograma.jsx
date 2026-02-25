@@ -33,7 +33,7 @@ const VERTICAL_COLORS = {
   atendimento: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
 };
 
-// Converte "DD/MM" para "YYYY-MM-DD" usando o ano atual
+// Converte "DD/MM" para "YYYY-MM-DD" usando o ano atual (sem ambiguidade de timezone)
 function parseDayMonth(raw) {
   const currentYear = new Date().getFullYear();
   const match = raw.trim().match(/^(\d{1,2})[\/\-\.](\d{1,2})(?:[\/\-\.](\d{2,4}))?$/);
@@ -41,7 +41,9 @@ function parseDayMonth(raw) {
   const d = match[1].padStart(2, '0');
   const m = match[2].padStart(2, '0');
   const y = match[3] ? (match[3].length === 2 ? `20${match[3]}` : match[3]) : String(currentYear);
-  if (parseInt(m) < 1 || parseInt(m) > 12 || parseInt(d) < 1 || parseInt(d) > 31) return '';
+  const dayInt = parseInt(d), monthInt = parseInt(m);
+  if (monthInt < 1 || monthInt > 12 || dayInt < 1 || dayInt > 31) return '';
+  // Return ISO string directly (avoid Date object timezone issues)
   return `${y}-${m}-${d}`;
 }
 
