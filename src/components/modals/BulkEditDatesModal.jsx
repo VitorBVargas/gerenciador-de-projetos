@@ -103,7 +103,7 @@ export default function BulkEditDatesModal({
   };
 
   const handleConfirm = async () => {
-    if (!selectedPhase || (!phaseStartDate && !phaseEndDate)) {
+    if (!selectedPhase || (!phaseStartDate && !phaseEndDate && !phaseStatus)) {
       setConfirmOpen(false);
       return;
     }
@@ -112,11 +112,17 @@ export default function BulkEditDatesModal({
     setConfirmOpen(false);
 
     const phaseEvents = getEventsByPhase(selectedPhase);
-    const eventsToUpdate = phaseEvents.map(event => ({
-      id: event.id,
-      start_date: phaseStartDate || event.start_date,
-      end_date: phaseEndDate || event.end_date
-    }));
+    const eventsToUpdate = phaseEvents.map(event => {
+      const update = {
+        id: event.id,
+        start_date: phaseStartDate || event.start_date,
+        end_date: phaseEndDate || event.end_date
+      };
+      if (phaseStatus) {
+        update.status = phaseStatus;
+      }
+      return update;
+    });
 
     if (eventsToUpdate.length > 0) {
       await onApply(eventsToUpdate);
