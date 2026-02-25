@@ -148,21 +148,10 @@ export default function StepCronograma({ cronogramas, setCronogramas, scheduling
 
   const handleAddVertical = () => {
        if (selectedVerticals.length === 0 || !hasDates) return;
-       // Força a interpretação das datas como local (não UTC)
-       const fixedDates = {};
-       Object.entries(currentDates).forEach(([k, v]) => {
-         if (v) {
-           const [y, m, d] = v.split('-');
-           const localDate = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
-           fixedDates[k] = localDate.toISOString().split('T')[0];
-         } else {
-           fixedDates[k] = v;
-         }
-       });
        setCronogramas(prev => [...prev, {
          id: Date.now(), type: 'vertical',
          verticals: selectedVerticals,
-         dates: fixedDates
+         dates: { ...currentDates }
        }]);
        setSelectedVerticals([]);
        setCurrentDates({});
@@ -170,22 +159,11 @@ export default function StepCronograma({ cronogramas, setCronogramas, scheduling
 
   const handleAddProduct = () => {
        if (!selectedProduct || !hasDates) return;
-       // Força a interpretação das datas como local (não UTC)
-       const fixedDates = {};
-       Object.entries(currentDates).forEach(([k, v]) => {
-         if (v) {
-           const [y, m, d] = v.split('-');
-           const localDate = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
-           fixedDates[k] = localDate.toISOString().split('T')[0];
-         } else {
-           fixedDates[k] = v;
-         }
-       });
        setCronogramas(prev => [...prev, {
          id: Date.now(), type: 'produto',
          productName: selectedProduct.name,
          vertical: selectedProduct.vertical,
-         dates: fixedDates
+         dates: { ...currentDates }
        }]);
        setSelectedProduct(null);
        setCurrentDates({});
