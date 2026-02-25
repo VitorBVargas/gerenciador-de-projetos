@@ -114,6 +114,14 @@ export default function Products() {
     }
   });
 
+  const deleteRecognitionMutation = useMutation({
+    mutationFn: (recognitionId) => base44.entities.RecognizedRevenue.delete(recognitionId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recognizedRevenues', projectId] });
+      queryClient.invalidateQueries({ queryKey: ['allRecognizedRevenues'] });
+    }
+  });
+
   const activeProject = projects.find(p => p.id === projectId);
 
   const createMutation = useMutation({
