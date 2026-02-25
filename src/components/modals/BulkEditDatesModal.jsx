@@ -289,27 +289,41 @@ export default function BulkEditDatesModal({
                           </button>
 
                           {isExpanded && (
-                            <div className="mt-2 p-3 bg-slate-700/30 rounded border border-slate-600 space-y-3">
-                              <p className="text-xs text-slate-400">Editar datas para esta atividade em {eventCount} produto{eventCount > 1 ? 's' : ''}:</p>
-                              <div>
-                                <label className="text-xs text-slate-400 block mb-1">Data Início</label>
-                                <Input
-                                  type="date"
-                                  value={phaseStartDate}
-                                  onChange={(e) => setPhaseStartDate(e.target.value)}
-                                  className="bg-slate-700 border-slate-600 text-white"
-                                />
-                              </div>
-                              <div>
-                                <label className="text-xs text-slate-400 block mb-1">Data Fim</label>
-                                <Input
-                                  type="date"
-                                  value={phaseEndDate}
-                                  onChange={(e) => setPhaseEndDate(e.target.value)}
-                                  className="bg-slate-700 border-slate-600 text-white"
-                                />
-                              </div>
-                            </div>
+                           <div className="mt-2 p-3 bg-slate-700/30 rounded border border-slate-600 space-y-3">
+                             <p className="text-xs text-slate-400">Editar datas e status para esta atividade em {eventCount} produto{eventCount > 1 ? 's' : ''}:</p>
+                             <div>
+                               <label className="text-xs text-slate-400 block mb-1">Data Início</label>
+                               <Input
+                                 type="date"
+                                 value={phaseStartDate}
+                                 onChange={(e) => setPhaseStartDate(e.target.value)}
+                                 className="bg-slate-700 border-slate-600 text-white"
+                               />
+                             </div>
+                             <div>
+                               <label className="text-xs text-slate-400 block mb-1">Data Fim</label>
+                               <Input
+                                 type="date"
+                                 value={phaseEndDate}
+                                 onChange={(e) => setPhaseEndDate(e.target.value)}
+                                 className="bg-slate-700 border-slate-600 text-white"
+                               />
+                             </div>
+                             <div>
+                               <label className="text-xs text-slate-400 block mb-1">Status</label>
+                               <select
+                                 value={phaseStatus}
+                                 onChange={(e) => setPhaseStatus(e.target.value)}
+                                 className="w-full bg-slate-700 border border-slate-600 text-white rounded px-3 py-2 text-sm"
+                               >
+                                 <option value="">Não alterar</option>
+                                 <option value="nao_iniciado">Não Iniciado</option>
+                                 <option value="em_andamento">Em Andamento</option>
+                                 <option value="concluido">Concluído</option>
+                                 <option value="atrasado">Atrasado</option>
+                               </select>
+                             </div>
+                           </div>
                           )}
                         </div>
                       );
