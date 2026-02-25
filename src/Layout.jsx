@@ -58,6 +58,7 @@ export default function Layout({ children, currentPageName }) {
     currentPageName === 'Home' ||
     currentPageName === 'ProjectsList' ||
     currentPageName === 'InternalProjectsList' ||
+    currentPageName === 'InternalDashboard' ||
     currentPageName === 'ExecutiveStatus'
   ) {
     return children;
