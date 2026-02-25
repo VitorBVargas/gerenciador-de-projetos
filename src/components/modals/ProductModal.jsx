@@ -152,6 +152,35 @@ export default function ProductModal({ open, onOpenChange, product, onSave, proj
               </div>
             </div>
           </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="impl-value">Valor Implantação (R$)</Label>
+              <Input
+                id="impl-value"
+                type="number"
+                inputMode="decimal"
+                step="0.01"
+                min="0"
+                value={formData.implementation_value}
+                onChange={(e) => setFormData({ ...formData, implementation_value: parseFloat(e.target.value) || 0 })}
+                className="bg-slate-700 border-slate-600 text-white"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="incl-value">Valor Inclusão (R$)</Label>
+              <Input
+                id="incl-value"
+                type="number"
+                inputMode="decimal"
+                step="0.01"
+                min="0"
+                value={formData.inclusion_value}
+                onChange={(e) => setFormData({ ...formData, inclusion_value: parseFloat(e.target.value) || 0 })}
+                className="bg-slate-700 border-slate-600 text-white"
+              />
+            </div>
+          </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="border-slate-600 text-slate-300 hover:bg-slate-700">
               Cancelar
