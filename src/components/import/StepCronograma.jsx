@@ -33,7 +33,7 @@ const VERTICAL_COLORS = {
   atendimento: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
 };
 
-// Converte "DD/MM" para "YYYY-MM-DD" usando o ano atual (sem ambiguidade de timezone)
+// Converte "DD/MM" para "YYYY-MM-DD" com UTC para evitar timezone shifts
 function parseDayMonth(raw) {
   const currentYear = new Date().getFullYear();
   const match = raw.trim().match(/^(\d{1,2})[\/\-\.](\d{1,2})(?:[\/\-\.](\d{2,4}))?$/);
@@ -43,14 +43,14 @@ function parseDayMonth(raw) {
   const y = match[3] ? (match[3].length === 2 ? `20${match[3]}` : match[3]) : String(currentYear);
   const dayInt = parseInt(d), monthInt = parseInt(m);
   if (monthInt < 1 || monthInt > 12 || dayInt < 1 || dayInt > 31) return '';
-  // Return ISO string directly (avoid Date object timezone issues)
-  return `${y}-${m}-${d}`;
+  return `${y}-${m}-${d}T00:00:00Z`;
 }
 
-// Converte "YYYY-MM-DD" para "DD/MM" para exibição
+// Converte "YYYY-MM-DD" ou ISO timestamp para "DD/MM" para exibição
 function toDisplay(iso) {
   if (!iso) return '';
-  const [y, m, d] = iso.split('-');
+  const date = iso.includes('T') ? iso.split('T')[0] : iso;
+  const [y, m, d] = date.split('-');
   return `${d}/${m}`;
 }
 
