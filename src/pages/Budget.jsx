@@ -328,6 +328,14 @@ export default function Budget() {
         </CardContent>
       </Card>
 
+      {/* Expense Importer */}
+      <ExpenseImporter
+        open={importerOpen}
+        onOpenChange={setImporterOpen}
+        projectId={projectId}
+        onImported={() => queryClient.invalidateQueries({ queryKey: ['expenses', projectId] })}
+      />
+
       {/* Expense Modal */}
       <ExpenseModal
         open={expenseModalOpen}
