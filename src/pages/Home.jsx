@@ -46,14 +46,14 @@ export default function Home() {
         <div className="grid md:grid-cols-3 gap-6 md:gap-4 max-w-4xl mx-auto">
           {/* Projetos Internos */}
           <button
-            onClick={() => handleNavigation('ProjectsList')}
+            onClick={() => handleNavigation('InternalProjectsList')}
             onMouseEnter={() => setActiveButton(0)}
             onMouseLeave={() => setActiveButton(null)}
             className="group relative h-40 rounded-2xl overflow-hidden transition-all duration-300 transform hover:scale-105"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-blue-700 group-hover:from-blue-500 group-hover:to-blue-600 transition-all duration-300"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 to-indigo-700 group-hover:from-indigo-500 group-hover:to-indigo-600 transition-all duration-300"></div>
             <div className="relative h-full flex flex-col items-center justify-center p-6">
-              <FolderOpen className="w-12 h-12 text-blue-200 mb-3 group-hover:scale-110 transition-transform duration-300" />
+              <FolderOpen className="w-12 h-12 text-indigo-200 mb-3 group-hover:scale-110 transition-transform duration-300" />
               <h3 className="text-xl font-bold text-white text-center">Projetos Internos</h3>
             </div>
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
