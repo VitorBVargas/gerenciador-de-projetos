@@ -1459,7 +1459,7 @@ Seja conciso, profissional e em português.`;
                   {visibleCharts.recorrente !== false && (
                   <Card className="bg-slate-800 border-slate-600">
                   <CardHeader>
-                    <CardTitle className="text-white">Previsão de Inclusão (Recorrente)</CardTitle>
+                    <CardTitle className="text-white">Previsão de Inicio de inclusão (Recorrente)</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <ResponsiveContainer width="100%" height={300}>
