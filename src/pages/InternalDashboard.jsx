@@ -708,13 +708,20 @@ function ScheduleTab({ projectId }) {
   };
 
   const sorted = [...schedule].sort((a, b) => a.order - b.order);
-  const completed = sorted.filter(s => s.status === 'concluido').length;
-  const progress = sorted.length > 0 ? Math.round((completed / sorted.length) * 100) : 0;
+  const completedCount = sorted.filter(s => s.status === 'concluido').length;
+  const avgProgress = sorted.length > 0
+    ? Math.round(sorted.reduce((sum, s) => sum + (s.progress || 0), 0) / sorted.length)
+    : 0;
+
+  const statusColorMap = {
+    nao_iniciado: 'bg-slate-600', em_andamento: 'bg-blue-600',
+    concluido: 'bg-green-600', atrasado: 'bg-red-600'
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <div><h1 className="text-2xl font-bold text-white">Cronograma</h1><p className="text-slate-400 mt-1">{sorted.length} etapas cadastradas</p></div>
+        <div><h1 className="text-2xl font-bold text-white">Cronograma</h1><p className="text-slate-400 mt-1">{sorted.length} etapas · {completedCount} concluídas</p></div>
         <div className="flex gap-2">
           <input ref={fileInputRef} type="file" accept=".xlsx,.xls" onChange={handleImportExcel} className="hidden" />
           <Button
@@ -732,63 +739,72 @@ function ScheduleTab({ projectId }) {
       {/* Excel format hint */}
       <div className="bg-slate-800/40 border border-slate-700/50 rounded-lg px-4 py-3 text-xs text-slate-400">
         <span className="font-semibold text-slate-300">Formatos aceitos:</span>{' '}
-        <span className="text-white">Modelo padrão interno</span> (colunas: EDT, Nome da Tarefa, Responsável, % Conclusão, Previsão Início, Previsão Término, Real Início, Real Término) ou{' '}
-        <span className="text-white">planilha simples</span> (col A: nome · col B: início · col C: fim). A aba "Cronograma" é detectada automaticamente.
+        <span className="text-white">Modelo padrão interno</span> (colunas: EDT, Nome da Tarefa, Responsável, % Conclusão, Previsão Início/Término, Real Início/Término) ou{' '}
+        <span className="text-white">planilha simples</span> (col A: nome · col B: início · col C: fim).
       </div>
 
       {sorted.length > 0 && (
-        <Card className="bg-slate-800/50 border-slate-700/50">
-          <CardContent className="p-4">
-            <div className="flex justify-between text-sm mb-2">
-              <span className="text-slate-400">Progresso Geral</span>
-              <span className="text-white font-semibold">{progress}%</span>
-            </div>
-            <Progress value={progress} className="h-2" />
-          </CardContent>
-        </Card>
+        <div className="flex items-center gap-4 bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
+          <div className="text-sm text-slate-400 min-w-[120px]">Progresso Médio</div>
+          <div className="flex-1"><Progress value={avgProgress} className="h-3" /></div>
+          <div className="text-lg font-bold text-white min-w-[50px] text-right">{avgProgress}%</div>
+        </div>
       )}
 
       {sorted.length > 0 ? (
-        <div className="space-y-3">
-          {sorted.map((item, idx) => {
-            const cfg = statusConfig[item.status] || statusConfig.nao_iniciado;
-            return (
-              <Card key={item.id} className="bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 transition-all group">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex-shrink-0 flex flex-col items-center">
-                      <div className={cn("w-3 h-3 rounded-full", cfg.color)} />
-                      {idx < sorted.length - 1 && <div className="w-0.5 h-8 bg-slate-700 mt-1" />}
+        <div className="overflow-x-auto bg-slate-800 rounded-lg border border-slate-700">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-slate-700 bg-slate-900/50">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 w-[30%]">Etapa</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Status</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Responsável</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Previsão Início</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Previsão Fim</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Real Início</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Real Fim</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Conclusão</th>
+                <th className="px-4 py-3"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {sorted.map(item => (
+                <tr key={item.id} className="border-b border-slate-700/30 hover:bg-slate-700/20 group">
+                  <td className="px-4 py-3 text-sm text-white font-medium">{item.title}</td>
+                  <td className="px-4 py-3">
+                    <span className={cn("px-2.5 py-1 rounded text-xs font-medium text-white", statusColorMap[item.status] || 'bg-slate-600')}>
+                      {statusConfig[item.status]?.label || item.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-sm text-slate-300">{item.responsible || '-'}</td>
+                  <td className="px-4 py-3 text-sm text-slate-300">
+                    {item.start_date ? format(new Date(item.start_date), 'dd/MM/yyyy', { locale: ptBR }) : '-'}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-slate-300">
+                    {item.end_date ? format(new Date(item.end_date), 'dd/MM/yyyy', { locale: ptBR }) : '-'}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-slate-300">
+                    {item.real_start_date ? format(new Date(item.real_start_date), 'dd/MM/yyyy', { locale: ptBR }) : '-'}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-slate-300">
+                    {item.real_end_date ? format(new Date(item.real_end_date), 'dd/MM/yyyy', { locale: ptBR }) : '-'}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2 min-w-[100px]">
+                      <Progress value={item.progress || 0} className="h-2 flex-1" />
+                      <span className="text-xs text-slate-400 min-w-[35px] text-right">{item.progress || 0}%</span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="font-medium text-white">{item.title}</h3>
-                        <Badge className={cn("border text-xs", cfg.badge)}>{cfg.label}</Badge>
-                        {item.responsible && <span className="text-xs text-slate-500">{item.responsible}</span>}
-                      </div>
-                      {(item.start_date || item.end_date) && (
-                        <p className="text-xs text-slate-400 mt-1">
-                          {item.start_date && format(new Date(item.start_date), 'dd/MM/yyyy', { locale: ptBR })}
-                          {item.start_date && item.end_date && ' → '}
-                          {item.end_date && format(new Date(item.end_date), 'dd/MM/yyyy', { locale: ptBR })}
-                        </p>
-                      )}
-                      {item.progress > 0 && (
-                        <div className="flex items-center gap-2 mt-1.5">
-                          <Progress value={item.progress} className="h-1.5 flex-1" />
-                          <span className="text-xs text-slate-400 w-8 text-right">{item.progress}%</span>
-                        </div>
-                      )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => openEdit(item)} className="text-slate-400 hover:text-blue-400 transition"><Pencil className="w-4 h-4" /></button>
+                      <button onClick={() => { setToDelete(item); setDeleteOpen(true); }} className="text-slate-400 hover:text-red-400 transition"><Trash2 className="w-4 h-4" /></button>
                     </div>
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button size="icon" variant="ghost" className="h-7 w-7 text-slate-400 hover:text-white" onClick={() => openEdit(item)}><Pencil className="w-3.5 h-3.5" /></Button>
-                      <Button size="icon" variant="ghost" className="h-7 w-7 text-red-400 hover:text-red-300" onClick={() => { setToDelete(item); setDeleteOpen(true); }}><Trash2 className="w-3.5 h-3.5" /></Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       ) : (
         <EmptyState icon={Calendar} title="Nenhuma etapa cadastrada" description="Adicione etapas para acompanhar o cronograma" action={<Button onClick={openCreate} className="bg-indigo-600 hover:bg-indigo-700"><Plus className="w-4 h-4 mr-2" />Adicionar Etapa</Button>} />
