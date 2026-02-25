@@ -661,7 +661,25 @@ function ScheduleTab({ projectId }) {
     <div className="space-y-6">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div><h1 className="text-2xl font-bold text-white">Cronograma</h1><p className="text-slate-400 mt-1">{sorted.length} etapas cadastradas</p></div>
-        <Button onClick={openCreate} className="bg-indigo-600 hover:bg-indigo-700"><Plus className="w-4 h-4 mr-2" />Nova Etapa</Button>
+        <div className="flex gap-2">
+          <input ref={fileInputRef} type="file" accept=".xlsx,.xls" onChange={handleImportExcel} className="hidden" />
+          <Button
+            variant="outline"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={importing}
+            className="border-slate-600 text-slate-300 hover:bg-slate-700"
+          >
+            <Upload className="w-4 h-4 mr-2" />{importing ? 'Importando...' : 'Importar Excel'}
+          </Button>
+          <Button onClick={openCreate} className="bg-indigo-600 hover:bg-indigo-700"><Plus className="w-4 h-4 mr-2" />Nova Etapa</Button>
+        </div>
+      </div>
+
+      {/* Excel format hint */}
+      <div className="bg-slate-800/40 border border-slate-700/50 rounded-lg px-4 py-3 text-xs text-slate-400">
+        <span className="font-semibold text-slate-300">Formato do Excel:</span> O arquivo deve ter 3 colunas —{' '}
+        <span className="text-white">Coluna A: Nome da etapa</span> · <span className="text-white">Coluna B: Data de início (DD/MM/AAAA)</span> · <span className="text-white">Coluna C: Data de fim (DD/MM/AAAA)</span>.
+        A primeira linha pode ser cabeçalho (será ignorada automaticamente).
       </div>
 
       {sorted.length > 0 && (
