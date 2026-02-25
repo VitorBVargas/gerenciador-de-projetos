@@ -806,17 +806,16 @@ function ScheduleTab({ projectId }) {
             </thead>
             <tbody>
               {sorted.map(item => {
-                // Detect header/group rows ONLY by prefix markers set during import
-                const isGroup = item.title?.startsWith('▌ ');
-                const isHeader = isGroup;
+                // Detect header/group rows by the ▌ prefix (EDT was empty during import)
+                const isHeader = item.title?.startsWith('▌ ');
 
                 if (isHeader) {
                   return (
                     <tr key={item.id} className="border-b border-slate-700/50 bg-slate-900/40 group">
-                      <td className="px-3 py-3 text-xs text-slate-500 font-mono">{/^\d+$/.test(item.edt) ? '' : (item.edt || '')}</td>
+                      <td className="px-3 py-3 text-xs text-slate-500 font-mono"></td>
                       <td className="px-4 py-3" colSpan={8}>
-                        <span className={cn("font-semibold text-white", isGroup ? "text-base" : "text-sm pl-2")}>
-                          {isGroup ? item.title.replace('▌ ', '') : item.title}
+                        <span className="font-semibold text-white text-base">
+                          {item.title.replace('▌ ', '')}
                         </span>
                       </td>
                       <td className="px-4 py-3">
