@@ -244,18 +244,52 @@ export default function Migration() {
     if (!selectedProduct) return;
     try {
       const product = getCurrentProduct();
-      const productTasks = tasks.filter(t => t.product_id === product.id);
-      const allCompleted = productTasks.every(t => t.completed);
+      // Pega TODAS as tarefas visíveis (removidas duplicatas)
+      const productTasks = getProductTasks(product.id);
+      const defaultSections = getDefaultTasksForProduct(product.name) || [];
+      const importedTasks = productTasks.filter(t => t.title.includes('||'));
+      const standardTasks = productTasks.filter(t => !t.title.includes('||'));
       
-      await Promise.all(productTasks.map(task => 
-        base44.entities.MigrationTask.update(task.id, { completed: !allCompleted })
+      // Agrupar tarefas importadas por etapa e remover duplicatas
+      const importedBySection = importedTasks.reduce((acc, task) => {
+        const match = task.title.match(/^\|\|(.+?)\|\|(.+)$/);
+        if (match) {
+          const [, sectionName, taskName] = match;
+          const titleLower = taskName.toLowerCase();
+          if (!acc[sectionName]) acc[sectionName] = new Map();
+          if (!acc[sectionName].has(titleLower)) {
+            acc[sectionName].set(titleLower, task);
+          }
+        }
+        return acc;
+      }, {});
+      
+      // Remover duplicatas de tarefas padrão
+      const uniqueStandardTasks = [];
+      const seenTitles = new Set();
+      for (const task of standardTasks) {
+        const titleLower = task.title.toLowerCase();
+        if (!seenTitles.has(titleLower)) {
+          seenTitles.add(titleLower);
+          uniqueStandardTasks.push(task);
+        }
+      }
+      
+      // Reunir todas as tarefas únicas visíveis
+      const visibleTasks = [
+        ...uniqueStandardTasks,
+        ...Object.values(importedBySection).flatMap(map => Array.from(map.values()))
+      ];
+      
+      // Lógica: se alguma tarefa não está marcada, marca todas; se todas estão marcadas, desmarca todas
+      const hasIncompleted = visibleTasks.some(t => !t.completed);
+      
+      await Promise.all(visibleTasks.map(task => 
+        base44.entities.MigrationTask.update(task.id, { completed: hasIncompleted })
       ));
       
-      toast.success(allCompleted ? 'Tarefas desmarcadas!' : 'Todas as tarefas foram marcadas!');
-      // Aguarda um pouco para garantir que a query se atualize
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
-      }, 300);
+      toast.success(hasIncompleted ? 'Todas as tarefas foram marcadas!' : 'Tarefas desmarcadas!');
+      queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
     } catch (error) {
       toast.error('Erro ao atualizar tarefas');
       console.error(error);
