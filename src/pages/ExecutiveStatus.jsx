@@ -1652,13 +1652,67 @@ Seja conciso, profissional e em português.`;
                        return { rec, product, project };
                      });
 
-                    if (aReceberProds.length === 0 && recognizedProds.length === 0) return null;
+                    // Produtos recorrente (azul) - go-live neste mês
+                    const recorrenteProds = monthlyRecorrenteProducts[selectedMonth] || [];
+
+                    if (aReceberProds.length === 0 && recognizedProds.length === 0 && recorrenteProds.length === 0) return null;
+
+                    // Mostrar qual card abrir
+                    const showImplantacao = selectedMonthType === 'implantacao' || (selectedMonthType === null && (aReceberProds.length > 0 || recognizedProds.length > 0));
+                    const showRecorrente = selectedMonthType === 'recorrente';
+
+                    if (showRecorrente && recorrenteProds.length > 0) {
+                     return (
+                       <Card className="bg-slate-800 border-slate-600">
+                         <CardHeader>
+                           <div className="flex items-center justify-between">
+                             <CardTitle className="text-white">Previsão de Inclusão (Recorrente) — {monthLabel}</CardTitle>
+                             <Button
+                               variant="ghost"
+                               size="sm"
+                               onClick={() => {
+                                 setSelectedMonth(null);
+                                 setSelectedMonthType(null);
+                               }}
+                               className="text-slate-400 hover:text-white"
+                             >
+                               Fechar
+                             </Button>
+                           </div>
+                         </CardHeader>
+                         <CardContent className="space-y-4">
+                           <div>
+                             <div className="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-2">Produtos Iniciando</div>
+                             <div className="space-y-2">
+                               {recorrenteProds.map(({ product, project, vertical, startDate, inclusionValue }) => (
+                                 <div key={product.id} className="p-3 bg-blue-900/20 rounded-lg border border-blue-700/50">
+                                   <div className="flex items-start justify-between gap-4">
+                                     <div className="flex-1">
+                                       <div className="font-semibold text-white text-sm">{product.name}</div>
+                                       <div className="text-xs text-slate-400">Projeto: {project.name}</div>
+                                       {vertical && <div className="text-xs text-slate-500">Vertical: {vertical}</div>}
+                                     </div>
+                                     <div className="text-right shrink-0">
+                                       <div className="text-sm font-semibold text-blue-400">
+                                         {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(inclusionValue)}
+                                       </div>
+                                       {startDate && <div className="text-xs text-slate-500">{format(new Date(startDate), 'dd/MM/yyyy', { locale: ptBR })}</div>}
+                                     </div>
+                                   </div>
+                                 </div>
+                               ))}
+                             </div>
+                           </div>
+                         </CardContent>
+                       </Card>
+                     );
+                    }
 
                     return (
-                      <Card className="bg-slate-800 border-slate-600">
-                        <CardHeader>
-                          <div className="flex items-center justify-between">
-                            <CardTitle className="text-white">Implantação — {monthLabel}</CardTitle>
+                     <Card className="bg-slate-800 border-slate-600">
+                       <CardHeader>
+                         <div className="flex items-center justify-between">
+                           <CardTitle className="text-white">Implantação — {monthLabel}</CardTitle>
                             <Button
                               variant="ghost"
                               size="sm"
