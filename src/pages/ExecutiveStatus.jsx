@@ -1134,23 +1134,110 @@ Seja conciso, profissional e em português.`;
               }
             });
 
-            // Processar implantação (por prazo contratual do projeto)
-            projects.forEach(project => {
-              const implantacaoMonth = getImplantacaoMonth(project);
-              if (!implantacaoMonth || !monthlyData[implantacaoMonth]) return;
+            // Processar implantação: por data fim da operação_assistida de cada PRODUTO
+             // Respeita a visão do cronograma (por_vertical ou por_produto)
+             const implantacaoProductsMap = {}; // Para listar produtos do mês selecionado
+             projects.forEach(project => {
+               const projectProducts = allProducts.filter(p => p.project_id === project.id);
+               if (!projectProducts.length) return;
 
-              const recognized = totalRecognizedByProject[project.id] || { implantacao: 0, recorrente: 0 };
+               if (project.scheduling_type === 'por_vertical') {
+                 // Agrupar por vertical: todos da mesma vertical saem juntos
+                 const verticalGroups = {};
+                 projectProducts.forEach(prod => {
+                   const v = prod.vertical || 'outros';
+                   if (!verticalGroups[v]) verticalGroups[v] = [];
+                   verticalGroups[v].push(prod);
+                 });
 
-              // Somar implementation_value dos produtos do projeto
-              const projectProducts = allProducts.filter(p => p.project_id === project.id);
-              const totalImplValue = projectProducts.reduce((sum, p) => sum + (p.implementation_value || 0), 0);
+                 Object.entries(verticalGroups).forEach(([vertical, prods]) => {
+                   // Buscar cronograma da vertical
+                   const cronograma = allCronogramas.find(c => c.project_id === project.id && c.vertical === vertical);
+                   let operacaoEvent = null;
 
-              if (totalImplValue > 0) {
-                const pendente = Math.max(0, totalImplValue - recognized.implantacao);
-                monthlyData[implantacaoMonth].implantacao += totalImplValue;
-                monthlyData[implantacaoMonth].a_receber += pendente;
-              }
-            });
+                   // Tenta por cronograma
+                   if (cronograma) {
+                     operacaoEvent = allTimelineEvents.find(e => 
+                       e.cronograma_id === cronograma.id && e.phase === 'operacao_assistida' && e.end_date
+                     );
+                   }
+
+                   // Se não encontrou por cronograma, tenta por produto individual
+                   if (!operacaoEvent && prods.length > 0) {
+                     operacaoEvent = allTimelineEvents.find(e => 
+                       e.product_id === prods[0].id && e.phase === 'operacao_assistida' && e.end_date
+                     );
+                   }
+
+                   if (!operacaoEvent || !operacaoEvent.end_date) return;
+
+                   const implMonth = operacaoEvent.end_date.substring(0, 7);
+                   if (!monthlyData[implMonth]) return;
+
+                   prods.forEach(prod => {
+                     const totalImplValue = prod.implementation_value || 0;
+                     if (totalImplValue > 0) {
+                       monthlyData[implMonth].implantacao += totalImplValue;
+
+                       if (!implantacaoProductsMap[implMonth]) {
+                         implantacaoProductsMap[implMonth] = [];
+                       }
+                       implantacaoProductsMap[implMonth].push({
+                         product: prod,
+                         project,
+                         end_date: operacaoEvent.end_date,
+                         amount: totalImplValue
+                       });
+                     }
+                   });
+                 });
+               } else {
+                 // Por produto: cada produto tem sua própria data
+                 projectProducts.forEach(prod => {
+                   const operacaoEvent = allTimelineEvents.find(e => 
+                     e.product_id === prod.id && e.phase === 'operacao_assistida' && e.end_date
+                   );
+
+                   if (!operacaoEvent || !operacaoEvent.end_date) return;
+
+                   const implMonth = operacaoEvent.end_date.substring(0, 7);
+                   if (!monthlyData[implMonth]) return;
+
+                   const totalImplValue = prod.implementation_value || 0;
+                   if (totalImplValue > 0) {
+                     monthlyData[implMonth].implantacao += totalImplValue;
+
+                     if (!implantacaoProductsMap[implMonth]) {
+                       implantacaoProductsMap[implMonth] = [];
+                     }
+                     implantacaoProductsMap[implMonth].push({
+                       product: prod,
+                       project,
+                       end_date: operacaoEvent.end_date,
+                       amount: totalImplValue
+                     });
+                   }
+                 });
+               }
+             });
+
+             // Calcular "a receber" descontando reconhecimentos por produto
+             Object.keys(monthlyData).forEach(monthKey => {
+               const productsThisMonth = implantacaoProductsMap[monthKey] || [];
+               let totalImplValue = 0;
+               let totalRecognized = 0;
+
+               productsThisMonth.forEach(({ product, project, amount }) => {
+                 totalImplValue += amount;
+                 // Buscar reconhecimentos deste produto neste mês
+                 const productRecognitions = allRecognizedRevenues.filter(r => 
+                   r.product_id === product.id && r.recognition_month.substring(0, 7) === monthKey && r.type === 'implantacao'
+                 );
+                 totalRecognized += productRecognitions.reduce((sum, r) => sum + r.amount, 0);
+               });
+
+               monthlyData[monthKey].a_receber = Math.max(0, totalImplValue - totalRecognized);
+             });
 
             // Processar recorrente: por data de início da etapa migracao_prd_blackout por produto
             // Se projeto for por vertical: todos os produtos daquela vertical entram juntos
