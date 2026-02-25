@@ -1624,7 +1624,7 @@ Seja conciso, profissional e em português.`;
               if (r.type === 'implantacao') totalRecognizedByProjectLocal[r.project_id].implantacao += r.amount;
               else totalRecognizedByProjectLocal[r.project_id].recorrente += r.amount;
             });
-            
+
             // Projetos cuja operação assistida cai neste mês (A Receber - verde)
             projects.forEach(project => {
               const implMonth = getImplantacaoMonth(project);
@@ -1670,7 +1670,9 @@ Seja conciso, profissional e em português.`;
               const recMonth = r.recognition_month.substring(0, 7);
               return recMonth === selectedMonth && r.type === 'implantacao' && activeProjectIdsLocal.has(r.project_id);
             });
-            
+
+            if (productsInMonth.length === 0 && recognizedInMonth.length === 0) return null;
+
             return (
               <Card className="bg-slate-800 border-slate-600">
                 <CardHeader>
