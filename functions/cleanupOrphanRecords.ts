@@ -14,49 +14,21 @@ Deno.serve(async (req) => {
     const projects = await base44.entities.Project.list();
     const validProjectIds = new Set(projects.map(p => p.id));
 
-    // Cleanup TimelineEvent
-    const timelineEvents = await base44.entities.TimelineEvent.list();
-    const orphanTimelineEvents = timelineEvents.filter(e => !validProjectIds.has(e.project_id));
-    for (const event of orphanTimelineEvents) {
-      await base44.entities.TimelineEvent.delete(event.id);
-    }
-
-    // Cleanup Product
+    // Limpar APENAS Products órfãos (que sujam o gráfico)
     const products = await base44.entities.Product.list();
     const orphanProducts = products.filter(p => !validProjectIds.has(p.project_id));
+    
+    let deletedCount = 0;
     for (const product of orphanProducts) {
       await base44.entities.Product.delete(product.id);
-    }
-
-    // Cleanup TeamMember
-    const teamMembers = await base44.entities.TeamMember.list();
-    const orphanTeam = teamMembers.filter(t => !validProjectIds.has(t.project_id));
-    for (const member of orphanTeam) {
-      await base44.entities.TeamMember.delete(member.id);
-    }
-
-    // Cleanup Stakeholder
-    const stakeholders = await base44.entities.Stakeholder.list();
-    const orphanStakeholders = stakeholders.filter(s => !validProjectIds.has(s.project_id));
-    for (const stakeholder of orphanStakeholders) {
-      await base44.entities.Stakeholder.delete(stakeholder.id);
-    }
-
-    // Cleanup Risk
-    const risks = await base44.entities.Risk.list();
-    const orphanRisks = risks.filter(r => !validProjectIds.has(r.project_id));
-    for (const risk of orphanRisks) {
-      await base44.entities.Risk.delete(risk.id);
+      deletedCount++;
     }
 
     return Response.json({
       success: true,
+      message: `Deletados ${deletedCount} produtos órfãos`,
       deleted: {
-        timelineEvents: orphanTimelineEvents.length,
-        products: orphanProducts.length,
-        teamMembers: orphanTeam.length,
-        stakeholders: orphanStakeholders.length,
-        risks: orphanRisks.length
+        products: deletedCount
       }
     });
   } catch (error) {
