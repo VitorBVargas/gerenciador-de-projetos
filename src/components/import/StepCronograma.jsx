@@ -62,15 +62,17 @@ function DateInput({ value, onChange }) {
    const [raw, setRaw] = React.useState(toDisplay(value));
 
    const handleChange = (e) => {
-     const digits = e.target.value.replace(/\D/g, '').slice(0, 4);
+     const input = e.target.value;
+     const digits = input.replace(/\D/g, '').slice(0, 4);
      let formatted = digits;
      if (digits.length > 2) {
        formatted = digits.slice(0, 2) + '/' + digits.slice(2);
      }
      setRaw(formatted);
 
-     if (digits.length === 4) {
+     if (formatted.length === 5 && formatted[2] === '/') {
        const parsed = parseDayMonth(formatted);
+       console.log('DateInput - raw input:', input, 'formatted:', formatted, 'parsed:', parsed);
        if (parsed) onChange(parsed);
      } else if (digits.length === 0) {
        onChange('');
