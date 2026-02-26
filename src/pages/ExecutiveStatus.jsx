@@ -437,8 +437,8 @@ Seja conciso e executivo.`
         });
       }
     });
-    setRecorrenteProductsMap(map);
-  }, [allProducts, allTimelineEvents, allCronogramas, projects]);
+    return map;
+  }, [allProducts, allTimelineEvents, allCronogramas, allRecognizedRevenues, projects]);
 
   // Calculate project with health status
   const projectsWithMetrics = useMemo(() => {
