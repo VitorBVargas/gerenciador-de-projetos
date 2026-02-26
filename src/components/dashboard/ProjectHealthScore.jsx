@@ -21,9 +21,19 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
   let score = 100;
   const alerts = []; // { severity: 'high'|'medium'|'good', text, detail }
 
+  // DEBUG: Log dos dados de entrada
+  if (timeline && timeline.length > 0) {
+    console.log('📊 Health Score Debug - Timeline Events:', {
+      total: timeline.length,
+      statuses: timeline.map(e => ({ title: e.title, status: e.status, progress: e.progress }))
+    });
+  }
+
   // --- 1. TIMELINE (40 pts) ---
   // IMPORTANTE: Conta APENAS etapas com status === 'atrasado' explícito
   const delayedEvents = timeline.filter(e => e.status === 'atrasado');
+  
+  console.log('📊 Delayed Events Found:', delayedEvents.length, delayedEvents.map(e => e.title));
 
   const delayCost = delayedEvents.length * 3;
   const timelineDeduction = Math.min(40, delayCost);
