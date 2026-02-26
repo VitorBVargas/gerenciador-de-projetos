@@ -262,66 +262,14 @@ Seja conciso e executivo.`
     }
   });
 
-  // Calculate health score for a project - baseado no status real dos cronogramas
-  const calculateHealthScore = (project) => {
-    const now = new Date();
-    const projectCronogramas = allCronogramas.filter(c => c.project_id === project.id);
-    const projectRisks = allRisks.filter(r => r.project_id === project.id);
-    const projectExpenses = allExpenses.filter(e => e.project_id === project.id);
-
-    // Calcular status de cada cronograma (igual à lógica do statusData)
-    let atrasadoCount = 0;
-    let atencaoCount = 0;
-    let totalCronogramas = projectCronogramas.length;
-
-    projectCronogramas.forEach(cronograma => {
-      const events = allTimelineEvents.filter(e => e.cronograma_id === cronograma.id);
-      if (!events.length) return;
-
-      if (events.every(e => e.status === 'concluido')) return; // concluído = ok
-
-      const hasAtrasado = events.some(e => e.status === 'atrasado');
-      const hasVencidoNaoConcluido = events.some(e => {
-        if (e.end_date && e.status !== 'concluido') {
-          const endDate = new Date(e.end_date);
-          return endDate < now;
-        }
-        return false;
-      });
-      const hasAtencao = events.some(e => {
-        if (e.end_date && e.status !== 'concluido') {
-          const endDate = new Date(e.end_date);
-          const daysUntil = (endDate - now) / (1000 * 60 * 60 * 24);
-          return daysUntil >= 0 && daysUntil <= 7;
-        }
-        return false;
-      });
-
-      if (hasAtrasado || hasVencidoNaoConcluido) atrasadoCount++;
-      else if (hasAtencao) atencaoCount++;
-    });
-
-    let score = 100;
-
-    // Descontar por cronogramas atrasados
-    if (totalCronogramas > 0) {
-      score -= Math.round((atrasadoCount / totalCronogramas) * 50);
-      score -= Math.round((atencaoCount / totalCronogramas) * 20);
-    }
-
-    // Riscos altos não mitigados
-    const highRisks = projectRisks.filter(r =>
-      (r.probability === 'alta' || r.impact === 'alto') && r.status !== 'mitigado'
-    );
-    score -= Math.min(highRisks.length * 10, 20);
-
-    // Orçamento estourado
-    const spent = projectExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
-    if (project.budget && spent > project.budget) {
-      score -= 15;
-    }
-
-    return Math.max(0, Math.min(100, Math.round(score)));
+  // Wrapper que chama a mesma lógica do componente ProjectHealthScore
+  const getProjectHealthScore = (project) => {
+    const timeline = allTimelineEvents.filter(e => e.project_id === project.id);
+    const risks = allRisks.filter(r => r.project_id === project.id);
+    const expenses = allExpenses.filter(e => e.project_id === project.id);
+    const spent = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+    const { score } = calculateHealthScore({ timeline, budget: project.budget || 0, spent, migrationTasks: [], homologationTasks: [], risks, products: [] });
+    return score;
   };
 
   // Calculate overall progress for a project
