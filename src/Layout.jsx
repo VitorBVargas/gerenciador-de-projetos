@@ -8,7 +8,6 @@ import {
   UserCircle,
   Package,
   Calendar,
-  GraduationCap,
   Plane,
   CheckCircle,
   ArrowLeftRight,
@@ -29,7 +28,7 @@ const navigation = [
   { name: 'Cronograma', href: 'Timeline', icon: Calendar },
   { name: 'Migração', href: 'Migration', icon: ArrowLeftRight },
   { name: 'Homologação', href: 'Homologation', icon: CheckCircle },
-  { name: 'Treinamentos', href: 'Trainings', icon: GraduationCap },
+
   { name: 'Viagens', href: 'Travels', icon: Plane },
   { name: 'Orçamento', href: 'Budget', icon: DollarSign },
   { name: 'IA Projetos Betha', href: 'StatusReports', icon: FileText },

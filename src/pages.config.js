@@ -63,7 +63,6 @@ import Stakeholders from './pages/Stakeholders';
 import StatusReports from './pages/StatusReports';
 import Team from './pages/Team';
 import Timeline from './pages/Timeline';
-import Trainings from './pages/Trainings';
 import Travels from './pages/Travels';
 import __Layout from './Layout.jsx';
 
@@ -85,7 +84,6 @@ export const PAGES = {
     "StatusReports": StatusReports,
     "Team": Team,
     "Timeline": Timeline,
-    "Trainings": Trainings,
     "Travels": Travels,
 }
 
