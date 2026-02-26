@@ -390,14 +390,14 @@ Seja conciso e executivo.`
         Object.entries(verticalGroups).forEach(([vertical, prods]) => {
           const cronograma = allCronogramas.find(c => c.project_id === project.id && c.vertical === vertical);
           
-          // Se cronograma existe com evento, usa para todos
+          // Se cronograma existe com evento go_live, usa para todos
           if (cronograma) {
-            const migEvent = allTimelineEvents.find(e => e.cronograma_id === cronograma.id && e.phase === 'migracao_prd_blackout');
-            if (migEvent && migEvent.start_date) {
-              const migMonth = migEvent.start_date.substring(0, 7);
-              if (map[migMonth]) {
+            const goLiveEvent = allTimelineEvents.find(e => e.cronograma_id === cronograma.id && e.phase === 'go_live' && e.start_date);
+            if (goLiveEvent) {
+              const goLiveMonth = goLiveEvent.start_date.substring(0, 7);
+              if (map[goLiveMonth]) {
                 prods.forEach(prod => {
-                  map[migMonth].push({ product: prod, project, vertical, startDate: migEvent.start_date, inclusionValue: prod.inclusion_value || 0 });
+                  map[goLiveMonth].push({ product: prod, project, vertical, startDate: goLiveEvent.start_date, inclusionValue: prod.inclusion_value || 0 });
                 });
               }
               return;
@@ -406,20 +406,20 @@ Seja conciso e executivo.`
           
           // Se não encontrou por cronograma, busca cada produto individualmente
           prods.forEach(prod => {
-            const migEvent = allTimelineEvents.find(e => e.product_id === prod.id && e.phase === 'migracao_prd_blackout');
-            if (!migEvent || !migEvent.start_date) return;
-            const migMonth = migEvent.start_date.substring(0, 7);
-            if (!map[migMonth]) return;
-            map[migMonth].push({ product: prod, project, vertical, startDate: migEvent.start_date, inclusionValue: prod.inclusion_value || 0 });
+            const goLiveEvent = allTimelineEvents.find(e => e.product_id === prod.id && e.phase === 'go_live' && e.start_date);
+            if (!goLiveEvent) return;
+            const goLiveMonth = goLiveEvent.start_date.substring(0, 7);
+            if (!map[goLiveMonth]) return;
+            map[goLiveMonth].push({ product: prod, project, vertical, startDate: goLiveEvent.start_date, inclusionValue: prod.inclusion_value || 0 });
           });
         });
       } else {
         projectProducts.forEach(prod => {
-          const migEvent = allTimelineEvents.find(e => e.product_id === prod.id && e.phase === 'migracao_prd_blackout');
-          if (!migEvent || !migEvent.start_date) return;
-          const migMonth = migEvent.start_date.substring(0, 7);
-          if (!map[migMonth]) return;
-          map[migMonth].push({ product: prod, project, startDate: migEvent.start_date, inclusionValue: prod.inclusion_value || 0 });
+          const goLiveEvent = allTimelineEvents.find(e => e.product_id === prod.id && e.phase === 'go_live' && e.start_date);
+          if (!goLiveEvent) return;
+          const goLiveMonth = goLiveEvent.start_date.substring(0, 7);
+          if (!map[goLiveMonth]) return;
+          map[goLiveMonth].push({ product: prod, project, startDate: goLiveEvent.start_date, inclusionValue: prod.inclusion_value || 0 });
         });
       }
     });
