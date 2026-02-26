@@ -35,6 +35,7 @@ import ProjectRecognitionsModal from '../components/modals/ProjectRecognitionsMo
 import AIAssistantModal from '../components/modals/AIAssistantModal';
 import { Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
+import { calculateHealthScore } from '../components/dashboard/ProjectHealthScore';
 
 const statusLabels = {
   nao_iniciado: 'Não Iniciado',
