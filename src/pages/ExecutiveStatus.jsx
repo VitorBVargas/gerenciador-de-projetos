@@ -780,6 +780,20 @@ export default function ExecutiveStatus() {
                         <div className="text-sm text-white truncate">{project.manager}</div>
                       </div>
                     )}
+                    {(() => {
+                      const projectEvents = allTimelineEvents.filter(e => e.project_id === project.id);
+                      const latestDate = projectEvents.length > 0 
+                        ? new Date(Math.max(...projectEvents.map(e => e.end_date ? new Date(e.end_date).getTime() : 0)))
+                        : null;
+                      return (
+                        <div>
+                          <div className="text-xs text-slate-400 font-medium">Prazo Estimado</div>
+                          <div className="text-sm text-white">
+                            {latestDate && latestDate.getTime() > 0 ? latestDate.toLocaleDateString('pt-BR') : '—'}
+                          </div>
+                        </div>
+                      );
+                    })()}
                     {project.deadline && (
                       <div>
                         <div className="text-xs text-slate-400 font-medium">Prazo Contratual</div>
