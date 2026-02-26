@@ -369,6 +369,157 @@ export default function ExecutiveStatus() {
     return map;
   }, [allProducts, allTimelineEvents, allCronogramas, allRecognizedRevenues, projects]);
 
+  // Financeiro chart data (must be a hook at top level, not inside JSX)
+  const financeiroChartContent = useMemo(() => {
+    const monthlyData = {};
+    const monthlyRecorrenteProducts = {};
+
+    const relevantMonths = new Set();
+    allTimelineEvents.forEach(e => {
+      if (e.phase === 'operacao_assistida' && e.end_date) relevantMonths.add(e.end_date.substring(0, 7));
+      if (e.phase === 'go_live' && e.start_date) relevantMonths.add(e.start_date.substring(0, 7));
+    });
+    allRecognizedRevenues.forEach(r => {
+      if (r.recognition_month) relevantMonths.add(r.recognition_month.substring(0, 7));
+    });
+
+    const currentYear = new Date().getFullYear();
+    const defaultStart = `${currentYear}-01`;
+    const defaultEnd = `${currentYear}-12`;
+
+    const minMonth = relevantMonths.size > 0 ? [...relevantMonths].sort()[0] : defaultStart;
+    const maxMonth = relevantMonths.size > 0 ? [...relevantMonths].sort().reverse()[0] : defaultEnd;
+    const minDate = new Date(minMonth + '-01');
+    const maxDate = new Date(maxMonth + '-01');
+    const diffMonths = (maxDate.getFullYear() - minDate.getFullYear()) * 12 + (maxDate.getMonth() - minDate.getMonth());
+    const totalMonths = Math.max(diffMonths + 1, 12);
+
+    for (let i = 0; i < totalMonths; i++) {
+      const month = addMonths(minDate, i);
+      const key = format(month, 'yyyy-MM');
+      monthlyData[key] = { month: format(month, 'MMM/yy', { locale: ptBR }), implantacao: 0, a_receber: 0, recorrente: 0, reconhecido: 0 };
+      monthlyRecorrenteProducts[key] = [];
+    }
+
+    const implantacaoProductsMap = {};
+    projects.forEach(project => {
+      const projectProducts = allProducts.filter(p => p.project_id === project.id);
+      if (!projectProducts.length) return;
+
+      if (project.scheduling_type === 'por_vertical') {
+        const verticalGroups = {};
+        projectProducts.forEach(prod => {
+          const v = prod.vertical || 'outros';
+          if (!verticalGroups[v]) verticalGroups[v] = [];
+          verticalGroups[v].push(prod);
+        });
+        Object.entries(verticalGroups).forEach(([vertical, prods]) => {
+          const cronograma = allCronogramas.find(c => c.project_id === project.id && c.vertical === vertical);
+          let operacaoEvent = null;
+          if (cronograma) {
+            operacaoEvent = allTimelineEvents.find(e => e.cronograma_id === cronograma.id && e.phase === 'operacao_assistida' && e.end_date);
+          }
+          if (!operacaoEvent && prods.length > 0) {
+            operacaoEvent = allTimelineEvents.find(e => e.product_id === prods[0].id && e.phase === 'operacao_assistida' && e.end_date);
+          }
+          if (!operacaoEvent || !operacaoEvent.end_date) return;
+          const implMonth = operacaoEvent.end_date.substring(0, 7);
+          if (!monthlyData[implMonth]) return;
+          prods.forEach(prod => {
+            const totalImplValue = prod.implementation_value || 0;
+            if (totalImplValue > 0) {
+              monthlyData[implMonth].implantacao += totalImplValue;
+              if (!implantacaoProductsMap[implMonth]) implantacaoProductsMap[implMonth] = [];
+              implantacaoProductsMap[implMonth].push({ product: prod, project, end_date: operacaoEvent.end_date, amount: totalImplValue });
+            }
+          });
+        });
+      } else {
+        projectProducts.forEach(prod => {
+          const operacaoEvent = allTimelineEvents.find(e => e.product_id === prod.id && e.phase === 'operacao_assistida' && e.end_date);
+          if (!operacaoEvent || !operacaoEvent.end_date) return;
+          const implMonth = operacaoEvent.end_date.substring(0, 7);
+          if (!monthlyData[implMonth]) return;
+          const totalImplValue = prod.implementation_value || 0;
+          if (totalImplValue > 0) {
+            monthlyData[implMonth].implantacao += totalImplValue;
+            if (!implantacaoProductsMap[implMonth]) implantacaoProductsMap[implMonth] = [];
+            implantacaoProductsMap[implMonth].push({ product: prod, project, end_date: operacaoEvent.end_date, amount: totalImplValue });
+          }
+        });
+      }
+    });
+
+    Object.keys(monthlyData).forEach(monthKey => {
+      const productsThisMonth = implantacaoProductsMap[monthKey] || [];
+      let totalImplValue = 0;
+      let totalRecognized = 0;
+      productsThisMonth.forEach(({ product, amount }) => {
+        totalImplValue += amount;
+        const productRecognitions = allRecognizedRevenues.filter(r => r.product_id === product.id && r.type === 'implantacao');
+        totalRecognized += productRecognitions.reduce((sum, r) => sum + r.amount, 0);
+      });
+      monthlyData[monthKey].a_receber = Math.max(0, totalImplValue - totalRecognized);
+    });
+
+    projects.forEach(project => {
+      const projectProducts = allProducts.filter(p => p.project_id === project.id && (p.inclusion_value || 0) > 0);
+      if (!projectProducts.length) return;
+      if (project.scheduling_type === 'por_vertical') {
+        const verticalGroups = {};
+        projectProducts.forEach(prod => {
+          const v = prod.vertical || 'outros';
+          if (!verticalGroups[v]) verticalGroups[v] = [];
+          verticalGroups[v].push(prod);
+        });
+        Object.entries(verticalGroups).forEach(([vertical, prods]) => {
+          const cronograma = allCronogramas.find(c => c.project_id === project.id && c.vertical === vertical);
+          if (cronograma) {
+            const goLiveEvent = allTimelineEvents.find(e => e.cronograma_id === cronograma.id && e.phase === 'go_live' && e.start_date);
+            if (goLiveEvent) {
+              const goLiveMonth = goLiveEvent.start_date.substring(0, 7);
+              if (monthlyData[goLiveMonth]) {
+                const totalInclusao = prods.reduce((sum, p) => sum + (p.inclusion_value || 0), 0);
+                monthlyData[goLiveMonth].recorrente += totalInclusao;
+                prods.forEach(prod => {
+                  monthlyRecorrenteProducts[goLiveMonth].push({ product: prod, project, vertical, startDate: goLiveEvent.start_date, inclusionValue: prod.inclusion_value || 0 });
+                });
+              }
+              return;
+            }
+          }
+          prods.forEach(prod => {
+            const goLiveEvent = allTimelineEvents.find(e => e.product_id === prod.id && e.phase === 'go_live' && e.start_date);
+            if (!goLiveEvent || !goLiveEvent.start_date) return;
+            const goLiveMonth = goLiveEvent.start_date.substring(0, 7);
+            if (!monthlyData[goLiveMonth]) return;
+            monthlyData[goLiveMonth].recorrente += (prod.inclusion_value || 0);
+            monthlyRecorrenteProducts[goLiveMonth].push({ product: prod, project, vertical, startDate: goLiveEvent.start_date, inclusionValue: prod.inclusion_value || 0 });
+          });
+        });
+      } else {
+        projectProducts.forEach(prod => {
+          const goLiveEvent = allTimelineEvents.find(e => e.product_id === prod.id && e.phase === 'go_live' && e.start_date);
+          if (!goLiveEvent || !goLiveEvent.start_date) return;
+          const goLiveMonth = goLiveEvent.start_date.substring(0, 7);
+          if (!monthlyData[goLiveMonth]) return;
+          monthlyData[goLiveMonth].recorrente += (prod.inclusion_value || 0);
+          monthlyRecorrenteProducts[goLiveMonth].push({ product: prod, project, startDate: goLiveEvent.start_date, inclusionValue: prod.inclusion_value || 0 });
+        });
+      }
+    });
+
+    allRecognizedRevenues.forEach(recognized => {
+      if (recognized.type !== 'implantacao') return;
+      const project = allProjectsData.find(p => p.id === recognized.project_id);
+      if (!project || project.status === 'concluido') return;
+      const recMonth = recognized.recognition_month.substring(0, 7);
+      if (monthlyData[recMonth]) monthlyData[recMonth].reconhecido += recognized.amount;
+    });
+
+    return { monthlyData, chartData: Object.values(monthlyData) };
+  }, [projects, allProducts, allTimelineEvents, allCronogramas, allRecognizedRevenues, allProjectsData]);
+
   // Calculate project with health status
   const projectsWithMetrics = useMemo(() => {
     return projects.map(project => {
