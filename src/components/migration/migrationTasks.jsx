@@ -28,6 +28,20 @@ const parseTasksIntoSections = (tasks) => {
 export const migrationTasksByProduct = {
   // ISS - e-Nota
   'e-nota cloud': parseTasksIntoSections([
+    'MIGRAÇÃO: INICIAIS',
+    'Extrair Competências', 'Extrair Indexadores', 'Extrair Lista de Serviços', 'Extrair Incentivos Fiscais',
+    'MIGRAÇÃO: CONTRIBUINTES',
+    'Extrair Serviços Pessoa', 'Extrair Simples Nacional', 'Extrair Incentivo Pessoa', 'Extrair Contribuinte Prestador',
+    'Extrair Isenção Pessoa', 'Extrair Perfil Prestador', 'Extrair Serviço Contribuinte Prestador',
+    'Extrair Tributos Federais do Contribuinte Prestador', 'Extrair e-mail Prestador', 'Extrair Cadastro de Tomadores',
+    'MIGRAÇÃO: OPERACIONAL E DOCUMENTOS',
+    'Extrair RPS', 'Extrair Impressão de RPS', 'Extrair Notas Fiscais (Prestador, Tomador, Serviço, Obra...)',
+    'Extrair XML Notas Fiscais', 'Extrair Substituição Nota / Estorno', 'Extrair Cancelamento Nota',
+    'Extrair Denúncias', 'Extrair Infrações', 'Extrair Autos',
+    'MIGRAÇÃO: FINANCEIRA',
+    'Extrair Resumo Créditos Tributários', 'Extrair Movimentação Créditos Tributários', 'Extrair Guias de Pagamentos'
+  ]),
+
   'e - Nota (Cloud)': parseTasksIntoSections([
     'MIGRAÇÃO: INICIAIS',
     'Extrair Competências', 'Extrair Indexadores', 'Extrair Lista de Serviços', 'Extrair Incentivos Fiscais',

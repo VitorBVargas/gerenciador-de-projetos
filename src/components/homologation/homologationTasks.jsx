@@ -108,6 +108,14 @@ export const homologationTasksByProduct = {
   ]),
 
   'e-nota cloud': parseTasksIntoSections([
+    'SPRINT: CADASTROS E CONFIGURAÇÕES',
+    'Módulo Único: Cadastros (Entidades, Pessoas, Usuários), Auto de infração, Base cadastral (lista de serviços Lei 116/03, alíquotas, taxas), Configurações gerais, Endereços, Financeiros (competências, convênios, indexadores, feriados), Manutenção de incentivos fiscais, Mensagens, Relatórios personalizados, Rotinas externas, Scripts',
+    'SPRINT: PROCESSOS E MOVIMENTAÇÕES',
+    'Módulo Único: Processos (Liberação, Denúncia fiscal), Prestadores, Autorização para impressão de RPS, Gerar competências, Saldos, Créditos tributários, Cancelar notas, Substituir notas, Manutenção de guias de pagamento, Manutenções fiscais, Importação de arquivos (Simples Nacional/SIMEI), Exportação de notas, Sincronizar cadastros, Gerenciador de processos',
+    'SPRINT: RELATÓRIOS, CONSULTAS E ACESSOS',
+    'Módulo Único: Relatórios (Acessos, Cadastrais, Créditos, Notas fiscais, Pagamentos, RPS), Gerenciador de relatórios, Consultas, Resumos, Gráficos, Acessos, Prestação de Contas'
+  ]),
+
   'e - Nota (Cloud)': parseTasksIntoSections([
     'SPRINT: CADASTROS E CONFIGURAÇÕES',
     'Módulo Único: Cadastros (Entidades, Pessoas, Usuários), Auto de infração, Base cadastral (lista de serviços Lei 116/03, alíquotas, taxas), Configurações gerais, Endereços, Financeiros (competências, convênios, indexadores, feriados), Manutenção de incentivos fiscais, Mensagens, Relatórios personalizados, Rotinas externas, Scripts',
