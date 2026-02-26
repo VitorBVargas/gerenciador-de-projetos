@@ -23,11 +23,15 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
 
   // --- 1. TIMELINE (40 pts) ---
   const today = new Date();
+  today.setHours(0, 0, 0, 0); // Normaliza para comparação fair
   const delayedEvents = timeline.filter(e => e.status === 'atrasado');
   const overdueEvents = timeline.filter(e => {
     if (e.status === 'concluido') return false;
+    if (e.status === 'em_andamento') return false; // Não conta "em andamento"
     if (!e.end_date) return false;
-    return new Date(e.end_date) < today;
+    const endDate = new Date(e.end_date);
+    endDate.setHours(0, 0, 0, 0);
+    return endDate < today;
   });
 
   const delayCost = delayedEvents.length * 3 + overdueEvents.length * 2;
@@ -150,9 +154,9 @@ const getHealthStatus = (score) => {
   return { label: 'Crítico', color: 'text-red-400', bgColor: 'bg-red-500', ringColor: 'text-red-400' };
 };
 
-export default function ProjectHealthScore({ timeline = [], budget = 0, spent = 0, migrationTasks = [], homologationTasks = [], risks = [], products = [] }) {
+export default function ProjectHealthScore({ timeline = [], budget = 0, spent = 0, migrationTasks = [], homologationTasks = [], risks = [], products = [], cronogramas = [] }) {
   const [expanded, setExpanded] = useState(null);
-  const { score, alerts } = calculateHealthScore({ timeline, migrationTasks, homologationTasks, risks, products });
+  const { score, alerts } = calculateHealthScore({ timeline, migrationTasks, homologationTasks, risks, products, cronogramas });
   const status = getHealthStatus(score);
 
   const sevIcon = {
