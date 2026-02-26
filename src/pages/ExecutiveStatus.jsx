@@ -15,7 +15,8 @@ import {
   LayoutDashboard,
   ArrowLeft,
   Loader2,
-  Sparkles
+  Sparkles,
+  Pencil
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { createPageUrl } from '../utils';
@@ -28,6 +29,7 @@ import { ptBR } from 'date-fns/locale';
 import RecognizedRevenueModal from '../components/modals/RecognizedRevenueModal';
 import RecognizeAllVerticalModal from '../components/modals/RecognizeAllVerticalModal';
 import ProjectRecognitionsModal from '../components/modals/ProjectRecognitionsModal';
+import EditProjectRecurringModal from '../components/modals/EditProjectRecurringModal';
 import { toast } from 'sonner';
 import { calculateHealthScore } from '../components/dashboard/ProjectHealthScore';
 
