@@ -77,7 +77,7 @@ export default function ExpenseImporter({ open, onOpenChange, projectId, onImpor
       const data = XLSX.utils.sheet_to_json(ws, { defval: null });
 
       const parsed = data
-        .filter(row => row['Colaborador'] && row['Valor'])
+        .filter(row => row['Colaborador'] && row['Valor'] && row['Situação'] === 'Finalizada')
         .map(row => ({
           title: `${row['Tipo despesa'] || 'Despesa'} - ${row['Colaborador']}`,
           amount: parseFloat(row['Valor']) || 0,
@@ -89,6 +89,7 @@ export default function ExpenseImporter({ open, onOpenChange, projectId, onImpor
             row['Tipo despesa']
           ].filter(Boolean).join(' | '),
           project_id: projectId,
+          external_id: row['Identificador'] ? `${row['Identificador']}-${row['#']}` : null,
         }))
         .filter(r => r.date && r.amount > 0);
 
@@ -100,16 +101,26 @@ export default function ExpenseImporter({ open, onOpenChange, projectId, onImpor
 
   const handleImport = async () => {
     setImporting(true);
-    let success = 0, errors = 0;
+    let success = 0, errors = 0, skipped = 0;
+
+    // Fetch existing expenses to check for duplicates
+    const existingExpenses = await base44.entities.Expense.filter({ project_id: projectId });
+    const existingIds = new Set(existingExpenses.map(e => e.external_id).filter(Boolean));
+
     for (const row of rows) {
       try {
+        // Skip if external_id already exists
+        if (row.external_id && existingIds.has(row.external_id)) {
+          skipped++;
+          continue;
+        }
         await base44.entities.Expense.create(row);
         success++;
       } catch {
         errors++;
       }
     }
-    setImportResult({ success, errors });
+    setImportResult({ success, errors, skipped });
     setStep('done');
     setImporting(false);
     if (success > 0) onImported?.();
@@ -204,6 +215,9 @@ export default function ExpenseImporter({ open, onOpenChange, projectId, onImpor
               )}
               <p className="text-white font-semibold text-lg">Importação concluída</p>
               <p className="text-green-400">{importResult.success} despesas importadas com sucesso</p>
+              {importResult.skipped > 0 && (
+                <p className="text-blue-400">{importResult.skipped} despesas já existentes (ignoradas)</p>
+              )}
               {importResult.errors > 0 && (
                 <p className="text-red-400">{importResult.errors} despesas com erro</p>
               )}
