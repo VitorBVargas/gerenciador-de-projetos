@@ -383,13 +383,20 @@ export default function ExecutiveStatus() {
       if (r.recognition_month) relevantMonths.add(r.recognition_month.substring(0, 7));
     });
 
-    const currentYear = new Date().getFullYear();
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
+    const currentYearMonth = `${currentYear}-${currentMonth}`;
+    
     const defaultStart = `${currentYear}-01`;
     const defaultEnd = `${currentYear}-12`;
 
     const minMonth = relevantMonths.size > 0 ? [...relevantMonths].sort()[0] : defaultStart;
     const maxMonth = relevantMonths.size > 0 ? [...relevantMonths].sort().reverse()[0] : defaultEnd;
-    const minDate = new Date(minMonth + '-01');
+    
+    // Use current month as minimum for chart (to show only current month forward)
+    const chartMinMonth = minMonth > currentYearMonth ? minMonth : currentYearMonth;
+    const minDate = new Date(chartMinMonth + '-01');
     const maxDate = new Date(maxMonth + '-01');
     const diffMonths = (maxDate.getFullYear() - minDate.getFullYear()) * 12 + (maxDate.getMonth() - minDate.getMonth());
     const totalMonths = Math.max(diffMonths + 1, 12);
