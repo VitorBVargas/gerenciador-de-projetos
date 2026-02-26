@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
 import { 
   Plus, 
   Upload,
@@ -13,7 +14,9 @@ import {
   TrendingDown,
   AlertCircle,
   Pencil,
-  Trash2
+  Trash2,
+  Check,
+  X
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -58,6 +61,8 @@ export default function Budget() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [expenseToDelete, setExpenseToDelete] = useState(null);
   const [importerOpen, setImporterOpen] = useState(false);
+  const [editingBudget, setEditingBudget] = useState(null);
+  const [budgetValues, setBudgetValues] = useState({ pre_sales: '', implementation: '' });
 
   // Get project_id from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -94,6 +99,15 @@ export default function Budget() {
     }
   });
 
+  const updateProjectMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Project.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      setEditingBudget(null);
+      setBudgetValues({ pre_sales: '', implementation: '' });
+    }
+  });
+
   const deleteExpenseMutation = useMutation({
     mutationFn: (id) => base44.entities.Expense.delete(id),
     onSuccess: () => {
@@ -125,6 +139,29 @@ export default function Budget() {
     if (expenseToDelete) {
       deleteExpenseMutation.mutate(expenseToDelete.id);
     }
+  };
+
+  const handleEditBudget = () => {
+    setBudgetValues({
+      pre_sales: activeProject?.pre_sales_travel_budget?.toString() || '',
+      implementation: activeProject?.implementation_estimated_budget?.toString() || ''
+    });
+    setEditingBudget(true);
+  };
+
+  const handleSaveBudget = () => {
+    updateProjectMutation.mutate({
+      id: activeProject.id,
+      data: {
+        pre_sales_travel_budget: parseFloat(budgetValues.pre_sales) || 0,
+        implementation_estimated_budget: parseFloat(budgetValues.implementation) || 0
+      }
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingBudget(null);
+    setBudgetValues({ pre_sales: '', implementation: '' });
   };
 
   // Calculate budget metrics
@@ -172,6 +209,117 @@ export default function Budget() {
             Nova Despesa
           </Button>
         </div>
+      </div>
+
+      {/* Budget Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Pre-sales Travel Budget Card */}
+        <Card className="bg-gradient-to-br from-cyan-600/20 to-cyan-800/20 border-cyan-500/30">
+          <CardContent className="p-6">
+            {editingBudget === 'pre_sales' ? (
+              <div className="space-y-3">
+                <p className="text-sm text-cyan-200">Orçamento de Viagens Pré Vendas</p>
+                <Input
+                  type="number"
+                  placeholder="0,00"
+                  value={budgetValues.pre_sales}
+                  onChange={(e) => setBudgetValues({ ...budgetValues, pre_sales: e.target.value })}
+                  className="bg-slate-700 border-slate-600 text-white"
+                  step="0.01"
+                />
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    onClick={handleSaveBudget}
+                    className="bg-green-600 hover:bg-green-700 flex-1"
+                  >
+                    <Check className="w-4 h-4 mr-1" />
+                    Salvar
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleCancelEdit}
+                    className="flex-1"
+                  >
+                    <X className="w-4 h-4 mr-1" />
+                    Cancelar
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm text-cyan-200">Orçamento de Viagens Pré Vendas</p>
+                  <button
+                    onClick={() => handleEditBudget()}
+                    className="p-1 rounded hover:bg-cyan-500/20 transition-colors"
+                  >
+                    <Pencil className="w-4 h-4 text-cyan-400" />
+                  </button>
+                </div>
+                <p className="text-2xl font-bold text-white">{formatCurrency(activeProject?.pre_sales_travel_budget || 0)}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Implementation Estimated Budget Card */}
+        <Card className="bg-gradient-to-br from-indigo-600/20 to-indigo-800/20 border-indigo-500/30">
+          <CardContent className="p-6">
+            {editingBudget === 'implementation' ? (
+              <div className="space-y-3">
+                <p className="text-sm text-indigo-200">Orçamento Estimado Implantação</p>
+                <Input
+                  type="number"
+                  placeholder="0,00"
+                  value={budgetValues.implementation}
+                  onChange={(e) => setBudgetValues({ ...budgetValues, implementation: e.target.value })}
+                  className="bg-slate-700 border-slate-600 text-white"
+                  step="0.01"
+                />
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    onClick={handleSaveBudget}
+                    className="bg-green-600 hover:bg-green-700 flex-1"
+                  >
+                    <Check className="w-4 h-4 mr-1" />
+                    Salvar
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleCancelEdit}
+                    className="flex-1"
+                  >
+                    <X className="w-4 h-4 mr-1" />
+                    Cancelar
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm text-indigo-200">Orçamento Estimado Implantação</p>
+                  <button
+                    onClick={() => {
+                      setBudgetValues({
+                        pre_sales: activeProject?.pre_sales_travel_budget?.toString() || '',
+                        implementation: activeProject?.implementation_estimated_budget?.toString() || ''
+                      });
+                      setEditingBudget('implementation');
+                    }}
+                    className="p-1 rounded hover:bg-indigo-500/20 transition-colors"
+                  >
+                    <Pencil className="w-4 h-4 text-indigo-400" />
+                  </button>
+                </div>
+                <p className="text-2xl font-bold text-white">{formatCurrency(activeProject?.implementation_estimated_budget || 0)}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Budget Summary Cards */}
