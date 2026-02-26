@@ -22,19 +22,10 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
   const alerts = []; // { severity: 'high'|'medium'|'good', text, detail }
 
   // --- 1. TIMELINE (40 pts) ---
-  const today = new Date();
-  today.setHours(0, 0, 0, 0); // Normaliza para comparação fair
+  // IMPORTANTE: Conta APENAS etapas com status === 'atrasado' explícito
   const delayedEvents = timeline.filter(e => e.status === 'atrasado');
-  const overdueEvents = timeline.filter(e => {
-    if (e.status === 'concluido') return false;
-    if (e.status === 'em_andamento') return false; // Não conta "em andamento"
-    if (!e.end_date) return false;
-    const endDate = new Date(e.end_date);
-    endDate.setHours(0, 0, 0, 0);
-    return endDate < today;
-  });
 
-  const delayCost = delayedEvents.length * 3 + overdueEvents.length * 2;
+  const delayCost = delayedEvents.length * 3;
   const timelineDeduction = Math.min(40, delayCost);
   score -= timelineDeduction;
 
@@ -61,25 +52,6 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
     alerts.push({
       severity: delayedEvents.length >= 3 ? 'high' : 'medium',
       text: `${delayedEvents.length} etapa${delayedEvents.length > 1 ? 's' : ''} atrasada${delayedEvents.length > 1 ? 's' : ''}`,
-      detail: `Verticais: ${summary}`,
-      lines: details
-    });
-  }
-
-  if (overdueEvents.length > 0 && overdueEvents.some(e => !delayedEvents.find(d => d.id === e.id))) {
-    const filtered = overdueEvents.filter(e => !delayedEvents.find(d => d.id === e.id));
-    const byVertical = {};
-    filtered.forEach(e => {
-      const v = getCronogramaLabel(e);
-      if (!byVertical[v]) byVertical[v] = { count: 0, titles: [] };
-      byVertical[v].count++;
-      byVertical[v].titles.push(e.title);
-    });
-    const summary = Object.entries(byVertical).map(([v, d]) => `${v} (${d.count})`).join(', ');
-    const details = Object.entries(byVertical).map(([v, d]) => `• ${v}: ${d.titles.slice(0, 3).join(', ')}${d.titles.length > 3 ? ` +${d.titles.length - 3}` : ''}`).join('\n');
-    alerts.push({
-      severity: 'medium',
-      text: `${filtered.length} etapa${filtered.length > 1 ? 's' : ''} com prazo vencido`,
       detail: `Verticais: ${summary}`,
       lines: details
     });
