@@ -62,8 +62,8 @@ export default function RecognitionImporter({ open, onOpenChange }) {
       const defaultMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
 
       for (const row of rows) {
-        // Suporta tanto "Nome da conta" quanto "Entidade"
-        const accountName = row['Nome da conta'] || row['Entidade'];
+        // Suporta variações de coluna de conta/entidade (case-insensitive)
+        const accountName = row['Nome da Conta'] || row['Nome da conta'] || row['Entidade'];
         const productName = row['Produto'];
         const dateRaw = row['Data'];
         const valor = row['Valor'] || 0;
