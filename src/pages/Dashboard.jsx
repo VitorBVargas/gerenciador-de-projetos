@@ -115,6 +115,12 @@ export default function Dashboard() {
     enabled: !!projectId
   });
 
+  const { data: cronogramas = [] } = useQuery({
+    queryKey: ['cronogramas', projectId],
+    queryFn: () => projectId ? base44.entities.Cronograma.filter({ project_id: projectId }) : [],
+    enabled: !!projectId
+  });
+
   // Active project
   const activeProject = projects.find(p => p.id === projectId);
 
