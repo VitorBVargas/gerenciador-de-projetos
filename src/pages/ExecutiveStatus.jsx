@@ -365,9 +365,11 @@ Seja conciso e executivo.`
   // Recalcular mapa de produtos recorrentes sempre que os dados mudarem
   useEffect(() => {
     const map = {};
-    const now = new Date();
+    // Começa de janeiro do ano atual (igual ao useMemo dos gráficos)
+    const currentYear = new Date().getFullYear();
+    const janFirst = new Date(currentYear, 0, 1);
     for (let i = 0; i < 12; i++) {
-      const key = format(addMonths(now, i), 'yyyy-MM');
+      const key = format(addMonths(janFirst, i), 'yyyy-MM');
       map[key] = [];
     }
     projects.forEach(project => {
