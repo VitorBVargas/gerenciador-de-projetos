@@ -1081,13 +1081,35 @@ Seja conciso, profissional e em português.`;
              // monthlyRecorrenteProducts: { [monthKey]: [{product, project, cronograma, startDate}] }
              const monthlyRecorrenteProducts = {};
 
-             // Começar do janeiro do ano atual/corrente
-             const currentYear = new Date().getFullYear();
-             const janFirst = new Date(currentYear, 0, 1); // Janeiro do ano atual
+             // Calcular range dinâmico: coletar todos os meses relevantes dos dados
+             const relevantMonths = new Set();
+             // Meses de operação assistida (implantação)
+             allTimelineEvents.forEach(e => {
+               if (e.phase === 'operacao_assistida' && e.end_date) relevantMonths.add(e.end_date.substring(0, 7));
+               if (e.phase === 'go_live' && e.start_date) relevantMonths.add(e.start_date.substring(0, 7));
+             });
+             // Meses de reconhecimentos
+             allRecognizedRevenues.forEach(r => {
+               if (r.recognition_month) relevantMonths.add(r.recognition_month.substring(0, 7));
+             });
 
-             // Gerar 12 meses começando de janeiro
-             for (let i = 0; i < 12; i++) {
-               const month = addMonths(janFirst, i);
+             // Determinar min e max, com fallback para jan do ano atual
+             const currentYear = new Date().getFullYear();
+             const defaultStart = `${currentYear}-01`;
+             const defaultEnd = `${currentYear}-12`;
+
+             let minMonth = relevantMonths.size > 0 ? [...relevantMonths].sort()[0] : defaultStart;
+             let maxMonth = relevantMonths.size > 0 ? [...relevantMonths].sort().reverse()[0] : defaultEnd;
+
+             // Garantir pelo menos 12 meses de janela
+             const minDate = new Date(minMonth + '-01');
+             const maxDate = new Date(maxMonth + '-01');
+             const diffMonths = (maxDate.getFullYear() - minDate.getFullYear()) * 12 + (maxDate.getMonth() - minDate.getMonth());
+             const totalMonths = Math.max(diffMonths + 1, 12);
+
+             // Gerar meses no range dinâmico
+             for (let i = 0; i < totalMonths; i++) {
+               const month = addMonths(minDate, i);
                const key = format(month, 'yyyy-MM');
                monthlyData[key] = {
                  month: format(month, 'MMM/yy', { locale: ptBR }),
