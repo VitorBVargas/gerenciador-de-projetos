@@ -77,8 +77,6 @@ export default function ExecutiveStatus() {
     recorrente: true,
     password: true
   });
-  const [isAnalyzingPortfolio, setIsAnalyzingPortfolio] = useState(false);
-  const [conversation, setConversation] = useState(null);
   const [expandedRecognitions, setExpandedRecognitions] = useState({});
   const queryClient = useQueryClient();
 
