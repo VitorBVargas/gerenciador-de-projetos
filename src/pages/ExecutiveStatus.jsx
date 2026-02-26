@@ -197,6 +197,16 @@ export default function ExecutiveStatus() {
     }
   });
 
+  const updateProjectRecurringMutation = useMutation({
+    mutationFn: ({ id, recurringValue }) => base44.entities.Project.update(id, { recurring_value: recurringValue }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      setIsEditRecurringModalOpen(false);
+      setEditingProjectId(null);
+      toast.success('Valor recorrente atualizado com sucesso!');
+    }
+  });
+
   // Wrapper que chama a mesma lógica do componente ProjectHealthScore
   const getProjectHealthScore = (project) => {
     const timeline = allTimelineEvents.filter(e => e.project_id === project.id);
