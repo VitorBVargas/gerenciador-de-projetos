@@ -1626,7 +1626,7 @@ Seja conciso, profissional e em português.`;
                      });
 
                     // Produtos recorrente (azul) - go-live neste mês
-                    const recorrenteProds = monthlyRecorrenteProducts[selectedMonth] || [];
+                    const recorrenteProds = recorrenteProductsMap[selectedMonth] || [];
 
                     if (aReceberProds.length === 0 && recognizedProds.length === 0 && recorrenteProds.length === 0) return null;
 
