@@ -767,6 +767,18 @@ export default function ExecutiveStatus() {
                         <span className={getHealthColor(project.healthScore)}>{project.healthScore}</span>
                       </Badge>
                       <div className="flex items-center gap-1">
+                        <Button
+                          size="icon"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setEditingProjectId(project.id);
+                            setIsEditRecurringModalOpen(true);
+                          }}
+                          className="h-8 w-8 bg-blue-800/50 hover:bg-blue-700 border border-blue-600/40 shrink-0"
+                          title="Editar Recorrente do Contrato"
+                        >
+                          <Pencil className="w-4 h-4 text-blue-300" />
+                        </Button>
                         {allRecognizedRevenues.some(r => r.project_id === project.id) && (
                           <Button
                             size="icon"
