@@ -1628,13 +1628,12 @@ Seja conciso, profissional e em português.`;
                     // Produtos recorrente (azul) - go-live neste mês
                     const recorrenteProds = recorrenteProductsMap[selectedMonth] || [];
 
-                    if (aReceberProds.length === 0 && recognizedProds.length === 0 && recorrenteProds.length === 0) return null;
+                    if (selectedMonthType === null && aReceberProds.length === 0 && recognizedProds.length === 0 && recorrenteProds.length === 0) return null;
 
                     // Mostrar qual card abrir
-                    const showImplantacao = selectedMonthType === 'implantacao' || (selectedMonthType === null && (aReceberProds.length > 0 || recognizedProds.length > 0));
                     const showRecorrente = selectedMonthType === 'recorrente';
 
-                    if (showRecorrente && recorrenteProds.length > 0) {
+                    if (showRecorrente) {
                      return (
                        <Card className="bg-slate-800 border-slate-600">
                          <CardHeader>
