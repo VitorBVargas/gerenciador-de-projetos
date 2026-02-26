@@ -8,57 +8,57 @@ Deno.serve(async (req) => {
         today.setHours(0, 0, 0, 0);
         const todayStr = today.toISOString().split('T')[0];
 
-        // Busca todos os eventos em lotes de 100
-        let allEvents = [];
-        let skip = 0;
-        const batchSize = 100;
-        while (true) {
-            const batch = await base44.asServiceRole.entities.TimelineEvent.list('-created_date', batchSize, skip);
-            if (!batch || batch.length === 0) break;
-            allEvents = allEvents.concat(batch);
-            if (batch.length < batchSize) break;
-            skip += batchSize;
+        // 1. Busca todos os projetos
+        const projects = await base44.asServiceRole.entities.Project.list('-created_date', 200);
+        if (!projects || projects.length === 0) {
+            return Response.json({ success: true, message: 'Nenhum projeto encontrado', updated: 0 });
         }
 
-        const toUpdate = [];
+        let totalUpdated = 0;
+        const summary = [];
 
-        for (const event of allEvents) {
-            if (event.status === 'concluido') continue;
-            if (!event.start_date) continue;
+        // 2. Para cada projeto, busca e atualiza seus eventos
+        for (const project of projects) {
+            const events = await base44.asServiceRole.entities.TimelineEvent.filter({ project_id: project.id });
 
-            const startStr = event.start_date.split('T')[0];
-            const endStr = event.end_date ? event.end_date.split('T')[0] : null;
+            if (!events || events.length === 0) continue;
 
-            let newStatus;
-            if (todayStr < startStr) {
-                newStatus = 'nao_iniciado';
-            } else if (endStr && todayStr > endStr) {
-                newStatus = 'atrasado';
-            } else {
-                newStatus = 'em_andamento';
+            let projectUpdated = 0;
+
+            for (const event of events) {
+                if (event.status === 'concluido') continue;
+                if (!event.start_date) continue;
+
+                const startStr = event.start_date.split('T')[0];
+                const endStr = event.end_date ? event.end_date.split('T')[0] : null;
+
+                let newStatus;
+                if (todayStr < startStr) {
+                    newStatus = 'nao_iniciado';
+                } else if (endStr && todayStr > endStr) {
+                    newStatus = 'atrasado';
+                } else {
+                    newStatus = 'em_andamento';
+                }
+
+                if (newStatus !== event.status) {
+                    await base44.asServiceRole.entities.TimelineEvent.update(event.id, { status: newStatus });
+                    projectUpdated++;
+                    totalUpdated++;
+                }
             }
 
-            if (newStatus !== event.status) {
-                toUpdate.push({ id: event.id, newStatus });
-            }
-        }
+            summary.push({ project: project.name, updated: projectUpdated });
 
-        // Atualiza em série com pequeno delay para evitar rate limit
-        let updated = 0;
-        for (const item of toUpdate) {
-            await base44.asServiceRole.entities.TimelineEvent.update(item.id, { status: item.newStatus });
-            updated++;
-            // Pequena pausa a cada 10 updates
-            if (updated % 10 === 0) {
-                await new Promise(r => setTimeout(r, 200));
-            }
+            // Pausa entre projetos para evitar rate limit
+            await new Promise(r => setTimeout(r, 300));
         }
 
         return Response.json({
             success: true,
-            total_events: allEvents.length,
-            updated,
-            updates: toUpdate
+            total_projects: projects.length,
+            total_updated: totalUpdated,
+            summary
         });
     } catch (error) {
         return Response.json({ error: error.message }, { status: 500 });
