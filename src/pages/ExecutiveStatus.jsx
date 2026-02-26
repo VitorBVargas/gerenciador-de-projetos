@@ -121,7 +121,7 @@ export default function ExecutiveStatus() {
       const releasedPasswords = allProducts.filter(p => p.production_password).length;
       const totalRecognized = allRecognizedRevenues.reduce((sum, r) => sum + (r.amount || 0), 0);
 
-      await base44.agents.addMessage(conversation, {
+      await base44.agents.addMessage(conv, {
         role: 'user',
         content: `Faça uma análise inteligente do status atual do portfólio de clientes Premium SC/MG.
 
