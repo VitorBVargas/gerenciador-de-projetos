@@ -1,6 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-// Processa UM projeto por execução, rotacionando via índice salvo em variável de ambiente ou argumento
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
@@ -9,31 +8,26 @@ Deno.serve(async (req) => {
         today.setHours(0, 0, 0, 0);
         const todayStr = today.toISOString().split('T')[0];
 
-        // Recebe project_id opcional no body para processar só um projeto específico
-        let body = {};
-        try { body = await req.json(); } catch (_) {}
-        const specificProjectId = body.project_id || null;
+        // 1. Busca todos os projetos ativos
+        const projects = await base44.asServiceRole.entities.Project.filter(
+            { status: 'em_andamento' }
+        );
 
-        // Busca projetos
-        const projects = await base44.asServiceRole.entities.Project.list('-created_date', 200);
         if (!projects || projects.length === 0) {
-            return Response.json({ success: true, message: 'Nenhum projeto encontrado', updated: 0 });
+            return Response.json({ success: true, message: 'Nenhum projeto ativo', updated: 0 });
         }
-
-        // Se veio project_id específico, processa só ele; senão pega todos mas com pausa maior
-        const toProcess = specificProjectId
-            ? projects.filter(p => p.id === specificProjectId)
-            : projects;
 
         let totalUpdated = 0;
         const summary = [];
 
-        for (const project of toProcess) {
-            // Busca eventos deste projeto
+        // 2. Para cada projeto, busca eventos e atualiza só os que precisam mudar
+        for (const project of projects) {
+            await new Promise(r => setTimeout(r, 300)); // pausa entre projetos
+
             const events = await base44.asServiceRole.entities.TimelineEvent.filter({ project_id: project.id });
             if (!events || events.length === 0) continue;
 
-            let projectUpdated = 0;
+            const updates = [];
 
             for (const event of events) {
                 if (event.status === 'concluido') continue;
@@ -52,23 +46,23 @@ Deno.serve(async (req) => {
                 }
 
                 if (newStatus !== event.status) {
-                    await base44.asServiceRole.entities.TimelineEvent.update(event.id, { status: newStatus });
-                    projectUpdated++;
-                    totalUpdated++;
-                    // Pausa entre cada update
-                    await new Promise(r => setTimeout(r, 500));
+                    updates.push({ id: event.id, newStatus });
                 }
             }
 
-            summary.push({ project: project.name, updated: projectUpdated });
+            // Aplica updates em série com pequena pausa
+            for (const u of updates) {
+                await base44.asServiceRole.entities.TimelineEvent.update(u.id, { status: u.newStatus });
+                await new Promise(r => setTimeout(r, 200));
+            }
 
-            // Pausa maior entre projetos
-            await new Promise(r => setTimeout(r, 1000));
+            totalUpdated += updates.length;
+            summary.push({ project: project.name, updated: updates.length });
         }
 
         return Response.json({
             success: true,
-            total_projects: toProcess.length,
+            total_projects: projects.length,
             total_updated: totalUpdated,
             summary
         });
