@@ -1776,8 +1776,8 @@ Seja conciso, profissional e em português.`;
                                   <div key={rec.id} className="p-3 bg-purple-900/20 rounded-lg border border-purple-700/50">
                                     <div className="flex items-start justify-between gap-4">
                                       <div className="flex-1">
-                                        <div className="font-semibold text-white text-sm">{product?.name || 'N/A'}</div>
-                                        <div className="text-xs text-slate-400">Projeto: {project?.name || 'N/A'}</div>
+                                       <div className="font-semibold text-white text-sm">{product?.name || 'N/A'}</div>
+                                       <div className="text-xs text-slate-400">{project?.name || 'N/A'}{product?.entity ? ` · ${product.entity}` : ''}</div>
                                       </div>
                                       <div className="text-right shrink-0">
                                         <div className="text-sm font-semibold text-purple-400">
