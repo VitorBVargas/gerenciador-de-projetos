@@ -6,46 +6,59 @@ Deno.serve(async (req) => {
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+        const todayStr = today.toISOString().split('T')[0];
 
-        // Busca todos os eventos que NÃO estão concluídos
-        const events = await base44.asServiceRole.entities.TimelineEvent.filter({});
+        // Busca todos os eventos em lotes de 100
+        let allEvents = [];
+        let skip = 0;
+        const batchSize = 100;
+        while (true) {
+            const batch = await base44.asServiceRole.entities.TimelineEvent.list('-created_date', batchSize, skip);
+            if (!batch || batch.length === 0) break;
+            allEvents = allEvents.concat(batch);
+            if (batch.length < batchSize) break;
+            skip += batchSize;
+        }
 
-        const updates = [];
+        const toUpdate = [];
 
-        for (const event of events) {
-            // Nunca alterar status concluído automaticamente
+        for (const event of allEvents) {
             if (event.status === 'concluido') continue;
+            if (!event.start_date) continue;
 
-            const startDate = event.start_date ? new Date(event.start_date) : null;
-            const endDate = event.end_date ? new Date(event.end_date) : null;
+            const startStr = event.start_date.split('T')[0];
+            const endStr = event.end_date ? event.end_date.split('T')[0] : null;
 
-            if (startDate) startDate.setHours(0, 0, 0, 0);
-            if (endDate) endDate.setHours(0, 0, 0, 0);
-
-            let newStatus = event.status;
-
-            if (!startDate) continue;
-
-            if (today < startDate) {
+            let newStatus;
+            if (todayStr < startStr) {
                 newStatus = 'nao_iniciado';
-            } else if (endDate && today > endDate) {
+            } else if (endStr && todayStr > endStr) {
                 newStatus = 'atrasado';
             } else {
-                // today >= startDate && (no endDate or today <= endDate)
                 newStatus = 'em_andamento';
             }
 
             if (newStatus !== event.status) {
-                updates.push({ id: event.id, newStatus });
-                await base44.asServiceRole.entities.TimelineEvent.update(event.id, { status: newStatus });
+                toUpdate.push({ id: event.id, newStatus });
+            }
+        }
+
+        // Atualiza em série com pequeno delay para evitar rate limit
+        let updated = 0;
+        for (const item of toUpdate) {
+            await base44.asServiceRole.entities.TimelineEvent.update(item.id, { status: item.newStatus });
+            updated++;
+            // Pequena pausa a cada 10 updates
+            if (updated % 10 === 0) {
+                await new Promise(r => setTimeout(r, 200));
             }
         }
 
         return Response.json({
             success: true,
-            total_events: events.length,
-            updated: updates.length,
-            updates
+            total_events: allEvents.length,
+            updated,
+            updates: toUpdate
         });
     } catch (error) {
         return Response.json({ error: error.message }, { status: 500 });
