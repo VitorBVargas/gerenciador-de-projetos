@@ -21,7 +21,7 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
   let score = 100;
   const alerts = []; // { severity: 'high'|'medium'|'good', text, detail }
 
-  // --- 1. TIMELINE (30 pts) ---
+  // --- 1. TIMELINE (40 pts) ---
   const today = new Date();
   const delayedEvents = timeline.filter(e => e.status === 'atrasado');
   const overdueEvents = timeline.filter(e => {
@@ -31,7 +31,7 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
   });
 
   const delayCost = delayedEvents.length * 3 + overdueEvents.length * 2;
-  const timelineDeduction = Math.min(30, delayCost);
+  const timelineDeduction = Math.min(40, delayCost);
   score -= timelineDeduction;
 
   // Helper: para cada cronograma_id, busca o nome da vertical (cronograma)
@@ -81,36 +81,12 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
     });
   }
 
-  // --- 2. BUDGET (25 pts) ---
-  if (budget > 0) {
-    const pct = (spent / budget) * 100;
-    let budgetDeduction = 0;
-    if (pct > 120) budgetDeduction = 25;
-    else if (pct > 100) budgetDeduction = 15;
-    else if (pct > 85) budgetDeduction = 5;
-    score -= budgetDeduction;
-
-    if (pct > 100) {
-      alerts.push({
-        severity: 'high',
-        text: `Orçamento excedido em ${Math.round(pct - 100)}%`,
-        detail: `Gasto: R$ ${spent.toLocaleString('pt-BR')} / Orçado: R$ ${budget.toLocaleString('pt-BR')}`
-      });
-    } else if (pct > 85) {
-      alerts.push({
-        severity: 'medium',
-        text: `Orçamento ${Math.round(pct)}% utilizado`,
-        detail: `Restam R$ ${(budget - spent).toLocaleString('pt-BR')}`
-      });
-    }
-  }
-
-  // --- 3. MIGRATION & HOMOLOGATION (25 pts) ---
+  // --- 2. MIGRATION & HOMOLOGATION (35 pts) ---
   const allTasks = [...migrationTasks, ...homologationTasks];
   if (allTasks.length > 0) {
     const completedTasks = allTasks.filter(t => t.completed).length;
     const rate = completedTasks / allTasks.length;
-    const progressDeduction = Math.round((1 - rate) * 25);
+    const progressDeduction = Math.round((1 - rate) * 35);
     score -= progressDeduction;
 
     // Find products with 0% completion
@@ -176,7 +152,7 @@ const getHealthStatus = (score) => {
 
 export default function ProjectHealthScore({ timeline = [], budget = 0, spent = 0, migrationTasks = [], homologationTasks = [], risks = [], products = [] }) {
   const [expanded, setExpanded] = useState(null);
-  const { score, alerts } = calculateHealthScore({ timeline, budget, spent, migrationTasks, homologationTasks, risks, products });
+  const { score, alerts } = calculateHealthScore({ timeline, migrationTasks, homologationTasks, risks, products });
   const status = getHealthStatus(score);
 
   const sevIcon = {
