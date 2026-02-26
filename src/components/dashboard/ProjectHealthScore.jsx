@@ -236,8 +236,13 @@ export default function ProjectHealthScore({ timeline = [], budget = 0, spent = 
                     expanded === idx ? <ChevronUp className="w-3.5 h-3.5 text-slate-500" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
                   )}
                 </div>
-                {expanded === idx && alert.detail && (
-                  <p className="text-xs text-slate-400 mt-1.5 ml-6">{alert.detail}</p>
+                {expanded === idx && (alert.detail || alert.lines) && (
+                  <div className="mt-1.5 ml-6 space-y-1">
+                    {alert.detail && <p className="text-xs text-slate-400">{alert.detail}</p>}
+                    {alert.lines && (
+                      <pre className="text-xs text-slate-500 whitespace-pre-wrap font-sans">{alert.lines}</pre>
+                    )}
+                  </div>
                 )}
               </div>
             ))}
