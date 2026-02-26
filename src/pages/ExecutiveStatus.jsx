@@ -270,7 +270,10 @@ Seja conciso e executivo.`
     const risks = allRisks.filter(r => r.project_id === project.id);
     const expenses = allExpenses.filter(e => e.project_id === project.id);
     const spent = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
-    const { score } = calculateHealthScore({ timeline, budget: project.budget || 0, spent, migrationTasks: [], homologationTasks: [], risks, products: [] });
+    const migrationTasks = allMigrationTasks.filter(t => t.project_id === project.id);
+    const homologationTasks = allHomologationTasks.filter(t => t.project_id === project.id);
+    const products = allProducts.filter(p => p.project_id === project.id);
+    const { score } = calculateHealthScore({ timeline, budget: project.budget || 0, spent, migrationTasks, homologationTasks, risks, products });
     return score;
   };
 
