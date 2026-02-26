@@ -158,7 +158,7 @@ export default function RecognitionImporter({ open, onOpenChange }) {
 
         <div className="space-y-4">
           <p className="text-slate-400 text-sm">
-            Selecione a planilha de reconhecimento. O sistema irá cruzar os dados de <strong className="text-white">Nome da conta</strong> e <strong className="text-white">Produto</strong> com os projetos e produtos cadastrados.
+            Selecione a planilha de reconhecimento. O sistema irá cruzar os dados de <strong className="text-white">Entidade</strong> (ou Nome da conta) e <strong className="text-white">Produto</strong> com os projetos e produtos cadastrados. Se não houver coluna de data, usa o mês atual.
           </p>
 
           <div className="border-2 border-dashed border-slate-600 rounded-lg p-6 text-center">
