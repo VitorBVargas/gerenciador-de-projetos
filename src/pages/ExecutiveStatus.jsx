@@ -1751,14 +1751,14 @@ Seja conciso, profissional e em português.`;
                                   <div key={product.id} className="p-3 bg-emerald-900/20 rounded-lg border border-emerald-700/50">
                                     <div className="flex items-start justify-between gap-4">
                                       <div className="flex-1">
-                                        <div className="font-semibold text-white text-sm">{product.name}</div>
-                                        <div className="text-xs text-slate-400">Projeto: {project.name}</div>
+                                       <div className="font-semibold text-white text-sm">{product.name}</div>
+                                       <div className="text-xs text-slate-400">{project.name}{product.entity ? ` · ${product.entity}` : ''}</div>
                                       </div>
                                       <div className="text-right shrink-0">
-                                        <div className="text-sm font-semibold text-emerald-400">
-                                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(amount)}
-                                        </div>
-                                        {deadline && <div className="text-xs text-slate-500">{format(new Date(deadline), 'dd/MM/yyyy', { locale: ptBR })}</div>}
+                                       <div className="text-sm font-semibold text-emerald-400">
+                                         {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(amount)}
+                                       </div>
+                                       {deadline && <div className="text-xs text-slate-500">{format(new Date(deadline), 'dd/MM/yyyy', { locale: ptBR })}</div>}
                                       </div>
                                     </div>
                                   </div>
