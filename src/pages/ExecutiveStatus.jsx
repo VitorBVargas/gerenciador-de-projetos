@@ -1117,15 +1117,15 @@ export default function ExecutiveStatus() {
                       </BarChart>
                     </ResponsiveContainer>
                     <div className="mt-4 text-center">
-                      <div className="text-2xl font-bold text-emerald-400">
-                        {new Intl.NumberFormat('pt-BR', {
-                          style: 'currency',
-                          currency: 'BRL',
-                          minimumFractionDigits: 0
-                        }).format(chartData.reduce((sum, d) => sum + d.implantacao + d.reconhecido, 0))}
-                      </div>
-                      <div className="text-sm text-slate-400">Total Implantação (12 meses)</div>
-                    </div>
+                       <div className="text-2xl font-bold text-emerald-400">
+                         {new Intl.NumberFormat('pt-BR', {
+                           style: 'currency',
+                           currency: 'BRL',
+                           minimumFractionDigits: 0
+                         }).format(chartData.reduce((sum, d) => sum + d.a_receber, 0))}
+                       </div>
+                       <div className="text-sm text-slate-400">Total A Receber (12 meses)</div>
+                     </div>
                   </CardContent>
                   </Card>
                   )}
