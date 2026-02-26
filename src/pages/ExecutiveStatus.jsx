@@ -439,23 +439,7 @@ export default function ExecutiveStatus() {
               <span className="text-sm">Voltar para Projetos</span>
             </button>
           </Link>
-          <Button 
-            onClick={() => analyzePortfolioStatus()}
-            disabled={isAnalyzingPortfolio}
-            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-          >
-            {isAnalyzingPortfolio ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Analisando...
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-4 h-4 mr-2" />
-                Análise Inteligente
-              </>
-            )}
-          </Button>
+
         </div>
         <div className="space-y-2">
           <h1 className="text-3xl font-bold text-white">Clientes Premium SC/MG</h1>
