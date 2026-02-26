@@ -17,7 +17,7 @@ const verticalLabels = {
   outros: 'Outros'
 };
 
-const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, homologationTasks, risks, products }) => {
+export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, homologationTasks, risks, products }) => {
   let score = 100;
   const alerts = []; // { severity: 'high'|'medium'|'good', text, detail }
 
