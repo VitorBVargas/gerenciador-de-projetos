@@ -112,7 +112,8 @@ export default function ExecutiveStatus() {
   };
 
   const analyzePortfolioStatus = async () => {
-    if (!conversation) return;
+    const conv = await initConversationIfNeeded();
+    if (!conv) return;
     
     setIsAnalyzingPortfolio(true);
     try {
