@@ -1587,13 +1587,6 @@ export default function ExecutiveStatus() {
         />
       )}
 
-      {/* AI Assistant Modal */}
-      <AIAssistantModal 
-        isOpen={isAIModalOpen}
-        onClose={() => setIsAIModalOpen(false)}
-        conversation={conversation}
-      />
-
       {/* Recognized Revenue Modal */}
       {selectedProject && (
         <>
