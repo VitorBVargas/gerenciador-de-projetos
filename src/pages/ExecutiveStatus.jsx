@@ -933,7 +933,7 @@ Seja conciso, profissional e em português.`;
                       })
                     ];
                     const isExpanded = expandedRecognitions[project.id];
-                    const visibleItems = isExpanded ? allItems : allItems.slice(0, 5);
+                    const visibleItems = isExpanded ? allItems : allItems.slice(0, 3);
 
                     return (
                       <div className="pt-3 border-t border-slate-600">
