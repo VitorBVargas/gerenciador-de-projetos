@@ -425,7 +425,7 @@ Seja conciso e executivo.`
       const recognizedRevenues = allRecognizedRevenues.filter(r => r.project_id === project.id);
       const totalRecognized = recognizedRevenues.reduce((sum, r) => sum + (r.amount || 0), 0);
       
-      const healthScore = calculateHealthScore(project);
+      const healthScore = getProjectHealthScore(project);
       return {
         ...project,
         healthScore,
