@@ -632,8 +632,24 @@ Seja conciso, profissional e em português.`;
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-900 p-6 lg:p-8 flex items-center justify-center">
-        <div className="text-white">Carregando...</div>
+      <div className="min-h-screen bg-slate-950 p-6 lg:p-8 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3 text-white">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
+          <span className="text-slate-300">Carregando portfólio...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="min-h-screen bg-slate-950 p-6 lg:p-8 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <p className="text-red-400 text-lg">Erro ao carregar dados.</p>
+          <Button onClick={() => window.location.reload()} className="bg-blue-600 hover:bg-blue-700">
+            Tentar novamente
+          </Button>
+        </div>
       </div>
     );
   }
