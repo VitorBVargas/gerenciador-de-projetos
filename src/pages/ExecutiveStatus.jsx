@@ -969,8 +969,8 @@ Seja conciso, profissional e em português.`;
                           {visibleItems.map(item => (
                             <div key={item.key} className="text-xs text-purple-400">{item.label}</div>
                           ))}
-                          {!isExpanded && allItems.length > 5 && (
-                            <div className="text-xs text-slate-500">+{allItems.length - 5} mais...</div>
+                          {!isExpanded && allItems.length > 3 && (
+                            <div className="text-xs text-slate-500">+{allItems.length - 3} mais...</div>
                           )}
                         </div>
                       </div>
