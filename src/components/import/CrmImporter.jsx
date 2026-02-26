@@ -431,7 +431,7 @@ export default function CrmImporter({ open, onOpenChange }) {
 
             <div className="bg-slate-700/30 rounded-lg p-3 text-xs text-slate-500 space-y-1">
               <p className="font-medium text-slate-400 mb-1">Colunas esperadas na planilha:</p>
-              <p>Entidade • Produto • Chamado • Tipo • Valor</p>
+              <p>Entidade (ou Nome da conta) • Produto (ou Descrição) • Chamado (ou Código da Integração) • Tipo • Valor • Data prevista fechamento (opcional)</p>
             </div>
           </div>
 
