@@ -85,6 +85,7 @@ export default function ExecutiveStatus() {
   });
   const [isAnalyzingPortfolio, setIsAnalyzingPortfolio] = useState(false);
   const [conversation, setConversation] = useState(null);
+  const [expandedRecognitions, setExpandedRecognitions] = useState({});
   const queryClient = useQueryClient();
 
   // Inicializar conversa IA
