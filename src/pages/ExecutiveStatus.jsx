@@ -389,14 +389,11 @@ export default function ExecutiveStatus() {
     const currentYearMonth = `${currentYear}-${currentMonth}`;
     
     const defaultStart = `${currentYear}-01`;
-    const defaultEnd = `${currentYear}-12`;
+    const defaultEnd = `${currentYear + 1}-12`;
 
     const minMonth = relevantMonths.size > 0 ? [...relevantMonths].sort()[0] : defaultStart;
     const maxMonth = relevantMonths.size > 0 ? [...relevantMonths].sort().reverse()[0] : defaultEnd;
-    
-    // Use current month as minimum for chart (to show only current month forward)
-    const chartMinMonth = minMonth > currentYearMonth ? minMonth : currentYearMonth;
-    const minDate = new Date(chartMinMonth + '-01');
+    const minDate = new Date(minMonth + '-01');
     const maxDate = new Date(maxMonth + '-01');
     const diffMonths = (maxDate.getFullYear() - minDate.getFullYear()) * 12 + (maxDate.getMonth() - minDate.getMonth());
     const totalMonths = Math.max(diffMonths + 1, 12);
