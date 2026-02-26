@@ -261,39 +261,63 @@ Seja conciso e executivo.`
     }
   });
 
-  // Calculate health score for a project
+  // Calculate health score for a project - baseado no status real dos cronogramas
   const calculateHealthScore = (project) => {
-    let score = 100;
-    const projectEvents = allTimelineEvents.filter(e => e.project_id === project.id);
-    const projectHomoTasks = allHomologationTasks.filter(t => t.project_id === project.id);
-    const projectMigTasks = allMigrationTasks.filter(t => t.project_id === project.id);
+    const now = new Date();
+    const projectCronogramas = allCronogramas.filter(c => c.project_id === project.id);
     const projectRisks = allRisks.filter(r => r.project_id === project.id);
     const projectExpenses = allExpenses.filter(e => e.project_id === project.id);
 
-    // Timeline delays
-    const delayedEvents = projectEvents.filter(e => e.status === 'atrasado');
-    if (delayedEvents.length > 0) {
-      score -= Math.min(delayedEvents.length * 10, 30);
+    // Calcular status de cada cronograma (igual à lógica do statusData)
+    let atrasadoCount = 0;
+    let atencaoCount = 0;
+    let totalCronogramas = projectCronogramas.length;
+
+    projectCronogramas.forEach(cronograma => {
+      const events = allTimelineEvents.filter(e => e.cronograma_id === cronograma.id);
+      if (!events.length) return;
+
+      if (events.every(e => e.status === 'concluido')) return; // concluído = ok
+
+      const hasAtrasado = events.some(e => e.status === 'atrasado');
+      const hasVencidoNaoConcluido = events.some(e => {
+        if (e.end_date && e.status !== 'concluido') {
+          const endDate = new Date(e.end_date);
+          return endDate < now;
+        }
+        return false;
+      });
+      const hasAtencao = events.some(e => {
+        if (e.end_date && e.status !== 'concluido') {
+          const endDate = new Date(e.end_date);
+          const daysUntil = (endDate - now) / (1000 * 60 * 60 * 24);
+          return daysUntil >= 0 && daysUntil <= 7;
+        }
+        return false;
+      });
+
+      if (hasAtrasado || hasVencidoNaoConcluido) atrasadoCount++;
+      else if (hasAtencao) atencaoCount++;
+    });
+
+    let score = 100;
+
+    // Descontar por cronogramas atrasados
+    if (totalCronogramas > 0) {
+      score -= Math.round((atrasadoCount / totalCronogramas) * 50);
+      score -= Math.round((atencaoCount / totalCronogramas) * 20);
     }
 
-    // Task completion
-    const allTasks = [...projectHomoTasks, ...projectMigTasks];
-    if (allTasks.length > 0) {
-      const completionRate = allTasks.filter(t => t.completed).length / allTasks.length;
-      if (completionRate < 0.3) score -= 20;
-      else if (completionRate < 0.5) score -= 10;
-    }
-
-    // High risks
-    const highRisks = projectRisks.filter(r => 
+    // Riscos altos não mitigados
+    const highRisks = projectRisks.filter(r =>
       (r.probability === 'alta' || r.impact === 'alto') && r.status !== 'mitigado'
     );
-    score -= Math.min(highRisks.length * 15, 30);
+    score -= Math.min(highRisks.length * 10, 20);
 
-    // Budget
+    // Orçamento estourado
     const spent = projectExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
     if (project.budget && spent > project.budget) {
-      score -= 20;
+      score -= 15;
     }
 
     return Math.max(0, Math.min(100, Math.round(score)));
