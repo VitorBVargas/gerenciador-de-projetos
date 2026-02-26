@@ -521,11 +521,6 @@ export default function ExecutiveStatus() {
       if (monthlyData[recMonth]) monthlyData[recMonth].reconhecido += recognized.amount;
     });
 
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
-    const currentYearMonth = `${currentYear}-${currentMonth}`;
-    
     // Filter chartData to show only current month forward
     const chartData = Object.entries(monthlyData)
       .filter(([key]) => key >= currentYearMonth)
