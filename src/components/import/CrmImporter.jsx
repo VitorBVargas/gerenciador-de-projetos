@@ -71,44 +71,69 @@ const inferVertical = (productName) => {
   return 'plataforma';
 };
 
+// Helper para pegar o valor de uma coluna aceitando múltiplos nomes possíveis
+const getCol = (row, ...keys) => {
+  for (const key of keys) {
+    if (row[key] !== undefined && row[key] !== '') return String(row[key]).trim();
+  }
+  return '';
+};
+
+// Converte valor Excel de data (número serial ou string) para string 'yyyy-MM-dd'
+const parseExcelDate = (val) => {
+  if (!val) return null;
+  if (typeof val === 'number') {
+    // número serial do Excel
+    const date = XLSX.SSF.parse_date_code(val);
+    if (date) {
+      const y = date.y;
+      const m = String(date.m).padStart(2, '0');
+      const d = String(date.d).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+  }
+  const str = String(val).trim();
+  // formato 'yyyy-mm-dd HH:MM:SS' ou 'yyyy-mm-dd'
+  const match = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (match) return `${match[1]}-${match[2]}-${match[3]}`;
+  // formato 'dd/mm/yyyy'
+  const brMatch = str.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if (brMatch) return `${brMatch[3]}-${brMatch[2]}-${brMatch[1]}`;
+  return null;
+};
+
 const parseCrmData = (workbook) => {
   const sheetName = workbook.SheetNames[0];
   const sheet = workbook.Sheets[sheetName];
-  const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+  const rows = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: true });
   if (rows.length === 0) throw new Error('Planilha vazia');
 
   const entityProductMap = {};
   const entityNames = {};
 
   rows.forEach(row => {
-    const entityFull = String(row['Entidade'] || '').trim();
-    const productName = String(row['Produto'] || '').trim();
-    const chamado = String(row['Chamado'] || '').trim();
-    const tipo = String(row['Tipo'] || '').trim().toLowerCase();
+    // Aceita tanto nomes antigos quanto novos
+    const entityFull = getCol(row, 'Entidade', 'Nome da conta');
+    const productName = getCol(row, 'Produto', 'Descrição', 'Descricao');
+    const chamado = getCol(row, 'Chamado', 'Código da Integração', 'Codigo da Integração', 'Codigo da Integracao');
+    const tipo = getCol(row, 'Tipo').toLowerCase();
+    const rawDate = row['Data prevista fechamento'] || row['Data Prevista Fechamento'] || '';
 
-    // Parse valor com suporte a formato brasileiro (1.000,00) e americano (1,000.00)
-    let valorStr = String(row['Valor'] || '0')
-      .replace(/R\$\s*/g, '')  // Remove R$ e espaços
-      .trim();
-
+    // Parse valor
+    let valorStr = String(row['Valor'] || '0').replace(/R\$\s*/g, '').trim();
     let valor = 0;
     if (valorStr && valorStr !== '0') {
-      // Se tem vírgula e ponto, último é decimal (1.000,00 ou 1,000.00)
       if (valorStr.includes(',') && valorStr.includes('.')) {
         const lastCommaIdx = valorStr.lastIndexOf(',');
         const lastDotIdx = valorStr.lastIndexOf('.');
         if (lastCommaIdx > lastDotIdx) {
-          // Formato brasileiro: 1.000,00
           valorStr = valorStr.replace(/\./g, '').replace(',', '.');
         } else {
-          // Formato americano: 1,000.00
           valorStr = valorStr.replace(/,/g, '');
         }
       } else if (valorStr.includes(',')) {
-        // Só vírgula: assume decimal
         valorStr = valorStr.replace(',', '.');
       }
-      // Se só ponto, não faz nada (já é formato decimal americano)
       valor = parseFloat(valorStr) || 0;
     }
 
@@ -119,14 +144,16 @@ const parseCrmData = (workbook) => {
 
     if (!entityProductMap[entityCode]) entityProductMap[entityCode] = {};
     if (!entityProductMap[entityCode][productName]) {
-      entityProductMap[entityCode][productName] = { impl: 0, incl: 0, chamado: '' };
+      entityProductMap[entityCode][productName] = { impl: 0, incl: 0, chamado: '', operacao_assistida_end: null };
     }
 
     const isCrmTicket = chamado.toUpperCase().startsWith('BTHSC');
+    const parsedDate = parseExcelDate(rawDate);
 
     if (tipo.includes('implantação') || tipo.includes('implantacao')) {
       entityProductMap[entityCode][productName].impl += valor;
       if (isCrmTicket) entityProductMap[entityCode][productName].chamado = chamado;
+      if (parsedDate) entityProductMap[entityCode][productName].operacao_assistida_end = parsedDate;
     } else if (tipo.includes('inclusão') || tipo.includes('inclusao')) {
       entityProductMap[entityCode][productName].incl += valor;
     }
