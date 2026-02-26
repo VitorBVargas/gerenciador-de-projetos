@@ -484,6 +484,7 @@ export default function Dashboard() {
             homologationTasks={homologationTasks}
             risks={risks}
             products={products}
+            cronogramas={cronogramas}
           />
         </div>
       )}
