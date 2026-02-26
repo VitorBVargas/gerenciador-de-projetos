@@ -527,8 +527,24 @@ export default function ExecutiveStatus() {
       } else {
         projectProducts.forEach(prod => {
           const goLiveEvent = allTimelineEvents.find(e => e.product_id === prod.id && e.phase === 'go_live' && e.start_date);
+          
+          if (project.name.includes('Lages') || project.name.includes('Criciuma')) {
+            console.log(`    [DEBUG] Buscando go_live para produto ${prod.name} (id: ${prod.id})`);
+            console.log(`      Go-Live encontrado: ${goLiveEvent ? 'SIM' : 'NÃO'}`);
+            if (goLiveEvent) {
+              console.log(`      Data: ${goLiveEvent.start_date}, Fase: ${goLiveEvent.phase}`);
+            }
+          }
+          
           if (!goLiveEvent || !goLiveEvent.start_date) return;
           const goLiveMonth = goLiveEvent.start_date.substring(0, 7);
+          
+          if (project.name.includes('Lages') || project.name.includes('Criciuma')) {
+            console.log(`      Mês go-live: ${goLiveMonth}`);
+            console.log(`      monthlyData[${goLiveMonth}] existe? ${monthlyData[goLiveMonth] ? 'SIM' : 'NÃO'}`);
+            console.log(`      Meses disponíveis: ${Object.keys(monthlyData).join(', ')}`);
+          }
+          
           if (!monthlyData[goLiveMonth]) return;
           monthlyData[goLiveMonth].recorrente += (prod.inclusion_value || 0);
           monthlyRecorrenteProducts[goLiveMonth].push({ product: prod, project, startDate: goLiveEvent.start_date, inclusionValue: prod.inclusion_value || 0 });
