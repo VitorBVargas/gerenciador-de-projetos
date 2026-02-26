@@ -1704,7 +1704,7 @@ Seja conciso, profissional e em português.`;
                                    <div className="flex items-start justify-between gap-4">
                                      <div className="flex-1">
                                        <div className="font-semibold text-white text-sm">{product.name}</div>
-                                       <div className="text-xs text-slate-400">Projeto: {project.name}</div>
+                                       <div className="text-xs text-slate-400">{project.name}{product.entity ? ` · ${product.entity}` : ''}</div>
                                        {vertical && <div className="text-xs text-slate-500">Vertical: {vertical}</div>}
                                      </div>
                                      <div className="text-right shrink-0">
