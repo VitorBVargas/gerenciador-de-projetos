@@ -527,15 +527,21 @@ export default function ExecutiveStatus() {
       const totalRecognized = recognizedRevenues.reduce((sum, r) => sum + (r.amount || 0), 0);
       
       const healthScore = getProjectHealthScore(project);
+      const totalBudget = project.budget || 0;
+      
       return {
         ...project,
         healthScore,
         progress: calculateProjectProgress(project),
         dynamicStatus: getStatusFromHealthScore(healthScore),
-        totalRecognized
+        totalRecognized,
+        totalBudget
       };
     }).sort((a, b) => {
-      // Sort by health score (worst first)
+      // Sort by budget (maior primeiro), then by health score
+      if (b.totalBudget !== a.totalBudget) {
+        return b.totalBudget - a.totalBudget;
+      }
       return a.healthScore - b.healthScore;
     });
   }, [projects, allTimelineEvents, allHomologationTasks, allMigrationTasks, allRisks, allExpenses, allRecognizedRevenues]);
@@ -873,7 +879,7 @@ export default function ExecutiveStatus() {
                       })
                     ];
                     const isExpanded = expandedRecognitions[project.id];
-                    const visibleItems = isExpanded ? allItems : allItems.slice(0, 3);
+                    const visibleItems = isExpanded ? allItems : allItems.slice(0, 1);
 
                     return (
                       <div className="pt-3 border-t border-slate-600">
@@ -906,13 +912,13 @@ export default function ExecutiveStatus() {
                           </div>
                         </div>
                         <div className="space-y-1">
-                          {visibleItems.map(item => (
-                            <div key={item.key} className="text-xs text-purple-400">{item.label}</div>
-                          ))}
-                          {!isExpanded && allItems.length > 3 && (
-                            <div className="text-xs text-slate-500">+{allItems.length - 3} mais...</div>
-                          )}
-                        </div>
+                           {visibleItems.map(item => (
+                             <div key={item.key} className="text-xs text-purple-400">{item.label}</div>
+                           ))}
+                           {!isExpanded && allItems.length > 1 && (
+                             <div className="text-xs text-slate-500">+{allItems.length - 1} mais...</div>
+                           )}
+                         </div>
                       </div>
                     );
                   })()}
