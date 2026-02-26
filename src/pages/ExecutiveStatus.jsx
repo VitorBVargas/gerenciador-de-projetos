@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,34 +6,28 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { 
-  TrendingUp,
   AlertTriangle,
   CheckCircle2,
   Clock,
   Pause,
   XCircle,
-  PlayCircle,
   LayoutDashboard,
   ArrowLeft,
-  DollarSign,
-  Loader2
+  Loader2,
+  Sparkles
 } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { createPageUrl } from '../utils';
 import { Link } from 'react-router-dom';
 
 import PasswordReleasesChart from '../components/executive/PasswordReleasesChart';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { format, addMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import RecognizedRevenueModal from '../components/modals/RecognizedRevenueModal';
 import RecognizeAllVerticalModal from '../components/modals/RecognizeAllVerticalModal';
 import ProjectRecognitionsModal from '../components/modals/ProjectRecognitionsModal';
-import AIAssistantModal from '../components/modals/AIAssistantModal';
-import { Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { calculateHealthScore } from '../components/dashboard/ProjectHealthScore';
 
