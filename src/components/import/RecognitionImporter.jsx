@@ -57,31 +57,34 @@ export default function RecognitionImporter({ open, onOpenChange }) {
       const notFound = [];
       const alreadyExists = [];
 
+      // Usar mês atual como fallback de data
+      const now = new Date();
+      const defaultMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+
       for (const row of rows) {
-        const accountName = row['Nome da conta'];
+        // Suporta tanto "Nome da conta" quanto "Entidade"
+        const accountName = row['Nome da conta'] || row['Entidade'];
         const productName = row['Produto'];
         const dateRaw = row['Data'];
         const valor = row['Valor'] || 0;
-        const chamado = row['Chamado'] || '';
+        // Suporta "Chamado" e "Código da Integração"
+        const chamado = row['Chamado'] || row['Código da Integração'] || '';
         const tipo = (row['Tipo'] || '').toLowerCase().includes('recorr') ? 'recorrente' : 'implantacao';
 
         if (!accountName || !productName) continue;
 
-        // Parse date
-        let recognitionMonth;
-        if (typeof dateRaw === 'number') {
-          const d = XLSX.SSF.parse_date_code(dateRaw);
-          recognitionMonth = `${d.y}-${String(d.m).padStart(2, '0')}-01`;
-        } else {
-          const d = new Date(dateRaw);
-          if (!isNaN(d)) {
-            recognitionMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+        // Parse date - se não houver, usa mês atual
+        let recognitionMonth = defaultMonth;
+        if (dateRaw !== undefined && dateRaw !== null && dateRaw !== '') {
+          if (typeof dateRaw === 'number') {
+            const d = XLSX.SSF.parse_date_code(dateRaw);
+            recognitionMonth = `${d.y}-${String(d.m).padStart(2, '0')}-01`;
+          } else {
+            const d = new Date(dateRaw);
+            if (!isNaN(d)) {
+              recognitionMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+            }
           }
-        }
-
-        if (!recognitionMonth) {
-          notFound.push({ accountName, productName, reason: 'Data inválida' });
-          continue;
         }
 
         // Find matching product by: ticket_number (if available) OR (entity + product name)
