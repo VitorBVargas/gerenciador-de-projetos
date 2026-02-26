@@ -158,11 +158,12 @@ Seja conciso e executivo.`
   };
 
   // Fetch all projects
-  const { data: allProjectsData = [], isLoading } = useQuery({
+  const { data: allProjectsData = [], isLoading, isError } = useQuery({
     queryKey: ['projects'],
     queryFn: () => base44.entities.Project.list('-created_date'),
-    staleTime: 60000, // 1 min
-    gcTime: 300000 // 5 min
+    staleTime: 60000,
+    gcTime: 300000,
+    retry: 2,
   });
   
   // Filter out completed projects from overview
