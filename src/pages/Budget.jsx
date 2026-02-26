@@ -259,10 +259,6 @@ export default function Budget() {
             )}
           </CardContent>
         </Card>
-      </div>
-
-      {/* Budget Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="bg-gradient-to-br from-blue-600/20 to-blue-800/20 border-blue-500/30">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-2">
