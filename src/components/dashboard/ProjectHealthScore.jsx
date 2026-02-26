@@ -34,32 +34,50 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
   const timelineDeduction = Math.min(30, delayCost);
   score -= timelineDeduction;
 
-  // Group delayed by vertical for specific feedback
+  // Helper: para cada cronograma_id, busca o nome da vertical (cronograma)
+  const getCronogramaLabel = (event) => {
+    if (cronogramas && event.cronograma_id) {
+      const cron = cronogramas.find(c => c.id === event.cronograma_id);
+      if (cron) return cron.vertical;
+    }
+    return verticalLabels[event.vertical] || event.vertical || 'Geral';
+  };
+
+  // Group delayed by vertical + cronograma name
   if (delayedEvents.length > 0) {
     const byVertical = {};
     delayedEvents.forEach(e => {
-      const v = verticalLabels[e.vertical] || e.vertical || 'Geral';
-      byVertical[v] = (byVertical[v] || 0) + 1;
+      const v = getCronogramaLabel(e);
+      if (!byVertical[v]) byVertical[v] = { count: 0, titles: [] };
+      byVertical[v].count++;
+      byVertical[v].titles.push(e.title);
     });
-    const detail = Object.entries(byVertical).map(([v, n]) => `${v} (${n})`).join(', ');
+    const summary = Object.entries(byVertical).map(([v, d]) => `${v} (${d.count})`).join(', ');
+    const details = Object.entries(byVertical).map(([v, d]) => `• ${v}: ${d.titles.slice(0, 3).join(', ')}${d.titles.length > 3 ? ` +${d.titles.length - 3}` : ''}`).join('\n');
     alerts.push({
       severity: delayedEvents.length >= 3 ? 'high' : 'medium',
       text: `${delayedEvents.length} etapa${delayedEvents.length > 1 ? 's' : ''} atrasada${delayedEvents.length > 1 ? 's' : ''}`,
-      detail: `Verticais: ${detail}`
+      detail: `Verticais: ${summary}`,
+      lines: details
     });
   }
 
   if (overdueEvents.length > 0 && overdueEvents.some(e => !delayedEvents.find(d => d.id === e.id))) {
+    const filtered = overdueEvents.filter(e => !delayedEvents.find(d => d.id === e.id));
     const byVertical = {};
-    overdueEvents.forEach(e => {
-      const v = verticalLabels[e.vertical] || e.vertical || 'Geral';
-      byVertical[v] = (byVertical[v] || 0) + 1;
+    filtered.forEach(e => {
+      const v = getCronogramaLabel(e);
+      if (!byVertical[v]) byVertical[v] = { count: 0, titles: [] };
+      byVertical[v].count++;
+      byVertical[v].titles.push(e.title);
     });
-    const detail = Object.entries(byVertical).map(([v, n]) => `${v} (${n})`).join(', ');
+    const summary = Object.entries(byVertical).map(([v, d]) => `${v} (${d.count})`).join(', ');
+    const details = Object.entries(byVertical).map(([v, d]) => `• ${v}: ${d.titles.slice(0, 3).join(', ')}${d.titles.length > 3 ? ` +${d.titles.length - 3}` : ''}`).join('\n');
     alerts.push({
       severity: 'medium',
-      text: `${overdueEvents.length} etapa${overdueEvents.length > 1 ? 's' : ''} com prazo vencido`,
-      detail: `Verticais: ${detail}`
+      text: `${filtered.length} etapa${filtered.length > 1 ? 's' : ''} com prazo vencido`,
+      detail: `Verticais: ${summary}`,
+      lines: details
     });
   }
 
