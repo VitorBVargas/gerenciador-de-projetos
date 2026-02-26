@@ -367,8 +367,8 @@ Seja conciso e executivo.`
     return { counts, cronogramasByStatus };
   }, [allCronogramas, allTimelineEvents, allProjectsData]);
 
-  // Recalcular mapa de produtos recorrentes sempre que os dados mudarem
-  useEffect(() => {
+  // Mapa de produtos recorrentes calculado via useMemo (evita loop infinito)
+  const recorrenteProductsMap = useMemo(() => {
     const map = {};
     // Calcular range dinâmico igual ao useMemo dos gráficos
     const relevantMonths = new Set();
