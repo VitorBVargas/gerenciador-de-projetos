@@ -88,21 +88,21 @@ export default function ExecutiveStatus() {
   const [expandedRecognitions, setExpandedRecognitions] = useState({});
   const queryClient = useQueryClient();
 
-  // Inicializar conversa IA
-  useEffect(() => {
-    const initConversation = async () => {
-      try {
-        const conv = await base44.agents.createConversation({
-          agent_name: 'ia_projetos_betha',
-          metadata: { type: 'executive' }
-        });
-        setConversation(conv);
-      } catch (error) {
-        console.error('Erro ao criar conversa:', error);
-      }
-    };
-    initConversation();
-  }, []);
+  // Inicializar conversa IA — lazy: só cria quando o usuário clicar em Análise Inteligente
+  const initConversationIfNeeded = async () => {
+    if (conversation) return conversation;
+    try {
+      const conv = await base44.agents.createConversation({
+        agent_name: 'ia_projetos_betha',
+        metadata: { type: 'executive' }
+      });
+      setConversation(conv);
+      return conv;
+    } catch (error) {
+      console.error('Erro ao criar conversa:', error);
+      return null;
+    }
+  };
 
   const handleChartVisibility = (chart, visible) => {
     setVisibleCharts(prev => ({
