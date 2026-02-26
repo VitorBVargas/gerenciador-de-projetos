@@ -28,6 +28,7 @@ const parseTasksIntoSections = (tasks) => {
 export const migrationTasksByProduct = {
   // ISS - e-Nota
   'e-nota cloud': parseTasksIntoSections([
+  'e - Nota (Cloud)': parseTasksIntoSections([
     'MIGRAÇÃO: INICIAIS',
     'Extrair Competências', 'Extrair Indexadores', 'Extrair Lista de Serviços', 'Extrair Incentivos Fiscais',
     'MIGRAÇÃO: CONTRIBUINTES',
