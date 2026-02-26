@@ -85,7 +85,7 @@ export default function ExecutiveStatus() {
   });
   const [isAnalyzingPortfolio, setIsAnalyzingPortfolio] = useState(false);
   const [conversation, setConversation] = useState(null);
-  // recorrenteProductsMap é calculado via useMemo, não useState+useEffect
+  const recorrenteProductsMap = useMemo(() => {
   const queryClient = useQueryClient();
 
   // Inicializar conversa IA
