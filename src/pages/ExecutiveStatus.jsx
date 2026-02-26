@@ -919,55 +919,59 @@ Seja conciso, profissional e em português.`;
                     // Revenues agrupados
                     const bulkRevenues = Object.values(groupedRevenues);
                     
+                    const allItems = [
+                      ...bulkRevenues.map((bulk, idx) => {
+                        const [year, month] = bulk.recognition_month.split('-');
+                        const monthYear = format(new Date(year, parseInt(month) - 1, 1), 'MMM/yy', { locale: ptBR });
+                        return { key: `bulk-${idx}`, label: `${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(bulk.amount)} - ${monthYear} - ${bulk.vertical_name} (Todos)` };
+                      }),
+                      ...individualRevenues.map(rev => {
+                        const product = allProducts.find(p => p.id === rev.product_id);
+                        const [year, month] = rev.recognition_month.split('-');
+                        const monthYear = format(new Date(year, parseInt(month) - 1, 1), 'MMM/yy', { locale: ptBR });
+                        return { key: rev.id, label: `${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(rev.amount)} - ${monthYear} - ${product?.name || 'N/A'}` };
+                      })
+                    ];
+                    const isExpanded = expandedRecognitions[project.id];
+                    const visibleItems = isExpanded ? allItems : allItems.slice(0, 5);
+
                     return (
                       <div className="pt-3 border-t border-slate-600">
                         <div className="flex items-center justify-between mb-2">
                           <div className="text-xs text-slate-400 font-medium">Reconhecido</div>
-                          <button
-                            onClick={(e) => {
-                              e.preventDefault();
-                              if (projectRevenues.length > 0 && window.confirm('Deletar todos os reconhecimentos deste projeto?')) {
-                                projectRevenues.forEach(r => deleteRecognizedRevenueMutation.mutate(r.id));
-                              }
-                            }}
-                            className="text-xs text-red-400 hover:text-red-300"
-                          >
-                            Limpar
-                          </button>
+                          <div className="flex items-center gap-2">
+                            {allItems.length > 5 && (
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  setExpandedRecognitions(prev => ({ ...prev, [project.id]: !prev[project.id] }));
+                                }}
+                                className="text-xs text-yellow-400 hover:text-yellow-300"
+                                title={isExpanded ? 'Recolher' : `Ver todos (${allItems.length})`}
+                              >
+                                {isExpanded ? '★' : '☆'} {!isExpanded && allItems.length}
+                              </button>
+                            )}
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (projectRevenues.length > 0 && window.confirm('Deletar todos os reconhecimentos deste projeto?')) {
+                                  projectRevenues.forEach(r => deleteRecognizedRevenueMutation.mutate(r.id));
+                                }
+                              }}
+                              className="text-xs text-red-400 hover:text-red-300"
+                            >
+                              Limpar
+                            </button>
+                          </div>
                         </div>
                         <div className="space-y-1">
-                          {/* Reconhecimentos em lote (verticais) */}
-                          {bulkRevenues.map((bulk, idx) => {
-                            const [year, month] = bulk.recognition_month.split('-');
-                            const monthYear = format(new Date(year, parseInt(month) - 1, 1), 'MMM/yy', { locale: ptBR });
-                            return (
-                              <div key={`bulk-${idx}`} className="text-xs text-purple-400">
-                                {new Intl.NumberFormat('pt-BR', { 
-                                  style: 'currency', 
-                                  currency: 'BRL',
-                                  minimumFractionDigits: 0,
-                                  maximumFractionDigits: 0
-                                }).format(bulk.amount)} - {monthYear} - {bulk.vertical_name} (Todos)
-                              </div>
-                            );
-                          })}
-                          
-                          {/* Reconhecimentos individuais */}
-                          {individualRevenues.map(rev => {
-                            const product = allProducts.find(p => p.id === rev.product_id);
-                            const [year, month] = rev.recognition_month.split('-');
-                            const monthYear = format(new Date(year, parseInt(month) - 1, 1), 'MMM/yy', { locale: ptBR });
-                            return (
-                              <div key={rev.id} className="text-xs text-purple-400">
-                                {new Intl.NumberFormat('pt-BR', { 
-                                  style: 'currency', 
-                                  currency: 'BRL',
-                                  minimumFractionDigits: 0,
-                                  maximumFractionDigits: 0
-                                }).format(rev.amount)} - {monthYear} - {product?.name || 'N/A'}
-                              </div>
-                            );
-                          })}
+                          {visibleItems.map(item => (
+                            <div key={item.key} className="text-xs text-purple-400">{item.label}</div>
+                          ))}
+                          {!isExpanded && allItems.length > 5 && (
+                            <div className="text-xs text-slate-500">+{allItems.length - 5} mais...</div>
+                          )}
                         </div>
                       </div>
                     );
