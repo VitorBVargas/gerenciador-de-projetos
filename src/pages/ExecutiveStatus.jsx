@@ -540,6 +540,11 @@ export default function ExecutiveStatus() {
       .filter(([key]) => key >= currentYearMonth)
       .map(([, value]) => value);
 
+    // Debug: log recorrente data
+    console.log('Recorrente Products Map:', monthlyRecorrenteProducts);
+    console.log('Monthly Data Recorrente:', Object.entries(monthlyData).reduce((acc, [key, val]) => { acc[key] = val.recorrente; return acc; }, {}));
+    console.log('CurrentYearMonth:', currentYearMonth, 'Filtered months:', Object.entries(monthlyData).filter(([key]) => key >= currentYearMonth).map(([key]) => key));
+
     return { monthlyData, chartData };
   }, [projects, allProducts, allTimelineEvents, allCronogramas, allRecognizedRevenues, allProjectsData]);
 
