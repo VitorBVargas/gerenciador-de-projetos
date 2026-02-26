@@ -940,7 +940,7 @@ Seja conciso, profissional e em português.`;
                         <div className="flex items-center justify-between mb-2">
                           <div className="text-xs text-slate-400 font-medium">Reconhecido</div>
                           <div className="flex items-center gap-2">
-                            {allItems.length > 5 && (
+                            {allItems.length > 3 && (
                               <button
                                 onClick={(e) => {
                                   e.preventDefault();
