@@ -487,11 +487,12 @@ export default function Migration() {
                           <div className="flex gap-2 flex-wrap">
                             <Button 
                               variant="outline" 
-                              className="flex-1 min-w-[180px] border-green-500/30 text-green-400 hover:bg-green-500/10"
+                              className="flex-1 min-w-[180px] border-green-500/30 text-green-400 hover:bg-green-500/10 disabled:opacity-50"
                               onClick={handleMarkAllTasks}
+                              disabled={markingTasks}
                             >
                               <CheckCircle className="w-4 h-4 mr-2" />
-                              Marcar Todos
+                              {markingTasks ? 'Processando...' : 'Marcar Todos'}
                             </Button>
 
                             <input
