@@ -242,10 +242,11 @@ export default function Migration() {
   };
 
   const handleMarkAllTasks = async () => {
-    if (!selectedProduct) return;
+    if (!selectedProduct || markingTasks) return;
+    setMarkingTasks(true);
+    
     try {
       const product = getCurrentProduct();
-      // Pega TODAS as tarefas visíveis (removidas duplicatas)
       const productTasks = getProductTasks(product.id);
       const defaultSections = getDefaultTasksForProduct(product.name) || [];
       const importedTasks = productTasks.filter(t => t.title.includes('||'));
@@ -285,15 +286,29 @@ export default function Migration() {
       // Lógica: se alguma tarefa não está marcada, marca todas; se todas estão marcadas, desmarca todas
       const hasIncompleted = visibleTasks.some(t => !t.completed);
       
-      await Promise.all(visibleTasks.map(task => 
-        base44.entities.MigrationTask.update(task.id, { completed: hasIncompleted })
-      ));
+      // Usar bulkUpdate em vez de Promise.all de updates individuais
+      const updateIds = visibleTasks.map(t => ({ id: t.id, completed: hasIncompleted }));
+      
+      // Fazer updates em lotes de 10 para evitar sobrecarga
+      const batchSize = 10;
+      for (let i = 0; i < updateIds.length; i += batchSize) {
+        const batch = updateIds.slice(i, i + batchSize);
+        await Promise.all(batch.map(({ id, completed }) => 
+          base44.entities.MigrationTask.update(id, { completed })
+        ));
+        // Aguardar 100ms entre lotes para evitar sobrecarga da API
+        if (i + batchSize < updateIds.length) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      }
       
       toast.success(hasIncompleted ? 'Todas as tarefas foram marcadas!' : 'Tarefas desmarcadas!');
       queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
     } catch (error) {
       toast.error('Erro ao atualizar tarefas');
       console.error(error);
+    } finally {
+      setMarkingTasks(false);
     }
   };
 
