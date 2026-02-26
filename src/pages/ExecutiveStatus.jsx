@@ -1218,7 +1218,7 @@ export default function ExecutiveStatus() {
                   )}
                   </div>
                   );
-                  }, [projects, allProducts, allTimelineEvents, allCronogramas, allRecognizedRevenues, allProjectsData, visibleCharts])}
+                  })()}
 
                   {/* Gráfico de Senhas */}
                   <PasswordReleasesChart 
