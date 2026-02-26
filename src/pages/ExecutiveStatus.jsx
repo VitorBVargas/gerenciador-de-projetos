@@ -77,6 +77,8 @@ export default function ExecutiveStatus() {
     password: true
   });
   const [expandedRecognitions, setExpandedRecognitions] = useState({});
+  const [editingProjectId, setEditingProjectId] = useState(null);
+  const [isEditRecurringModalOpen, setIsEditRecurringModalOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const handleChartVisibility = (chart, visible) => {
