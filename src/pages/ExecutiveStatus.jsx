@@ -370,11 +370,25 @@ Seja conciso e executivo.`
   // Recalcular mapa de produtos recorrentes sempre que os dados mudarem
   useEffect(() => {
     const map = {};
-    // Começa de janeiro do ano atual (igual ao useMemo dos gráficos)
+    // Calcular range dinâmico igual ao useMemo dos gráficos
+    const relevantMonths = new Set();
+    allTimelineEvents.forEach(e => {
+      if (e.phase === 'operacao_assistida' && e.end_date) relevantMonths.add(e.end_date.substring(0, 7));
+      if (e.phase === 'go_live' && e.start_date) relevantMonths.add(e.start_date.substring(0, 7));
+    });
+    allRecognizedRevenues.forEach(r => {
+      if (r.recognition_month) relevantMonths.add(r.recognition_month.substring(0, 7));
+    });
     const currentYear = new Date().getFullYear();
-    const janFirst = new Date(currentYear, 0, 1);
-    for (let i = 0; i < 12; i++) {
-      const key = format(addMonths(janFirst, i), 'yyyy-MM');
+    const defaultStart = `${currentYear}-01`;
+    const minMonth = relevantMonths.size > 0 ? [...relevantMonths].sort()[0] : defaultStart;
+    const maxMonth = relevantMonths.size > 0 ? [...relevantMonths].sort().reverse()[0] : `${currentYear}-12`;
+    const minDate = new Date(minMonth + '-01');
+    const maxDate = new Date(maxMonth + '-01');
+    const diffMonths = (maxDate.getFullYear() - minDate.getFullYear()) * 12 + (maxDate.getMonth() - minDate.getMonth());
+    const totalMonths = Math.max(diffMonths + 1, 12);
+    for (let i = 0; i < totalMonths; i++) {
+      const key = format(addMonths(minDate, i), 'yyyy-MM');
       map[key] = [];
     }
     projects.forEach(project => {
