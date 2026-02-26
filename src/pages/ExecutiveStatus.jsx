@@ -782,7 +782,7 @@ export default function ExecutiveStatus() {
                     )}
                     {project.deadline && (
                       <div>
-                        <div className="text-xs text-slate-400 font-medium">Prazo</div>
+                        <div className="text-xs text-slate-400 font-medium">Prazo Contratual</div>
                         <div className="text-sm text-white">
                           {new Date(project.deadline).toLocaleDateString('pt-BR')}
                         </div>
