@@ -166,9 +166,44 @@ export default function Migration() {
 
   const getProductProgress = (productId) => {
     const productTasks = getProductTasks(productId);
-    if (productTasks.length === 0) return 0;
-    const completed = productTasks.filter(t => t.completed).length;
-    return Math.round((completed / productTasks.length) * 100);
+    const defaultSections = getDefaultTasksForProduct(getCurrentProduct()?.name) || [];
+    const importedTasks = productTasks.filter(t => t.title.includes('||'));
+    const standardTasks = productTasks.filter(t => !t.title.includes('||'));
+    
+    // Remover duplicatas importadas
+    const importedBySection = importedTasks.reduce((acc, task) => {
+      const match = task.title.match(/^\|\|(.+?)\|\|(.+)$/);
+      if (match) {
+        const [, sectionName, taskName] = match;
+        const titleLower = taskName.toLowerCase();
+        if (!acc[sectionName]) acc[sectionName] = new Map();
+        if (!acc[sectionName].has(titleLower)) {
+          acc[sectionName].set(titleLower, task);
+        }
+      }
+      return acc;
+    }, {});
+    
+    // Remover duplicatas padrão
+    const uniqueStandardTasks = [];
+    const seenTitles = new Set();
+    for (const task of standardTasks) {
+      const titleLower = task.title.toLowerCase();
+      if (!seenTitles.has(titleLower)) {
+        seenTitles.add(titleLower);
+        uniqueStandardTasks.push(task);
+      }
+    }
+    
+    // Contar apenas tarefas visíveis (únicas)
+    const visibleTasks = [
+      ...uniqueStandardTasks,
+      ...Object.values(importedBySection).flatMap(map => Array.from(map.values()))
+    ];
+    
+    if (visibleTasks.length === 0) return 0;
+    const completed = visibleTasks.filter(t => t.completed).length;
+    return Math.round((completed / visibleTasks.length) * 100);
   };
 
   const allEntities = [...new Set(products.map(p => p.entity).filter(Boolean))].sort();
