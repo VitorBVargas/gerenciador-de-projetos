@@ -286,20 +286,11 @@ export default function Migration() {
       // Lógica: se alguma tarefa não está marcada, marca todas; se todas estão marcadas, desmarca todas
       const hasIncompleted = visibleTasks.some(t => !t.completed);
       
-      // Usar bulkUpdate em vez de Promise.all de updates individuais
-      const updateIds = visibleTasks.map(t => ({ id: t.id, completed: hasIncompleted }));
-      
-      // Fazer updates em lotes de 10 para evitar sobrecarga
-      const batchSize = 10;
-      for (let i = 0; i < updateIds.length; i += batchSize) {
-        const batch = updateIds.slice(i, i + batchSize);
-        await Promise.all(batch.map(({ id, completed }) => 
-          base44.entities.MigrationTask.update(id, { completed })
-        ));
-        // Aguardar 100ms entre lotes para evitar sobrecarga da API
-        if (i + batchSize < updateIds.length) {
-          await new Promise(resolve => setTimeout(resolve, 100));
-        }
+      // Updates sequenciais para evitar rate limit
+      for (const task of visibleTasks) {
+        await base44.entities.MigrationTask.update(task.id, { completed: hasIncompleted });
+        // Pequeno delay entre cada update
+        await new Promise(resolve => setTimeout(resolve, 50));
       }
       
       toast.success(hasIncompleted ? 'Todas as tarefas foram marcadas!' : 'Tarefas desmarcadas!');
