@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
                 const updates = [];
 
                 for (const event of events) {
-                    if (event.status === 'concluido' || event.status === 'pausado') continue;
+                    if (event.status === 'concluido' || event.status === 'pausado' || event.status === 'atrasado') continue;
                     if (!event.start_date) continue;
 
                     const startStr = event.start_date.split('T')[0];
@@ -46,8 +46,6 @@ Deno.serve(async (req) => {
                     let newStatus;
                     if (todayStr < startStr) {
                         newStatus = 'nao_iniciado';
-                    } else if (endStr && todayStr > endStr) {
-                        newStatus = 'atrasado';
                     } else {
                         newStatus = 'em_andamento';
                     }
