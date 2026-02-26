@@ -267,10 +267,27 @@ export default function CrmImporter({ open, onOpenChange }) {
       return date.toISOString().split('T')[0];
     };
 
+    // Mapa de data de operação assistida por produto (vinda do CRM)
+    const operacaoAssistidaByProduct = {};
+    entities.forEach(entityCode => {
+      Object.entries(parsedData.entityProductMap[entityCode]).forEach(([productName, vals]) => {
+        if (vals.operacao_assistida_end) {
+          operacaoAssistidaByProduct[productName] = vals.operacao_assistida_end;
+        }
+      });
+    });
+
     createdProducts.forEach((product, pIdx) => {
        const crondates = cronogramaByProduct[product.name] || cronogramaByVertical[product.vertical] || {};
+       const crmOperacaoEnd = operacaoAssistidaByProduct[product.name] || null;
 
        STANDARD_PHASES.forEach(({ key, title }, phaseIdx) => {
+         // Para operacao_assistida, usa a data do CRM se não houver data configurada no cronograma
+         let endDate = crondates[`${key}_end`] ? fixDateTimezoneShift(crondates[`${key}_end`]) : null;
+         if (key === 'operacao_assistida' && !endDate && crmOperacaoEnd) {
+           endDate = crmOperacaoEnd;
+         }
+
          allEvents.push({
            project_id: project.id,
            product_id: product.id,
@@ -278,7 +295,7 @@ export default function CrmImporter({ open, onOpenChange }) {
            phase: key,
            vertical: product.vertical,
            start_date: crondates[`${key}_start`] ? fixDateTimezoneShift(crondates[`${key}_start`]) : null,
-           end_date: crondates[`${key}_end`] ? fixDateTimezoneShift(crondates[`${key}_end`]) : null,
+           end_date: endDate,
            status: 'nao_iniciado',
            progress: 0,
            order: pIdx * 100 + phaseIdx
