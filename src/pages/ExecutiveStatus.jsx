@@ -1098,11 +1098,12 @@ export default function ExecutiveStatus() {
                              );
                            }}
                          />
+                         <Legend wrapperStyle={{ paddingTop: '15px' }} />
                          <Bar 
-                           dataKey="a_receber" 
-                           fill="#10b981" 
-                           name="A Receber" 
-                           cursor="pointer"
+                             dataKey="a_receber" 
+                             fill="#10b981" 
+                             name="A Receber" 
+                             cursor="pointer"
                          onClick={(data) => {
                            const monthKey = Object.keys(monthlyData).find(
                              key => monthlyData[key].month === data.month
