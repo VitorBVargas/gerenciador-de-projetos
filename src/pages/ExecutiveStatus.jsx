@@ -1523,6 +1523,21 @@ export default function ExecutiveStatus() {
         />
       )}
 
+      {/* Edit Recurring Modal */}
+      {editingProjectId && allProjectsData && (
+        <EditProjectRecurringModal
+          open={isEditRecurringModalOpen}
+          onOpenChange={setIsEditRecurringModalOpen}
+          project={allProjectsData.find(p => p.id === editingProjectId)}
+          onSave={(value) => {
+            updateProjectRecurringMutation.mutate({
+              id: editingProjectId,
+              recurringValue: value
+            });
+          }}
+        />
+      )}
+
       {/* Recognized Revenue Modal */}
       {selectedProject && (
         <>
