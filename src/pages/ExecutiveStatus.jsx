@@ -188,17 +188,19 @@ Seja conciso e executivo.`
     gcTime: 300000
   });
 
-  // Fetch all tasks - DISABLED (not used on this page)
+  // Fetch all tasks - necessário para calcular health score corretamente
   const { data: allHomologationTasks = [] } = useQuery({
     queryKey: ['allHomologationTasks'],
     queryFn: () => base44.entities.HomologationTask.list(),
-    enabled: false // Não carrega se não estiver sendo usado
+    staleTime: 60000,
+    gcTime: 300000
   });
 
   const { data: allMigrationTasks = [] } = useQuery({
     queryKey: ['allMigrationTasks'],
     queryFn: () => base44.entities.MigrationTask.list(),
-    enabled: false // Não carrega se não estiver sendo usado
+    staleTime: 60000,
+    gcTime: 300000
   });
 
   // Fetch all risks
