@@ -483,6 +483,15 @@ export default function ExecutiveStatus() {
     projects.forEach(project => {
       const projectProducts = allProducts.filter(p => p.project_id === project.id && (p.inclusion_value || 0) > 0);
       if (!projectProducts.length) return;
+      
+      // Debug logs
+      if (project.name.includes('Lages') || project.name.includes('Criciuma')) {
+        console.log(`[DEBUG] Projeto: ${project.name}, scheduling_type: ${project.scheduling_type}`);
+        projectProducts.forEach(prod => {
+          console.log(`  Produto: ${prod.name}, inclusion_value: ${prod.inclusion_value}, id: ${prod.id}`);
+        });
+      }
+      
       if (project.scheduling_type === 'por_vertical') {
         const verticalGroups = {};
         projectProducts.forEach(prod => {
