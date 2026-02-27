@@ -42,8 +42,16 @@ const statusLabels = {
   concluido: 'Concluído'
 };
 
+const portfolioLabels = {
+  grandes_contas_sc_mg: 'Grande Contas SC/MG',
+  grandes_contas_sc_sp: 'Grande Contas SC/SP',
+  medias_contas: 'Médias Contas',
+};
+
 export default function ProjectsList() {
   const queryClient = useQueryClient();
+  const urlParams = new URLSearchParams(window.location.search);
+  const portfolioFilter = urlParams.get('portfolio') || 'grandes_contas_sc_mg';
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [recognitionImporterOpen, setRecognitionImporterOpen] = useState(false);
   const [crmImportModalOpen, setCrmImportModalOpen] = useState(false);
