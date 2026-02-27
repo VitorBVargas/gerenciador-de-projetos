@@ -162,7 +162,7 @@ const parseCrmData = (workbook) => {
   return { entityProductMap, entityNames };
 };
 
-export default function CrmImporter({ open, onOpenChange }) {
+export default function CrmImporter({ open, onOpenChange, portfolioFilter = 'grandes_contas_sc_mg' }) {
   const [file, setFile] = useState(null);
   const [error, setError] = useState('');
   const [flowOpen, setFlowOpen] = useState(false);
