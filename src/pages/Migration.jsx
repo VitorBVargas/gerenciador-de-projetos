@@ -248,8 +248,6 @@ export default function Migration() {
     ? Math.round(productsWithMigration.reduce((sum, p) => sum + getProductProgress(p.id), 0) / productsWithMigration.length)
     : 0;
 
-  const getCurrentProduct = () => products.find(p => p.id === selectedProduct);
-
   const moveSectionUp = (productId, sectionIndex) => {
     if (sectionIndex === 0) return;
     setSectionOrder(prev => {
