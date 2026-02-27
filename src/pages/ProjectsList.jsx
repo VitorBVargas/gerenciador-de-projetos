@@ -62,8 +62,8 @@ export default function ProjectsList() {
   const [deletingProjectId, setDeletingProjectId] = useState(null);
 
   const { data: projects = [], isLoading } = useQuery({
-    queryKey: ['projects'],
-    queryFn: () => base44.entities.Project.list('display_order')
+    queryKey: ['projects', portfolioFilter],
+    queryFn: () => base44.entities.Project.filter({ portfolio: portfolioFilter }, 'display_order')
   });
 
   const updateOrderMutation = useMutation({
