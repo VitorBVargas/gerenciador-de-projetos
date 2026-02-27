@@ -479,6 +479,7 @@ export default function ProjectsList() {
         open={crmImportModalOpen}
         onOpenChange={setCrmImportModalOpen}
         onSuccess={handleImportSuccess}
+        portfolioFilter={portfolioFilter}
       />
 
       {/* Setup Wizard (after CRM import) */}
