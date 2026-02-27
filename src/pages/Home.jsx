@@ -62,8 +62,7 @@ export default function Home() {
           {/* Projetos - Portfólios */}
           <button
             onClick={() => {
-              // Placeholder para seleção de portfólio
-              handleNavigation('ProjectsList');
+              handleNavigation('PortfolioSelect?mode=projects');
             }}
             onMouseEnter={() => setActiveButton(1)}
             onMouseLeave={() => setActiveButton(null)}
