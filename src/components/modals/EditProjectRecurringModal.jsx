@@ -22,7 +22,6 @@ export default function EditProjectRecurringModal({ open, onOpenChange, project,
   const handleSave = () => {
     const value = parseFloat(recurringValue) || 0;
     onSave(value);
-    onOpenChange(false);
   };
 
   return (
