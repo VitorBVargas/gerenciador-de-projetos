@@ -26,11 +26,25 @@ export default function AIAssistantModal({ isOpen, onClose, projectId, conversat
     if (isOpen && !conversation && !externalConversation) {
       const initConversation = async () => {
         try {
+          // Montar contexto completo do projeto para a IA
+          let projectContext = `project_id: ${projectId}`;
+          if (projectData) {
+            projectContext += `\nProjeto: ${projectData.project?.name || ''}`;
+            projectContext += `\nGerente: ${projectData.project?.manager || ''}`;
+            projectContext += `\nStatus: ${projectData.project?.status || ''}`;
+            if (projectData.products?.length) projectContext += `\nProdutos (${projectData.products.length}): ${projectData.products.map(p => p.name).join(', ')}`;
+            if (projectData.timelineEvents?.length) projectContext += `\nEtapas do cronograma (${projectData.timelineEvents.length} eventos)`;
+            if (projectData.risks?.length) projectContext += `\nRiscos: ${projectData.risks.length} identificados`;
+            if (projectData.milestones?.length) projectContext += `\nMarcos: ${projectData.milestones.length}`;
+            if (projectData.expenses?.length) projectContext += `\nDespesas: ${projectData.expenses.length} registros`;
+          }
+
           const conv = await base44.agents.createConversation({
             agent_name: 'ia_projetos_betha',
             metadata: {
-              name: 'AI Assistant Chat',
-              project_id: projectId
+              name: `Projeto ${projectData?.project?.name || projectId}`,
+              project_id: projectId,
+              context: projectContext
             }
           });
           setConversation(conv);
@@ -44,7 +58,7 @@ export default function AIAssistantModal({ isOpen, onClose, projectId, conversat
       setConversation(externalConversation);
       setMessages(externalConversation.messages || []);
     }
-  }, [isOpen, conversation, externalConversation, projectId]);
+  }, [isOpen, conversation, externalConversation, projectId, projectData]);
 
   // Subscrever a atualizações
   useEffect(() => {
