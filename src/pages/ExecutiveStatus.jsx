@@ -486,6 +486,8 @@ export default function ExecutiveStatus() {
       monthlyData[monthKey].a_receber = Math.max(0, totalImplValue - totalRecognized);
     });
 
+    const getGoLiveDate2 = (e) => e.start_date || e.end_date;
+
     projects.forEach(project => {
       const projectProducts = allProducts.filter(p => p.project_id === project.id && (p.inclusion_value || 0) > 0);
       if (!projectProducts.length) return;
@@ -498,36 +500,37 @@ export default function ExecutiveStatus() {
         });
         Object.entries(verticalGroups).forEach(([vertical, prods]) => {
           const cronograma = allCronogramas.find(c => c.project_id === project.id && c.vertical === vertical);
+          let goLiveEvent = null;
+
+          // 1) Busca pelo cronograma_id
           if (cronograma) {
-            const goLiveEvent = allTimelineEvents.find(e => e.cronograma_id === cronograma.id && e.phase === 'go_live' && (e.start_date || e.end_date));
-            if (goLiveEvent) {
-              const goLiveDate = goLiveEvent.start_date || goLiveEvent.end_date;
-              const goLiveMonth = goLiveDate.substring(0, 7);
-              if (monthlyData[goLiveMonth]) {
-                const totalInclusao = prods.reduce((sum, p) => sum + (p.inclusion_value || 0), 0);
-                monthlyData[goLiveMonth].recorrente += totalInclusao;
-                prods.forEach(prod => {
-                  monthlyRecorrenteProducts[goLiveMonth].push({ product: prod, project, vertical, startDate: goLiveDate, inclusionValue: prod.inclusion_value || 0 });
-                });
-              }
-              return;
+            goLiveEvent = allTimelineEvents.find(e => e.cronograma_id === cronograma.id && e.phase === 'go_live' && getGoLiveDate2(e));
+          }
+          // 2) Fallback: busca por product_id de qualquer produto da vertical
+          if (!goLiveEvent) {
+            for (const prod of prods) {
+              goLiveEvent = allTimelineEvents.find(e => e.product_id === prod.id && e.phase === 'go_live' && getGoLiveDate2(e));
+              if (goLiveEvent) break;
             }
           }
+
+          if (!goLiveEvent) return;
+
+          const goLiveDate = getGoLiveDate2(goLiveEvent);
+          const goLiveMonth = goLiveDate.substring(0, 7);
+          if (!monthlyData[goLiveMonth]) return;
+          const totalInclusao = prods.reduce((sum, p) => sum + (p.inclusion_value || 0), 0);
+          monthlyData[goLiveMonth].recorrente += totalInclusao;
           prods.forEach(prod => {
-            const goLiveEvent = allTimelineEvents.find(e => (e.product_id === prod.id || e.project_id === project.id) && e.phase === 'go_live' && (e.start_date || e.end_date));
-            if (!goLiveEvent) return;
-            const goLiveDate = goLiveEvent.start_date || goLiveEvent.end_date;
-            const goLiveMonth = goLiveDate.substring(0, 7);
-            if (!monthlyData[goLiveMonth]) return;
-            monthlyData[goLiveMonth].recorrente += (prod.inclusion_value || 0);
             monthlyRecorrenteProducts[goLiveMonth].push({ product: prod, project, vertical, startDate: goLiveDate, inclusionValue: prod.inclusion_value || 0 });
           });
         });
       } else {
+        // por_produto: cada produto tem seu próprio evento go_live via product_id
         projectProducts.forEach(prod => {
-          const goLiveEvent = allTimelineEvents.find(e => (e.product_id === prod.id || e.project_id === project.id) && e.phase === 'go_live' && (e.start_date || e.end_date));
+          const goLiveEvent = allTimelineEvents.find(e => e.product_id === prod.id && e.phase === 'go_live' && getGoLiveDate2(e));
           if (!goLiveEvent) return;
-          const goLiveDate = goLiveEvent.start_date || goLiveEvent.end_date;
+          const goLiveDate = getGoLiveDate2(goLiveEvent);
           const goLiveMonth = goLiveDate.substring(0, 7);
           if (!monthlyData[goLiveMonth]) return;
           monthlyData[goLiveMonth].recorrente += (prod.inclusion_value || 0);
