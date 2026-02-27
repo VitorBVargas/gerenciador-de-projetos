@@ -12,7 +12,11 @@ import { useQuery } from '@tanstack/react-query';
 import StepCronograma from './StepCronograma';
 // useQuery still used by StepTeam
 
-const PORTFOLIOS = ['Grandes Contas SC/MG', 'Grandes Contas SC/SP', 'Médias Contas'];
+const PORTFOLIOS = [
+  { id: 'grandes_contas_sc_mg', label: 'Grande Contas SC/MG' },
+  { id: 'grandes_contas_sc_sp', label: 'Grande Contas SC/SP' },
+  { id: 'medias_contas', label: 'Médias Contas' },
+];
 
 const VERTICAL_LABELS = {
   arrecadacao: 'Arrecadação', compras: 'Compras', contabil: 'Contábil',
