@@ -7,17 +7,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 
 const phases = [
-  { value: 'planejamento', label: 'Planejamento e Monitoramento' },
+  { value: 'planejamento_contrato', label: 'Planejamento/Contrato' },
   { value: 'kickoff', label: 'Kick-off' },
-  { value: 'diagnostico', label: 'Diagnóstico Técnico' },
-  { value: 'migracao_hml', label: 'Migração de HML' },
-  { value: 'configuracao_hml', label: 'Configuração de HML' },
-  { value: 'homologacao_hml', label: 'Homologação de HML' },
-  { value: 'migracao_producao', label: 'Migração de Produção' },
+  { value: 'diagnostico', label: 'Diagnóstico' },
+  { value: 'onboarding_cliente', label: 'Onboarding Cliente' },
+  { value: 'configuracao_migracao_hml', label: 'Configuração/Migração de Homologação' },
+  { value: 'homologacao_base', label: 'Homologação da Base' },
+  { value: 'migracao_prd_blackout', label: 'Migração de PRD (Blackout)' },
+  { value: 'configuracao_prd', label: 'Configuração de PRD' },
   { value: 'treinamento', label: 'Treinamento' },
-  { value: 'configuracao_producao', label: 'Configuração em Produção' },
-  { value: 'estabilizacao', label: 'Estabilização' },
-  { value: 'operacao_assistida', label: 'Operação Assistida' }
+  { value: 'go_live', label: 'Go-Live' },
+  { value: 'operacao_assistida', label: 'Operação Assistida' },
+  { value: 'encerramento_bastao', label: 'Encerramento/Passagem de Bastão' },
 ];
 
 export default function TimelineEventModal({ open, onOpenChange, event, onSave, projectId, productId }) {
