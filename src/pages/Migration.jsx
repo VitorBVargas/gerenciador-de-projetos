@@ -131,8 +131,6 @@ export default function Migration() {
     creatingTasksRef.current.delete(product.id);
   };
 
-  const getCurrentProduct = () => products.find(p => p.id === selectedProduct);
-
   React.useEffect(() => {
     if (selectedProduct && products.length > 0 && tasks.length >= 0) {
       const product = getCurrentProduct();
