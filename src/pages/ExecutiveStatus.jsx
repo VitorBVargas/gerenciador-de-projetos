@@ -858,7 +858,7 @@ export default function ExecutiveStatus() {
                     )}
                     {project.recurring_value > 0 && (
                       <div>
-                        <div className="text-xs text-slate-400 font-medium">Recorrente</div>
+                        <div className="text-xs text-slate-400 font-medium">Recorrente (calculado)</div>
                         <div className="text-sm text-emerald-400 font-semibold">
                           {new Intl.NumberFormat('pt-BR', { 
                             style: 'currency', 
@@ -866,6 +866,19 @@ export default function ExecutiveStatus() {
                             minimumFractionDigits: 0,
                             maximumFractionDigits: 0
                           }).format(project.recurring_value)}
+                        </div>
+                      </div>
+                    )}
+                    {project.contract_recurring_value > 0 && (
+                      <div>
+                        <div className="text-xs text-slate-400 font-medium">Recorrente (contrato)</div>
+                        <div className="text-sm text-blue-400 font-semibold">
+                          {new Intl.NumberFormat('pt-BR', { 
+                            style: 'currency', 
+                            currency: 'BRL',
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 0
+                          }).format(project.contract_recurring_value)}
                         </div>
                       </div>
                     )}
