@@ -15,7 +15,7 @@ export default function EditProjectRecurringModal({ open, onOpenChange, project,
 
   useEffect(() => {
     if (project) {
-      setRecurringValue((project.recurring_value || 0).toString());
+      setRecurringValue((project.contract_recurring_value || 0).toString());
     }
   }, [project, open]);
 
