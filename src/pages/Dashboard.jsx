@@ -617,6 +617,16 @@ export default function Dashboard() {
         isOpen={isAIModalOpen}
         onClose={() => setIsAIModalOpen(false)}
         projectId={projectId}
+        projectData={{
+          project: activeProject,
+          products,
+          timelineEvents,
+          risks,
+          milestones,
+          expenses,
+          migrationTasks,
+          homologationTasks
+        }}
       />
 
       {/* AI Welcome Modal */}

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Send, X, Loader2 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
-export default function AIAssistantModal({ isOpen, onClose, projectId, conversation: externalConversation }) {
+export default function AIAssistantModal({ isOpen, onClose, projectId, projectData, conversation: externalConversation }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
