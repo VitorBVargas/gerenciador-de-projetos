@@ -144,7 +144,7 @@ function StepOverview({ data, onChange }) {
             </SelectTrigger>
             <SelectContent className="bg-slate-800 border-slate-700">
               {PORTFOLIOS.map(p => (
-                <SelectItem key={p} value={p} className="text-white">{p}</SelectItem>
+                <SelectItem key={p.id} value={p.id} className="text-white">{p.label}</SelectItem>
               ))}
             </SelectContent>
           </Select>
