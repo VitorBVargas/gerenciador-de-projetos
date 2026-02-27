@@ -307,7 +307,7 @@ export default function ProjectsList() {
             <p className="text-slate-400 mt-1">{activeProjects.length} projeto(s) ativo(s)</p>
           </div>
           <div className="flex gap-3">
-            <Link to={createPageUrl('ExecutiveStatus')}>
+            <Link to={createPageUrl(`ExecutiveStatus?portfolio=${portfolioFilter}`)}>
               <Button className="bg-purple-600 hover:bg-purple-700">
                 <TrendingUp className="w-4 h-4 mr-2" />
                 Status Executivo
