@@ -81,6 +81,14 @@ export default function ExecutiveStatus() {
   const [isEditRecurringModalOpen, setIsEditRecurringModalOpen] = useState(false);
   const [selectedEntity, setSelectedEntity] = useState(null);
   const queryClient = useQueryClient();
+  const urlParams = new URLSearchParams(window.location.search);
+  const portfolioFilter = urlParams.get('portfolio') || 'grandes_contas_sc_mg';
+
+  const portfolioLabels = {
+    grandes_contas_sc_mg: 'Grande Contas SC/MG',
+    grandes_contas_sc_sp: 'Grande Contas SC/SP',
+    medias_contas: 'Médias Contas',
+  };
 
   const handleChartVisibility = (chart, visible) => {
     setVisibleCharts(prev => ({
