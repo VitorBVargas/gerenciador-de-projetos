@@ -82,7 +82,7 @@ export default function Home() {
 
           {/* Status Executivo */}
           <button
-            onClick={() => handleNavigation('ExecutiveStatus')}
+            onClick={() => handleNavigation('PortfolioSelect?mode=executive')}
             onMouseEnter={() => setActiveButton(2)}
             onMouseLeave={() => setActiveButton(null)}
             className="group relative h-40 rounded-2xl overflow-hidden transition-all duration-300 transform hover:scale-105"
