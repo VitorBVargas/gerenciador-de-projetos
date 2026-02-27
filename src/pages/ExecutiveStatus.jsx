@@ -401,6 +401,7 @@ export default function ExecutiveStatus() {
     allTimelineEvents.forEach(e => {
       if (e.phase === 'operacao_assistida' && e.end_date) relevantMonths.add(e.end_date.substring(0, 7));
       if (e.phase === 'go_live' && e.start_date) relevantMonths.add(e.start_date.substring(0, 7));
+      if (e.phase === 'go_live' && e.end_date) relevantMonths.add(e.end_date.substring(0, 7));
     });
     allRecognizedRevenues.forEach(r => {
       if (r.recognition_month) relevantMonths.add(r.recognition_month.substring(0, 7));
