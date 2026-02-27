@@ -643,7 +643,7 @@ export default function ExecutiveStatus() {
 
         </div>
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-white">Clientes Premium SC/MG</h1>
+          <h1 className="text-3xl font-bold text-white">Portfólio {portfolioLabels[portfolioFilter]}</h1>
           <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-slate-400">
             <span><span className="text-slate-500">Gerente de Portfólio:</span> Leandro de Faveri</span>
             <span><span className="text-slate-500">Coordenador:</span> Maxwell Santos</span>
