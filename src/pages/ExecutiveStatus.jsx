@@ -517,12 +517,6 @@ export default function ExecutiveStatus() {
         });
       } else {
         projectProducts.forEach(prod => {
-          // Log all timeline events for debugging
-          if (prod.name.includes('Obras') || prod.name.includes('GovView')) {
-            const allEventsForProd = allTimelineEvents.filter(e => e.product_id === prod.id);
-            console.log(`[DEBUG] Todos TimelineEvents para ${prod.name} (product_id: ${prod.id}):`, allEventsForProd.map(e => ({ phase: e.phase, product_id: e.product_id, start_date: e.start_date })));
-          }
-          
           const goLiveEvent = allTimelineEvents.find(e => e.product_id === prod.id && e.phase === 'go_live' && e.start_date);
           if (!goLiveEvent || !goLiveEvent.start_date) return;
           const goLiveMonth = goLiveEvent.start_date.substring(0, 7);
