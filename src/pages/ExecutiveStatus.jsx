@@ -79,6 +79,7 @@ export default function ExecutiveStatus() {
   const [expandedRecognitions, setExpandedRecognitions] = useState({});
   const [editingProjectId, setEditingProjectId] = useState(null);
   const [isEditRecurringModalOpen, setIsEditRecurringModalOpen] = useState(false);
+  const [selectedEntity, setSelectedEntity] = useState(null);
   const queryClient = useQueryClient();
 
   const handleChartVisibility = (chart, visible) => {
