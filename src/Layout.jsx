@@ -56,6 +56,7 @@ export default function Layout({ children, currentPageName }) {
   if (
     currentPageName === 'Home' ||
     currentPageName === 'ProjectsList' ||
+    currentPageName === 'PortfolioSelect' ||
     currentPageName === 'InternalProjectsList' ||
     currentPageName === 'InternalDashboard' ||
     currentPageName === 'ExecutiveStatus'
