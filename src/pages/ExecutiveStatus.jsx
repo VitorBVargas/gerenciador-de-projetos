@@ -99,8 +99,8 @@ export default function ExecutiveStatus() {
 
   // Fetch all projects
   const { data: allProjectsData = [], isLoading, isError } = useQuery({
-    queryKey: ['projects'],
-    queryFn: () => base44.entities.Project.list('-created_date'),
+    queryKey: ['projects', portfolioFilter],
+    queryFn: () => base44.entities.Project.filter({ portfolio: portfolioFilter }, '-created_date'),
     staleTime: 60000,
     gcTime: 300000,
     retry: 2,
