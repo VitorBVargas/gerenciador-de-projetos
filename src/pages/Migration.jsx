@@ -160,6 +160,8 @@ export default function Migration() {
     });
   };
 
+  const getCurrentProduct = () => products.find(p => p.id === selectedProduct);
+
   const getProductTasks = (productId) => {
     return tasks.filter(t => t.product_id === productId);
   };
