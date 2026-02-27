@@ -50,6 +50,7 @@ export default function ProjectModal({ open, onOpenChange, project, onSave }) {
       implementation_value: parseFloat(formData.implementation_value) || 0,
       recurring_value: parseFloat(formData.recurring_value) || 0,
     });
+    onOpenChange(false);
   };
 
   return (

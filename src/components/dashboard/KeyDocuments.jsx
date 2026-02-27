@@ -59,7 +59,8 @@ export default function KeyDocuments({ projectId, project }) {
     if (!isLoading && projectId && documents.length > 0 && !initialized) {
       setInitialized(true);
       const existingTitles = documents.map(d => d.title);
-      const missing = KEY_DOCUMENTS.filter(t => !existingTitles.includes(t));
+      // Use exact match to avoid adding duplicates with same title
+      const missing = KEY_DOCUMENTS.filter(t => !existingTitles.some(et => et === t));
       if (missing.length > 0) {
         const maxOrder = Math.max(...documents.map(d => d.order || 0), 0);
         base44.entities.ProjectDocument.bulkCreate(
@@ -72,7 +73,7 @@ export default function KeyDocuments({ projectId, project }) {
         ).then(() => queryClient.invalidateQueries({ queryKey: ['documents', projectId] }));
       }
     }
-  }, [isLoading, projectId, documents, initialized, queryClient]);
+  }, [isLoading, projectId, documents.length, initialized, queryClient]);
 
   const toggleMutation = useMutation({
     mutationFn: ({ id, completed }) => base44.entities.ProjectDocument.update(id, { completed }),

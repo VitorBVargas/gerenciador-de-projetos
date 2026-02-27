@@ -313,11 +313,11 @@ export default function ExecutiveStatus() {
   // Mapa de produtos recorrentes calculado via useMemo (evita loop infinito)
   const recorrenteProductsMap = useMemo(() => {
     const map = {};
-    // Calcular range dinâmico igual ao useMemo dos gráficos
     const relevantMonths = new Set();
     allTimelineEvents.forEach(e => {
       if (e.phase === 'operacao_assistida' && e.end_date) relevantMonths.add(e.end_date.substring(0, 7));
       if (e.phase === 'go_live' && e.start_date) relevantMonths.add(e.start_date.substring(0, 7));
+      if (e.phase === 'go_live' && e.end_date) relevantMonths.add(e.end_date.substring(0, 7));
     });
     allRecognizedRevenues.forEach(r => {
       if (r.recognition_month) relevantMonths.add(r.recognition_month.substring(0, 7));
@@ -334,7 +334,11 @@ export default function ExecutiveStatus() {
       const key = format(addMonths(minDate, i), 'yyyy-MM');
       map[key] = [];
     }
-    projects.forEach(project => {
+
+    // Helper: pegar a data go_live de um evento (start_date ou end_date)
+    const getGoLiveDate = (event) => event.start_date || event.end_date;
+
+    allProjectsData.filter(p => p.status !== 'concluido').forEach(project => {
       const projectProducts = allProducts.filter(p => p.project_id === project.id);
       if (!projectProducts.length) return;
       if (project.scheduling_type === 'por_vertical') {
@@ -347,41 +351,46 @@ export default function ExecutiveStatus() {
         Object.entries(verticalGroups).forEach(([vertical, prods]) => {
           const cronograma = allCronogramas.find(c => c.project_id === project.id && c.vertical === vertical);
           
-          // Se cronograma existe com evento go_live, usa para todos
           if (cronograma) {
-            const goLiveEvent = allTimelineEvents.find(e => e.cronograma_id === cronograma.id && e.phase === 'go_live' && e.start_date);
+            const goLiveEvent = allTimelineEvents.find(e => e.cronograma_id === cronograma.id && e.phase === 'go_live' && getGoLiveDate(e));
             if (goLiveEvent) {
-              const goLiveMonth = goLiveEvent.start_date.substring(0, 7);
+              const goLiveDate = getGoLiveDate(goLiveEvent);
+              const goLiveMonth = goLiveDate.substring(0, 7);
               if (map[goLiveMonth]) {
                 prods.forEach(prod => {
-                  map[goLiveMonth].push({ product: prod, project, vertical, startDate: goLiveEvent.start_date, inclusionValue: prod.inclusion_value || 0 });
+                  map[goLiveMonth].push({ product: prod, project, vertical, startDate: goLiveDate, inclusionValue: prod.inclusion_value || 0 });
                 });
               }
               return;
             }
           }
           
-          // Se não encontrou por cronograma, busca cada produto individualmente
           prods.forEach(prod => {
-            const goLiveEvent = allTimelineEvents.find(e => e.product_id === prod.id && e.phase === 'go_live' && e.start_date);
+            const goLiveEvent = allTimelineEvents.find(e => 
+              (e.product_id === prod.id || e.project_id === project.id) && e.phase === 'go_live' && getGoLiveDate(e)
+            );
             if (!goLiveEvent) return;
-            const goLiveMonth = goLiveEvent.start_date.substring(0, 7);
+            const goLiveDate = getGoLiveDate(goLiveEvent);
+            const goLiveMonth = goLiveDate.substring(0, 7);
             if (!map[goLiveMonth]) return;
-            map[goLiveMonth].push({ product: prod, project, vertical, startDate: goLiveEvent.start_date, inclusionValue: prod.inclusion_value || 0 });
+            map[goLiveMonth].push({ product: prod, project, vertical, startDate: goLiveDate, inclusionValue: prod.inclusion_value || 0 });
           });
         });
       } else {
         projectProducts.forEach(prod => {
-          const goLiveEvent = allTimelineEvents.find(e => e.product_id === prod.id && e.phase === 'go_live' && e.start_date);
+          const goLiveEvent = allTimelineEvents.find(e => 
+            (e.product_id === prod.id || e.project_id === project.id) && e.phase === 'go_live' && getGoLiveDate(e)
+          );
           if (!goLiveEvent) return;
-          const goLiveMonth = goLiveEvent.start_date.substring(0, 7);
+          const goLiveDate = getGoLiveDate(goLiveEvent);
+          const goLiveMonth = goLiveDate.substring(0, 7);
           if (!map[goLiveMonth]) return;
-          map[goLiveMonth].push({ product: prod, project, startDate: goLiveEvent.start_date, inclusionValue: prod.inclusion_value || 0 });
+          map[goLiveMonth].push({ product: prod, project, startDate: goLiveDate, inclusionValue: prod.inclusion_value || 0 });
         });
       }
     });
     return map;
-  }, [allProducts, allTimelineEvents, allCronogramas, allRecognizedRevenues, projects]);
+  }, [allProducts, allTimelineEvents, allCronogramas, allRecognizedRevenues, allProjectsData]);
 
   // Financeiro chart data (must be a hook at top level, not inside JSX)
   const financeiroChartContent = useMemo(() => {
