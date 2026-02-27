@@ -43,7 +43,7 @@ export default function TimelineEventModal({ open, onOpenChange, event, onSave, 
     if (event) {
       setFormData({
         title: event.title || '',
-        phase: event.phase || 'planejamento',
+        phase: event.phase || 'planejamento_contrato',
         start_date: subtractOneDay(event.start_date),
         end_date: subtractOneDay(event.end_date),
         status: event.status || 'nao_iniciado',
