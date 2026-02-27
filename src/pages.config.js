@@ -64,6 +64,7 @@ import StatusReports from './pages/StatusReports';
 import Team from './pages/Team';
 import Timeline from './pages/Timeline';
 import Travels from './pages/Travels';
+import PortfolioSelect from './pages/PortfolioSelect';
 import __Layout from './Layout.jsx';
 
 
@@ -85,6 +86,7 @@ export const PAGES = {
     "Team": Team,
     "Timeline": Timeline,
     "Travels": Travels,
+    "PortfolioSelect": PortfolioSelect,
 }
 
 export const pagesConfig = {
