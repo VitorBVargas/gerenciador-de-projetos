@@ -111,65 +111,114 @@ export default function ExecutiveStatus() {
   
 
 
-  // Fetch all cronogramas
+  // IDs dos projetos do portfolio atual (para filtrar queries dependentes)
+  const projectIds = useMemo(() => allProjectsData.map(p => p.id), [allProjectsData]);
+  const hasProjects = projectIds.length > 0;
+
+  // Fetch cronogramas filtrados pelo portfolio
   const { data: allCronogramas = [] } = useQuery({
-    queryKey: ['allCronogramas'],
-    queryFn: () => base44.entities.Cronograma.list(),
-    staleTime: 60000,
-    gcTime: 300000
-  });
-
-  // Fetch all timeline events
-  const { data: allTimelineEvents = [] } = useQuery({
-    queryKey: ['allTimelineEvents'],
+    queryKey: ['allCronogramas', portfolioFilter],
     queryFn: async () => {
-      const events = await base44.entities.TimelineEvent.list();
-      return events;
+      const results = await Promise.all(
+        projectIds.map(id => base44.entities.Cronograma.filter({ project_id: id }))
+      );
+      return results.flat();
     },
+    enabled: hasProjects,
     staleTime: 60000,
     gcTime: 300000
   });
 
-  // Fetch all tasks - necessário para calcular health score corretamente
+  // Fetch timeline events filtrados pelo portfolio
+  const { data: allTimelineEvents = [] } = useQuery({
+    queryKey: ['allTimelineEvents', portfolioFilter],
+    queryFn: async () => {
+      const results = await Promise.all(
+        projectIds.map(id => base44.entities.TimelineEvent.filter({ project_id: id }))
+      );
+      return results.flat();
+    },
+    enabled: hasProjects,
+    staleTime: 60000,
+    gcTime: 300000
+  });
+
+  // Fetch homologation tasks filtradas pelo portfolio
   const { data: allHomologationTasks = [] } = useQuery({
-    queryKey: ['allHomologationTasks'],
-    queryFn: () => base44.entities.HomologationTask.list(),
+    queryKey: ['allHomologationTasks', portfolioFilter],
+    queryFn: async () => {
+      const results = await Promise.all(
+        projectIds.map(id => base44.entities.HomologationTask.filter({ project_id: id }))
+      );
+      return results.flat();
+    },
+    enabled: hasProjects,
     staleTime: 60000,
     gcTime: 300000
   });
 
   const { data: allMigrationTasks = [] } = useQuery({
-    queryKey: ['allMigrationTasks'],
-    queryFn: () => base44.entities.MigrationTask.list(),
+    queryKey: ['allMigrationTasks', portfolioFilter],
+    queryFn: async () => {
+      const results = await Promise.all(
+        projectIds.map(id => base44.entities.MigrationTask.filter({ project_id: id }))
+      );
+      return results.flat();
+    },
+    enabled: hasProjects,
     staleTime: 60000,
     gcTime: 300000
   });
 
-  // Fetch all risks
+  // Fetch risks filtrados pelo portfolio
   const { data: allRisks = [] } = useQuery({
-    queryKey: ['allRisks'],
-    queryFn: () => base44.entities.Risk.list(),
+    queryKey: ['allRisks', portfolioFilter],
+    queryFn: async () => {
+      const results = await Promise.all(
+        projectIds.map(id => base44.entities.Risk.filter({ project_id: id }))
+      );
+      return results.flat();
+    },
+    enabled: hasProjects,
     staleTime: 60000,
     gcTime: 300000
   });
 
   const { data: allExpenses = [] } = useQuery({
-    queryKey: ['allExpenses'],
-    queryFn: () => base44.entities.Expense.list(),
+    queryKey: ['allExpenses', portfolioFilter],
+    queryFn: async () => {
+      const results = await Promise.all(
+        projectIds.map(id => base44.entities.Expense.filter({ project_id: id }))
+      );
+      return results.flat();
+    },
+    enabled: hasProjects,
     staleTime: 60000,
     gcTime: 300000
   });
 
   const { data: allProducts = [] } = useQuery({
-    queryKey: ['allProducts'],
-    queryFn: () => base44.entities.Product.list(),
+    queryKey: ['allProducts', portfolioFilter],
+    queryFn: async () => {
+      const results = await Promise.all(
+        projectIds.map(id => base44.entities.Product.filter({ project_id: id }))
+      );
+      return results.flat();
+    },
+    enabled: hasProjects,
     staleTime: 60000,
     gcTime: 300000
   });
 
   const { data: allRecognizedRevenues = [] } = useQuery({
-    queryKey: ['allRecognizedRevenues'],
-    queryFn: () => base44.entities.RecognizedRevenue.list(),
+    queryKey: ['allRecognizedRevenues', portfolioFilter],
+    queryFn: async () => {
+      const results = await Promise.all(
+        projectIds.map(id => base44.entities.RecognizedRevenue.filter({ project_id: id }))
+      );
+      return results.flat();
+    },
+    enabled: hasProjects,
     staleTime: 60000,
     gcTime: 300000
   });
