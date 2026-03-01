@@ -634,12 +634,22 @@ export default function ExecutiveStatus() {
       {/* Header */}
       <div className="space-y-4">
         <div className="flex items-start justify-between gap-4">
-          <Link to={createPageUrl(`ProjectsList?portfolio=${portfolioFilter}`)}>
-            <button className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
-              <ArrowLeft className="w-5 h-5" />
-              <span className="text-sm">Voltar para Projetos</span>
-            </button>
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link to={createPageUrl(`ProjectsList?portfolio=${portfolioFilter}`)}>
+              <button className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
+                <ArrowLeft className="w-5 h-5" />
+                <span className="text-sm">Voltar para Projetos</span>
+              </button>
+            </Link>
+            <a
+              href="https://betha-road-map.base44.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-orange-500/20 border border-orange-500/40 text-orange-300 hover:bg-orange-500/30 transition-colors text-xs font-medium"
+            >
+              🗺️ Reportar Bug / Melhoria
+            </a>
+          </div>
 
         </div>
         <div className="space-y-2">
