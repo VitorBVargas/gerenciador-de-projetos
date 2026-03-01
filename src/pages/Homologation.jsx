@@ -494,23 +494,34 @@ export default function Homologation() {
                                   }
 
                                   return (
-                                 <div key={`imported-${idx}`}>
-                                   <div className="flex items-center justify-between mb-3 group/section">
-                                     <h3 className="text-cyan-400 font-semibold text-sm uppercase">
-                                       {sectionName}
-                                     </h3>
-                                     <Button
-                                       size="icon"
-                                       variant="ghost"
-                                       className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover/section:opacity-100 transition-opacity"
-                                       onClick={async () => {
-                                         await Promise.all(sectionTasks.map(t => deleteTaskMutation.mutate(t.id)));
-                                         toast.success(`Seção "${sectionName}" deletada`);
-                                       }}
-                                     >
-                                       <Trash2 className="w-3 h-3" />
-                                     </Button>
-                                   </div>
+                                  <div key={`imported-${idx}`}>
+                                  <div className="flex items-center justify-between mb-3 group/section">
+                                    <h3 className="text-cyan-400 font-semibold text-sm uppercase flex-1">
+                                      {sectionName}
+                                    </h3>
+                                    <div className="flex items-center gap-1">
+                                      <button
+                                        onClick={() => {
+                                          const allDone = uniqueImportedTasks.every(t => t.completed);
+                                          handleMarkSectionTasks(uniqueImportedTasks, !allDone);
+                                        }}
+                                        className="text-[10px] px-2 py-0.5 rounded border border-green-500/30 text-green-400 hover:bg-green-500/10 transition-colors"
+                                      >
+                                        {uniqueImportedTasks.every(t => t.completed) ? 'Desmarcar' : 'Marcar todos'}
+                                      </button>
+                                      <Button
+                                        size="icon"
+                                        variant="ghost"
+                                        className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover/section:opacity-100 transition-opacity"
+                                        onClick={async () => {
+                                          await Promise.all(sectionTasks.map(t => deleteTaskMutation.mutate(t.id)));
+                                          toast.success(`Seção "${sectionName}" deletada`);
+                                        }}
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                      </Button>
+                                    </div>
+                                  </div>
                                     <div className="space-y-2">
                                       {uniqueImportedTasks.map(task => (
                                         <div key={task.id} className="flex items-center gap-3 group">
