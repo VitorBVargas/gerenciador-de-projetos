@@ -491,6 +491,7 @@ export default function Dashboard() {
             products={products}
             cronogramas={cronogramas}
           />
+          </React.Suspense>
         </div>
       )}
 
