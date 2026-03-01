@@ -480,6 +480,7 @@ export default function Dashboard() {
           </div>
 
           {/* Health Score */}
+          <React.Suspense fallback={<LazyFallback />}>
           <ProjectHealthScore
             timeline={timelineEvents}
             budget={activeProject?.budget || 0}
