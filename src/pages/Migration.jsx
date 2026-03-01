@@ -283,74 +283,39 @@ export default function Migration() {
     queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
   };
 
-  const handleImportTasks = async (event) => {
-    const file = event.target.files?.[0];
-    if (!file || !selectedProduct) return;
+  const handleImportTasks = async (rawData) => {
+    const product = getCurrentProduct();
+    if (!product) return;
 
-    try {
-      const product = getCurrentProduct();
-      const data = await file.arrayBuffer();
-      const workbook = XLSX.read(data);
-      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-      
-      // Lê os dados como array de arrays para pegar coluna A e B
-      const rawData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+    const existingTasks = tasks.filter(t => t.product_id === product.id);
+    await Promise.all(existingTasks.map(task =>
+      base44.entities.MigrationTask.delete(task.id).catch(() => {})
+    ));
 
-      // Deleta todas as tarefas existentes (ignora erros se a tarefa já foi deletada)
-      const existingTasks = tasks.filter(t => t.product_id === product.id);
-      await Promise.all(existingTasks.map(task => 
-        base44.entities.MigrationTask.delete(task.id).catch(() => {})
-      ));
+    const tasksToCreate = [];
+    const seenTitles = new Set();
+    let currentEtapa = '';
+    let order = 0;
 
-      // Processa a planilha: Coluna A = tipo (Etapa/Tarefa), Coluna B = nome
-      const tasksToCreate = [];
-      const seenTitles = new Set();
-      let currentEtapa = '';
-      let order = 0;
-      
-      for (const row of rawData) {
-        const colA = (row[0] || '').toString().trim().toLowerCase();
-        const colB = (row[1] || '').toString().trim();
-        
-        if (!colA || !colB) continue;
-        
-        // Se Coluna A = "Etapa", salva como etapa atual (seção azul)
-        if (colA === 'etapa') {
-          currentEtapa = colB;
-        }
-        // Se Coluna A = "Tarefa", cria a tarefa (branca) dentro da etapa atual
-        else if (colA === 'tarefa') {
-          const title = currentEtapa ? `||${currentEtapa}||${colB}` : colB;
-          const titleLower = title.toLowerCase();
-          
-          // Evita adicionar tarefas duplicadas
-          if (!seenTitles.has(titleLower)) {
-            seenTitles.add(titleLower);
-            tasksToCreate.push({
-              title: title,
-              project_id: projectId,
-              product_id: product.id,
-              completed: false,
-              order: order++
-            });
-          }
+    for (const row of rawData) {
+      const colA = (row[0] || '').toString().trim().toLowerCase();
+      const colB = (row[1] || '').toString().trim();
+      if (!colA || !colB) continue;
+      if (colA === 'etapa') {
+        currentEtapa = colB;
+      } else if (colA === 'tarefa') {
+        const title = currentEtapa ? `||${currentEtapa}||${colB}` : colB;
+        if (!seenTitles.has(title.toLowerCase())) {
+          seenTitles.add(title.toLowerCase());
+          tasksToCreate.push({ title, project_id: projectId, product_id: product.id, completed: false, order: order++ });
         }
       }
-
-      if (tasksToCreate.length > 0) {
-        await base44.entities.MigrationTask.bulkCreate(tasksToCreate);
-        toast.success(`${tasksToCreate.length} tarefas importadas com sucesso!`);
-        queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
-      } else {
-        toast.error('Nenhuma tarefa encontrada. Verifique se a planilha tem "Etapa" e "Tarefa" na Coluna A.');
-      }
-    } catch (error) {
-      toast.error('Erro ao importar tarefas. Verifique o formato do arquivo.');
     }
-    
-    // Reset input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+
+    if (tasksToCreate.length > 0) {
+      await base44.entities.MigrationTask.bulkCreate(tasksToCreate);
+      toast.success(`${tasksToCreate.length} tarefas importadas com sucesso!`);
+      queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
     }
   };
 
