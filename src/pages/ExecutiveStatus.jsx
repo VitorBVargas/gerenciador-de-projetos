@@ -585,7 +585,7 @@ export default function ExecutiveStatus() {
       .map(([, value]) => value);
 
     return { monthlyData, chartData };
-  }, [projects, allProducts, allTimelineEvents, allCronogramas, allRecognizedRevenues, allProjectsData]);
+  }, [allProjectsData, allProducts, allTimelineEvents, allCronogramas, allRecognizedRevenues]);
 
   // Calculate project with health status
   const projectsWithMetrics = useMemo(() => {
