@@ -103,7 +103,7 @@ export default function Home() {
             href="https://betha-road-map.base44.app/"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-orange-500/20 border border-orange-500/40 text-orange-300 hover:bg-orange-500/30 hover:text-orange-200 transition-colors text-sm font-medium"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-700/60 border border-slate-600 text-slate-300 hover:bg-slate-600/60 hover:text-white transition-colors text-sm font-medium"
           >
             🗺️ Roadmap — Reportar Bug / Sugestão
           </a>
