@@ -92,7 +92,7 @@ export default function ExpenseImporter({ open, onOpenChange, projectId, onImpor
       });
 
       const parsed = deduped
-         .filter(row => row['Valor'] || row['Valor nacional'])
+         .filter(row => (row['Valor'] || row['Valor nacional']) && row['Situação'] === 'Finalizada')
          .map(row => {
            const date = parseDate(row['Data despesa']);
            const amount = parseFloat(row['Valor nacional'] || row['Valor']) || 0;
