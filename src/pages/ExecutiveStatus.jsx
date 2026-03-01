@@ -891,7 +891,7 @@ export default function ExecutiveStatus() {
                       </div>
                     )}
                     {project.contract_recurring_value > 0 && (
-                      <div>
+                      <div className="col-span-2">
                         <div className="text-xs text-slate-400 font-medium">Recorrente (contrato)</div>
                         <div className="text-sm text-blue-400 font-semibold">
                           {new Intl.NumberFormat('pt-BR', { 
@@ -901,6 +901,9 @@ export default function ExecutiveStatus() {
                             maximumFractionDigits: 0
                           }).format(project.contract_recurring_value)}
                         </div>
+                        {project.contract_recurring_notes && (
+                          <div className="text-xs text-slate-400 mt-0.5">{project.contract_recurring_notes}</div>
+                        )}
                       </div>
                     )}
                   </div>
