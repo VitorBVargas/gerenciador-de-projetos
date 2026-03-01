@@ -161,20 +161,26 @@ export default function Budget() {
     setImplementationBudget('');
   };
 
-  const handleDeleteAll = async () => {
-    const batchSize = 5;
-    for (let i = 0; i < expenses.length; i += batchSize) {
-      const batch = expenses.slice(i, i + batchSize);
-      for (const expense of batch) {
-        await base44.entities.Expense.delete(expense.id);
+  const handleDeleteAll = () => {
+    (async () => {
+      try {
+        const batchSize = 5;
+        for (let i = 0; i < expenses.length; i += batchSize) {
+          const batch = expenses.slice(i, i + batchSize);
+          for (const expense of batch) {
+            await base44.entities.Expense.delete(expense.id);
+          }
+          // Delay between batches
+          if (i + batchSize < expenses.length) {
+            await new Promise(resolve => setTimeout(resolve, 300));
+          }
+        }
+        queryClient.invalidateQueries({ queryKey: ['expenses', projectId] });
+        setDeleteAllDialogOpen(false);
+      } catch (err) {
+        console.error('Erro ao deletar despesas:', err);
       }
-      // Delay between batches
-      if (i + batchSize < expenses.length) {
-        await new Promise(resolve => setTimeout(resolve, 300));
-      }
-    }
-    queryClient.invalidateQueries({ queryKey: ['expenses', projectId] });
-    setDeleteAllDialogOpen(false);
+    })();
   };
 
   // Calculate budget metrics
