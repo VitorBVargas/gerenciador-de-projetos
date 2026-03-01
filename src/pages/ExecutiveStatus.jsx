@@ -111,98 +111,67 @@ export default function ExecutiveStatus() {
   
 
 
-  // IDs dos projetos do portfolio atual (para filtrar queries dependentes)
-  const projectIds = useMemo(() => allProjectsData.map(p => p.id), [allProjectsData]);
-  const hasProjects = projectIds.length > 0;
-
-  // Helper: busca em lotes sequenciais com delay para respeitar rate limit
-  const fetchInBatches = async (ids, fetcher, batchSize = 2, delayMs = 600) => {
-    const results = [];
-    for (let i = 0; i < ids.length; i += batchSize) {
-      const batch = ids.slice(i, i + batchSize);
-      const batchResults = await Promise.all(batch.map(id => fetcher(id)));
-      results.push(...batchResults);
-      if (i + batchSize < ids.length) {
-        await new Promise(resolve => setTimeout(resolve, delayMs));
-      }
-    }
-    return results.flat();
-  };
-
-  // Fetch cronogramas filtrados pelo portfolio
+  // Fetch all cronogramas
   const { data: allCronogramas = [] } = useQuery({
-    queryKey: ['allCronogramas', portfolioFilter],
-    queryFn: () => fetchInBatches(projectIds, id => base44.entities.Cronograma.filter({ project_id: id })),
-    enabled: hasProjects,
-    staleTime: 300000,
-    gcTime: 600000,
-    retry: false,
+    queryKey: ['allCronogramas'],
+    queryFn: () => base44.entities.Cronograma.list(),
+    staleTime: 60000,
+    gcTime: 300000
   });
 
-  // Fetch timeline events filtrados pelo portfolio
+  // Fetch all timeline events
   const { data: allTimelineEvents = [] } = useQuery({
-    queryKey: ['allTimelineEvents', portfolioFilter],
-    queryFn: () => fetchInBatches(projectIds, id => base44.entities.TimelineEvent.filter({ project_id: id })),
-    enabled: hasProjects,
-    staleTime: 300000,
-    gcTime: 600000,
-    retry: false,
+    queryKey: ['allTimelineEvents'],
+    queryFn: async () => {
+      const events = await base44.entities.TimelineEvent.list();
+      return events;
+    },
+    staleTime: 60000,
+    gcTime: 300000
   });
 
-  // Fetch homologation tasks filtradas pelo portfolio
+  // Fetch all tasks - necessário para calcular health score corretamente
   const { data: allHomologationTasks = [] } = useQuery({
-    queryKey: ['allHomologationTasks', portfolioFilter],
-    queryFn: () => fetchInBatches(projectIds, id => base44.entities.HomologationTask.filter({ project_id: id })),
-    enabled: hasProjects,
-    staleTime: 300000,
-    gcTime: 600000,
-    retry: false,
+    queryKey: ['allHomologationTasks'],
+    queryFn: () => base44.entities.HomologationTask.list(),
+    staleTime: 60000,
+    gcTime: 300000
   });
 
   const { data: allMigrationTasks = [] } = useQuery({
-    queryKey: ['allMigrationTasks', portfolioFilter],
-    queryFn: () => fetchInBatches(projectIds, id => base44.entities.MigrationTask.filter({ project_id: id })),
-    enabled: hasProjects,
-    staleTime: 300000,
-    gcTime: 600000,
-    retry: false,
+    queryKey: ['allMigrationTasks'],
+    queryFn: () => base44.entities.MigrationTask.list(),
+    staleTime: 60000,
+    gcTime: 300000
   });
 
-  // Fetch risks filtrados pelo portfolio
+  // Fetch all risks
   const { data: allRisks = [] } = useQuery({
-    queryKey: ['allRisks', portfolioFilter],
-    queryFn: () => fetchInBatches(projectIds, id => base44.entities.Risk.filter({ project_id: id })),
-    enabled: hasProjects,
-    staleTime: 300000,
-    gcTime: 600000,
-    retry: false,
+    queryKey: ['allRisks'],
+    queryFn: () => base44.entities.Risk.list(),
+    staleTime: 60000,
+    gcTime: 300000
   });
 
   const { data: allExpenses = [] } = useQuery({
-    queryKey: ['allExpenses', portfolioFilter],
-    queryFn: () => fetchInBatches(projectIds, id => base44.entities.Expense.filter({ project_id: id })),
-    enabled: hasProjects,
-    staleTime: 300000,
-    gcTime: 600000,
-    retry: false,
+    queryKey: ['allExpenses'],
+    queryFn: () => base44.entities.Expense.list(),
+    staleTime: 60000,
+    gcTime: 300000
   });
 
   const { data: allProducts = [] } = useQuery({
-    queryKey: ['allProducts', portfolioFilter],
-    queryFn: () => fetchInBatches(projectIds, id => base44.entities.Product.filter({ project_id: id })),
-    enabled: hasProjects,
-    staleTime: 300000,
-    gcTime: 600000,
-    retry: false,
+    queryKey: ['allProducts'],
+    queryFn: () => base44.entities.Product.list(),
+    staleTime: 60000,
+    gcTime: 300000
   });
 
   const { data: allRecognizedRevenues = [] } = useQuery({
-    queryKey: ['allRecognizedRevenues', portfolioFilter],
-    queryFn: () => fetchInBatches(projectIds, id => base44.entities.RecognizedRevenue.filter({ project_id: id })),
-    enabled: hasProjects,
-    staleTime: 300000,
-    gcTime: 600000,
-    retry: false,
+    queryKey: ['allRecognizedRevenues'],
+    queryFn: () => base44.entities.RecognizedRevenue.list(),
+    staleTime: 60000,
+    gcTime: 300000
   });
 
   const createRecognizedRevenueMutation = useMutation({
@@ -593,7 +562,7 @@ export default function ExecutiveStatus() {
       .map(([, value]) => value);
 
     return { monthlyData, chartData };
-  }, [allProjectsData, allProducts, allTimelineEvents, allCronogramas, allRecognizedRevenues]);
+  }, [projects, allProducts, allTimelineEvents, allCronogramas, allRecognizedRevenues, allProjectsData]);
 
   // Calculate project with health status
   const projectsWithMetrics = useMemo(() => {

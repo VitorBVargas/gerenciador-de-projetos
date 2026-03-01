@@ -21,25 +21,21 @@ import { cn } from "@/lib/utils";
 import { createPageUrl } from '../utils';
 import { completeProjectCronogramas } from '../functions/syncProjectCronogramas';
 
+import StatCard from '../components/dashboard/StatCard.jsx';
+import ProgressChart from '../components/dashboard/ProgressChart.jsx';
+import MigrationProgressChart from '../components/dashboard/MigrationProgressChart.jsx';
+import HomologationProgressChart from '../components/dashboard/HomologationProgressChart.jsx';
+import ProjectHealthScore from '../components/dashboard/ProjectHealthScore.jsx';
+import ProjectModal from '../components/modals/ProjectModal.jsx';
+import ExcelImporter from '../components/import/ExcelImporter.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
+import ProjectInsightsModal from '../components/dashboard/ProjectInsightsModal.jsx';
+import AIAssistantModal from '../components/modals/AIAssistantModal.jsx';
+import AIWelcomeModal from '../components/modals/AIWelcomeModal.jsx';
 import { Checkbox } from "@/components/ui/checkbox";
-import { Sparkles, Loader2 } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import EntityFilter from '../components/filters/EntityFilter';
-
-// Lazy-loaded components (not needed on initial render)
-const StatCard = React.lazy(() => import('../components/dashboard/StatCard.jsx'));
-const ProgressChart = React.lazy(() => import('../components/dashboard/ProgressChart.jsx'));
-const MigrationProgressChart = React.lazy(() => import('../components/dashboard/MigrationProgressChart.jsx'));
-const HomologationProgressChart = React.lazy(() => import('../components/dashboard/HomologationProgressChart.jsx'));
-const ProjectHealthScore = React.lazy(() => import('../components/dashboard/ProjectHealthScore.jsx'));
-const ProjectModal = React.lazy(() => import('../components/modals/ProjectModal.jsx'));
-const ExcelImporter = React.lazy(() => import('../components/import/ExcelImporter.jsx'));
-const ProjectInsightsModal = React.lazy(() => import('../components/dashboard/ProjectInsightsModal.jsx'));
-const AIAssistantModal = React.lazy(() => import('../components/modals/AIAssistantModal.jsx'));
-const AIWelcomeModal = React.lazy(() => import('../components/modals/AIWelcomeModal.jsx'));
-const KeyDocuments = React.lazy(() => import('../components/dashboard/KeyDocuments.jsx'));
-
-const LazyFallback = () => <div className="flex items-center justify-center p-8"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /></div>;
+import KeyDocuments from '../components/dashboard/KeyDocuments.jsx';
 
 export default function Dashboard() {
   const queryClient = useQueryClient();
@@ -480,18 +476,16 @@ export default function Dashboard() {
           </div>
 
           {/* Health Score */}
-          <React.Suspense fallback={<LazyFallback />}>
-            <ProjectHealthScore
-              timeline={timelineEvents}
-              budget={activeProject?.budget || 0}
-              spent={expenses.reduce((sum, e) => sum + (e.amount || 0), 0)}
-              migrationTasks={migrationTasks}
-              homologationTasks={homologationTasks}
-              risks={risks}
-              products={products}
-              cronogramas={cronogramas}
-            />
-          </React.Suspense>
+          <ProjectHealthScore
+            timeline={timelineEvents}
+            budget={activeProject?.budget || 0}
+            spent={expenses.reduce((sum, e) => sum + (e.amount || 0), 0)}
+            migrationTasks={migrationTasks}
+            homologationTasks={homologationTasks}
+            risks={risks}
+            products={products}
+            cronogramas={cronogramas}
+          />
         </div>
       )}
 
@@ -510,8 +504,7 @@ export default function Dashboard() {
       )}
 
       {/* Charts Row */}
-      <React.Suspense fallback={<LazyFallback />}>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {timelineProgressData.length > 0 ? (
           <Card className="bg-slate-800/50 border-slate-700/50">
             <CardHeader>
@@ -561,13 +554,12 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         )}
-        </div>
+      </div>
 
-        {/* Migration Progress Chart */}
-        {filteredProducts.length > 0 && (
-          <MigrationProgressChart products={filteredProducts} tasks={filteredMigrationTasks} />
-        )}
-      </React.Suspense>
+      {/* Migration Progress Chart */}
+      {filteredProducts.length > 0 && (
+        <MigrationProgressChart products={filteredProducts} tasks={filteredMigrationTasks} />
+      )}
 
       {/* Marcos e Documentos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -595,64 +587,54 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <React.Suspense fallback={<LazyFallback />}>
-          <KeyDocuments projectId={projectId} project={activeProject} />
-        </React.Suspense>
+        <KeyDocuments projectId={projectId} project={activeProject} />
       </div>
 
-      {/* Modals - only rendered when needed */}
-      <React.Suspense fallback={null}>
-        {projectModalOpen && (
-          <ProjectModal
-            open={projectModalOpen}
-            onOpenChange={setProjectModalOpen}
-            project={selectedProject}
-            onSave={handleSaveProject}
-          />
-        )}
+      {/* Project Modal */}
+      <ProjectModal
+        open={projectModalOpen}
+        onOpenChange={setProjectModalOpen}
+        project={selectedProject}
+        onSave={handleSaveProject}
+      />
 
-        {importModalOpen && (
-          <ExcelImporter
-            open={importModalOpen}
-            onOpenChange={setImportModalOpen}
-            onSuccess={handleImportSuccess}
-          />
-        )}
+      {/* Excel Importer */}
+      <ExcelImporter
+        open={importModalOpen}
+        onOpenChange={setImportModalOpen}
+        onSuccess={handleImportSuccess}
+      />
 
-        {insightsModalOpen && (
-          <ProjectInsightsModal
-            open={insightsModalOpen}
-            onClose={() => setInsightsModalOpen(false)}
-            projectId={projectId}
-          />
-        )}
+      {/* Project Insights Modal */}
+      <ProjectInsightsModal
+        open={insightsModalOpen}
+        onClose={() => setInsightsModalOpen(false)}
+        projectId={projectId}
+      />
 
-        {isAIModalOpen && (
-          <AIAssistantModal 
-            isOpen={isAIModalOpen}
-            onClose={() => setIsAIModalOpen(false)}
-            projectId={projectId}
-            projectData={{
-              project: activeProject,
-              products,
-              timelineEvents,
-              risks,
-              milestones,
-              expenses,
-              migrationTasks,
-              homologationTasks
-            }}
-          />
-        )}
+      {/* AI Assistant Modal */}
+      <AIAssistantModal 
+        isOpen={isAIModalOpen}
+        onClose={() => setIsAIModalOpen(false)}
+        projectId={projectId}
+        projectData={{
+          project: activeProject,
+          products,
+          timelineEvents,
+          risks,
+          milestones,
+          expenses,
+          migrationTasks,
+          homologationTasks
+        }}
+      />
 
-        {isAIWelcomeOpen && (
-          <AIWelcomeModal 
-            isOpen={isAIWelcomeOpen}
-            onClose={() => setIsAIWelcomeOpen(false)}
-            projectName={activeProject?.name || 'Seu Projeto'}
-          />
-        )}
-      </React.Suspense>
+      {/* AI Welcome Modal */}
+      <AIWelcomeModal 
+        isOpen={isAIWelcomeOpen}
+        onClose={() => setIsAIWelcomeOpen(false)}
+        projectName={activeProject?.name || 'Seu Projeto'}
+      />
 
 
     </div>

@@ -5,15 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Calendar, Edit3 } from 'lucide-react';
+import TimelineEventModal from '../components/modals/TimelineEventModal';
+import BulkEditDatesModal from '../components/modals/BulkEditDatesModal';
 import EmptyState from '../components/ui/EmptyState';
 import EntityFilter from '../components/filters/EntityFilter';
-import { phaseLabels } from '../components/timeline/phaseLabels';
 
-// Lazy-loaded heavy components
-const TimelineEventModal = React.lazy(() => import('../components/modals/TimelineEventModal'));
-const BulkEditDatesModal = React.lazy(() => import('../components/modals/BulkEditDatesModal'));
-const TimelineByVertical = React.lazy(() => import('../components/timeline/TimelineByVertical'));
-const TimelineByProduct = React.lazy(() => import('../components/timeline/TimelineByProduct'));
+import { phaseLabels } from '../components/timeline/phaseLabels';
+import TimelineByVertical from '../components/timeline/TimelineByVertical';
+import TimelineByProduct from '../components/timeline/TimelineByProduct';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -281,58 +280,39 @@ export default function Timeline() {
                 </Button>
               }
             />
+          ) : schedulingType === 'por_vertical' ? (
+            <TimelineByVertical
+              verticals={verticals}
+              entityProducts={entityProducts}
+              timelineEvents={timelineEvents}
+              onStatusChange={handleStatusChange}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
           ) : (
-            <React.Suspense fallback={<div className="flex items-center justify-center p-12"><div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" /></div>}>
-              {schedulingType === 'por_vertical' ? (
-                <TimelineByVertical
-                  verticals={verticals}
-                  entityProducts={entityProducts}
-                  timelineEvents={timelineEvents}
-                  onStatusChange={handleStatusChange}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                />
-              ) : (
-                <TimelineByProduct
-                  verticals={verticals}
-                  entityProducts={entityProducts}
-                  timelineEvents={timelineEvents}
-                  onStatusChange={handleStatusChange}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                />
-              )}
-            </React.Suspense>
+            <TimelineByProduct
+              verticals={verticals}
+              entityProducts={entityProducts}
+              timelineEvents={timelineEvents}
+              onStatusChange={handleStatusChange}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
           )}
         </TabsContent>
 
 
       </Tabs>
 
-      {/* Modals - lazy loaded only when needed */}
-      <React.Suspense fallback={null}>
-        {modalOpen && (
-          <TimelineEventModal
-            open={modalOpen}
-            onOpenChange={setModalOpen}
-            event={selectedEvent}
-            onSave={handleSave}
-            projectId={projectId}
-            productId={selectedProductId}
-          />
-        )}
-        {editDatesOpen && (
-          <BulkEditDatesModal
-            open={editDatesOpen}
-            onOpenChange={setEditDatesOpen}
-            entities={getUniqueEntities()}
-            verticals={verticals}
-            timelineEvents={timelineEvents}
-            products={products}
-            onApply={handleEditDatesApply}
-          />
-        )}
-      </React.Suspense>
+      {/* Modal */}
+      <TimelineEventModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        event={selectedEvent}
+        onSave={handleSave}
+        projectId={projectId}
+        productId={selectedProductId}
+      />
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -354,6 +334,17 @@ export default function Timeline() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit Dates Modal */}
+      <BulkEditDatesModal
+        open={editDatesOpen}
+        onOpenChange={setEditDatesOpen}
+        entities={getUniqueEntities()}
+        verticals={verticals}
+        timelineEvents={timelineEvents}
+        products={products}
+        onApply={handleEditDatesApply}
+      />
     </div>
   );
 }
