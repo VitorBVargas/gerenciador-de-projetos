@@ -64,6 +64,7 @@ export default function Budget() {
   const [editingBudget, setEditingBudget] = useState(false);
   const [implementationBudget, setImplementationBudget] = useState('');
   const [deleteAllDialogOpen, setDeleteAllDialogOpen] = useState(false);
+  const [deletingAll, setDeletingAll] = useState(false);
 
   // Get project_id from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -162,6 +163,7 @@ export default function Budget() {
   };
 
   const handleDeleteAll = () => {
+    setDeletingAll(true);
     (async () => {
       try {
         const batchSize = 5;
@@ -177,8 +179,10 @@ export default function Budget() {
         }
         queryClient.invalidateQueries({ queryKey: ['expenses', projectId] });
         setDeleteAllDialogOpen(false);
+        setDeletingAll(false);
       } catch (err) {
         console.error('Erro ao deletar despesas:', err);
+        setDeletingAll(false);
       }
     })();
   };
@@ -495,18 +499,27 @@ export default function Budget() {
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white">Limpar todas as despesas</AlertDialogTitle>
             <AlertDialogDescription className="text-slate-400">
-              Tem certeza que deseja excluir todas as {expenses.length} despesas? Esta ação não pode ser desfeita.
+              {deletingAll ? 'Deletando despesas...' : `Tem certeza que deseja excluir todas as ${expenses.length} despesas? Esta ação não pode ser desfeita.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
+          {deletingAll && (
+            <div className="flex items-center justify-center py-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            </div>
+          )}
           <AlertDialogFooter>
-            <AlertDialogCancel className="border-slate-600 text-slate-300 hover:bg-slate-700">
+            <AlertDialogCancel 
+              disabled={deletingAll}
+              className="border-slate-600 text-slate-300 hover:bg-slate-700 disabled:opacity-50"
+            >
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteAll}
-              className="bg-red-600 hover:bg-red-700"
+              disabled={deletingAll}
+              className="bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Deletar Todas
+              {deletingAll ? 'Deletando...' : 'Deletar Todas'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
