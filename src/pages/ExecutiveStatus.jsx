@@ -903,6 +903,12 @@ export default function ExecutiveStatus() {
                         </div>
                       </div>
                     )}
+                    {project.contract_recurring_notes && (
+                      <div className="col-span-2">
+                        <div className="text-xs text-slate-400 font-medium">Observação</div>
+                        <div className="text-xs text-slate-300 mt-0.5">{project.contract_recurring_notes}</div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Recognized Revenue Display */}
@@ -1563,10 +1569,11 @@ export default function ExecutiveStatus() {
           open={isEditRecurringModalOpen}
           onOpenChange={setIsEditRecurringModalOpen}
           project={allProjectsData.find(p => p.id === editingProjectId)}
-          onSave={(value) => {
+          onSave={(value, notes) => {
             updateProjectRecurringMutation.mutate({
               id: editingProjectId,
-              recurringValue: value
+              recurringValue: value,
+              notes
             });
           }}
         />
