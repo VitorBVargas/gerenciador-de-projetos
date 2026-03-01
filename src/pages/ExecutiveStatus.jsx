@@ -115,15 +115,24 @@ export default function ExecutiveStatus() {
   const projectIds = useMemo(() => allProjectsData.map(p => p.id), [allProjectsData]);
   const hasProjects = projectIds.length > 0;
 
+  // Helper: busca em lotes de 3 com delay para evitar rate limit
+  const fetchInBatches = async (ids, fetcher, batchSize = 3, delayMs = 300) => {
+    const results = [];
+    for (let i = 0; i < ids.length; i += batchSize) {
+      const batch = ids.slice(i, i + batchSize);
+      const batchResults = await Promise.all(batch.map(id => fetcher(id)));
+      results.push(...batchResults);
+      if (i + batchSize < ids.length) {
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      }
+    }
+    return results.flat();
+  };
+
   // Fetch cronogramas filtrados pelo portfolio
   const { data: allCronogramas = [] } = useQuery({
     queryKey: ['allCronogramas', portfolioFilter],
-    queryFn: async () => {
-      const results = await Promise.all(
-        projectIds.map(id => base44.entities.Cronograma.filter({ project_id: id }))
-      );
-      return results.flat();
-    },
+    queryFn: () => fetchInBatches(projectIds, id => base44.entities.Cronograma.filter({ project_id: id })),
     enabled: hasProjects,
     staleTime: 60000,
     gcTime: 300000
@@ -132,12 +141,7 @@ export default function ExecutiveStatus() {
   // Fetch timeline events filtrados pelo portfolio
   const { data: allTimelineEvents = [] } = useQuery({
     queryKey: ['allTimelineEvents', portfolioFilter],
-    queryFn: async () => {
-      const results = await Promise.all(
-        projectIds.map(id => base44.entities.TimelineEvent.filter({ project_id: id }))
-      );
-      return results.flat();
-    },
+    queryFn: () => fetchInBatches(projectIds, id => base44.entities.TimelineEvent.filter({ project_id: id })),
     enabled: hasProjects,
     staleTime: 60000,
     gcTime: 300000
@@ -146,12 +150,7 @@ export default function ExecutiveStatus() {
   // Fetch homologation tasks filtradas pelo portfolio
   const { data: allHomologationTasks = [] } = useQuery({
     queryKey: ['allHomologationTasks', portfolioFilter],
-    queryFn: async () => {
-      const results = await Promise.all(
-        projectIds.map(id => base44.entities.HomologationTask.filter({ project_id: id }))
-      );
-      return results.flat();
-    },
+    queryFn: () => fetchInBatches(projectIds, id => base44.entities.HomologationTask.filter({ project_id: id })),
     enabled: hasProjects,
     staleTime: 60000,
     gcTime: 300000
@@ -159,12 +158,7 @@ export default function ExecutiveStatus() {
 
   const { data: allMigrationTasks = [] } = useQuery({
     queryKey: ['allMigrationTasks', portfolioFilter],
-    queryFn: async () => {
-      const results = await Promise.all(
-        projectIds.map(id => base44.entities.MigrationTask.filter({ project_id: id }))
-      );
-      return results.flat();
-    },
+    queryFn: () => fetchInBatches(projectIds, id => base44.entities.MigrationTask.filter({ project_id: id })),
     enabled: hasProjects,
     staleTime: 60000,
     gcTime: 300000
@@ -173,12 +167,7 @@ export default function ExecutiveStatus() {
   // Fetch risks filtrados pelo portfolio
   const { data: allRisks = [] } = useQuery({
     queryKey: ['allRisks', portfolioFilter],
-    queryFn: async () => {
-      const results = await Promise.all(
-        projectIds.map(id => base44.entities.Risk.filter({ project_id: id }))
-      );
-      return results.flat();
-    },
+    queryFn: () => fetchInBatches(projectIds, id => base44.entities.Risk.filter({ project_id: id })),
     enabled: hasProjects,
     staleTime: 60000,
     gcTime: 300000
@@ -186,12 +175,7 @@ export default function ExecutiveStatus() {
 
   const { data: allExpenses = [] } = useQuery({
     queryKey: ['allExpenses', portfolioFilter],
-    queryFn: async () => {
-      const results = await Promise.all(
-        projectIds.map(id => base44.entities.Expense.filter({ project_id: id }))
-      );
-      return results.flat();
-    },
+    queryFn: () => fetchInBatches(projectIds, id => base44.entities.Expense.filter({ project_id: id })),
     enabled: hasProjects,
     staleTime: 60000,
     gcTime: 300000
@@ -199,12 +183,7 @@ export default function ExecutiveStatus() {
 
   const { data: allProducts = [] } = useQuery({
     queryKey: ['allProducts', portfolioFilter],
-    queryFn: async () => {
-      const results = await Promise.all(
-        projectIds.map(id => base44.entities.Product.filter({ project_id: id }))
-      );
-      return results.flat();
-    },
+    queryFn: () => fetchInBatches(projectIds, id => base44.entities.Product.filter({ project_id: id })),
     enabled: hasProjects,
     staleTime: 60000,
     gcTime: 300000
@@ -212,12 +191,7 @@ export default function ExecutiveStatus() {
 
   const { data: allRecognizedRevenues = [] } = useQuery({
     queryKey: ['allRecognizedRevenues', portfolioFilter],
-    queryFn: async () => {
-      const results = await Promise.all(
-        projectIds.map(id => base44.entities.RecognizedRevenue.filter({ project_id: id }))
-      );
-      return results.flat();
-    },
+    queryFn: () => fetchInBatches(projectIds, id => base44.entities.RecognizedRevenue.filter({ project_id: id })),
     enabled: hasProjects,
     staleTime: 60000,
     gcTime: 300000
