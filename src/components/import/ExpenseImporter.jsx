@@ -65,6 +65,7 @@ export default function ExpenseImporter({ open, onOpenChange, projectId, onImpor
   const [step, setStep] = useState('upload'); // upload | preview | done
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState(null);
+  const [errorDetails, setErrorDetails] = useState([]);
 
   // Generate hash for deduplication when external_id is missing
   function generateHash(collaborator, date, amount, category) {
@@ -123,6 +124,7 @@ export default function ExpenseImporter({ open, onOpenChange, projectId, onImpor
   const handleImport = async () => {
     setImporting(true);
     let success = 0, errors = 0, skipped = 0;
+    const errors_list = [];
 
     try {
       // Fetch existing expenses to check for duplicates
@@ -134,7 +136,9 @@ export default function ExpenseImporter({ open, onOpenChange, projectId, onImpor
       for (let i = 0; i < rows.length; i += batchSize) {
         const batch = rows.slice(i, i + batchSize);
         
-        for (const row of batch) {
+        for (let idx = 0; idx < batch.length; idx++) {
+          const row = batch[idx];
+          const rowIndex = i + idx;
           try {
             // Skip if external_id already exists
             if (row.external_id && existingIds.has(row.external_id)) {
@@ -144,8 +148,15 @@ export default function ExpenseImporter({ open, onOpenChange, projectId, onImpor
             await base44.entities.Expense.create(row);
             success++;
           } catch (err) {
-            console.error('Error creating expense:', err);
+            console.error(`Error on row ${rowIndex}:`, row, err);
             errors++;
+            errors_list.push({
+              row: rowIndex,
+              title: row.title,
+              amount: row.amount,
+              date: row.date,
+              reason: err.message || 'Erro desconhecido'
+            });
           }
         }
         
@@ -158,6 +169,7 @@ export default function ExpenseImporter({ open, onOpenChange, projectId, onImpor
       console.error('Import error:', err);
     }
     
+    setErrorDetails(errors_list);
     setImportResult({ success, errors, skipped });
     setStep('done');
     setImporting(false);
@@ -245,7 +257,7 @@ export default function ExpenseImporter({ open, onOpenChange, projectId, onImpor
           )}
 
           {step === 'done' && importResult && (
-            <div className="flex flex-col items-center justify-center py-12 gap-4">
+            <div className="flex flex-col items-center justify-center py-8 gap-4 max-h-[70vh] overflow-y-auto">
               {importResult.errors === 0 ? (
                 <CheckCircle className="w-14 h-14 text-green-400" />
               ) : (
@@ -257,7 +269,17 @@ export default function ExpenseImporter({ open, onOpenChange, projectId, onImpor
                 <p className="text-blue-400">{importResult.skipped} despesas já existentes (ignoradas)</p>
               )}
               {importResult.errors > 0 && (
-                <p className="text-red-400">{importResult.errors} despesas com erro</p>
+                <div className="w-full">
+                  <p className="text-red-400 text-center mb-3">{importResult.errors} despesas com erro:</p>
+                  <div className="space-y-2 max-h-64 overflow-y-auto bg-red-500/10 p-3 rounded border border-red-500/30">
+                    {errorDetails.map((err, idx) => (
+                      <div key={idx} className="text-xs text-red-300 pb-2 border-b border-red-500/20 last:border-0">
+                        <p className="font-medium">Linha {err.row + 2}: {err.title}</p>
+                        <p className="text-red-400">{err.reason}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
           )}
