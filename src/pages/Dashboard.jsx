@@ -21,21 +21,25 @@ import { cn } from "@/lib/utils";
 import { createPageUrl } from '../utils';
 import { completeProjectCronogramas } from '../functions/syncProjectCronogramas';
 
-import StatCard from '../components/dashboard/StatCard.jsx';
-import ProgressChart from '../components/dashboard/ProgressChart.jsx';
-import MigrationProgressChart from '../components/dashboard/MigrationProgressChart.jsx';
-import HomologationProgressChart from '../components/dashboard/HomologationProgressChart.jsx';
-import ProjectHealthScore from '../components/dashboard/ProjectHealthScore.jsx';
-import ProjectModal from '../components/modals/ProjectModal.jsx';
-import ExcelImporter from '../components/import/ExcelImporter.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
-import ProjectInsightsModal from '../components/dashboard/ProjectInsightsModal.jsx';
-import AIAssistantModal from '../components/modals/AIAssistantModal.jsx';
-import AIWelcomeModal from '../components/modals/AIWelcomeModal.jsx';
 import { Checkbox } from "@/components/ui/checkbox";
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Loader2 } from 'lucide-react';
 import EntityFilter from '../components/filters/EntityFilter';
-import KeyDocuments from '../components/dashboard/KeyDocuments.jsx';
+
+// Lazy-loaded components (not needed on initial render)
+const StatCard = React.lazy(() => import('../components/dashboard/StatCard.jsx'));
+const ProgressChart = React.lazy(() => import('../components/dashboard/ProgressChart.jsx'));
+const MigrationProgressChart = React.lazy(() => import('../components/dashboard/MigrationProgressChart.jsx'));
+const HomologationProgressChart = React.lazy(() => import('../components/dashboard/HomologationProgressChart.jsx'));
+const ProjectHealthScore = React.lazy(() => import('../components/dashboard/ProjectHealthScore.jsx'));
+const ProjectModal = React.lazy(() => import('../components/modals/ProjectModal.jsx'));
+const ExcelImporter = React.lazy(() => import('../components/import/ExcelImporter.jsx'));
+const ProjectInsightsModal = React.lazy(() => import('../components/dashboard/ProjectInsightsModal.jsx'));
+const AIAssistantModal = React.lazy(() => import('../components/modals/AIAssistantModal.jsx'));
+const AIWelcomeModal = React.lazy(() => import('../components/modals/AIWelcomeModal.jsx'));
+const KeyDocuments = React.lazy(() => import('../components/dashboard/KeyDocuments.jsx'));
+
+const LazyFallback = () => <div className="flex items-center justify-center p-8"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /></div>;
 
 export default function Dashboard() {
   const queryClient = useQueryClient();
