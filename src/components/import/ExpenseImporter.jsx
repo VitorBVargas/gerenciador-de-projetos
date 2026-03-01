@@ -92,12 +92,13 @@ export default function ExpenseImporter({ open, onOpenChange, projectId, onImpor
       });
 
       const parsed = deduped
-         .filter(row => row['Valor'] && row['Situação'] === 'Finalizada')
+         .filter(row => row['Valor'] || row['Valor nacional'])
          .map(row => {
            const date = parseDate(row['Data despesa']);
            const amount = parseFloat(row['Valor nacional'] || row['Valor']) || 0;
            const category = normalizeTipo(row['Tipo despesa']);
            const collaborator = row['Colaborador'] || row['Fornecedor'] || '';
+           const rowNumber = row['#'];
 
            return {
              title: `${row['Tipo despesa'] || 'Despesa'} - ${collaborator}`,
@@ -110,7 +111,8 @@ export default function ExpenseImporter({ open, onOpenChange, projectId, onImpor
                row['Tipo despesa']
              ].filter(Boolean).join(' | '),
              project_id: projectId,
-             external_id: row['Identificador'] && row['#'] ? `${row['Identificador']}-${row['#']}-${date}` : generateHash(collaborator, date, amount, category),
+             external_id: row['Identificador'] && rowNumber ? `${row['Identificador']}-${rowNumber}` : generateHash(collaborator, date, amount, category),
+             _rowNumber: rowNumber, // armazena pra visualizar no front
            };
          })
          .filter(r => r.date && r.amount > 0);
@@ -239,7 +241,10 @@ export default function ExpenseImporter({ open, onOpenChange, projectId, onImpor
                 {rows.map((row, i) => (
                   <div key={i} className="flex items-center justify-between bg-slate-700/30 rounded-lg px-4 py-3">
                     <div className="flex-1 min-w-0">
-                      <p className="text-white text-sm font-medium truncate">{row.title}</p>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-slate-400 text-xs bg-slate-600/50 px-2 py-0.5 rounded">#{row._rowNumber}</span>
+                        <p className="text-white text-sm font-medium truncate">{row.title}</p>
+                      </div>
                       <p className="text-slate-500 text-xs truncate">{row.date} • {row.notes}</p>
                     </div>
                     <div className="flex items-center gap-3 ml-4">
