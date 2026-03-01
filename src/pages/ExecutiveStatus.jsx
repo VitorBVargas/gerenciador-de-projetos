@@ -645,7 +645,7 @@ export default function ExecutiveStatus() {
               href="https://betha-road-map.base44.app/"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-orange-500/20 border border-orange-500/40 text-orange-300 hover:bg-orange-500/30 transition-colors text-xs font-medium"
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-700 border border-slate-600 text-slate-300 hover:bg-slate-600 hover:text-white transition-colors text-xs font-medium"
             >
               🗺️ Reportar Bug / Melhoria
             </a>
