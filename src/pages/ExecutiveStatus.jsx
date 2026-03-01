@@ -1563,11 +1563,10 @@ export default function ExecutiveStatus() {
           open={isEditRecurringModalOpen}
           onOpenChange={setIsEditRecurringModalOpen}
           project={allProjectsData.find(p => p.id === editingProjectId)}
-          onSave={(value, notes) => {
+          onSave={(value) => {
             updateProjectRecurringMutation.mutate({
               id: editingProjectId,
-              recurringValue: value,
-              notes
+              recurringValue: value
             });
           }}
         />
