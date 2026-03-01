@@ -256,6 +256,15 @@ export default function ExpenseImporter({ open, onOpenChange, projectId, onImpor
                 </label>
               </div>
 
+              {rows.length > 150 && (
+                <div className="flex gap-3 bg-blue-500/20 border border-blue-500/30 rounded-lg p-3">
+                  <div className="text-blue-400 flex-shrink-0 mt-0.5">ℹ️</div>
+                  <p className="text-blue-300 text-sm">
+                    <strong>Aviso:</strong> Com mais de 150 linhas, a importação pode demorar um pouco. Tenha paciência e não feche esta janela.
+                  </p>
+                </div>
+              )}
+
               <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
                 {rows.map((row, i) => (
                   <div key={i} className="flex items-center justify-between bg-slate-700/30 rounded-lg px-4 py-3">
