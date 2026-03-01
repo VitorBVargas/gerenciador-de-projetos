@@ -133,22 +133,41 @@ export default function ExpenseImporter({ open, onOpenChange, projectId, onImpor
       const existingExpenses = await base44.entities.Expense.filter({ project_id: projectId });
       const existingIds = new Set(existingExpenses.map(e => e.external_id).filter(Boolean));
 
-      // Import in batches of 10 with 500ms delay between batches
-      const batchSize = 10;
+      // Import in batches of 3 with 1200ms delay to avoid rate limit
+      const batchSize = 3;
       for (let i = 0; i < rows.length; i += batchSize) {
         const batch = rows.slice(i, i + batchSize);
         
         for (let idx = 0; idx < batch.length; idx++) {
           const row = batch[idx];
           const rowIndex = i + idx;
+          let retries = 0;
+          const maxRetries = 3;
+          
           try {
             // Skip if external_id already exists
             if (row.external_id && existingIds.has(row.external_id)) {
               skipped++;
               continue;
             }
-            await base44.entities.Expense.create(row);
-            success++;
+            
+            // Retry logic with exponential backoff
+            while (retries <= maxRetries) {
+              try {
+                await base44.entities.Expense.create(row);
+                success++;
+                break;
+              } catch (err) {
+                if (err.message?.includes('rate limit') && retries < maxRetries) {
+                  retries++;
+                  // Exponential backoff: 2000ms, 4000ms, 8000ms
+                  const delay = 2000 * Math.pow(2, retries - 1);
+                  await new Promise(resolve => setTimeout(resolve, delay));
+                } else {
+                  throw err;
+                }
+              }
+            }
           } catch (err) {
             console.error(`Error on row ${rowIndex}:`, row, err);
             errors++;
@@ -164,7 +183,7 @@ export default function ExpenseImporter({ open, onOpenChange, projectId, onImpor
         
         // Delay between batches to avoid rate limit
         if (i + batchSize < rows.length) {
-          await new Promise(resolve => setTimeout(resolve, 500));
+          await new Promise(resolve => setTimeout(resolve, 1200));
         }
       }
     } catch (err) {
