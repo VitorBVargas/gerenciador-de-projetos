@@ -36,6 +36,7 @@ export default function Homologation() {
   const [selectedEntity, setSelectedEntity] = useState('PM');
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [sectionOrder, setSectionOrder] = useState({});
+  const [addTaskSection, setAddTaskSection] = useState('');
   const fileInputRef = React.useRef(null);
   const creatingTasksRef = React.useRef(new Set());
 
