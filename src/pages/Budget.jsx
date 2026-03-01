@@ -63,6 +63,7 @@ export default function Budget() {
   const [importerOpen, setImporterOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState(false);
   const [implementationBudget, setImplementationBudget] = useState('');
+  const [deleteAllDialogOpen, setDeleteAllDialogOpen] = useState(false);
 
   // Get project_id from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -160,6 +161,22 @@ export default function Budget() {
     setImplementationBudget('');
   };
 
+  const handleDeleteAll = async () => {
+    const batchSize = 5;
+    for (let i = 0; i < expenses.length; i += batchSize) {
+      const batch = expenses.slice(i, i + batchSize);
+      for (const expense of batch) {
+        await base44.entities.Expense.delete(expense.id);
+      }
+      // Delay between batches
+      if (i + batchSize < expenses.length) {
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+    }
+    queryClient.invalidateQueries({ queryKey: ['expenses', projectId] });
+    setDeleteAllDialogOpen(false);
+  };
+
   // Calculate budget metrics
   const totalBudget = activeProject?.budget || 0;
   const totalSpent = expenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
@@ -189,22 +206,32 @@ export default function Budget() {
           <p className="text-slate-400 mt-1">Controle financeiro do projeto</p>
         </div>
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setImporterOpen(true)}
-            className="border-slate-600 text-slate-300 hover:bg-slate-700"
-          >
-            <Upload className="w-4 h-4 mr-2" />
-            Importar Excel
-          </Button>
-          <Button 
-            onClick={() => { setSelectedExpense(null); setExpenseModalOpen(true); }}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Nova Despesa
-          </Button>
-        </div>
+           <Button
+             variant="outline"
+             onClick={() => setImporterOpen(true)}
+             className="border-slate-600 text-slate-300 hover:bg-slate-700"
+           >
+             <Upload className="w-4 h-4 mr-2" />
+             Importar Excel
+           </Button>
+           {expenses.length > 0 && (
+             <Button
+               variant="outline"
+               onClick={() => setDeleteAllDialogOpen(true)}
+               className="border-red-600 text-red-400 hover:bg-red-500/20"
+             >
+               <Trash2 className="w-4 h-4 mr-2" />
+               Limpar Tudo
+             </Button>
+           )}
+           <Button 
+             onClick={() => { setSelectedExpense(null); setExpenseModalOpen(true); }}
+             className="bg-blue-600 hover:bg-blue-700"
+           >
+             <Plus className="w-4 h-4 mr-2" />
+             Nova Despesa
+           </Button>
+         </div>
       </div>
 
       {/* Budget Summary Cards */}
@@ -451,6 +478,29 @@ export default function Budget() {
               className="bg-red-600 hover:bg-red-700"
             >
               Excluir Despesa
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete All Dialog */}
+      <AlertDialog open={deleteAllDialogOpen} onOpenChange={setDeleteAllDialogOpen}>
+        <AlertDialogContent className="bg-slate-800 border-slate-700">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">Limpar todas as despesas</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-400">
+              Tem certeza que deseja excluir todas as {expenses.length} despesas? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-slate-600 text-slate-300 hover:bg-slate-700">
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteAll}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Deletar Todas
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
