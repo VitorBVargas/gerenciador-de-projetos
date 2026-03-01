@@ -97,8 +97,16 @@ export default function Home() {
         </div>
 
         {/* Footer hint */}
-        <div className="text-center mt-16 text-slate-400 text-sm">
+        <div className="text-center mt-16 text-slate-400 text-sm flex flex-col items-center gap-3">
           <p>Clique em qualquer opção para começar</p>
+          <a
+            href="https://betha-road-map.base44.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-orange-500/20 border border-orange-500/40 text-orange-300 hover:bg-orange-500/30 hover:text-orange-200 transition-colors text-sm font-medium"
+          >
+            🗺️ Roadmap — Reportar Bug / Sugestão
+          </a>
         </div>
       </div>
     </div>
