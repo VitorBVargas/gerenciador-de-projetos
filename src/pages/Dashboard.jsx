@@ -595,54 +595,64 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <KeyDocuments projectId={projectId} project={activeProject} />
+        <React.Suspense fallback={<LazyFallback />}>
+          <KeyDocuments projectId={projectId} project={activeProject} />
+        </React.Suspense>
       </div>
 
-      {/* Project Modal */}
-      <ProjectModal
-        open={projectModalOpen}
-        onOpenChange={setProjectModalOpen}
-        project={selectedProject}
-        onSave={handleSaveProject}
-      />
+      {/* Modals - only rendered when needed */}
+      <React.Suspense fallback={null}>
+        {projectModalOpen && (
+          <ProjectModal
+            open={projectModalOpen}
+            onOpenChange={setProjectModalOpen}
+            project={selectedProject}
+            onSave={handleSaveProject}
+          />
+        )}
 
-      {/* Excel Importer */}
-      <ExcelImporter
-        open={importModalOpen}
-        onOpenChange={setImportModalOpen}
-        onSuccess={handleImportSuccess}
-      />
+        {importModalOpen && (
+          <ExcelImporter
+            open={importModalOpen}
+            onOpenChange={setImportModalOpen}
+            onSuccess={handleImportSuccess}
+          />
+        )}
 
-      {/* Project Insights Modal */}
-      <ProjectInsightsModal
-        open={insightsModalOpen}
-        onClose={() => setInsightsModalOpen(false)}
-        projectId={projectId}
-      />
+        {insightsModalOpen && (
+          <ProjectInsightsModal
+            open={insightsModalOpen}
+            onClose={() => setInsightsModalOpen(false)}
+            projectId={projectId}
+          />
+        )}
 
-      {/* AI Assistant Modal */}
-      <AIAssistantModal 
-        isOpen={isAIModalOpen}
-        onClose={() => setIsAIModalOpen(false)}
-        projectId={projectId}
-        projectData={{
-          project: activeProject,
-          products,
-          timelineEvents,
-          risks,
-          milestones,
-          expenses,
-          migrationTasks,
-          homologationTasks
-        }}
-      />
+        {isAIModalOpen && (
+          <AIAssistantModal 
+            isOpen={isAIModalOpen}
+            onClose={() => setIsAIModalOpen(false)}
+            projectId={projectId}
+            projectData={{
+              project: activeProject,
+              products,
+              timelineEvents,
+              risks,
+              milestones,
+              expenses,
+              migrationTasks,
+              homologationTasks
+            }}
+          />
+        )}
 
-      {/* AI Welcome Modal */}
-      <AIWelcomeModal 
-        isOpen={isAIWelcomeOpen}
-        onClose={() => setIsAIWelcomeOpen(false)}
-        projectName={activeProject?.name || 'Seu Projeto'}
-      />
+        {isAIWelcomeOpen && (
+          <AIWelcomeModal 
+            isOpen={isAIWelcomeOpen}
+            onClose={() => setIsAIWelcomeOpen(false)}
+            projectName={activeProject?.name || 'Seu Projeto'}
+          />
+        )}
+      </React.Suspense>
 
 
     </div>
