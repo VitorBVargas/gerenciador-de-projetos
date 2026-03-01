@@ -209,7 +209,7 @@ export default function ExecutiveStatus() {
   const updateProjectRecurringMutation = useMutation({
     mutationFn: ({ id, recurringValue, notes }) => base44.entities.Project.update(id, { contract_recurring_value: recurringValue, contract_recurring_notes: notes }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['projects', portfolioFilter] });
       setIsEditRecurringModalOpen(false);
       setEditingProjectId(null);
       toast.success('Valor recorrente atualizado com sucesso!');
