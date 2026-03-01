@@ -11,16 +11,13 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
   Plus, 
   ArrowLeftRight,
-  Package,
   Trash2,
   ChevronUp,
   ChevronDown,
-  CheckCircle,
   Upload,
-  AlertTriangle
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import ImportTasksModal from '../components/modals/ImportTasksModal';
 import { toast } from 'sonner';
 import { cn } from "@/lib/utils";
 import EmptyState from '../components/ui/EmptyState';
