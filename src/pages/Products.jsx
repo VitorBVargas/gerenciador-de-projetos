@@ -216,12 +216,29 @@ export default function Products() {
     });
   };
 
+  const toggleFlagFilter = (flag) => {
+    setFlagFilters(prev => prev.includes(flag) ? prev.filter(f => f !== flag) : [...prev, flag]);
+  };
+
   let filteredProducts = products.filter(p =>
     p.name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   if (activeTab !== 'all') {
     filteredProducts = filteredProducts.filter(p => p.vertical === activeTab);
+  }
+
+  // Flag filters
+  if (flagFilters.length > 0) {
+    filteredProducts = filteredProducts.filter(p => {
+      return flagFilters.every(flag => {
+        if (flag === 'aceite') return p.implementation_accepted;
+        if (flag === 'reconhecimento') return recognizedRevenues.some(r => r.product_id === p.id);
+        if (flag === 'senha') return p.production_password && !p.password_grace_period_until;
+        if (flag === 'senha_carencia') return p.production_password && !!p.password_grace_period_until;
+        return true;
+      });
+    });
   }
 
   // Unique entities for filter
