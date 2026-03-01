@@ -748,6 +748,13 @@ export default function Migration() {
           description="Adicione produtos para começar a criar checklists de migração"
         />
       )}
+
+      <ImportTasksModal
+        open={importModalOpen}
+        onOpenChange={setImportModalOpen}
+        onImport={handleImportTasks}
+        productName={getCurrentProduct()?.name}
+      />
     </div>
   );
 }
