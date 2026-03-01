@@ -131,21 +131,37 @@ export default function Timeline() {
   });
 
   const handleSave = (data) => {
+    // Compensate timezone offset by adding 1 day to dates
+    const addOneDay = (dateStr) => {
+      if (!dateStr) return '';
+      const date = new Date(dateStr + 'T00:00:00');
+      date.setDate(date.getDate() + 1);
+      return date.toISOString().split('T')[0];
+    };
+
+    const adjustedData = {
+      ...data,
+      start_date: addOneDay(data.start_date),
+      end_date: addOneDay(data.end_date)
+    };
+
     if (selectedEvent) {
+      // Preserva campos originais do evento (product_id, cronograma_id, vertical, etc)
+      // e sobrescreve apenas os campos editáveis
       updateMutation.mutate({ 
         id: selectedEvent.id, 
         data: {
           ...selectedEvent,
-          title: data.title,
-          phase: data.phase,
-          start_date: data.start_date,
-          end_date: data.end_date,
-          status: data.status,
-          progress: data.progress,
+          title: adjustedData.title,
+          phase: adjustedData.phase,
+          start_date: adjustedData.start_date,
+          end_date: adjustedData.end_date,
+          status: adjustedData.status,
+          progress: adjustedData.progress,
         }
       });
     } else {
-      createMutation.mutate(data);
+      createMutation.mutate(adjustedData);
     }
   };
 
