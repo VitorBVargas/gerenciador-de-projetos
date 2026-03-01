@@ -186,7 +186,7 @@ export default function Dashboard() {
   };
 
   // Inicializa os marcos padrão se não existirem
-  const [milestonesInitialized, setMilestonesInitialized] = React.useState(false);
+  const milestonesInitializedRef = React.useRef(false);
   
   React.useEffect(() => {
     const initializeMilestones = async () => {

@@ -28,7 +28,7 @@ export default function KeyDocuments({ projectId, project }) {
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [linkInput, setLinkInput] = useState('');
   const [uploading, setUploading] = useState(false);
-  const [initialized, setInitialized] = useState(false);
+  const initializedRef = React.useRef(false);
   const [editMode, setEditMode] = useState(false);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [newDocTitle, setNewDocTitle] = useState('');

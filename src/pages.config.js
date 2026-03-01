@@ -48,13 +48,12 @@
  * The mainPage value must match a key in the PAGES object exactly.
  */
 import Budget from './pages/Budget';
-import Dashboard from './pages/Dashboard';
-import ExecutiveStatus from './pages/ExecutiveStatus';
 import Home from './pages/Home';
 import Homologation from './pages/Homologation';
 import InternalDashboard from './pages/InternalDashboard';
 import InternalProjectsList from './pages/InternalProjectsList';
 import Migration from './pages/Migration';
+import PortfolioSelect from './pages/PortfolioSelect';
 import Products from './pages/Products';
 import ProjectsList from './pages/ProjectsList';
 import Reports from './pages/Reports';
@@ -62,21 +61,21 @@ import Risks from './pages/Risks';
 import Stakeholders from './pages/Stakeholders';
 import StatusReports from './pages/StatusReports';
 import Team from './pages/Team';
-import Timeline from './pages/Timeline';
 import Travels from './pages/Travels';
-import PortfolioSelect from './pages/PortfolioSelect';
+import Dashboard from './pages/Dashboard';
+import ExecutiveStatus from './pages/ExecutiveStatus';
+import Timeline from './pages/Timeline';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "Budget": Budget,
-    "Dashboard": Dashboard,
-    "ExecutiveStatus": ExecutiveStatus,
     "Home": Home,
     "Homologation": Homologation,
     "InternalDashboard": InternalDashboard,
     "InternalProjectsList": InternalProjectsList,
     "Migration": Migration,
+    "PortfolioSelect": PortfolioSelect,
     "Products": Products,
     "ProjectsList": ProjectsList,
     "Reports": Reports,
@@ -84,9 +83,10 @@ export const PAGES = {
     "Stakeholders": Stakeholders,
     "StatusReports": StatusReports,
     "Team": Team,
-    "Timeline": Timeline,
     "Travels": Travels,
-    "PortfolioSelect": PortfolioSelect,
+    "Dashboard": Dashboard,
+    "ExecutiveStatus": ExecutiveStatus,
+    "Timeline": Timeline,
 }
 
 export const pagesConfig = {
