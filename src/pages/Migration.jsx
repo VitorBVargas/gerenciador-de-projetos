@@ -442,31 +442,49 @@ export default function Migration() {
                       </CardHeader>
                       <CardContent className="p-6">
                         {/* Add Task Input */}
-                        <div className="space-y-4 mb-6">
+                        <div className="space-y-3 mb-6">
+                          {(() => {
+                            const defaultSections = getDefaultTasksForProduct(product.name) || [];
+                            const importedSectionNames = [...new Set(
+                              getProductTasks(product.id)
+                                .filter(t => t.title.includes('||'))
+                                .map(t => t.title.match(/^\|\|(.+?)\|\|/)?.[1])
+                                .filter(Boolean)
+                            )];
+                            const allSections = [
+                              ...defaultSections.map(s => s.section),
+                              ...importedSectionNames
+                            ];
+                            return (
+                              <>
+                                {allSections.length > 0 && (
+                                  <select
+                                    value={addTaskSection}
+                                    onChange={e => setAddTaskSection(e.target.value)}
+                                    className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2 text-sm"
+                                  >
+                                    <option value="">Selecione a etapa (opcional)</option>
+                                    {allSections.map(s => (
+                                      <option key={s} value={s}>{s}</option>
+                                    ))}
+                                  </select>
+                                )}
+                                <div className="flex gap-2">
+                                  <Input
+                                    value={newTaskTitle}
+                                    onChange={(e) => setNewTaskTitle(e.target.value)}
+                                    placeholder="Nova tarefa de migração..."
+                                    className="bg-slate-700 border-slate-600 text-white"
+                                    onKeyDown={(e) => e.key === 'Enter' && handleAddTask()}
+                                  />
+                                  <Button onClick={handleAddTask} className="bg-blue-600 hover:bg-blue-700">
+                                    <Plus className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </>
+                            );
+                          })()}
                           <div className="flex gap-2">
-                            <Input
-                              value={newTaskTitle}
-                              onChange={(e) => setNewTaskTitle(e.target.value)}
-                              placeholder="Nova tarefa de migração..."
-                              className="bg-slate-700 border-slate-600 text-white"
-                              onKeyDown={(e) => e.key === 'Enter' && handleAddTask()}
-                            />
-                            <Button onClick={handleAddTask} className="bg-blue-600 hover:bg-blue-700">
-                              <Plus className="w-4 h-4" />
-                            </Button>
-                          </div>
-                          
-                          <div className="flex gap-2 flex-wrap">
-                            <Button 
-                              variant="outline" 
-                              className="flex-1 min-w-[180px] border-green-500/30 text-green-400 hover:bg-green-500/10 disabled:opacity-50"
-                              onClick={handleMarkAllTasks}
-                              disabled={markingTasks}
-                            >
-                              <CheckCircle className="w-4 h-4 mr-2" />
-                              {markingTasks ? 'Processando...' : 'Marcar Todos'}
-                            </Button>
-
                             <input
                               ref={fileInputRef}
                               type="file"
@@ -476,15 +494,13 @@ export default function Migration() {
                             />
                             <Button 
                               variant="outline" 
-                              className="flex-1 min-w-[180px] border-blue-500/30 text-blue-400 hover:bg-blue-500/10"
+                              className="w-full border-blue-500/30 text-blue-400 hover:bg-blue-500/10"
                               onClick={() => fileInputRef.current?.click()}
                             >
                               <Upload className="w-4 h-4 mr-2" />
                               Importar Excel
                             </Button>
                           </div>
-                          
-
                         </div>
 
                         {/* Tasks List by Section */}
