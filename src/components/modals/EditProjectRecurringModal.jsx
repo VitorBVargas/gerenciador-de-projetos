@@ -55,9 +55,20 @@ export default function EditProjectRecurringModal({ open, onOpenChange, project,
             </p>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="notes" className="text-slate-300">
-              Observação (opcional)
-            </Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="notes" className="text-slate-300">
+                Observação (opcional)
+              </Label>
+              {notes && (
+                <button
+                  type="button"
+                  onClick={() => setNotes('')}
+                  className="text-xs text-red-400 hover:text-red-300"
+                >
+                  Limpar
+                </button>
+              )}
+            </div>
             <Textarea
               id="notes"
               value={notes}
