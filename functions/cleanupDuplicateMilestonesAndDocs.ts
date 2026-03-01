@@ -9,8 +9,8 @@ Deno.serve(async (req) => {
 
   // Fetch all milestones and documents
   const [allMilestones, allDocuments] = await Promise.all([
-    base44.asServiceRole.entities.ProjectMilestone.list(),
-    base44.asServiceRole.entities.ProjectDocument.list(),
+    base44.asServiceRole.entities.ProjectMilestone.list(undefined, 500),
+    base44.asServiceRole.entities.ProjectDocument.list(undefined, 500),
   ]);
 
   const deletedMilestones = [];
