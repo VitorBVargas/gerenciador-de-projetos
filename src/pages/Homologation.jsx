@@ -682,6 +682,13 @@ export default function Homologation() {
           description="Adicione produtos para começar a criar checklists de homologação"
         />
       )}
+
+      <ImportTasksModal
+        open={importModalOpen}
+        onOpenChange={setImportModalOpen}
+        onImport={handleImportTasks}
+        productName={getCurrentProduct()?.name}
+      />
     </div>
   );
 }
