@@ -133,12 +133,14 @@ export default function Homologation() {
 
   const handleAddTask = () => {
     if (!newTaskTitle.trim() || !selectedProduct) return;
+    const title = addTaskSection ? `||${addTaskSection}||${newTaskTitle.trim()}` : newTaskTitle.trim();
     createTaskMutation.mutate({
-      title: newTaskTitle,
+      title,
       project_id: activeProject?.id,
       product_id: selectedProduct,
       completed: false
     });
+    setAddTaskSection('');
   };
 
   const handleToggleTask = (task) => {
