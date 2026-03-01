@@ -448,23 +448,14 @@ export default function Migration() {
                               </>
                             );
                           })()}
-                          <div className="flex gap-2">
-                            <input
-                              ref={fileInputRef}
-                              type="file"
-                              accept=".xlsx,.xls"
-                              onChange={handleImportTasks}
-                              className="hidden"
-                            />
-                            <Button 
-                              variant="outline" 
-                              className="w-full border-blue-500/30 text-blue-400 hover:bg-blue-500/10"
-                              onClick={() => fileInputRef.current?.click()}
-                            >
-                              <Upload className="w-4 h-4 mr-2" />
-                              Importar Excel
-                            </Button>
-                          </div>
+                          <Button 
+                            variant="outline" 
+                            className="w-full border-blue-500/30 text-blue-400 hover:bg-blue-500/10"
+                            onClick={() => setImportModalOpen(true)}
+                          >
+                            <Upload className="w-4 h-4 mr-2" />
+                            Importar Excel
+                          </Button>
                         </div>
 
                         {/* Tasks List by Section */}
