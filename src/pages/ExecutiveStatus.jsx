@@ -903,12 +903,6 @@ export default function ExecutiveStatus() {
                         </div>
                       </div>
                     )}
-                    {project.contract_recurring_notes && (
-                      <div className="col-span-2">
-                        <div className="text-xs text-slate-400 font-medium">Observação</div>
-                        <div className="text-xs text-slate-300 mt-0.5">{project.contract_recurring_notes}</div>
-                      </div>
-                    )}
                   </div>
 
                   {/* Recognized Revenue Display */}
