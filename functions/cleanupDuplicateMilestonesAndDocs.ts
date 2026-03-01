@@ -8,9 +8,23 @@ Deno.serve(async (req) => {
   }
 
   // Fetch all milestones and documents
+  // Paginate to get all records
+  const fetchAll = async (entity) => {
+    let all = [];
+    let skip = 0;
+    const limit = 200;
+    while (true) {
+      const batch = await entity.list(undefined, limit, skip);
+      all = all.concat(batch);
+      if (batch.length < limit) break;
+      skip += limit;
+    }
+    return all;
+  };
+
   const [allMilestones, allDocuments] = await Promise.all([
-    base44.asServiceRole.entities.ProjectMilestone.list(undefined, 500),
-    base44.asServiceRole.entities.ProjectDocument.list(undefined, 500),
+    fetchAll(base44.asServiceRole.entities.ProjectMilestone),
+    fetchAll(base44.asServiceRole.entities.ProjectDocument),
   ]);
 
   const deletedMilestones = [];
