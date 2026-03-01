@@ -479,74 +479,102 @@ export default function Travels() {
         </>
       ) : (
         // List View
-        <div className="space-y-4">
+        <div className="space-y-6">
           {travels.length > 0 ? (
-            travels.map(travel => {
-              const Icon = travelTypeIcons[travel.travel_type];
-              return (
-                <Card key={travel.id} className="bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 transition-all group">
-                  <CardContent className="p-5">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <div className={cn("w-10 h-10 rounded-full flex items-center justify-center", travelTypeColors[travel.travel_type])}>
-                            <Icon className="w-5 h-5 text-white" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-white">{travel.title}</h3>
-                            <p className="text-sm text-slate-400">{travelTypeLabels[travel.travel_type]}</p>
-                          </div>
-                        </div>
-                        <div className="ml-13 space-y-2 text-sm text-slate-400">
-                          {travel.location && (
-                            <div className="flex items-center gap-2">
-                              <MapPin className="w-4 h-4" />
-                              {travel.location}
+            (() => {
+              // Group travels by month
+              const travelsByMonth = travels.reduce((acc, travel) => {
+                if (!travel.start_date) return acc;
+                const date = parseISO(travel.start_date);
+                const monthKey = format(date, 'yyyy-MM', { locale: ptBR });
+                const monthLabel = format(date, "MMMM 'de' yyyy", { locale: ptBR });
+                
+                if (!acc[monthKey]) {
+                  acc[monthKey] = { label: monthLabel, travels: [] };
+                }
+                acc[monthKey].travels.push(travel);
+                return acc;
+              }, {});
+
+              // Sort months in ascending order
+              const sortedMonths = Object.entries(travelsByMonth).sort((a, b) => a[0].localeCompare(b[0]));
+
+              return sortedMonths.map(([monthKey, { label, travels: monthTravels }]) => (
+                <div key={monthKey}>
+                  <h2 className="text-lg font-semibold text-cyan-400 mb-4 capitalize">
+                    {label}
+                  </h2>
+                  <div className="space-y-3">
+                    {monthTravels.map(travel => {
+                      const Icon = travelTypeIcons[travel.travel_type];
+                      return (
+                        <Card key={travel.id} className="bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 transition-all group">
+                          <CardContent className="p-5">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-2">
+                                  <div className={cn("w-10 h-10 rounded-full flex items-center justify-center", travelTypeColors[travel.travel_type])}>
+                                    <Icon className="w-5 h-5 text-white" />
+                                  </div>
+                                  <div>
+                                    <h3 className="font-semibold text-white">{travel.title}</h3>
+                                    <p className="text-sm text-slate-400">{travelTypeLabels[travel.travel_type]}</p>
+                                  </div>
+                                </div>
+                                <div className="ml-13 space-y-2 text-sm text-slate-400">
+                                  {travel.location && (
+                                    <div className="flex items-center gap-2">
+                                      <MapPin className="w-4 h-4" />
+                                      {travel.location}
+                                    </div>
+                                  )}
+                                  {travel.start_date && (
+                                    <div className="flex items-center gap-2">
+                                      <Calendar className="w-4 h-4" />
+                                      {format(parseISO(travel.start_date), "dd/MM/yyyy")}
+                                      {travel.end_date && travel.end_date !== travel.start_date && (
+                                        <> - {format(parseISO(travel.end_date), "dd/MM/yyyy")}</>
+                                      )}
+                                    </div>
+                                  )}
+                                  {travel.attendees && travel.attendees.length > 0 && (
+                                    <div className="flex flex-wrap gap-1 mt-2">
+                                      {travel.attendees.map((attendee, idx) => (
+                                        <Badge key={idx} variant="secondary" className="bg-slate-700 text-slate-300">
+                                          {attendee}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-7 w-7 text-slate-400 hover:text-white hover:bg-slate-700"
+                                  onClick={() => handleEdit(travel)}
+                                >
+                                  <Pencil className="w-3 h-3" />
+                                </Button>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-500/20"
+                                  onClick={() => handleDelete(travel)}
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              </div>
                             </div>
-                          )}
-                          {travel.start_date && (
-                            <div className="flex items-center gap-2">
-                              <Calendar className="w-4 h-4" />
-                              {format(parseISO(travel.start_date), "dd/MM/yyyy")}
-                              {travel.end_date && travel.end_date !== travel.start_date && (
-                                <> - {format(parseISO(travel.end_date), "dd/MM/yyyy")}</>
-                              )}
-                            </div>
-                          )}
-                          {travel.attendees && travel.attendees.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mt-2">
-                              {travel.attendees.map((attendee, idx) => (
-                                <Badge key={idx} variant="secondary" className="bg-slate-700 text-slate-300">
-                                  {attendee}
-                                </Badge>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-7 w-7 text-slate-400 hover:text-white hover:bg-slate-700"
-                          onClick={() => handleEdit(travel)}
-                        >
-                          <Pencil className="w-3 h-3" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-500/20"
-                          onClick={() => handleDelete(travel)}
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </div>
+              ));
+            })()
           ) : (
             <EmptyState
               icon={Plane}
