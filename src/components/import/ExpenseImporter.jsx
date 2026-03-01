@@ -124,23 +124,40 @@ export default function ExpenseImporter({ open, onOpenChange, projectId, onImpor
     setImporting(true);
     let success = 0, errors = 0, skipped = 0;
 
-    // Fetch existing expenses to check for duplicates
-    const existingExpenses = await base44.entities.Expense.filter({ project_id: projectId });
-    const existingIds = new Set(existingExpenses.map(e => e.external_id).filter(Boolean));
+    try {
+      // Fetch existing expenses to check for duplicates
+      const existingExpenses = await base44.entities.Expense.filter({ project_id: projectId });
+      const existingIds = new Set(existingExpenses.map(e => e.external_id).filter(Boolean));
 
-    for (const row of rows) {
-      try {
-        // Skip if external_id already exists
-        if (row.external_id && existingIds.has(row.external_id)) {
-          skipped++;
-          continue;
+      // Import in batches of 10 with 500ms delay between batches
+      const batchSize = 10;
+      for (let i = 0; i < rows.length; i += batchSize) {
+        const batch = rows.slice(i, i + batchSize);
+        
+        for (const row of batch) {
+          try {
+            // Skip if external_id already exists
+            if (row.external_id && existingIds.has(row.external_id)) {
+              skipped++;
+              continue;
+            }
+            await base44.entities.Expense.create(row);
+            success++;
+          } catch (err) {
+            console.error('Error creating expense:', err);
+            errors++;
+          }
         }
-        await base44.entities.Expense.create(row);
-        success++;
-      } catch {
-        errors++;
+        
+        // Delay between batches to avoid rate limit
+        if (i + batchSize < rows.length) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
       }
+    } catch (err) {
+      console.error('Import error:', err);
     }
+    
     setImportResult({ success, errors, skipped });
     setStep('done');
     setImporting(false);
