@@ -567,6 +567,7 @@ export default function Dashboard() {
       {filteredProducts.length > 0 && (
         <MigrationProgressChart products={filteredProducts} tasks={filteredMigrationTasks} />
       )}
+      </React.Suspense>
 
       {/* Marcos e Documentos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
