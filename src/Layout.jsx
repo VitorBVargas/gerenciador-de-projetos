@@ -16,7 +16,8 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  DollarSign
+  DollarSign,
+  FolderOpen
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
