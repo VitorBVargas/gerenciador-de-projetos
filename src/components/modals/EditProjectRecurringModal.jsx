@@ -9,22 +9,19 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 
 export default function EditProjectRecurringModal({ open, onOpenChange, project, onSave }) {
   const [recurringValue, setRecurringValue] = useState('');
-  const [notes, setNotes] = useState('');
 
   useEffect(() => {
     if (project) {
       setRecurringValue((project.contract_recurring_value || 0).toString());
-      setNotes(project.contract_recurring_notes || '');
     }
   }, [project, open]);
 
   const handleSave = () => {
     const value = parseFloat(recurringValue) || 0;
-    onSave(value, notes);
+    onSave(value);
   };
 
   return (
@@ -53,6 +50,19 @@ export default function EditProjectRecurringModal({ open, onOpenChange, project,
                 ? `Valor: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(parseFloat(recurringValue))}`
                 : 'Deixe em branco ou zero para não exibir'}
             </p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="notes" className="text-slate-300">
+              Observação
+            </Label>
+            <Textarea
+              id="notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="bg-slate-700 border-slate-600 text-white resize-none"
+              placeholder="Texto que aparecerá no card do projeto..."
+              rows={3}
+            />
           </div>
         </div>
         <DialogFooter>
