@@ -561,12 +561,12 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         )}
-      </div>
+        </div>
 
-      {/* Migration Progress Chart */}
-      {filteredProducts.length > 0 && (
-        <MigrationProgressChart products={filteredProducts} tasks={filteredMigrationTasks} />
-      )}
+        {/* Migration Progress Chart */}
+        {filteredProducts.length > 0 && (
+          <MigrationProgressChart products={filteredProducts} tasks={filteredMigrationTasks} />
+        )}
       </React.Suspense>
 
       {/* Marcos e Documentos */}
