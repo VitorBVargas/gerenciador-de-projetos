@@ -66,6 +66,11 @@ export default function ExpenseImporter({ open, onOpenChange, projectId, onImpor
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState(null);
 
+  // Generate hash for deduplication when external_id is missing
+  function generateHash(collaborator, date, amount, category) {
+    return `${(collaborator || '').substring(0, 3)}-${date}-${amount}-${category}`.toLowerCase();
+  }
+
   const handleFile = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -76,22 +81,38 @@ export default function ExpenseImporter({ open, onOpenChange, projectId, onImpor
       const ws = wb.Sheets[wb.SheetNames[0]];
       const data = XLSX.utils.sheet_to_json(ws, { defval: null });
 
-      const parsed = data
-        .filter(row => row['Valor'] && row['Situação'] === 'Finalizada')
-        .map(row => ({
-          title: `${row['Tipo despesa'] || 'Despesa'} - ${row['Colaborador'] || 'Fornecedor'}`,
-          amount: parseFloat(row['Valor nacional'] || row['Valor']) || 0,
-          date: parseDate(row['Data despesa']),
-          category: normalizeTipo(row['Tipo despesa']),
-          notes: [
-            row['Colaborador'] || row['Fornecedor'],
-            row['Centro de custo'],
-            row['Tipo despesa']
-          ].filter(Boolean).join(' | '),
-          project_id: projectId,
-          external_id: row['Identificador'] && row['#'] ? `${row['Identificador']}-${row['#']}` : null,
-        }))
-        .filter(r => r.date && r.amount > 0);
+      // Deduplicate by exact row match (same values across key fields)
+      const seen = new Set();
+      const deduped = data.filter(row => {
+        const key = `${row['#']}-${row['Identificador']}-${row['Data despesa']}-${row['Valor nacional'] || row['Valor']}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
+      const parsed = deduped
+         .filter(row => row['Valor'] && row['Situação'] === 'Finalizada')
+         .map(row => {
+           const date = parseDate(row['Data despesa']);
+           const amount = parseFloat(row['Valor nacional'] || row['Valor']) || 0;
+           const category = normalizeTipo(row['Tipo despesa']);
+           const collaborator = row['Colaborador'] || row['Fornecedor'] || '';
+
+           return {
+             title: `${row['Tipo despesa'] || 'Despesa'} - ${collaborator}`,
+             amount,
+             date,
+             category,
+             notes: [
+               collaborator,
+               row['Centro de custo'],
+               row['Tipo despesa']
+             ].filter(Boolean).join(' | '),
+             project_id: projectId,
+             external_id: row['Identificador'] && row['#'] ? `${row['Identificador']}-${row['#']}-${date}` : generateHash(collaborator, date, amount, category),
+           };
+         })
+         .filter(r => r.date && r.amount > 0);
 
       setRows(parsed);
       setStep('preview');
