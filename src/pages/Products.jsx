@@ -83,6 +83,7 @@ export default function Products() {
   const [selectedEntity, setSelectedEntity] = useState('PM');
   const [recognitionModalOpen, setRecognitionModalOpen] = useState(false);
   const [productForRecognition, setProductForRecognition] = useState(null);
+  const [flagFilters, setFlagFilters] = useState([]);
 
   // Get project_id from URL
   const urlParams = new URLSearchParams(window.location.search);
