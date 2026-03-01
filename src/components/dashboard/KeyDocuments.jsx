@@ -39,10 +39,12 @@ export default function KeyDocuments({ projectId, project }) {
     enabled: !!projectId,
   });
 
-  // Initialize fixed documents if not yet created
+  // Initialize fixed documents if not yet created (only once per mount)
   useEffect(() => {
-    if (!isLoading && projectId && documents.length === 0 && !initialized) {
-      setInitialized(true);
+    if (isLoading || !projectId || initializedRef.current) return;
+    initializedRef.current = true;
+
+    if (documents.length === 0) {
       base44.entities.ProjectDocument.bulkCreate(
         KEY_DOCUMENTS.map((title, index) => ({
           project_id: projectId,
@@ -51,15 +53,8 @@ export default function KeyDocuments({ projectId, project }) {
           order: index,
         }))
       ).then(() => queryClient.invalidateQueries({ queryKey: ['documents', projectId] }));
-    }
-  }, [isLoading, projectId, documents.length, initialized, queryClient]);
-
-  // Ensure all key docs exist even if new ones were added
-  useEffect(() => {
-    if (!isLoading && projectId && documents.length > 0 && !initialized) {
-      setInitialized(true);
+    } else {
       const existingTitles = documents.map(d => d.title);
-      // Use exact match to avoid adding duplicates with same title
       const missing = KEY_DOCUMENTS.filter(t => !existingTitles.some(et => et === t));
       if (missing.length > 0) {
         const maxOrder = Math.max(...documents.map(d => d.order || 0), 0);
@@ -73,7 +68,7 @@ export default function KeyDocuments({ projectId, project }) {
         ).then(() => queryClient.invalidateQueries({ queryKey: ['documents', projectId] }));
       }
     }
-  }, [isLoading, projectId, documents.length, initialized, queryClient]);
+  }, [isLoading, projectId, documents.length, queryClient]);
 
   const toggleMutation = useMutation({
     mutationFn: ({ id, completed }) => base44.entities.ProjectDocument.update(id, { completed }),
