@@ -9,19 +9,22 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function EditProjectRecurringModal({ open, onOpenChange, project, onSave }) {
   const [recurringValue, setRecurringValue] = useState('');
+  const [notes, setNotes] = useState('');
 
   useEffect(() => {
     if (project) {
       setRecurringValue((project.contract_recurring_value || 0).toString());
+      setNotes(project.contract_recurring_notes || '');
     }
   }, [project, open]);
 
   const handleSave = () => {
     const value = parseFloat(recurringValue) || 0;
-    onSave(value);
+    onSave(value, notes);
   };
 
   return (
