@@ -582,43 +582,52 @@ export default function Homologation() {
                                  const totalSections = defaultSections.length;
 
                                  return (
-                                   <div key={displayIndex}>
-                                     <div className="flex items-center justify-between mb-3 group/section">
-                                       <h3 className="text-cyan-400 font-semibold text-sm uppercase">
-                                         {section.section}
-                                       </h3>
-                                       <div className="flex gap-1">
-                                         <Button
-                                           size="icon"
-                                           variant="ghost"
-                                           disabled={displayIndex === 0}
-                                           className="h-6 w-6 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/20 disabled:opacity-30"
-                                           onClick={() => moveSectionUp(product.id, displayIndex)}
-                                         >
-                                           <ChevronUp className="w-4 h-4" />
-                                         </Button>
-                                         <Button
-                                           size="icon"
-                                           variant="ghost"
-                                           disabled={displayIndex >= totalSections - 1}
-                                           className="h-6 w-6 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/20 disabled:opacity-30"
-                                           onClick={() => moveSectionDown(product.id, displayIndex, totalSections)}
-                                         >
-                                           <ChevronDown className="w-4 h-4" />
-                                         </Button>
-                                         <Button
-                                           size="icon"
-                                           variant="ghost"
-                                           className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover/section:opacity-100 transition-opacity"
-                                           onClick={async () => {
-                                             await Promise.all(sectionTasks.map(t => deleteTaskMutation.mutate(t.id)));
-                                             toast.success(`Seção "${section.section}" deletada`);
-                                           }}
-                                         >
-                                           <Trash2 className="w-3 h-3" />
-                                         </Button>
-                                       </div>
-                                     </div>
+                                  <div key={displayIndex}>
+                                    <div className="flex items-center justify-between mb-3 group/section">
+                                      <h3 className="text-cyan-400 font-semibold text-sm uppercase flex-1">
+                                        {section.section}
+                                      </h3>
+                                      <div className="flex items-center gap-1">
+                                        <button
+                                          onClick={() => {
+                                            const allDone = uniqueTasks.every(t => t.completed);
+                                            handleMarkSectionTasks(uniqueTasks, !allDone);
+                                          }}
+                                          className="text-[10px] px-2 py-0.5 rounded border border-green-500/30 text-green-400 hover:bg-green-500/10 transition-colors"
+                                        >
+                                          {uniqueTasks.every(t => t.completed) ? 'Desmarcar' : 'Marcar todos'}
+                                        </button>
+                                        <Button
+                                          size="icon"
+                                          variant="ghost"
+                                          disabled={displayIndex === 0}
+                                          className="h-6 w-6 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/20 disabled:opacity-30"
+                                          onClick={() => moveSectionUp(product.id, displayIndex)}
+                                        >
+                                          <ChevronUp className="w-4 h-4" />
+                                        </Button>
+                                        <Button
+                                          size="icon"
+                                          variant="ghost"
+                                          disabled={displayIndex >= totalSections - 1}
+                                          className="h-6 w-6 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/20 disabled:opacity-30"
+                                          onClick={() => moveSectionDown(product.id, displayIndex, totalSections)}
+                                        >
+                                          <ChevronDown className="w-4 h-4" />
+                                        </Button>
+                                        <Button
+                                          size="icon"
+                                          variant="ghost"
+                                          className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover/section:opacity-100 transition-opacity"
+                                          onClick={async () => {
+                                            await Promise.all(sectionTasks.map(t => deleteTaskMutation.mutate(t.id)));
+                                            toast.success(`Seção "${section.section}" deletada`);
+                                          }}
+                                        >
+                                          <Trash2 className="w-3 h-3" />
+                                        </Button>
+                                      </div>
+                                    </div>
                                       <div className="space-y-2">
                                         {sectionTasks.map(task => (
                                           <div key={task.id} className="flex items-center gap-3 group">
