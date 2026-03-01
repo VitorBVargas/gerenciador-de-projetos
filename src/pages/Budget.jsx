@@ -329,8 +329,14 @@ export default function Budget() {
                 spentPercentage > 90 && "bg-red-500"
               )}
             />
-            {spentPercentage > 90 && (
+            {spentPercentage > 100 && (
               <p className="text-xs text-red-400 mt-2 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
+                Atenção: Orçamento foi excedido!
+              </p>
+            )}
+            {spentPercentage > 90 && spentPercentage <= 100 && (
+              <p className="text-xs text-yellow-400 mt-2 flex items-center gap-1">
                 <AlertCircle className="w-3 h-3" />
                 Atenção: Orçamento próximo do limite
               </p>
