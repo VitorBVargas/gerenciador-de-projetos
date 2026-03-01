@@ -42,6 +42,10 @@ export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
   const [activeProject, setActiveProject] = useState(null);
 
+  // Get project_id from URL to pass to navigation links
+  const urlParams = new URLSearchParams(window.location.search);
+  const projectId = urlParams.get('project_id');
+
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
@@ -59,10 +63,6 @@ export default function Layout({ children, currentPageName }) {
   const handleLogout = () => {
     base44.auth.logout();
   };
-
-  // Get project_id from URL to pass to navigation links
-  const urlParams = new URLSearchParams(window.location.search);
-  const projectId = urlParams.get('project_id');
 
   // Don't show sidebar on Home, ProjectsList, InternalProjectsList, ExecutiveStatus
   if (
