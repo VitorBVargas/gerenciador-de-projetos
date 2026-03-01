@@ -189,38 +189,30 @@ export default function Dashboard() {
   const milestonesInitializedRef = React.useRef(false);
   
   React.useEffect(() => {
-    const initializeMilestones = async () => {
-      // Adicionada a verificação !isLoadingMilestones para evitar duplicidade
-      if (!isLoadingMilestones && projectId && milestones.length === 0 && !milestonesInitialized) {
-        setMilestonesInitialized(true);
-        
-        const defaultMilestones = [
-          'Planejamento e Monitoramento',
-          'Kickoff',
-          'Diagnóstico',
-          'Migração de Homologação',
-          'Homologação e Configuração da migração',
-          'Migração em Produção',
-          'Configuração de PRD',
-          'Treinamento e simulação da operação',
-          'Operação assistida'
-        ];
-        
-        await base44.entities.ProjectMilestone.bulkCreate(
-          defaultMilestones.map((title, index) => ({
-            project_id: projectId,
-            title,
-            completed: false,
-            order: index
-          }))
-        );
-        
-        queryClient.invalidateQueries({ queryKey: ['milestones', projectId] });
-      }
-    };
-    
-    initializeMilestones();
-  }, [projectId, milestones.length, milestonesInitialized, queryClient, isLoadingMilestones]);
+    if (isLoadingMilestones || !projectId || milestones.length > 0 || milestonesInitializedRef.current) return;
+    milestonesInitializedRef.current = true;
+
+    const defaultMilestones = [
+      'Planejamento e Monitoramento',
+      'Kickoff',
+      'Diagnóstico',
+      'Migração de Homologação',
+      'Homologação e Configuração da migração',
+      'Migração em Produção',
+      'Configuração de PRD',
+      'Treinamento e simulação da operação',
+      'Operação assistida'
+    ];
+
+    base44.entities.ProjectMilestone.bulkCreate(
+      defaultMilestones.map((title, index) => ({
+        project_id: projectId,
+        title,
+        completed: false,
+        order: index
+      }))
+    ).then(() => queryClient.invalidateQueries({ queryKey: ['milestones', projectId] }));
+  }, [isLoadingMilestones, projectId, milestones.length, queryClient]);
 
 
 
