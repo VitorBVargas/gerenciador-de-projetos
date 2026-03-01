@@ -115,8 +115,8 @@ export default function ExecutiveStatus() {
   const projectIds = useMemo(() => allProjectsData.map(p => p.id), [allProjectsData]);
   const hasProjects = projectIds.length > 0;
 
-  // Helper: busca em lotes de 3 com delay para evitar rate limit
-  const fetchInBatches = async (ids, fetcher, batchSize = 3, delayMs = 300) => {
+  // Helper: busca em lotes sequenciais com delay para respeitar rate limit
+  const fetchInBatches = async (ids, fetcher, batchSize = 2, delayMs = 600) => {
     const results = [];
     for (let i = 0; i < ids.length; i += batchSize) {
       const batch = ids.slice(i, i + batchSize);
@@ -134,8 +134,9 @@ export default function ExecutiveStatus() {
     queryKey: ['allCronogramas', portfolioFilter],
     queryFn: () => fetchInBatches(projectIds, id => base44.entities.Cronograma.filter({ project_id: id })),
     enabled: hasProjects,
-    staleTime: 60000,
-    gcTime: 300000
+    staleTime: 300000,
+    gcTime: 600000,
+    retry: false,
   });
 
   // Fetch timeline events filtrados pelo portfolio
@@ -143,8 +144,9 @@ export default function ExecutiveStatus() {
     queryKey: ['allTimelineEvents', portfolioFilter],
     queryFn: () => fetchInBatches(projectIds, id => base44.entities.TimelineEvent.filter({ project_id: id })),
     enabled: hasProjects,
-    staleTime: 60000,
-    gcTime: 300000
+    staleTime: 300000,
+    gcTime: 600000,
+    retry: false,
   });
 
   // Fetch homologation tasks filtradas pelo portfolio
@@ -152,16 +154,18 @@ export default function ExecutiveStatus() {
     queryKey: ['allHomologationTasks', portfolioFilter],
     queryFn: () => fetchInBatches(projectIds, id => base44.entities.HomologationTask.filter({ project_id: id })),
     enabled: hasProjects,
-    staleTime: 60000,
-    gcTime: 300000
+    staleTime: 300000,
+    gcTime: 600000,
+    retry: false,
   });
 
   const { data: allMigrationTasks = [] } = useQuery({
     queryKey: ['allMigrationTasks', portfolioFilter],
     queryFn: () => fetchInBatches(projectIds, id => base44.entities.MigrationTask.filter({ project_id: id })),
     enabled: hasProjects,
-    staleTime: 60000,
-    gcTime: 300000
+    staleTime: 300000,
+    gcTime: 600000,
+    retry: false,
   });
 
   // Fetch risks filtrados pelo portfolio
@@ -169,32 +173,36 @@ export default function ExecutiveStatus() {
     queryKey: ['allRisks', portfolioFilter],
     queryFn: () => fetchInBatches(projectIds, id => base44.entities.Risk.filter({ project_id: id })),
     enabled: hasProjects,
-    staleTime: 60000,
-    gcTime: 300000
+    staleTime: 300000,
+    gcTime: 600000,
+    retry: false,
   });
 
   const { data: allExpenses = [] } = useQuery({
     queryKey: ['allExpenses', portfolioFilter],
     queryFn: () => fetchInBatches(projectIds, id => base44.entities.Expense.filter({ project_id: id })),
     enabled: hasProjects,
-    staleTime: 60000,
-    gcTime: 300000
+    staleTime: 300000,
+    gcTime: 600000,
+    retry: false,
   });
 
   const { data: allProducts = [] } = useQuery({
     queryKey: ['allProducts', portfolioFilter],
     queryFn: () => fetchInBatches(projectIds, id => base44.entities.Product.filter({ project_id: id })),
     enabled: hasProjects,
-    staleTime: 60000,
-    gcTime: 300000
+    staleTime: 300000,
+    gcTime: 600000,
+    retry: false,
   });
 
   const { data: allRecognizedRevenues = [] } = useQuery({
     queryKey: ['allRecognizedRevenues', portfolioFilter],
     queryFn: () => fetchInBatches(projectIds, id => base44.entities.RecognizedRevenue.filter({ project_id: id })),
     enabled: hasProjects,
-    staleTime: 60000,
-    gcTime: 300000
+    staleTime: 300000,
+    gcTime: 600000,
+    retry: false,
   });
 
   const createRecognizedRevenueMutation = useMutation({
