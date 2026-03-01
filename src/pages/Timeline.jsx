@@ -5,14 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Calendar, Edit3 } from 'lucide-react';
-import TimelineEventModal from '../components/modals/TimelineEventModal';
-import BulkEditDatesModal from '../components/modals/BulkEditDatesModal';
 import EmptyState from '../components/ui/EmptyState';
 import EntityFilter from '../components/filters/EntityFilter';
-
 import { phaseLabels } from '../components/timeline/phaseLabels';
-import TimelineByVertical from '../components/timeline/TimelineByVertical';
-import TimelineByProduct from '../components/timeline/TimelineByProduct';
+
+// Lazy-loaded heavy components
+const TimelineEventModal = React.lazy(() => import('../components/modals/TimelineEventModal'));
+const BulkEditDatesModal = React.lazy(() => import('../components/modals/BulkEditDatesModal'));
+const TimelineByVertical = React.lazy(() => import('../components/timeline/TimelineByVertical'));
+const TimelineByProduct = React.lazy(() => import('../components/timeline/TimelineByProduct'));
 import {
   AlertDialog,
   AlertDialogAction,
