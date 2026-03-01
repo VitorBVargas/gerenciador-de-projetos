@@ -224,37 +224,12 @@ export default function Homologation() {
     return order.map(i => sections[i]).filter(Boolean);
   };
 
-  const [markingTasks, setMarkingTasks] = useState(false);
-
-  const handleMarkAllTasks = async () => {
-    if (!selectedProduct || markingTasks) return;
-    setMarkingTasks(true);
-    try {
-      const product = getCurrentProduct();
-      const productTasks = tasks.filter(t => t.product_id === product.id);
-      const allCompleted = productTasks.every(t => t.completed);
-      
-      // Processar em lotes de 10 para evitar sobrecarga
-      const batchSize = 10;
-      for (let i = 0; i < productTasks.length; i += batchSize) {
-        const batch = productTasks.slice(i, i + batchSize);
-        await Promise.all(batch.map(task =>
-          base44.entities.HomologationTask.update(task.id, { completed: !allCompleted })
-        ));
-        // Pequeno delay entre lotes
-        if (i + batchSize < productTasks.length) {
-          await new Promise(resolve => setTimeout(resolve, 100));
-        }
-      }
-      
-      toast.success(allCompleted ? 'Tarefas desmarcadas!' : 'Todas as tarefas foram marcadas!');
-      queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
-    } catch (error) {
-      toast.error('Erro ao atualizar tarefas');
-      console.error(error);
-    } finally {
-      setMarkingTasks(false);
+  const handleMarkSectionTasks = async (sectionTasks, completed) => {
+    const tasksToUpdate = sectionTasks.filter(t => t.completed !== completed);
+    for (const task of tasksToUpdate) {
+      await base44.entities.HomologationTask.update(task.id, { completed });
     }
+    queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
   };
 
   const handleImportTasks = async (event) => {
