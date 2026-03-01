@@ -280,7 +280,7 @@ export default function Travels() {
   return (
     <div className="p-6 lg:p-8 space-y-6 min-h-screen bg-slate-900">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div className="space-y-4">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-white">Viagens dos Implantadores</h1>
           <p className="text-slate-400 mt-1">Calendário de deslocamentos da equipe</p>
