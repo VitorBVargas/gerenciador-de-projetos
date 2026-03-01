@@ -273,14 +273,46 @@ export default function Products() {
 
       {/* Filters */}
       <div className="space-y-3">
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-          <Input
-            placeholder="Buscar produto..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
-          />
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+            <Input
+              placeholder="Buscar produto..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 w-64"
+            />
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {[
+              { key: 'aceite', label: 'Aceite de Implantação', activeClass: 'bg-orange-500/20 text-orange-400 border-orange-500/40' },
+              { key: 'reconhecimento', label: 'Reconhecimento', activeClass: 'bg-purple-500/20 text-purple-400 border-purple-500/40' },
+              { key: 'senha', label: 'Senha Liberada', activeClass: 'bg-green-500/20 text-green-400 border-green-500/40' },
+              { key: 'senha_carencia', label: 'Senha c/ Carência', activeClass: 'bg-amber-500/20 text-amber-400 border-amber-500/40' },
+            ].map(({ key, label, activeClass }) => (
+              <button
+                key={key}
+                onClick={() => toggleFlagFilter(key)}
+                className={cn(
+                  "px-3 py-1.5 rounded-full text-xs font-medium border transition-all",
+                  flagFilters.includes(key)
+                    ? activeClass
+                    : "bg-slate-800 text-slate-400 border-slate-700 hover:border-slate-500"
+                )}
+              >
+                {flagFilters.includes(key) && <span className="mr-1">✓</span>}
+                {label}
+              </button>
+            ))}
+            {flagFilters.length > 0 && (
+              <button
+                onClick={() => setFlagFilters([])}
+                className="px-2 py-1 rounded text-xs text-slate-500 hover:text-slate-300 transition-colors"
+              >
+                Limpar
+              </button>
+            )}
+          </div>
         </div>
         <EntityFilter entities={entities} selectedEntity={selectedEntity} onEntityChange={setSelectedEntity} />
       </div>
