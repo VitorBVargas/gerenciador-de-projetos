@@ -40,10 +40,21 @@ const navigation = [
 export default function Layout({ children, currentPageName }) {
   const [collapsed, setCollapsed] = useState(true);
   const [user, setUser] = useState(null);
+  const [activeProject, setActiveProject] = useState(null);
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (projectId) {
+      base44.entities.Project.filter({ id: projectId }).then(results => {
+        if (results && results.length > 0) setActiveProject(results[0]);
+      }).catch(() => {});
+    } else {
+      setActiveProject(null);
+    }
+  }, [projectId]);
 
   const handleLogout = () => {
     base44.auth.logout();
