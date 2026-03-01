@@ -37,7 +37,7 @@ export default function Homologation() {
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [sectionOrder, setSectionOrder] = useState({});
   const [addTaskSection, setAddTaskSection] = useState('');
-  const fileInputRef = React.useRef(null);
+  const [importModalOpen, setImportModalOpen] = useState(false);
   const creatingTasksRef = React.useRef(new Set());
 
   const urlParams = new URLSearchParams(window.location.search);
