@@ -511,7 +511,7 @@ export default function Dashboard() {
 
       {/* Charts Row */}
       <React.Suspense fallback={<LazyFallback />}>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {timelineProgressData.length > 0 ? (
           <Card className="bg-slate-800/50 border-slate-700/50">
             <CardHeader>
