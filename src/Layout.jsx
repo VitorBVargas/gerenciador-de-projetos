@@ -168,6 +168,12 @@ export default function Layout({ children, currentPageName }) {
         "flex-1 transition-all duration-300",
         collapsed ? "ml-20" : "ml-64"
       )}>
+        {activeProject && (
+          <div className="sticky top-0 z-40 flex items-center gap-2 px-6 py-2 bg-slate-800/80 backdrop-blur border-b border-slate-700/50">
+            <FolderOpen className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
+            <span className="text-xs text-slate-400 font-medium truncate">{activeProject.name}</span>
+          </div>
+        )}
         <div className="min-h-screen">
           {children}
         </div>
