@@ -281,24 +281,28 @@ export default function Timeline() {
                 </Button>
               }
             />
-          ) : schedulingType === 'por_vertical' ? (
-            <TimelineByVertical
-              verticals={verticals}
-              entityProducts={entityProducts}
-              timelineEvents={timelineEvents}
-              onStatusChange={handleStatusChange}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
           ) : (
-            <TimelineByProduct
-              verticals={verticals}
-              entityProducts={entityProducts}
-              timelineEvents={timelineEvents}
-              onStatusChange={handleStatusChange}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
+            <React.Suspense fallback={<div className="flex items-center justify-center p-12"><div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" /></div>}>
+              {schedulingType === 'por_vertical' ? (
+                <TimelineByVertical
+                  verticals={verticals}
+                  entityProducts={entityProducts}
+                  timelineEvents={timelineEvents}
+                  onStatusChange={handleStatusChange}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
+              ) : (
+                <TimelineByProduct
+                  verticals={verticals}
+                  entityProducts={entityProducts}
+                  timelineEvents={timelineEvents}
+                  onStatusChange={handleStatusChange}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
+              )}
+            </React.Suspense>
           )}
         </TabsContent>
 
