@@ -481,16 +481,16 @@ export default function Dashboard() {
 
           {/* Health Score */}
           <React.Suspense fallback={<LazyFallback />}>
-          <ProjectHealthScore
-            timeline={timelineEvents}
-            budget={activeProject?.budget || 0}
-            spent={expenses.reduce((sum, e) => sum + (e.amount || 0), 0)}
-            migrationTasks={migrationTasks}
-            homologationTasks={homologationTasks}
-            risks={risks}
-            products={products}
-            cronogramas={cronogramas}
-          />
+            <ProjectHealthScore
+              timeline={timelineEvents}
+              budget={activeProject?.budget || 0}
+              spent={expenses.reduce((sum, e) => sum + (e.amount || 0), 0)}
+              migrationTasks={migrationTasks}
+              homologationTasks={homologationTasks}
+              risks={risks}
+              products={products}
+              cronogramas={cronogramas}
+            />
           </React.Suspense>
         </div>
       )}
