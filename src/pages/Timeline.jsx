@@ -309,15 +309,30 @@ export default function Timeline() {
 
       </Tabs>
 
-      {/* Modal */}
-      <TimelineEventModal
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-        event={selectedEvent}
-        onSave={handleSave}
-        projectId={projectId}
-        productId={selectedProductId}
-      />
+      {/* Modals - lazy loaded only when needed */}
+      <React.Suspense fallback={null}>
+        {modalOpen && (
+          <TimelineEventModal
+            open={modalOpen}
+            onOpenChange={setModalOpen}
+            event={selectedEvent}
+            onSave={handleSave}
+            projectId={projectId}
+            productId={selectedProductId}
+          />
+        )}
+        {editDatesOpen && (
+          <BulkEditDatesModal
+            open={editDatesOpen}
+            onOpenChange={setEditDatesOpen}
+            entities={getUniqueEntities()}
+            verticals={verticals}
+            timelineEvents={timelineEvents}
+            products={products}
+            onApply={handleEditDatesApply}
+          />
+        )}
+      </React.Suspense>
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -339,17 +354,6 @@ export default function Timeline() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* Edit Dates Modal */}
-      <BulkEditDatesModal
-        open={editDatesOpen}
-        onOpenChange={setEditDatesOpen}
-        entities={getUniqueEntities()}
-        verticals={verticals}
-        timelineEvents={timelineEvents}
-        products={products}
-        onApply={handleEditDatesApply}
-      />
     </div>
   );
 }
