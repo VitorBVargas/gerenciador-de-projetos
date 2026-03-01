@@ -77,19 +77,19 @@ export default function ExpenseImporter({ open, onOpenChange, projectId, onImpor
       const data = XLSX.utils.sheet_to_json(ws, { defval: null });
 
       const parsed = data
-        .filter(row => row['Colaborador'] && row['Valor'] && row['Situação'] === 'Finalizada')
+        .filter(row => row['Valor'] && row['Situação'] === 'Finalizada')
         .map(row => ({
-          title: `${row['Tipo despesa'] || 'Despesa'} - ${row['Colaborador']}`,
-          amount: parseFloat(row['Valor']) || 0,
+          title: `${row['Tipo despesa'] || 'Despesa'} - ${row['Colaborador'] || 'Fornecedor'}`,
+          amount: parseFloat(row['Valor nacional'] || row['Valor']) || 0,
           date: parseDate(row['Data despesa']),
           category: normalizeTipo(row['Tipo despesa']),
           notes: [
-            row['Colaborador'],
+            row['Colaborador'] || row['Fornecedor'],
             row['Centro de custo'],
             row['Tipo despesa']
           ].filter(Boolean).join(' | '),
           project_id: projectId,
-          external_id: row['Identificador'] ? `${row['Identificador']}-${row['#']}` : null,
+          external_id: row['Identificador'] && row['#'] ? `${row['Identificador']}-${row['#']}` : null,
         }))
         .filter(r => r.date && r.amount > 0);
 
