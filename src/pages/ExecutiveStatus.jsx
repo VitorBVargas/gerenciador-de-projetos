@@ -207,7 +207,7 @@ export default function ExecutiveStatus() {
   });
 
   const updateProjectRecurringMutation = useMutation({
-    mutationFn: ({ id, recurringValue }) => base44.entities.Project.update(id, { contract_recurring_value: recurringValue }),
+    mutationFn: ({ id, recurringValue, notes }) => base44.entities.Project.update(id, { contract_recurring_value: recurringValue, contract_recurring_notes: notes }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       setIsEditRecurringModalOpen(false);
