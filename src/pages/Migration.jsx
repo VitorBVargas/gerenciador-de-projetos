@@ -276,66 +276,12 @@ export default function Migration() {
     return order.map(i => sections[i]).filter(Boolean);
   };
 
-  const handleMarkAllTasks = async () => {
-    if (!selectedProduct || markingTasks) return;
-    setMarkingTasks(true);
-    
-    try {
-      const product = getCurrentProduct();
-      const productTasks = getProductTasks(product.id);
-      const defaultSections = getDefaultTasksForProduct(product.name) || [];
-      const importedTasks = productTasks.filter(t => t.title.includes('||'));
-      const standardTasks = productTasks.filter(t => !t.title.includes('||'));
-      
-      // Agrupar tarefas importadas por etapa e remover duplicatas
-      const importedBySection = importedTasks.reduce((acc, task) => {
-        const match = task.title.match(/^\|\|(.+?)\|\|(.+)$/);
-        if (match) {
-          const [, sectionName, taskName] = match;
-          const titleLower = taskName.toLowerCase();
-          if (!acc[sectionName]) acc[sectionName] = new Map();
-          if (!acc[sectionName].has(titleLower)) {
-            acc[sectionName].set(titleLower, task);
-          }
-        }
-        return acc;
-      }, {});
-      
-      // Remover duplicatas de tarefas padrão
-      const uniqueStandardTasks = [];
-      const seenTitles = new Set();
-      for (const task of standardTasks) {
-        const titleLower = task.title.toLowerCase();
-        if (!seenTitles.has(titleLower)) {
-          seenTitles.add(titleLower);
-          uniqueStandardTasks.push(task);
-        }
-      }
-      
-      // Reunir todas as tarefas únicas visíveis
-      const visibleTasks = [
-        ...uniqueStandardTasks,
-        ...Object.values(importedBySection).flatMap(map => Array.from(map.values()))
-      ];
-      
-      // Lógica: se alguma tarefa não está marcada, marca todas; se todas estão marcadas, desmarca todas
-      const hasIncompleted = visibleTasks.some(t => !t.completed);
-      
-      // Updates sequenciais para evitar rate limit
-      for (const task of visibleTasks) {
-        await base44.entities.MigrationTask.update(task.id, { completed: hasIncompleted });
-        // Pequeno delay entre cada update
-        await new Promise(resolve => setTimeout(resolve, 50));
-      }
-      
-      toast.success(hasIncompleted ? 'Todas as tarefas foram marcadas!' : 'Tarefas desmarcadas!');
-      queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
-    } catch (error) {
-      toast.error('Erro ao atualizar tarefas');
-      console.error(error);
-    } finally {
-      setMarkingTasks(false);
+  const handleMarkSectionTasks = async (sectionTasks, completed) => {
+    const tasksToUpdate = sectionTasks.filter(t => t.completed !== completed);
+    for (const task of tasksToUpdate) {
+      await base44.entities.MigrationTask.update(task.id, { completed });
     }
+    queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
   };
 
   const handleImportTasks = async (event) => {
