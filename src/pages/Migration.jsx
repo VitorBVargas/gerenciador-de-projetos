@@ -643,10 +643,19 @@ export default function Migration() {
                                  return (
                                    <div key={displayIndex}>
                                      <div className="flex items-center justify-between mb-3 group/section">
-                                       <h3 className="text-cyan-400 font-semibold text-sm uppercase">
+                                       <h3 className="text-cyan-400 font-semibold text-sm uppercase flex-1">
                                          {section.section}
                                        </h3>
-                                       <div className="flex gap-1">
+                                       <div className="flex items-center gap-1">
+                                         <button
+                                           onClick={() => {
+                                             const allDone = uniqueTasks.every(t => t.completed);
+                                             handleMarkSectionTasks(uniqueTasks, !allDone);
+                                           }}
+                                           className="text-[10px] px-2 py-0.5 rounded border border-green-500/30 text-green-400 hover:bg-green-500/10 transition-colors"
+                                         >
+                                           {uniqueTasks.every(t => t.completed) ? 'Desmarcar' : 'Marcar todos'}
+                                         </button>
                                          <Button
                                            size="icon"
                                            variant="ghost"
