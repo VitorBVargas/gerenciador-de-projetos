@@ -1330,8 +1330,8 @@ export default function ExecutiveStatus() {
 
                   {/* Gráfico de Senhas */}
                   <PasswordReleasesChart 
-                  products={allProducts}
-                  projects={allProjectsData}
+                  products={allProducts.filter(p => projects.some(proj => proj.id === p.project_id))}
+                  projects={projects}
                   visibleCharts={visibleCharts}
                   onVisibilityChange={handleChartVisibility}
                   />
