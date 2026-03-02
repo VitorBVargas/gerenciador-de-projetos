@@ -557,14 +557,9 @@ export default function ExecutiveStatus() {
       if (monthlyData[recMonth]) monthlyData[recMonth].reconhecido += recognized.amount;
     });
 
-    // Filter chartData: show from the earliest month that has data (or current month), up to end
-    const earliestDataMonth = Object.entries(monthlyData)
-      .filter(([, v]) => v.implantacao > 0 || v.recorrente > 0 || v.reconhecido > 0)
-      .map(([key]) => key)
-      .sort()[0];
-    const showFrom = earliestDataMonth && earliestDataMonth < currentYearMonth ? earliestDataMonth : currentYearMonth;
+    // Filter chartData to show only current month forward
     const chartData = Object.entries(monthlyData)
-      .filter(([key]) => key >= showFrom)
+      .filter(([key]) => key >= currentYearMonth)
       .map(([, value]) => value);
 
     return { monthlyData, chartData };
