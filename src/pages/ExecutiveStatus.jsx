@@ -1463,26 +1463,55 @@ export default function ExecutiveStatus() {
                            </div>
                          </CardHeader>
                          <CardContent className="space-y-4">
-                           <div>
+                          <div>
                              <div className="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-2">Produtos Iniciando</div>
                              <div className="space-y-2">
-                               {recorrenteProds.map(({ product, project, vertical, startDate, inclusionValue }) => (
-                                 <div key={product.id} className="p-3 bg-blue-900/20 rounded-lg border border-blue-700/50">
-                                   <div className="flex items-start justify-between gap-4">
-                                     <div className="flex-1">
-                                       <div className="font-semibold text-white text-sm">{product.name}</div>
-                                       <div className="text-xs text-slate-400">{project.name}{product.entity ? ` · ${product.entity}` : ''}</div>
-                                       {vertical && <div className="text-xs text-slate-500">Vertical: {vertical}</div>}
+                               {(() => {
+                                 // Group by project
+                                 const byProject = {};
+                                 recorrenteProds.forEach(item => {
+                                   const pid = item.project.id;
+                                   if (!byProject[pid]) byProject[pid] = { project: item.project, items: [] };
+                                   byProject[pid].items.push(item);
+                                 });
+                                 return Object.values(byProject).map(({ project: proj, items }) => {
+                                   const isExpanded = expandedProjectGroups[`recorrente-${selectedMonth}-${proj.id}`];
+                                   const total = items.reduce((s, i) => s + i.inclusionValue, 0);
+                                   return (
+                                     <div key={proj.id} className="rounded-lg border border-blue-700/50 overflow-hidden">
+                                       <button
+                                         className="w-full flex items-center justify-between p-3 bg-blue-900/30 hover:bg-blue-900/40 transition-colors text-left"
+                                         onClick={() => setExpandedProjectGroups(prev => ({ ...prev, [`recorrente-${selectedMonth}-${proj.id}`]: !prev[`recorrente-${selectedMonth}-${proj.id}`] }))}
+                                       >
+                                         <div className="flex items-center gap-2">
+                                           <span className="text-white font-semibold text-sm">{proj.name}</span>
+                                           <span className="text-xs text-blue-300 bg-blue-900/50 px-1.5 py-0.5 rounded">{items.length} produto{items.length !== 1 ? 's' : ''}</span>
+                                         </div>
+                                         <div className="flex items-center gap-3">
+                                           <span className="text-sm font-semibold text-blue-400">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(total)}</span>
+                                           <span className="text-slate-400 text-xs">{isExpanded ? '▲' : '▼'}</span>
+                                         </div>
+                                       </button>
+                                       {isExpanded && (
+                                         <div className="divide-y divide-blue-800/30">
+                                           {items.map(({ product, vertical, startDate, inclusionValue }) => (
+                                             <div key={product.id} className="flex items-start justify-between gap-4 px-4 py-2.5 bg-blue-900/10">
+                                               <div className="flex-1">
+                                                 <div className="font-medium text-white text-sm">{product.name}</div>
+                                                 <div className="text-xs text-slate-400">{product.entity ? `${product.entity}` : ''}{vertical ? ` · ${vertical}` : ''}</div>
+                                               </div>
+                                               <div className="text-right shrink-0">
+                                                 <div className="text-sm font-semibold text-blue-400">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(inclusionValue)}</div>
+                                                 {startDate && <div className="text-xs text-slate-500">{format(new Date(startDate), 'dd/MM/yyyy', { locale: ptBR })}</div>}
+                                               </div>
+                                             </div>
+                                           ))}
+                                         </div>
+                                       )}
                                      </div>
-                                     <div className="text-right shrink-0">
-                                       <div className="text-sm font-semibold text-blue-400">
-                                         {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(inclusionValue)}
-                                       </div>
-                                       {startDate && <div className="text-xs text-slate-500">{format(new Date(startDate), 'dd/MM/yyyy', { locale: ptBR })}</div>}
-                                     </div>
-                                   </div>
-                                 </div>
-                               ))}
+                                   );
+                                 });
+                               })()}
                              </div>
                            </div>
                          </CardContent>
