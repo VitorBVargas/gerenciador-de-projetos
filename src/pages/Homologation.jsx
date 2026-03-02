@@ -38,6 +38,7 @@ export default function Homologation() {
   const [sectionOrder, setSectionOrder] = useState({});
   const [addTaskSection, setAddTaskSection] = useState('');
   const [importModalOpen, setImportModalOpen] = useState(false);
+  const [markingProgress, setMarkingProgress] = useState({ isLoading: false, current: 0, total: 0 });
   const creatingTasksRef = React.useRef(new Set());
 
   const urlParams = new URLSearchParams(window.location.search);
