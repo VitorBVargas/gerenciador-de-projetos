@@ -560,10 +560,11 @@ export default function ExecutiveStatus() {
       if (monthlyData[recMonth]) monthlyData[recMonth].reconhecido += recognized.amount;
     });
 
-    // Filter chartData: show months from current month forward, OR any month that has data
+    // Show all months that have data, plus current month forward
     const chartData = Object.entries(monthlyData)
-      .filter(([key, value]) => key >= currentYearMonth || value.implantacao > 0 || value.a_receber > 0 || value.recorrente > 0 || value.reconhecido > 0)
-      .map(([, value]) => value);
+      .map(([key, value]) => ({ key, ...value }))
+      .filter(d => d.key >= currentYearMonth || d.implantacao > 0 || d.a_receber > 0 || d.recorrente > 0 || d.reconhecido > 0)
+      .map(({ key, ...value }) => value);
 
     return { monthlyData, chartData };
   }, [projects, allProducts, allTimelineEvents, allCronogramas, allRecognizedRevenues, allProjectsData]);
