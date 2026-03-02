@@ -252,10 +252,37 @@ export default function Timeline() {
     await bulkUpdateMutation.mutateAsync(updatedEvents);
   };
 
-  const handleAddSteps = async (newEvents) => {
-    for (const evt of newEvents) {
-      await base44.entities.TimelineEvent.create(evt);
+  // Retry with exponential backoff
+  const retryWithBackoff = async (fn, retries = 3, baseDelay = 1000) => {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        return await fn();
+      } catch (err) {
+        if (attempt === retries) throw err;
+        const delay = baseDelay * Math.pow(2, attempt);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
     }
+  };
+
+  const handleAddSteps = async (newEvents) => {
+    const BATCH_SIZE = 3;
+    const BATCH_DELAY = 1200;
+    setBatchLoading(true);
+    setBatchProgress({ done: 0, total: newEvents.length });
+
+    for (let i = 0; i < newEvents.length; i += BATCH_SIZE) {
+      const batch = newEvents.slice(i, i + BATCH_SIZE);
+      await Promise.all(
+        batch.map(evt => retryWithBackoff(() => base44.entities.TimelineEvent.create(evt)))
+      );
+      setBatchProgress({ done: Math.min(i + BATCH_SIZE, newEvents.length), total: newEvents.length });
+      if (i + BATCH_SIZE < newEvents.length) {
+        await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
+      }
+    }
+
+    setBatchLoading(false);
     queryClient.invalidateQueries({ queryKey: ['timelineEvents', projectId] });
     setAddStepOpen(false);
   };
