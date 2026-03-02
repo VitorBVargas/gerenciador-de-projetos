@@ -116,7 +116,7 @@ export default function ExecutiveStatus() {
   const { data: allCronogramas = [] } = useQuery({
     queryKey: ['allCronogramas'],
     queryFn: () => base44.entities.Cronograma.list(),
-    staleTime: 60000,
+    staleTime: 0,
     gcTime: 300000
   });
 
@@ -127,7 +127,7 @@ export default function ExecutiveStatus() {
       const events = await base44.entities.TimelineEvent.list();
       return events;
     },
-    staleTime: 60000,
+    staleTime: 0,
     gcTime: 300000
   });
 
