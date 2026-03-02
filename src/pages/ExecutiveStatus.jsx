@@ -123,12 +123,9 @@ export default function ExecutiveStatus() {
   // Fetch all timeline events
   const { data: allTimelineEvents = [] } = useQuery({
     queryKey: ['allTimelineEvents'],
-    queryFn: async () => {
-      const events = await base44.entities.TimelineEvent.list();
-      return events;
-    },
+    queryFn: () => base44.entities.TimelineEvent.list(),
     staleTime: 0,
-    gcTime: 300000
+    gcTime: 0
   });
 
   // Fetch all tasks - necessário para calcular health score corretamente
