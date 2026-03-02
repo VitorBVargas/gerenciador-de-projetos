@@ -44,11 +44,16 @@ export default function ProjectSetupWizard({ open, onOpenChange, project, onComp
   const [risks, setRisks] = useState([]);
   const [newRisk, setNewRisk] = useState({ title: '', category: 'tecnico', probability: 'media', impact: 'medio', mitigation: '' });
 
+  const portfolioForFilter = project?.portfolio;
+
   const { data: collaborators = [] } = useQuery({
-    queryKey: ['portfolioCollaborators', project?.portfolio],
-    queryFn: () => project?.portfolio
-      ? base44.entities.PortfolioCollaborator.filter({ portfolio: project.portfolio })
-      : base44.entities.PortfolioCollaborator.list(),
+    queryKey: ['portfolioCollaborators', portfolioForFilter],
+    queryFn: async () => {
+      if (portfolioForFilter) {
+        return base44.entities.PortfolioCollaborator.filter({ portfolio: portfolioForFilter });
+      }
+      return base44.entities.PortfolioCollaborator.list();
+    },
     enabled: open && step === 1
   });
 
