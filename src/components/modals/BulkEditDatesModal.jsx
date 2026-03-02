@@ -8,6 +8,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { phaseLabels } from '@/components/timeline/phaseLabels';
 import { formatDateForDisplay } from '@/components/timeline/dateFormatter';
 import { ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { Progress } from "@/components/ui/progress";
 
 export default function BulkEditDatesModal({ 
   open, 
