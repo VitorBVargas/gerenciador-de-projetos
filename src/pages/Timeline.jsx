@@ -62,6 +62,8 @@ export default function Timeline() {
   const [selectedEntity, setSelectedEntity] = useState('PM');
   const [editDatesOpen, setEditDatesOpen] = useState(false);
   const [addStepOpen, setAddStepOpen] = useState(false);
+  const [batchLoading, setBatchLoading] = useState(false);
+  const [batchProgress, setBatchProgress] = useState({ done: 0, total: 0 });
 
   // Get project_id from URL
   const urlParams = new URLSearchParams(window.location.search);
