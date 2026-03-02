@@ -48,8 +48,6 @@
  * The mainPage value must match a key in the PAGES object exactly.
  */
 import Budget from './pages/Budget';
-import Dashboard from './pages/Dashboard';
-import ExecutiveStatus from './pages/ExecutiveStatus';
 import Home from './pages/Home';
 import Homologation from './pages/Homologation';
 import InternalDashboard from './pages/InternalDashboard';
@@ -63,15 +61,15 @@ import Risks from './pages/Risks';
 import Stakeholders from './pages/Stakeholders';
 import StatusReports from './pages/StatusReports';
 import Team from './pages/Team';
-import Timeline from './pages/Timeline';
 import Travels from './pages/Travels';
+import Dashboard from './pages/Dashboard';
+import ExecutiveStatus from './pages/ExecutiveStatus';
+import Timeline from './pages/Timeline';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "Budget": Budget,
-    "Dashboard": Dashboard,
-    "ExecutiveStatus": ExecutiveStatus,
     "Home": Home,
     "Homologation": Homologation,
     "InternalDashboard": InternalDashboard,
@@ -85,8 +83,10 @@ export const PAGES = {
     "Stakeholders": Stakeholders,
     "StatusReports": StatusReports,
     "Team": Team,
-    "Timeline": Timeline,
     "Travels": Travels,
+    "Dashboard": Dashboard,
+    "ExecutiveStatus": ExecutiveStatus,
+    "Timeline": Timeline,
 }
 
 export const pagesConfig = {
