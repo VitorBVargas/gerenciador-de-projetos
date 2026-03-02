@@ -418,8 +418,13 @@ export default function BulkEditDatesModal({
         <AlertDialogContent className="bg-slate-800 border-slate-700">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white">Confirmar alterações</AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-400">
-              Tem certeza que deseja alterar {eventsToUpdate.length} etapa(s)?
+            <AlertDialogDescription className="text-slate-400 space-y-3">
+              <div>Tem certeza que deseja alterar {eventsToUpdate.length} etapa(s)?</div>
+              {eventsToUpdate.length > 100 && (
+                <div className="p-3 bg-amber-600/20 border border-amber-600/50 rounded text-sm text-amber-300">
+                  ⚠️ <strong>Acima de 100 alterações:</strong> Esta operação pode demorar um pouco. Por favor, tenha paciência e não feche a página enquanto está processando.
+                </div>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
