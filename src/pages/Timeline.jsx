@@ -250,6 +250,14 @@ export default function Timeline() {
     await bulkUpdateMutation.mutateAsync(updatedEvents);
   };
 
+  const handleAddSteps = async (newEvents) => {
+    for (const evt of newEvents) {
+      await base44.entities.TimelineEvent.create(evt);
+    }
+    queryClient.invalidateQueries({ queryKey: ['timelineEvents', projectId] });
+    setAddStepOpen(false);
+  };
+
 
 
   return (
