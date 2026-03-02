@@ -112,77 +112,64 @@ export default function ExecutiveStatus() {
   
 
 
-  // All these queries depend on which projects are loaded (portfolioFilter)
-  // We include portfolioFilter in the queryKey so data refreshes when portfolio changes
-  const projectIds = allProjectsData.map(p => p.id);
-  const hasProjects = projectIds.length > 0;
-
   // Fetch all cronogramas
   const { data: allCronogramas = [] } = useQuery({
-    queryKey: ['allCronogramas', portfolioFilter],
+    queryKey: ['allCronogramas'],
     queryFn: () => base44.entities.Cronograma.list(),
     staleTime: 0,
     gcTime: 0,
-    enabled: hasProjects
   });
 
   // Fetch all timeline events
   const { data: allTimelineEvents = [] } = useQuery({
-    queryKey: ['allTimelineEvents', portfolioFilter],
+    queryKey: ['allTimelineEvents'],
     queryFn: () => base44.entities.TimelineEvent.list(),
     staleTime: 0,
     gcTime: 0,
-    enabled: hasProjects
   });
 
   // Fetch all tasks - necessário para calcular health score corretamente
   const { data: allHomologationTasks = [] } = useQuery({
-    queryKey: ['allHomologationTasks', portfolioFilter],
+    queryKey: ['allHomologationTasks'],
     queryFn: () => base44.entities.HomologationTask.list(),
     staleTime: 0,
     gcTime: 0,
-    enabled: hasProjects
   });
 
   const { data: allMigrationTasks = [] } = useQuery({
-    queryKey: ['allMigrationTasks', portfolioFilter],
+    queryKey: ['allMigrationTasks'],
     queryFn: () => base44.entities.MigrationTask.list(),
     staleTime: 0,
     gcTime: 0,
-    enabled: hasProjects
   });
 
   // Fetch all risks
   const { data: allRisks = [] } = useQuery({
-    queryKey: ['allRisks', portfolioFilter],
+    queryKey: ['allRisks'],
     queryFn: () => base44.entities.Risk.list(),
     staleTime: 0,
     gcTime: 0,
-    enabled: hasProjects
   });
 
   const { data: allExpenses = [] } = useQuery({
-    queryKey: ['allExpenses', portfolioFilter],
+    queryKey: ['allExpenses'],
     queryFn: () => base44.entities.Expense.list(),
     staleTime: 0,
     gcTime: 0,
-    enabled: hasProjects
   });
 
   const { data: allProducts = [] } = useQuery({
-    queryKey: ['allProducts', portfolioFilter],
+    queryKey: ['allProducts'],
     queryFn: () => base44.entities.Product.list(),
     staleTime: 0,
     gcTime: 0,
-    enabled: hasProjects
   });
 
   const { data: allRecognizedRevenues = [] } = useQuery({
-    queryKey: ['allRecognizedRevenues', portfolioFilter],
+    queryKey: ['allRecognizedRevenues'],
     queryFn: () => base44.entities.RecognizedRevenue.list(),
     staleTime: 0,
     gcTime: 0,
-    enabled: hasProjects
   });
 
   const createRecognizedRevenueMutation = useMutation({
