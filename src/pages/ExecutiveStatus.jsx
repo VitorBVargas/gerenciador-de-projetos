@@ -77,6 +77,7 @@ export default function ExecutiveStatus() {
     password: true
   });
   const [expandedRecognitions, setExpandedRecognitions] = useState({});
+  const [expandedProjectGroups, setExpandedProjectGroups] = useState({});
   const [editingProjectId, setEditingProjectId] = useState(null);
   const [isEditRecurringModalOpen, setIsEditRecurringModalOpen] = useState(false);
   const [selectedEntity, setSelectedEntity] = useState(null);
