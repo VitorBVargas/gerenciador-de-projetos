@@ -511,7 +511,7 @@ export default function ProjectRegistrationFlow({ open, onOpenChange, parsedData
         // We need vertical - replicate inferVertical logic inline
         const name = productName.toLowerCase();
         let vertical = 'plataforma';
-        if (name.includes('contabilidade') || name.includes('tesouraria') || name.includes('orçamento') || name.includes('orcamento') || name.includes('convênios') || name.includes('convenios') || name.includes('controladoria') || name.includes('planejamento') || name.includes('controle de caixa')) vertical = 'contabil';
+        if (name.includes('contabilidade') || name.includes('contábil') || name.includes('contabil') || name.includes('tesouraria') || name.includes('orçamento') || name.includes('orcamento') || name.includes('convênios') || name.includes('convenios') || name.includes('controladoria') || name.includes('planejamento') || name.includes('controle de caixa')) vertical = 'contabil';
         else if (name.includes('compras') || name.includes('contratos') || name.includes('almoxarifado') || name.includes('patrimônio') || name.includes('patrimonio') || name.includes('frotas') || name.includes('obras')) vertical = 'compras';
         else if (name.includes('folha') || name.includes('pessoal') || name.includes('recursos humanos') || name.includes('esocial') || name.includes('minha folha') || name.includes('ponto') || name.includes('pontual')) vertical = 'pessoal';
         else if (name.includes('arrecadação') || name.includes('arrecadacao') || name.includes('tributos') || name.includes('iss') || name.includes('procuradoria') || name.includes('e-nota') || name.includes('enota') || name.includes('cadastro imobiliário') || name.includes('cidadão web')) vertical = 'arrecadacao';
