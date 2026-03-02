@@ -372,6 +372,15 @@ export default function Timeline() {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Add Step Modal */}
+      <AddTimelineStepModal
+        open={addStepOpen}
+        onOpenChange={setAddStepOpen}
+        products={products}
+        timelineEvents={timelineEvents}
+        onAdd={handleAddSteps}
+      />
+
       {/* Edit Dates Modal */}
       <BulkEditDatesModal
         open={editDatesOpen}
