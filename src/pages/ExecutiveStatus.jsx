@@ -860,7 +860,7 @@ export default function ExecutiveStatus() {
                       </div>
                     )}
                     {(() => {
-                      const projectEvents = allTimelineEvents.filter(e => e.project_id === project.id);
+                      const projectEvents = allTimelineEvents.filter(e => e.project_id === project.id && e.phase && e.phase !== '');
                       const latestDate = projectEvents.length > 0 
                         ? new Date(Math.max(...projectEvents.map(e => e.end_date ? new Date(e.end_date).getTime() : 0)))
                         : null;
