@@ -52,7 +52,7 @@ const inferEntityCode = (entityName) => {
 const inferVertical = (productName) => {
   const name = productName.toLowerCase();
   // Contábil
-  if (name.includes('contabilidade') || name.includes('tesouraria') || name.includes('orçamento') || name.includes('orcamento') ||
+  if (name.includes('contabilidade') || name.includes('contábil') || name.includes('contabil') || name.includes('tesouraria') || name.includes('orçamento') || name.includes('orcamento') ||
       name.includes('convênios') || name.includes('convenios') || name.includes('prestação de contas') || name.includes('prestacao de contas') ||
       name.includes('controladoria') || name.includes('planejamento') || name.includes('controle de caixa')) return 'contabil';
   // Compras
