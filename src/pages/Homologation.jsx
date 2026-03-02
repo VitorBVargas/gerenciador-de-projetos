@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Plus, CheckCircle, Trash2, ChevronUp, ChevronDown, Upload } from 'lucide-react';
+import { Plus, CheckCircle, Trash2, ChevronUp, ChevronDown, Upload, Loader2 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import ImportTasksModal from '../components/modals/ImportTasksModal';
 import { toast } from 'sonner';
