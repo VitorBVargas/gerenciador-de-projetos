@@ -290,7 +290,29 @@ export default function Timeline() {
 
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
+    <div className="p-6 lg:p-8 space-y-6 relative">
+      {/* Batch Loading Overlay */}
+      {batchLoading && (
+        <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex flex-col items-center justify-center gap-4">
+          <div className="bg-slate-800 border border-slate-700 rounded-xl p-8 flex flex-col items-center gap-4 w-80 shadow-2xl">
+            <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+            <p className="text-white font-semibold text-lg">Adicionando etapas...</p>
+            <div className="w-full space-y-2">
+              <div className="flex justify-between text-sm text-slate-400">
+                <span>{batchProgress.done} de {batchProgress.total}</span>
+                <span>{Math.round((batchProgress.done / batchProgress.total) * 100)}%</span>
+              </div>
+              <div className="w-full bg-slate-700 rounded-full h-2">
+                <div
+                  className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${(batchProgress.done / batchProgress.total) * 100}%` }}
+                />
+              </div>
+            </div>
+            <p className="text-xs text-slate-500 text-center">Enviando em lotes para evitar sobrecarga. Por favor aguarde.</p>
+          </div>
+        </div>
+      )}
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
