@@ -73,7 +73,7 @@ const travelTypeLabels = {
 
 const verticalLabels = {
   arrecadacao: 'Arrecadação',
-  compras: 'Compras',
+  compras: 'Contratos',
   contabil: 'Contábil',
   pessoal: 'Pessoal',
   educacao: 'Educação',

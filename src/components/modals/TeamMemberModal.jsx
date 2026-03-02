@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 const verticals = [
   { value: 'arrecadacao', label: 'Arrecadação' },
-  { value: 'compras', label: 'Compras/Contratos' },
+  { value: 'compras', label: 'Contratos' },
   { value: 'contabil', label: 'Contábil' },
   { value: 'pessoal', label: 'Pessoal' },
   { value: 'educacao', label: 'Educação' },

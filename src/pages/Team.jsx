@@ -33,7 +33,7 @@ import {
 const verticalLabels = {
   gerenciamento: 'Gerenciamento',
   arrecadacao: 'Arrecadação',
-  compras: 'Compras/Contratos',
+  compras: 'Contratos',
   contabil: 'Contábil',
   pessoal: 'Pessoal',
   educacao: 'Educação',

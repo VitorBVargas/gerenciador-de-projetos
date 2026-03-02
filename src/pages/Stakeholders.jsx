@@ -48,7 +48,7 @@ import { VERTICAL_BADGE_COLORS, VERTICAL_AVATAR_COLORS } from '../components/ver
 const verticalLabels = {
   gerenciamento: 'Gerenciamento',
   arrecadacao: 'Arrecadação',
-  compras: 'Compras/Contratos',
+  compras: 'Contratos',
   contabil: 'Contábil',
   pessoal: 'Pessoal',
   educacao: 'Educação',

@@ -4,7 +4,7 @@ import { AlertCircle, CheckCircle2, AlertTriangle, Activity, ChevronDown, Chevro
 
 const verticalLabels = {
   arrecadacao: 'Arrecadação',
-  compras: 'Compras/Contratos',
+  compras: 'Contratos',
   contabil: 'Contábil',
   pessoal: 'Pessoal',
   educacao: 'Educação',
