@@ -180,13 +180,15 @@ function StepOverview({ data, onChange }) {
 }
 
 // ─── STEP 2: Equipe ────────────────────────────────────────────────────────
-function StepTeam({ selected, onToggle, leaders, onToggleLeader }) {
+function StepTeam({ selected, onToggle, leaders, onToggleLeader, portfolio }) {
   const [search, setSearch] = useState('');
   const [activeVertical, setActiveVertical] = useState(null);
 
   const { data: collaborators = [], isLoading } = useQuery({
-    queryKey: ['portfolioCollaborators'],
-    queryFn: () => base44.entities.PortfolioCollaborator.list(),
+    queryKey: ['portfolioCollaborators', portfolio],
+    queryFn: () => portfolio
+      ? base44.entities.PortfolioCollaborator.filter({ portfolio })
+      : base44.entities.PortfolioCollaborator.list(),
   });
 
   const verticals = [...new Set(collaborators.map(c => c.vertical1).filter(Boolean))].sort();
