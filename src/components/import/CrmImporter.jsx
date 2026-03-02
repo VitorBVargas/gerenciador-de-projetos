@@ -41,6 +41,7 @@ const inferEntityCode = (entityName) => {
   if (name.includes('prefeitura') || name.includes('município') || name.includes('municipio')) return 'PM';
   if (name.includes('saúde') || (name.includes('saude') && !name.includes('assistencia'))) return 'FMS';
   if (name.includes('educação') || name.includes('educacao') || name.includes('fundo municipal de educa')) return 'FME';
+  if (name.includes('araprev')) return 'ARAPREV';
   if (name.includes('previdencia') || name.includes('previdência') || name.includes('ipas')) return 'IPAS';
   if (name.includes('assistencia social') || name.includes('assistência social') || name.includes('fmas')) return 'FMAS';
   if (name.includes('meio ambiente')) return 'FMA';
