@@ -642,14 +642,21 @@ export default function Travels() {
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label>Objetivo da Viagem</Label>
-              <Input
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="bg-slate-700 border-slate-600 text-white"
-                placeholder="Ex: Kick-off do projeto"
-                required
-              />
+              <Label>Etapa do Cronograma</Label>
+              <Select value={formData.title} onValueChange={(v) => setFormData({ ...formData, title: v })} required>
+                <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                  <SelectValue placeholder="Selecione a etapa..." />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-700 border-slate-600 max-h-64">
+                  {timelineEvents.length > 0 ? (
+                    timelineEvents.map(e => (
+                      <SelectItem key={e.id} value={e.title}>{e.title}</SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="Visita ao cliente">Visita ao cliente</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="grid grid-cols-3 gap-4">
@@ -709,7 +716,6 @@ export default function Travels() {
                   <SelectContent className="bg-slate-700 border-slate-600">
                     <SelectItem value="planejada">Planejada</SelectItem>
                     <SelectItem value="confirmada">Confirmada</SelectItem>
-                    <SelectItem value="realizada">Realizada</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -750,6 +756,16 @@ export default function Travels() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Observação</Label>
+              <Textarea
+                value={formData.notes}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                className="bg-slate-700 border-slate-600 text-white h-20"
+                placeholder="Informações adicionais sobre a viagem..."
+              />
             </div>
 
             <DialogFooter className="flex items-center justify-between gap-2">
