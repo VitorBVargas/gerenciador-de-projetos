@@ -233,7 +233,12 @@ export default function ExecutiveStatus() {
   // Calculate overall progress for a project
   // Only consider events with a defined phase (standard phases) to avoid custom manual steps diluting the average
   const calculateProjectProgress = (project) => {
-    const projectEvents = allTimelineEvents.filter(e => e.project_id === project.id && e.phase && e.phase !== '');
+    const projectEvents = allTimelineEvents.filter(e => 
+      e.project_id === project.id && 
+      e.phase && 
+      e.phase !== '' &&
+      e.phase !== null
+    );
     if (projectEvents.length === 0) return 0;
     
     const totalProgress = projectEvents.reduce((sum, event) => {
