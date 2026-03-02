@@ -1,11 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { Calendar, Edit3, Plus } from 'lucide-react';
-import AddTimelineStepModal from '../components/modals/AddTimelineStepModal';
+import { Calendar, Edit3 } from 'lucide-react';
 import TimelineEventModal from '../components/modals/TimelineEventModal';
 import BulkEditDatesModal from '../components/modals/BulkEditDatesModal';
 import EmptyState from '../components/ui/EmptyState';
@@ -61,9 +60,6 @@ export default function Timeline() {
   const [activeVertical, setActiveVertical] = useState('');
   const [selectedEntity, setSelectedEntity] = useState('PM');
   const [editDatesOpen, setEditDatesOpen] = useState(false);
-  const [addStepOpen, setAddStepOpen] = useState(false);
-  const [batchLoading, setBatchLoading] = useState(false);
-  const [batchProgress, setBatchProgress] = useState({ done: 0, total: 0 });
 
   // Get project_id from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -252,67 +248,10 @@ export default function Timeline() {
     await bulkUpdateMutation.mutateAsync(updatedEvents);
   };
 
-  // Retry with exponential backoff
-  const retryWithBackoff = async (fn, retries = 3, baseDelay = 1000) => {
-    for (let attempt = 0; attempt <= retries; attempt++) {
-      try {
-        return await fn();
-      } catch (err) {
-        if (attempt === retries) throw err;
-        const delay = baseDelay * Math.pow(2, attempt);
-        await new Promise(resolve => setTimeout(resolve, delay));
-      }
-    }
-  };
-
-  const handleAddSteps = async (newEvents) => {
-    const BATCH_SIZE = 3;
-    const BATCH_DELAY = 1200;
-    setBatchLoading(true);
-    setBatchProgress({ done: 0, total: newEvents.length });
-
-    for (let i = 0; i < newEvents.length; i += BATCH_SIZE) {
-      const batch = newEvents.slice(i, i + BATCH_SIZE);
-      await Promise.all(
-        batch.map(evt => retryWithBackoff(() => base44.entities.TimelineEvent.create(evt)))
-      );
-      setBatchProgress({ done: Math.min(i + BATCH_SIZE, newEvents.length), total: newEvents.length });
-      if (i + BATCH_SIZE < newEvents.length) {
-        await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
-      }
-    }
-
-    setBatchLoading(false);
-    queryClient.invalidateQueries({ queryKey: ['timelineEvents', projectId] });
-    setAddStepOpen(false);
-  };
-
 
 
   return (
-    <div className="p-6 lg:p-8 space-y-6 relative">
-      {/* Batch Loading Overlay */}
-      {batchLoading && (
-        <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex flex-col items-center justify-center gap-4">
-          <div className="bg-slate-800 border border-slate-700 rounded-xl p-8 flex flex-col items-center gap-4 w-80 shadow-2xl">
-            <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-            <p className="text-white font-semibold text-lg">Adicionando etapas...</p>
-            <div className="w-full space-y-2">
-              <div className="flex justify-between text-sm text-slate-400">
-                <span>{batchProgress.done} de {batchProgress.total}</span>
-                <span>{Math.round((batchProgress.done / batchProgress.total) * 100)}%</span>
-              </div>
-              <div className="w-full bg-slate-700 rounded-full h-2">
-                <div
-                  className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${(batchProgress.done / batchProgress.total) * 100}%` }}
-                />
-              </div>
-            </div>
-            <p className="text-xs text-slate-500 text-center">Enviando em lotes para evitar sobrecarga. Por favor aguarde.</p>
-          </div>
-        </div>
-      )}
+    <div className="p-6 lg:p-8 space-y-6">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
@@ -334,25 +273,14 @@ export default function Timeline() {
              Cronograma do Projeto
            </TabsTrigger>
          </TabsList>
-         <div className="flex gap-2">
-           <Button
-             size="sm"
-             onClick={() => setAddStepOpen(true)}
-             className="bg-green-600 hover:bg-green-700 gap-2"
-             disabled={products.length === 0}
-           >
-             <Plus className="w-4 h-4" />
-             Adicionar Etapa
-           </Button>
-           <Button
-             size="sm"
-             onClick={() => setEditDatesOpen(true)}
-             className="bg-blue-600 hover:bg-blue-700 gap-2"
-           >
-             <Edit3 className="w-4 h-4" />
-             Editar datas
-           </Button>
-         </div>
+         <Button
+           size="sm"
+           onClick={() => setEditDatesOpen(true)}
+           className="bg-blue-600 hover:bg-blue-700 gap-2"
+         >
+           <Edit3 className="w-4 h-4" />
+           Editar datas
+         </Button>
        </div>
 
         {/* Timeline Tab */}
@@ -422,15 +350,6 @@ export default function Timeline() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* Add Step Modal */}
-      <AddTimelineStepModal
-        open={addStepOpen}
-        onOpenChange={setAddStepOpen}
-        products={products}
-        timelineEvents={timelineEvents}
-        onAdd={handleAddSteps}
-      />
 
       {/* Edit Dates Modal */}
       <BulkEditDatesModal

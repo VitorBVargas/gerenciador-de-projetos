@@ -225,13 +225,12 @@ export default function Dashboard() {
     ? timelineEvents.filter(e => !e.vertical || filteredVerticals.includes(e.vertical))
     : timelineEvents;
 
-  // Só considera eventos com fase definida (padrão) para não diluir com etapas manuais sem fase
-  const phaseFilteredEvents = filteredTimelineEvents.filter(e => e.phase && e.phase !== '');
-  const projectProgress = phaseFilteredEvents.length > 0
-    ? Math.round(phaseFilteredEvents.reduce((sum, e) => {
+  const projectProgress = filteredTimelineEvents.length > 0
+    ? Math.round(filteredTimelineEvents.reduce((sum, e) => {
+        // Usar 100% se status for concluído, caso contrário usar o valor de progress
         if (e.status === 'concluido') return sum + 100;
         return sum + (e.progress || 0);
-      }, 0) / phaseFilteredEvents.length)
+      }, 0) / filteredTimelineEvents.length)
     : 0;
 
   const tasksCompleted = filteredHomologationTasks.filter(t => t.completed).length;
@@ -245,10 +244,10 @@ export default function Dashboard() {
 
   // Timeline progress by vertical
   const eventsByVertical = {};
-  const usedVerticals = [...new Set(phaseFilteredEvents.map(e => e.vertical).filter(Boolean))];
+  const usedVerticals = [...new Set(filteredTimelineEvents.map(e => e.vertical).filter(Boolean))];
   
   usedVerticals.forEach(vertical => {
-    eventsByVertical[vertical] = phaseFilteredEvents.filter(e => e.vertical === vertical);
+    eventsByVertical[vertical] = filteredTimelineEvents.filter(e => e.vertical === vertical);
   });
 
   const verticalLabels = {

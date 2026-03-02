@@ -117,59 +117,62 @@ export default function ExecutiveStatus() {
     queryKey: ['allCronogramas'],
     queryFn: () => base44.entities.Cronograma.list(),
     staleTime: 0,
-    gcTime: 0,
+    gcTime: 300000
   });
 
   // Fetch all timeline events
   const { data: allTimelineEvents = [] } = useQuery({
     queryKey: ['allTimelineEvents'],
-    queryFn: () => base44.entities.TimelineEvent.list(),
+    queryFn: async () => {
+      const events = await base44.entities.TimelineEvent.list();
+      return events;
+    },
     staleTime: 0,
-    gcTime: 0,
+    gcTime: 300000
   });
 
   // Fetch all tasks - necessário para calcular health score corretamente
   const { data: allHomologationTasks = [] } = useQuery({
     queryKey: ['allHomologationTasks'],
     queryFn: () => base44.entities.HomologationTask.list(),
-    staleTime: 0,
-    gcTime: 0,
+    staleTime: 60000,
+    gcTime: 300000
   });
 
   const { data: allMigrationTasks = [] } = useQuery({
     queryKey: ['allMigrationTasks'],
     queryFn: () => base44.entities.MigrationTask.list(),
-    staleTime: 0,
-    gcTime: 0,
+    staleTime: 60000,
+    gcTime: 300000
   });
 
   // Fetch all risks
   const { data: allRisks = [] } = useQuery({
     queryKey: ['allRisks'],
     queryFn: () => base44.entities.Risk.list(),
-    staleTime: 0,
-    gcTime: 0,
+    staleTime: 60000,
+    gcTime: 300000
   });
 
   const { data: allExpenses = [] } = useQuery({
     queryKey: ['allExpenses'],
     queryFn: () => base44.entities.Expense.list(),
-    staleTime: 0,
-    gcTime: 0,
+    staleTime: 60000,
+    gcTime: 300000
   });
 
   const { data: allProducts = [] } = useQuery({
     queryKey: ['allProducts'],
     queryFn: () => base44.entities.Product.list(),
-    staleTime: 0,
-    gcTime: 0,
+    staleTime: 60000,
+    gcTime: 300000
   });
 
   const { data: allRecognizedRevenues = [] } = useQuery({
     queryKey: ['allRecognizedRevenues'],
     queryFn: () => base44.entities.RecognizedRevenue.list(),
-    staleTime: 0,
-    gcTime: 0,
+    staleTime: 60000,
+    gcTime: 300000
   });
 
   const createRecognizedRevenueMutation = useMutation({
@@ -228,14 +231,8 @@ export default function ExecutiveStatus() {
   };
 
   // Calculate overall progress for a project
-  // Only consider events with a defined phase (standard phases) to avoid custom manual steps diluting the average
   const calculateProjectProgress = (project) => {
-    const projectEvents = allTimelineEvents.filter(e => 
-      e.project_id === project.id && 
-      e.phase && 
-      e.phase !== '' &&
-      e.phase !== null
-    );
+    const projectEvents = allTimelineEvents.filter(e => e.project_id === project.id);
     if (projectEvents.length === 0) return 0;
     
     const totalProgress = projectEvents.reduce((sum, event) => {
@@ -560,11 +557,10 @@ export default function ExecutiveStatus() {
       if (monthlyData[recMonth]) monthlyData[recMonth].reconhecido += recognized.amount;
     });
 
-    // Show all months that have data, plus current month forward
+    // Filter chartData to show only current month forward
     const chartData = Object.entries(monthlyData)
-      .map(([key, value]) => ({ key, ...value }))
-      .filter(d => d.key >= currentYearMonth || d.implantacao > 0 || d.a_receber > 0 || d.recorrente > 0 || d.reconhecido > 0)
-      .map(({ key, ...value }) => value);
+      .filter(([key]) => key >= currentYearMonth)
+      .map(([, value]) => value);
 
     return { monthlyData, chartData };
   }, [projects, allProducts, allTimelineEvents, allCronogramas, allRecognizedRevenues, allProjectsData]);
@@ -858,7 +854,7 @@ export default function ExecutiveStatus() {
                       </div>
                     )}
                     {(() => {
-                      const projectEvents = allTimelineEvents.filter(e => e.project_id === project.id && e.phase && e.phase !== '');
+                      const projectEvents = allTimelineEvents.filter(e => e.project_id === project.id);
                       const latestDate = projectEvents.length > 0 
                         ? new Date(Math.max(...projectEvents.map(e => e.end_date ? new Date(e.end_date).getTime() : 0)))
                         : null;
