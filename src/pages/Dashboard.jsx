@@ -226,7 +226,7 @@ export default function Dashboard() {
     : timelineEvents;
 
   // Só considera eventos com fase definida (padrão) para não diluir com etapas manuais sem fase
-  const phaseFilteredEvents = filteredTimelineEvents.filter(e => e.phase);
+  const phaseFilteredEvents = filteredTimelineEvents.filter(e => e.phase && e.phase !== '');
   const projectProgress = phaseFilteredEvents.length > 0
     ? Math.round(phaseFilteredEvents.reduce((sum, e) => {
         if (e.status === 'concluido') return sum + 100;
