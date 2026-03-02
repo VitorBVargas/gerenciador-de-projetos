@@ -225,12 +225,13 @@ export default function Dashboard() {
     ? timelineEvents.filter(e => !e.vertical || filteredVerticals.includes(e.vertical))
     : timelineEvents;
 
-  const projectProgress = filteredTimelineEvents.length > 0
-    ? Math.round(filteredTimelineEvents.reduce((sum, e) => {
-        // Usar 100% se status for concluído, caso contrário usar o valor de progress
+  // Só considera eventos com fase definida (padrão) para não diluir com etapas manuais sem fase
+  const phaseFilteredEvents = filteredTimelineEvents.filter(e => e.phase);
+  const projectProgress = phaseFilteredEvents.length > 0
+    ? Math.round(phaseFilteredEvents.reduce((sum, e) => {
         if (e.status === 'concluido') return sum + 100;
         return sum + (e.progress || 0);
-      }, 0) / filteredTimelineEvents.length)
+      }, 0) / phaseFilteredEvents.length)
     : 0;
 
   const tasksCompleted = filteredHomologationTasks.filter(t => t.completed).length;
