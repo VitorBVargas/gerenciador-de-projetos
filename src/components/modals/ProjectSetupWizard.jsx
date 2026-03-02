@@ -45,8 +45,10 @@ export default function ProjectSetupWizard({ open, onOpenChange, project, onComp
   const [newRisk, setNewRisk] = useState({ title: '', category: 'tecnico', probability: 'media', impact: 'medio', mitigation: '' });
 
   const { data: collaborators = [] } = useQuery({
-    queryKey: ['portfolioCollaborators'],
-    queryFn: () => base44.entities.PortfolioCollaborator.list(),
+    queryKey: ['portfolioCollaborators', project?.portfolio],
+    queryFn: () => project?.portfolio
+      ? base44.entities.PortfolioCollaborator.filter({ portfolio: project.portfolio })
+      : base44.entities.PortfolioCollaborator.list(),
     enabled: open && step === 1
   });
 
