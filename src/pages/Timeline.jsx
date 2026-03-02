@@ -283,14 +283,25 @@ export default function Timeline() {
              Cronograma do Projeto
            </TabsTrigger>
          </TabsList>
-         <Button
-           size="sm"
-           onClick={() => setEditDatesOpen(true)}
-           className="bg-blue-600 hover:bg-blue-700 gap-2"
-         >
-           <Edit3 className="w-4 h-4" />
-           Editar datas
-         </Button>
+         <div className="flex gap-2">
+           <Button
+             size="sm"
+             onClick={() => setAddStepOpen(true)}
+             className="bg-green-600 hover:bg-green-700 gap-2"
+             disabled={products.length === 0}
+           >
+             <Plus className="w-4 h-4" />
+             Adicionar Etapa
+           </Button>
+           <Button
+             size="sm"
+             onClick={() => setEditDatesOpen(true)}
+             className="bg-blue-600 hover:bg-blue-700 gap-2"
+           >
+             <Edit3 className="w-4 h-4" />
+             Editar datas
+           </Button>
+         </div>
        </div>
 
         {/* Timeline Tab */}
