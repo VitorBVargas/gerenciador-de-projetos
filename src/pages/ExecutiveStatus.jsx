@@ -602,6 +602,7 @@ export default function ExecutiveStatus() {
     return 'bg-red-500/20 border-red-500/30';
   };
 
+  // Early returns MUST come AFTER all hooks
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-950 p-6 lg:p-8 flex items-center justify-center">
