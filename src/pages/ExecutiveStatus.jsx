@@ -560,9 +560,9 @@ export default function ExecutiveStatus() {
       if (monthlyData[recMonth]) monthlyData[recMonth].reconhecido += recognized.amount;
     });
 
-    // Filter chartData to show only current month forward
+    // Filter chartData: show months from current month forward, OR any month that has data
     const chartData = Object.entries(monthlyData)
-      .filter(([key]) => key >= currentYearMonth)
+      .filter(([key, value]) => key >= currentYearMonth || value.implantacao > 0 || value.a_receber > 0 || value.recorrente > 0 || value.reconhecido > 0)
       .map(([, value]) => value);
 
     return { monthlyData, chartData };
