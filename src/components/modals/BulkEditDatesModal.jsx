@@ -38,6 +38,8 @@ export default function BulkEditDatesModal({
       setPhaseEdits({});
       setEditAllMode(false);
       setApplying(false);
+      setProgress(0);
+      setCurrentBatch(0);
     }
   }, [open]);
 
