@@ -1543,22 +1543,51 @@ export default function ExecutiveStatus() {
                             <div>
                               <div className="text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-2">A Receber</div>
                               <div className="space-y-2">
-                                {aReceberProds.map(({ product, project, deadline, amount }) => (
-                                  <div key={product.id} className="p-3 bg-emerald-900/20 rounded-lg border border-emerald-700/50">
-                                    <div className="flex items-start justify-between gap-4">
-                                      <div className="flex-1">
-                                       <div className="font-semibold text-white text-sm">{product.name}</div>
-                                       <div className="text-xs text-slate-400">{project.name}{product.entity ? ` · ${product.entity}` : ''}</div>
+                                {(() => {
+                                  const byProject = {};
+                                  aReceberProds.forEach(item => {
+                                    const pid = item.project.id;
+                                    if (!byProject[pid]) byProject[pid] = { project: item.project, items: [] };
+                                    byProject[pid].items.push(item);
+                                  });
+                                  return Object.values(byProject).map(({ project: proj, items }) => {
+                                    const isExpanded = expandedProjectGroups[`areceber-${selectedMonth}-${proj.id}`];
+                                    const total = items.reduce((s, i) => s + i.amount, 0);
+                                    return (
+                                      <div key={proj.id} className="rounded-lg border border-emerald-700/50 overflow-hidden">
+                                        <button
+                                          className="w-full flex items-center justify-between p-3 bg-emerald-900/30 hover:bg-emerald-900/40 transition-colors text-left"
+                                          onClick={() => setExpandedProjectGroups(prev => ({ ...prev, [`areceber-${selectedMonth}-${proj.id}`]: !prev[`areceber-${selectedMonth}-${proj.id}`] }))}
+                                        >
+                                          <div className="flex items-center gap-2">
+                                            <span className="text-white font-semibold text-sm">{proj.name}</span>
+                                            <span className="text-xs text-emerald-300 bg-emerald-900/50 px-1.5 py-0.5 rounded">{items.length} produto{items.length !== 1 ? 's' : ''}</span>
+                                          </div>
+                                          <div className="flex items-center gap-3">
+                                            <span className="text-sm font-semibold text-emerald-400">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(total)}</span>
+                                            <span className="text-slate-400 text-xs">{isExpanded ? '▲' : '▼'}</span>
+                                          </div>
+                                        </button>
+                                        {isExpanded && (
+                                          <div className="divide-y divide-emerald-800/30">
+                                            {items.map(({ product, deadline, amount }) => (
+                                              <div key={product.id} className="flex items-start justify-between gap-4 px-4 py-2.5 bg-emerald-900/10">
+                                                <div className="flex-1">
+                                                  <div className="font-medium text-white text-sm">{product.name}</div>
+                                                  {product.entity && <div className="text-xs text-slate-400">{product.entity}</div>}
+                                                </div>
+                                                <div className="text-right shrink-0">
+                                                  <div className="text-sm font-semibold text-emerald-400">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(amount)}</div>
+                                                  {deadline && <div className="text-xs text-slate-500">{format(new Date(deadline), 'dd/MM/yyyy', { locale: ptBR })}</div>}
+                                                </div>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        )}
                                       </div>
-                                      <div className="text-right shrink-0">
-                                       <div className="text-sm font-semibold text-emerald-400">
-                                         {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(amount)}
-                                       </div>
-                                       {deadline && <div className="text-xs text-slate-500">{format(new Date(deadline), 'dd/MM/yyyy', { locale: ptBR })}</div>}
-                                      </div>
-                                    </div>
-                                  </div>
-                                ))}
+                                    );
+                                  });
+                                })()}
                               </div>
                             </div>
                           )}
