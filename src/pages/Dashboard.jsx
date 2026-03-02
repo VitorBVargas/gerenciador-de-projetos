@@ -245,10 +245,10 @@ export default function Dashboard() {
 
   // Timeline progress by vertical
   const eventsByVertical = {};
-  const usedVerticals = [...new Set(filteredTimelineEvents.map(e => e.vertical).filter(Boolean))];
+  const usedVerticals = [...new Set(phaseFilteredEvents.map(e => e.vertical).filter(Boolean))];
   
   usedVerticals.forEach(vertical => {
-    eventsByVertical[vertical] = filteredTimelineEvents.filter(e => e.vertical === vertical);
+    eventsByVertical[vertical] = phaseFilteredEvents.filter(e => e.vertical === vertical);
   });
 
   const verticalLabels = {
