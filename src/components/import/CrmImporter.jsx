@@ -27,8 +27,9 @@ const inferEntityCode = (entityName) => {
   const name = entityName.toLowerCase();
   const raw = entityName.trim();
 
-  // Tenta extrair sigla do início do nome (ex: "SAEMA - Serviço..." → "SAEMA")
-  const siglaMatch = raw.match(/^([A-Z]{2,8})\s*[-–]/);
+  // Tenta extrair sigla do início do nome (ex: "SAEMA - Serviço..." ou "ARAPREV - ..." ou "TCA ...")
+  // Aceita: SIGLA seguida de traço/espaço/vírgula ou fim de trecho antes de palavra minúscula
+  const siglaMatch = raw.match(/^([A-Z]{2,8})(?:\s*[-–,]|\s+(?=[a-záéíóúâêôãõç])|\s*$)/);
   if (siglaMatch) return siglaMatch[1];
 
   // Tenta extrair sigla entre parênteses no início
