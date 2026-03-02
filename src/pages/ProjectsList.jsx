@@ -15,6 +15,7 @@ import ExcelImporter from '../components/import/ExcelImporter';
 import RecognitionImporter from '../components/import/RecognitionImporter';
 import CrmImporter from '../components/import/CrmImporter';
 import ProjectSetupWizard from '../components/modals/ProjectSetupWizard';
+import ProjectCard from '../components/projects/ProjectCard';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { deleteProjectCronogramas, completeProjectCronogramas } from '../functions/syncProjectCronogramas';
 import {
