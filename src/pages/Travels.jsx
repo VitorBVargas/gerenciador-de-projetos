@@ -222,17 +222,27 @@ export default function Travels() {
     });
   };
 
+  // Filter team members based on calendarFilter
+  const filteredTeamMembers = useMemo(() => {
+    return teamMembers.filter(m => {
+      const nameMatch = !calendarFilter.name || m.name?.toLowerCase().includes(calendarFilter.name.toLowerCase());
+      const verticalMatch = !calendarFilter.vertical || m.vertical === calendarFilter.vertical;
+      return nameMatch && verticalMatch;
+    });
+  }, [teamMembers, calendarFilter]);
+
   // Group team members by vertical
   const membersByVertical = useMemo(() => {
-    return teamMembers.reduce((acc, member) => {
+    return filteredTeamMembers.reduce((acc, member) => {
       const vertical = member.vertical || 'outros';
       if (!acc[vertical]) acc[vertical] = [];
       acc[vertical].push(member);
       return acc;
     }, {});
-  }, [teamMembers]);
+  }, [filteredTeamMembers]);
 
   const verticals = Object.keys(membersByVertical).sort();
+  const allVerticals = [...new Set(teamMembers.map(m => m.vertical).filter(Boolean))].sort();
 
   // Handle drag selection
   const handleMouseDown = (day, member) => {
