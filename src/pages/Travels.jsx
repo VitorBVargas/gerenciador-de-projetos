@@ -104,7 +104,9 @@ export default function Travels() {
     vertical: '',
     attendees: [],
     status: 'planejada',
+    notes: '',
   });
+  const [calendarFilter, setCalendarFilter] = useState({ name: '', vertical: '' });
 
   const urlParams = new URLSearchParams(window.location.search);
   const projectId = urlParams.get('project_id');
@@ -123,6 +125,12 @@ export default function Travels() {
   const { data: travels = [] } = useQuery({
     queryKey: ['travels', projectId],
     queryFn: () => projectId ? base44.entities.Travel.filter({ project_id: projectId }) : [],
+    enabled: !!projectId
+  });
+
+  const { data: timelineEvents = [] } = useQuery({
+    queryKey: ['timelineEvents', projectId],
+    queryFn: () => projectId ? base44.entities.TimelineEvent.filter({ project_id: projectId }) : [],
     enabled: !!projectId
   });
 
@@ -165,6 +173,7 @@ export default function Travels() {
       vertical: '',
       attendees: [],
       status: 'planejada',
+      notes: '',
     });
   };
 
@@ -178,6 +187,7 @@ export default function Travels() {
       vertical: travel.vertical || '',
       attendees: travel.attendees || [],
       status: travel.status || 'planejada',
+      notes: travel.notes || '',
     });
     setModalOpen(true);
   };
