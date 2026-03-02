@@ -195,7 +195,18 @@ export default function BulkEditDatesModal({
             )}
           </DialogHeader>
 
-          <div className="space-y-4 overflow-y-auto max-h-[60vh] pr-4">
+          {applying && (
+            <div className="space-y-3 p-4 bg-blue-600/10 border border-blue-600/50 rounded">
+              <div className="flex items-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
+                <span className="text-sm text-blue-300">Processando lote {currentBatch}...</span>
+              </div>
+              <Progress value={progress} className="h-2" />
+              <p className="text-xs text-slate-400 text-center">{Math.round(progress)}% concluído</p>
+            </div>
+          )}
+
+          <div className={`space-y-4 overflow-y-auto max-h-[60vh] pr-4 ${applying ? 'opacity-50 pointer-events-none' : ''}`}>
             {/* Edit All Mode Toggle */}
             <div className="flex items-center gap-2 p-3 bg-slate-700/30 rounded border border-slate-600">
               <Checkbox
