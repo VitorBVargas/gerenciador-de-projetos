@@ -123,7 +123,7 @@ export default function ExecutiveStatus() {
   // Fetch all timeline events
   const { data: allTimelineEvents = [] } = useQuery({
     queryKey: ['allTimelineEvents'],
-    queryFn: () => base44.entities.TimelineEvent.list('-created_date', 20000),
+    queryFn: () => base44.entities.TimelineEvent.list('-created_date', 99999999),
     staleTime: 60000,
     gcTime: 300000
   });
