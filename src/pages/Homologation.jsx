@@ -229,9 +229,31 @@ export default function Homologation() {
 
   const handleMarkSectionTasks = async (sectionTasks, completed) => {
     const tasksToUpdate = sectionTasks.filter(t => t.completed !== completed);
-    for (const task of tasksToUpdate) {
-      await base44.entities.HomologationTask.update(task.id, { completed });
+    
+    if (tasksToUpdate.length === 0) return;
+
+    setMarkingProgress({ isLoading: true, current: 0, total: tasksToUpdate.length });
+
+    // Processar em batches de 5 com delay de 300ms (sustentável)
+    const batchSize = 5;
+    const batchDelay = 300;
+
+    for (let i = 0; i < tasksToUpdate.length; i += batchSize) {
+      const batch = tasksToUpdate.slice(i, i + batchSize);
+      
+      await Promise.all(
+        batch.map(task => base44.entities.HomologationTask.update(task.id, { completed }))
+      );
+
+      const processed = Math.min(i + batchSize, tasksToUpdate.length);
+      setMarkingProgress({ isLoading: true, current: processed, total: tasksToUpdate.length });
+
+      if (i + batchSize < tasksToUpdate.length) {
+        await new Promise(resolve => setTimeout(resolve, batchDelay));
+      }
     }
+
+    setMarkingProgress({ isLoading: false, current: 0, total: 0 });
     queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
   };
 
