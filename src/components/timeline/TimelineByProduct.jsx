@@ -24,18 +24,9 @@ const statusColors = {
 
 const calculateProgressFromDates = (event) => {
   if (event.status === 'concluido') return 100;
-  if (!event.start_date || !event.end_date) return event.progress || 0;
-
-  const now = new Date();
-  const start = new Date(event.start_date);
-  const end = new Date(event.end_date);
-
-  if (now < start) return 0;
-  if (now >= end) return 100;
-
-  const total = end.getTime() - start.getTime();
-  const elapsed = now.getTime() - start.getTime();
-  return Math.min(100, Math.round((elapsed / total) * 100));
+  if (event.status === 'nao_iniciado') return 0;
+  // Para em_andamento ou atrasado, usa o valor de progress salvo
+  return event.progress || 0;
 };
 
 /**
