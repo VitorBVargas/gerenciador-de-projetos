@@ -536,11 +536,23 @@ export default function Homologation() {
                                         </div>
                                       ))}
                                     </div>
-                                  </div>
-                                  );
-                                })}
-                                
-                                {/* Renderizar seções padrão */}
+                                    </div>
+                                    );
+                                    })}
+
+                                    {/* Loading indicator */}
+                                    {markingProgress.isLoading && (
+                                    <div className="p-4 bg-blue-600/10 border border-blue-600/50 rounded">
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
+                                      <span className="text-sm text-blue-300">Marcando tarefas...</span>
+                                    </div>
+                                    <Progress value={(markingProgress.current / markingProgress.total) * 100} className="h-2" />
+                                    <p className="text-xs text-slate-400 text-center mt-2">{markingProgress.current}/{markingProgress.total}</p>
+                                    </div>
+                                    )}
+
+                                    {/* Renderizar seções padrão */}
                                 {defaultSections.length > 0 && getOrderedSections(product.id, defaultSections).map((section, displayIndex) => {
                                  const sectionTasks = standardTasks.filter(task => 
                                    section.tasks.some(t => t.toLowerCase() === task.title.toLowerCase())
