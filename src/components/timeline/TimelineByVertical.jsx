@@ -58,12 +58,9 @@ export default function TimelineByVertical({ verticals, entityProducts, timeline
               .sort((a, b) => (a.order || 0) - (b.order || 0))
           : [];
 
-        // Calcular progresso médio da vertical
-        const allVerticalEvents = timelineEvents.filter(e =>
-          productsInVert.some(p => p.id === e.product_id)
-        );
-        const avgProgress = allVerticalEvents.length > 0
-          ? Math.round(allVerticalEvents.reduce((sum, e) => sum + calculateProgressFromDates(e), 0) / allVerticalEvents.length)
+        // Na visão por vertical, calcular progresso apenas sobre o cronograma representativo (1 cronograma por vertical)
+        const avgProgress = events.length > 0
+          ? Math.round(events.reduce((sum, e) => sum + calculateProgressFromDates(e), 0) / events.length)
           : 0;
 
         return (
