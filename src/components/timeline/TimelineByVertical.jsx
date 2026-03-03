@@ -25,7 +25,17 @@ const statusColors = {
 const calculateProgressFromDates = (event) => {
   if (event.status === 'concluido') return 100;
   if (event.status === 'nao_iniciado') return 0;
-  // Para em_andamento ou atrasado, usa o valor de progress salvo
+  // Para em_andamento ou atrasado, calcula pela data se disponível
+  if (event.start_date && event.end_date) {
+    const now = new Date();
+    const start = new Date(event.start_date);
+    const end = new Date(event.end_date);
+    if (now <= start) return 0;
+    if (now >= end) return 99; // não marca 100% automaticamente, só via status
+    const total = end.getTime() - start.getTime();
+    const elapsed = now.getTime() - start.getTime();
+    return Math.round((elapsed / total) * 100);
+  }
   return event.progress || 0;
 };
 
