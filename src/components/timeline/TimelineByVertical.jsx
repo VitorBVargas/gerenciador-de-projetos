@@ -102,7 +102,7 @@ export default function TimelineByVertical({ verticals, entityProducts, timeline
                 <tbody>
                   {events.map(event => (
                     <tr key={event.id} className="border-b border-slate-700/30 hover:bg-slate-700/20 cursor-pointer" onDoubleClick={() => onEdit(event, representativeProduct?.id)}>
-                      <td className="px-4 py-3 text-sm text-white">{phaseLabels[event.phase] || event.title}</td>
+                      <td className="px-4 py-3 text-sm text-white">{event.title || phaseLabels[event.phase]}</td>
                       <td className="px-4 py-3">
                         <select
                           value={event.status}
