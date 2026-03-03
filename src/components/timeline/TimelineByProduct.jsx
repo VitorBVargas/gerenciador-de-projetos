@@ -71,7 +71,7 @@ export default function TimelineByProduct({ verticals, entityProducts, timelineE
 
         const allVerticalEvents = timelineEvents.filter(e => productsInVert.some(p => p.id === e.product_id));
         const avgProgress = allVerticalEvents.length > 0
-          ? Math.round(allVerticalEvents.reduce((sum, e) => sum + (e.status === 'concluido' ? 100 : (e.progress || 0)), 0) / allVerticalEvents.length)
+          ? Math.round(allVerticalEvents.reduce((sum, e) => sum + calculateProgressFromDates(e), 0) / allVerticalEvents.length)
           : 0;
 
         return (
