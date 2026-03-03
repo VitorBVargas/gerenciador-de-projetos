@@ -480,14 +480,24 @@ export default function Homologation() {
                                     </h3>
                                     <div className="flex items-center gap-1">
                                       <button
-                                        onClick={() => {
-                                          const allDone = uniqueImportedTasks.every(t => t.completed);
-                                          handleMarkSectionTasks(uniqueImportedTasks, !allDone);
-                                        }}
-                                        className="text-[10px] px-2 py-0.5 rounded border border-green-500/30 text-green-400 hover:bg-green-500/10 transition-colors"
-                                      >
-                                        {uniqueImportedTasks.every(t => t.completed) ? 'Desmarcar' : 'Marcar todos'}
-                                      </button>
+                                          onClick={() => {
+                                            const allDone = uniqueImportedTasks.every(t => t.completed);
+                                            handleMarkSectionTasks(uniqueImportedTasks, !allDone);
+                                          }}
+                                          disabled={markingProgress.isLoading}
+                                          className="text-[10px] px-2 py-0.5 rounded border border-green-500/30 text-green-400 hover:bg-green-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                                        >
+                                          {markingProgress.isLoading ? (
+                                            <>
+                                              <Loader2 className="w-3 h-3 animate-spin" />
+                                              Processando...
+                                            </>
+                                          ) : uniqueImportedTasks.every(t => t.completed) ? (
+                                            'Desmarcar'
+                                          ) : (
+                                            'Marcar todos'
+                                          )}
+                                        </button>
                                       <Button
                                         size="icon"
                                         variant="ghost"
