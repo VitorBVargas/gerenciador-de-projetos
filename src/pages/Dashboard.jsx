@@ -306,22 +306,12 @@ export default function Dashboard() {
       }
     });
   } else {
-    // por_vertical: agrupa por vertical dos produtos filtrados
-    const verticalGroups = {};
-    filteredProducts.forEach(p => {
-      const v = p.vertical || 'outros';
-      if (!verticalGroups[v]) verticalGroups[v] = [];
-      verticalGroups[v].push(p);
-    });
-    
-    Object.entries(verticalGroups).forEach(([vertical, prods]) => {
-      // Busca o cronograma da vertical
-      const cronogramaVert = cronogramas.find(c => c.vertical === vertical);
-      if (cronogramaVert) {
-        const cronogramaEvents = filteredTimelineEvents.filter(e => e.cronograma_id === cronogramaVert.id);
-        if (cronogramaEvents.length > 0) {
-          eventsByVertical[vertical] = cronogramaEvents;
-        }
+    // por_vertical: usa cronograma_id (todos os produtos da vertical compartilham as mesmas datas)
+    cronogramas.forEach(cronograma => {
+      const vertical = cronograma.vertical;
+      const cronogramaEvents = filteredTimelineEvents.filter(e => e.cronograma_id === cronograma.id);
+      if (cronogramaEvents.length > 0) {
+        eventsByVertical[vertical] = cronogramaEvents;
       }
     });
   }

@@ -154,30 +154,27 @@ export default function BulkEditDatesModal({
     setProgress(0);
     setCurrentBatch(0);
 
-    try {
-      // Processar um por um para exibir progresso em tempo real
-      for (let i = 0; i < eventsToUpdate.length; i++) {
-        const event = eventsToUpdate[i];
-        
-        // Atualiza o contador ANTES da operação
-        setCurrentBatch(i + 1);
-        setProgress(((i + 1) / eventsToUpdate.length) * 100);
-        
-        // Executa a atualização
-        await onApply([event]);
-        
-        // Pequeno delay para garantir que o UI atualize
-        await new Promise(resolve => setTimeout(resolve, 100));
+    // Processar em batches de 3 com delay de 1200ms
+    const batchSize = 3;
+    const batchDelay = 1200;
+    
+    for (let i = 0; i < eventsToUpdate.length; i += batchSize) {
+      const batch = eventsToUpdate.slice(i, i + batchSize);
+      setCurrentBatch(Math.floor(i / batchSize) + 1);
+      await onApply(batch);
+      
+      // Calcular progresso
+      const processed = Math.min(i + batchSize, eventsToUpdate.length);
+      setProgress((processed / eventsToUpdate.length) * 100);
+      
+      // Delay entre batches (exceto no último)
+      if (i + batchSize < eventsToUpdate.length) {
+        await new Promise(resolve => setTimeout(resolve, batchDelay));
       }
-
-      // Aguarda antes de fechar
-      await new Promise(resolve => setTimeout(resolve, 1000));
-    } catch (error) {
-      console.error('Erro ao aplicar alterações:', error);
-    } finally {
-      setApplying(false);
-      onOpenChange(false);
     }
+
+    setApplying(false);
+    onOpenChange(false);
   };
 
   const filteredVerticals = getFilteredVerticals();
@@ -202,7 +199,7 @@ export default function BulkEditDatesModal({
             <div className="space-y-3 p-4 bg-blue-600/10 border border-blue-600/50 rounded">
               <div className="flex items-center gap-2">
                 <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
-                <span className="text-sm text-blue-300">Processando {currentBatch}/{eventsToUpdate.length}</span>
+                <span className="text-sm text-blue-300">Processando lote {currentBatch}...</span>
               </div>
               <Progress value={progress} className="h-2" />
               <p className="text-xs text-slate-400 text-center">{Math.round(progress)}% concluído</p>
