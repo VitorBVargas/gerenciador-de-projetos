@@ -271,15 +271,44 @@ export default function Dashboard() {
     staleTime: 5 * 60 * 1000
   });
 
-  // Update cache whenever progress changes
+  const { data: healthCache = null } = useQuery({
+    queryKey: ['healthCache', projectId],
+    queryFn: () => projectId ? base44.entities.ProjectHealthCache.filter({ project_id: projectId }).then(r => r[0] || null) : null,
+    enabled: !!projectId,
+    staleTime: 5 * 60 * 1000
+  });
+
+  // Calculate health score
+  const { calculateHealthScore } = require('../components/dashboard/ProjectHealthScore.jsx');
+  const { score: healthScore } = calculateHealthScore({ 
+    timeline: timelineEvents, 
+    budget: activeProject?.budget || 0, 
+    spent: expenses.reduce((sum, e) => sum + (e.amount || 0), 0),
+    migrationTasks, 
+    homologationTasks, 
+    risks, 
+    products,
+    cronogramas
+  });
+
+  // Update caches whenever data changes
   React.useEffect(() => {
     if (projectId && projectProgress >= 0) {
       base44.functions.invoke('updateProjectProgressCache', {
         project_id: projectId,
         overall_progress: projectProgress
-      }).catch(err => console.error('Failed to update cache:', err));
+      }).catch(err => console.error('Failed to update progress cache:', err));
     }
   }, [projectId, projectProgress]);
+
+  React.useEffect(() => {
+    if (projectId && healthScore >= 0) {
+      base44.functions.invoke('updateProjectHealthCache', {
+        project_id: projectId,
+        health_score: healthScore
+      }).catch(err => console.error('Failed to update health cache:', err));
+    }
+  }, [projectId, healthScore]);
 
   // Get estimated deadline from cache or calculate
   const estimatedDeadline = progressCache?.estimated_deadline || 
