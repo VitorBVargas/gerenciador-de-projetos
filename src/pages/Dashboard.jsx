@@ -256,11 +256,14 @@ export default function Dashboard() {
   const eventsByVertical = {};
   
   if (activeProject?.scheduling_type === 'por_produto') {
-    // por_produto: cada produto tem seu próprio cronograma
-    // Agrupa eventos por vertical (usando product_id)
+    // por_produto: cada produto tem seu próprio cronograma (via product_id OU cronograma_id)
     filteredProducts.forEach(product => {
       const vertical = product.vertical || 'outros';
-      const productEvents = filteredTimelineEvents.filter(e => e.product_id === product.id);
+      // Busca eventos vinculados ao produto OU ao cronograma da vertical
+      const cronogramaVert = cronogramas.find(c => c.vertical === vertical);
+      const productEvents = filteredTimelineEvents.filter(e => 
+        e.product_id === product.id || (cronogramaVert && e.cronograma_id === cronogramaVert.id)
+      );
       if (!eventsByVertical[vertical]) {
         eventsByVertical[vertical] = [];
       }
