@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Download, RotateCcw, Trash2, Clock, Database, AlertTriangle, CheckCircle2, Loader2 } from 'lucide-react';
+import { Download, RotateCcw, Trash2, Clock, Database, AlertTriangle, CheckCircle2, Loader2, ArrowLeft } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export default function BackupManagement() {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [restoreDialogOpen, setRestoreDialogOpen] = useState(false);
   const [selectedBackup, setSelectedBackup] = useState(null);
@@ -49,6 +52,18 @@ export default function BackupManagement() {
 
   return (
     <div className="min-h-screen bg-slate-900 p-6 lg:p-8 space-y-6">
+      {/* Header com botão voltar */}
+      <div className="flex items-center gap-3 mb-6">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate(createPageUrl('Home'))}
+          className="text-slate-400 hover:text-white hover:bg-slate-800"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </Button>
+      </div>
+
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>

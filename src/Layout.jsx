@@ -64,14 +64,15 @@ export default function Layout({ children, currentPageName }) {
     base44.auth.logout();
   };
 
-  // Don't show sidebar on Home, ProjectsList, InternalProjectsList, ExecutiveStatus
+  // Don't show sidebar on Home, ProjectsList, InternalProjectsList, ExecutiveStatus, BackupManagement
   if (
     currentPageName === 'Home' ||
     currentPageName === 'ProjectsList' ||
     currentPageName === 'PortfolioSelect' ||
     currentPageName === 'InternalProjectsList' ||
     currentPageName === 'InternalDashboard' ||
-    currentPageName === 'ExecutiveStatus'
+    currentPageName === 'ExecutiveStatus' ||
+    currentPageName === 'BackupManagement'
   ) {
     return children;
   }
