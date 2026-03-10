@@ -41,16 +41,17 @@ Deno.serve(async (req) => {
     const fileName = `backup_${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
 
     // Cria uma entidade especial para rastrear backups
-    const backupRecord = await base44.asServiceRole.entities.DatabaseBackup.create({
-      filename: fileName,
-      timestamp: backupData.timestamp,
-      entity_count: Object.keys(backupData.entities).length,
-      total_records: Object.values(backupData.entities).reduce((sum, arr) => sum + arr.length, 0),
-      backup_data_json: backupJson
-    }).catch(() => {
-      // Se entidade não existe, apenas retorna sucesso
-      return null;
-    });
+    try {
+      await base44.asServiceRole.entities.DatabaseBackup.create({
+        filename: fileName,
+        timestamp: backupData.timestamp,
+        entity_count: Object.keys(backupData.entities).length,
+        total_records: Object.values(backupData.entities).reduce((sum, arr) => sum + arr.length, 0),
+        backup_data_json: backupJson
+      });
+    } catch (err) {
+      console.error('Error creating backup record:', err);
+    }
 
     return Response.json({
       success: true,

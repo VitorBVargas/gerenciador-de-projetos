@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { ArrowRight, FolderOpen, BarChart3 } from 'lucide-react';
+import { ArrowRight, FolderOpen, BarChart3, Database } from 'lucide-react';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -99,14 +99,23 @@ export default function Home() {
         {/* Footer hint */}
         <div className="text-center mt-16 text-slate-400 text-sm flex flex-col items-center gap-3">
           <p>Clique em qualquer opção para começar</p>
-          <a
-            href="https://betha-road-map.base44.app/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-700/60 border border-slate-600 text-slate-300 hover:bg-slate-600/60 hover:text-white transition-colors text-sm font-medium"
-          >
-            🗺️ Roadmap — Reportar Bug / Sugestão
-          </a>
+          <div className="flex items-center gap-3">
+            <a
+              href="https://betha-road-map.base44.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-700/60 border border-slate-600 text-slate-300 hover:bg-slate-600/60 hover:text-white transition-colors text-sm font-medium"
+            >
+              🗺️ Roadmap — Reportar Bug / Sugestão
+            </a>
+            <button
+              onClick={() => handleNavigation('BackupManagement')}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-700/60 border border-slate-600 text-slate-300 hover:bg-slate-600/60 hover:text-white transition-colors text-sm font-medium"
+            >
+              <Database className="w-4 h-4" />
+              Backups
+            </button>
+          </div>
         </div>
       </div>
     </div>
