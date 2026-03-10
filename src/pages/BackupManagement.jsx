@@ -20,7 +20,7 @@ export default function BackupManagement() {
 
   const { data: backups = [], isLoading } = useQuery({
     queryKey: ['backups'],
-    queryFn: () => base44.asServiceRole.entities.DatabaseBackup.list('-created_date', 100),
+    queryFn: () => base44.entities.DatabaseBackup.list('-created_date', 100),
     staleTime: 0,
     gcTime: 0
   });
@@ -42,7 +42,7 @@ export default function BackupManagement() {
   });
 
   const deleteBackupMutation = useMutation({
-    mutationFn: (id) => base44.asServiceRole.entities.DatabaseBackup.delete(id),
+    mutationFn: (id) => base44.entities.DatabaseBackup.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['backups'] });
       setDeleteDialogOpen(false);
