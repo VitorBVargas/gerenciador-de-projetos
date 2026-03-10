@@ -50,11 +50,10 @@ export default function KeyDocuments({ projectId, project, products = [] }) {
     ? productsForEntity.filter(p => (p.vertical || 'outros') === selectedVertical)
     : productsForEntity;
 
-  // Fetch standard documents for selected vertical
+  // Fetch standard documents (fixed for all products)
   const { data: standardDocs = [] } = useQuery({
-    queryKey: ['standardDocuments', selectedVertical],
-    queryFn: () => base44.entities.StandardDocument.filter({ vertical: selectedVertical }),
-    enabled: !!selectedVertical,
+    queryKey: ['standardDocuments'],
+    queryFn: () => base44.entities.StandardDocument.filter({ vertical: 'all' }),
   });
 
   // Fetch product document statuses
@@ -187,10 +186,10 @@ export default function KeyDocuments({ projectId, project, products = [] }) {
         </div>
 
         {/* Documents List */}
-        {selectedVertical ? (
+        {selectedProduct ? (
           <div className="space-y-2">
             {standardDocs.length === 0 ? (
-              <p className="text-slate-500 text-sm py-8 text-center">Nenhum documento padrão para esta vertical</p>
+              <p className="text-slate-500 text-sm py-8 text-center">Nenhum documento disponível</p>
             ) : (
               standardDocs.map(doc => {
                 const status = docStatuses.find(s => s.document_id === doc.id);
@@ -233,12 +232,12 @@ export default function KeyDocuments({ projectId, project, products = [] }) {
             )}
           </div>
         ) : (
-          <p className="text-slate-500 text-sm py-8 text-center">Selecione uma vertical para visualizar documentos</p>
+          <p className="text-slate-500 text-sm py-8 text-center">Selecione um produto para visualizar documentos</p>
         )}
 
-        {currentProduct && selectedVertical && (
+        {selectedProduct && (
           <p className="text-xs text-slate-500 text-center mt-4 border-t border-slate-700 pt-4">
-            Marcando status para: <span className="font-semibold text-slate-400">{currentProduct.name}</span>
+            Marcando status para: <span className="font-semibold text-slate-400">{selectedProduct.name}</span>
           </p>
         )}
       </CardContent>
