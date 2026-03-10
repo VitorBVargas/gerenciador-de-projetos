@@ -45,7 +45,7 @@ export default function Dashboard() {
   const projectId = urlParams.get('project_id');
   const isNewProject = urlParams.get('isNewProject') === 'true';
 
-  const [selectedEntity, setSelectedEntity] = useState('PM');
+  const [selectedEntity, setSelectedEntity] = useState(null);
   const [projectModalOpen, setProjectModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [importModalOpen, setImportModalOpen] = useState(false);
@@ -136,6 +136,16 @@ export default function Dashboard() {
 
   // Entity filter
   const allEntities = [...new Set(products.map(p => p.entity).filter(Boolean))].sort();
+  
+  // Auto-select first entity if not selected and entities exist
+  React.useEffect(() => {
+    if (allEntities.length > 0 && selectedEntity === null) {
+      // Prefer PM, but if not available, select first entity
+      const entityToSelect = allEntities.includes('PM') ? 'PM' : allEntities[0];
+      setSelectedEntity(entityToSelect);
+    }
+  }, [allEntities.length, selectedEntity]);
+  
   const filteredProducts = selectedEntity ? products.filter(p => p.entity === selectedEntity) : products;
   const filteredMigrationTasks = migrationTasks.filter(t => filteredProducts.some(p => p.id === t.product_id));
   const filteredHomologationTasks = homologationTasks.filter(t => filteredProducts.some(p => p.id === t.product_id));
