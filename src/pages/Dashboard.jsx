@@ -562,7 +562,7 @@ export default function Dashboard() {
       )}
 
       {/* Marcos e Documentos */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      /*<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="bg-slate-800/50 border-slate-700/50">
           <CardHeader>
             <CardTitle className="text-white">Etapas Principais</CardTitle>
@@ -585,7 +585,7 @@ export default function Dashboard() {
               </div>
             ))}
           </CardContent>
-        </Card>
+        </Card> */
 
         <KeyDocuments projectId={projectId} project={activeProject} />
       </div>
