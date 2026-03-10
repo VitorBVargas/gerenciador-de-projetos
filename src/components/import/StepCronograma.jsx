@@ -131,31 +131,19 @@ function DatesForm({ dates, onChange }) {
 
 export default function StepCronograma({ cronogramas, setCronogramas, schedulingType, setSchedulingType, availableProducts = [] }) {
   const [selectedVerticals, setSelectedVerticals] = useState([]);
-  const [selectedProduct, setSelectedProduct] = useState(null);
   const [currentDates, setCurrentDates] = useState({});
 
   const availableVerticals = [...new Set(availableProducts.map(p => p.vertical).filter(Boolean))];
 
-  const addedProductNames = cronogramas.filter(c => c.type === 'produto').map(c => c.productName);
-  const remainingProducts = availableProducts.filter(p => !addedProductNames.includes(p.name));
-
-  const addedVerticals = cronogramas.filter(c => c.type === 'vertical').flatMap(c => c.verticals);
+  const addedVerticals = cronogramas.flatMap(c => c.verticals);
   const remainingVerticals = availableVerticals.filter(v => !addedVerticals.includes(v));
 
   const hasDates = Object.values(currentDates).some(v => v);
 
-  const handleChangeType = (type) => {
-    setSchedulingType(type);
-    setCronogramas([]);
-    setCurrentDates({});
-    setSelectedProduct(null);
-    setSelectedVerticals([]);
-  };
-
   const handleAddVertical = () => {
        if (selectedVerticals.length === 0 || !hasDates) return;
        setCronogramas(prev => [...prev, {
-         id: Date.now(), type: 'vertical',
+         id: Date.now(),
          verticals: selectedVerticals,
          dates: { ...currentDates }
        }]);
@@ -163,142 +151,52 @@ export default function StepCronograma({ cronogramas, setCronogramas, scheduling
        setCurrentDates({});
      };
 
-  const handleAddProduct = () => {
-       if (!selectedProduct || !hasDates) return;
-       setCronogramas(prev => [...prev, {
-         id: Date.now(), type: 'produto',
-         productName: selectedProduct.name,
-         vertical: selectedProduct.vertical,
-         dates: { ...currentDates }
-       }]);
-       setSelectedProduct(null);
-       setCurrentDates({});
-     };
-
   return (
     <div className="space-y-4">
-      {/* Tipo de cronograma */}
-      <div>
-        <Label className="text-slate-300 text-sm mb-2 block">Tipo de Cronograma *</Label>
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            onClick={() => handleChangeType('por_vertical')}
-            className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all ${
-              schedulingType === 'por_vertical'
-                ? 'border-blue-500 bg-blue-600/15 text-blue-300'
-                : 'border-slate-600 bg-slate-700/30 text-slate-400 hover:border-slate-500'
-            }`}
-          >
-            <Layers className="w-5 h-5" />
-            <div className="text-center">
-              <p className="text-sm font-semibold">Por Vertical</p>
-              <p className="text-xs opacity-70">Mesmas datas para todos os produtos da vertical</p>
+      <p className="text-sm text-slate-400">
+        Configure o cronograma por vertical. Cada produto da vertical seguirá as mesmas datas.
+      </p>
+
+      <div className="space-y-3">
+        <div>
+          <Label className="text-slate-300 text-xs mb-1 block">Selecione as Verticais *</Label>
+          {remainingVerticals.length === 0 && availableVerticals.length > 0 ? (
+            <p className="text-xs text-green-400">✓ Todas as verticais já possuem cronograma</p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {(remainingVerticals.length > 0 ? remainingVerticals : Object.keys(VERTICAL_LABELS)).map(v => (
+                <button
+                  key={v}
+                  onClick={() => setSelectedVerticals(prev =>
+                    prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v]
+                  )}
+                  className={`px-3 py-1.5 rounded-lg border text-xs transition-all ${
+                    selectedVerticals.includes(v)
+                      ? (VERTICAL_COLORS[v] || 'bg-blue-500/20 text-blue-300 border-blue-500/30')
+                      : 'bg-slate-700/30 border-slate-600 text-slate-400 hover:text-slate-300'
+                  }`}
+                >
+                  {VERTICAL_LABELS[v] || v}
+                </button>
+              ))}
             </div>
-          </button>
-          <button
-            onClick={() => handleChangeType('por_produto')}
-            className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all ${
-              schedulingType === 'por_produto'
-                ? 'border-purple-500 bg-purple-600/15 text-purple-300'
-                : 'border-slate-600 bg-slate-700/30 text-slate-400 hover:border-slate-500'
-            }`}
-          >
-            <Package className="w-5 h-5" />
-            <div className="text-center">
-              <p className="text-sm font-semibold">Por Produto</p>
-              <p className="text-xs opacity-70">Datas específicas para cada produto</p>
-            </div>
-          </button>
+          )}
         </div>
+
+        {selectedVerticals.length > 0 && (
+          <div className="bg-slate-800 border border-slate-600 rounded-lg p-3 space-y-3">
+            <DatesForm dates={currentDates} onChange={setCurrentDates} />
+            <Button onClick={handleAddVertical} disabled={!hasDates} size="sm"
+              className="w-full bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 border border-blue-600/30">
+              <Plus className="w-3.5 h-3.5 mr-1.5" />
+              Adicionar Cronograma das Verticais Selecionadas
+            </Button>
+            {!hasDates && (
+              <p className="text-xs text-amber-500 text-center">Preencha pelo menos uma data para continuar</p>
+            )}
+          </div>
+        )}
       </div>
-
-      {/* Form - Por Vertical */}
-      {schedulingType === 'por_vertical' && (
-        <div className="space-y-3">
-          <div>
-            <Label className="text-slate-300 text-xs mb-1 block">Selecione as Verticais *</Label>
-            {remainingVerticals.length === 0 && availableVerticals.length > 0 ? (
-              <p className="text-xs text-green-400">✓ Todas as verticais já possuem cronograma</p>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {(remainingVerticals.length > 0 ? remainingVerticals : Object.keys(VERTICAL_LABELS)).map(v => (
-                  <button
-                    key={v}
-                    onClick={() => setSelectedVerticals(prev =>
-                      prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v]
-                    )}
-                    className={`px-3 py-1.5 rounded-lg border text-xs transition-all ${
-                      selectedVerticals.includes(v)
-                        ? (VERTICAL_COLORS[v] || 'bg-blue-500/20 text-blue-300 border-blue-500/30')
-                        : 'bg-slate-700/30 border-slate-600 text-slate-400 hover:text-slate-300'
-                    }`}
-                  >
-                    {VERTICAL_LABELS[v] || v}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {selectedVerticals.length > 0 && (
-            <div className="bg-slate-800 border border-slate-600 rounded-lg p-3 space-y-3">
-              <DatesForm dates={currentDates} onChange={setCurrentDates} />
-              <Button onClick={handleAddVertical} disabled={!hasDates} size="sm"
-                className="w-full bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 border border-blue-600/30">
-                <Plus className="w-3.5 h-3.5 mr-1.5" />
-                Adicionar Cronograma das Verticais Selecionadas
-              </Button>
-              {!hasDates && (
-                <p className="text-xs text-amber-500 text-center">Preencha pelo menos uma data para continuar</p>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Form - Por Produto (seleciona por vertical, aplica a todos os produtos dela) */}
-      {schedulingType === 'por_produto' && (
-        <div className="space-y-3">
-          <div>
-            <Label className="text-slate-300 text-xs mb-1 block">Selecione as Verticais *</Label>
-            {remainingVerticals.length === 0 && availableVerticals.length > 0 ? (
-              <p className="text-xs text-green-400">✓ Todas as verticais já possuem cronograma</p>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {(remainingVerticals.length > 0 ? remainingVerticals : Object.keys(VERTICAL_LABELS)).map(v => (
-                  <button
-                    key={v}
-                    onClick={() => setSelectedVerticals(prev =>
-                      prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v]
-                    )}
-                    className={`px-3 py-1.5 rounded-lg border text-xs transition-all ${
-                      selectedVerticals.includes(v)
-                        ? (VERTICAL_COLORS[v] || 'bg-purple-500/20 text-purple-300 border-purple-500/30')
-                        : 'bg-slate-700/30 border-slate-600 text-slate-400 hover:text-slate-300'
-                    }`}
-                  >
-                    {VERTICAL_LABELS[v] || v}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {selectedVerticals.length > 0 && (
-            <div className="bg-slate-800 border border-slate-600 rounded-lg p-3 space-y-3">
-              <DatesForm dates={currentDates} onChange={setCurrentDates} />
-              <Button onClick={handleAddVertical} disabled={!hasDates} size="sm"
-                className="w-full bg-purple-600/20 hover:bg-purple-600/40 text-purple-300 border border-purple-600/30">
-                <Plus className="w-3.5 h-3.5 mr-1.5" />
-                Adicionar Cronograma das Verticais Selecionadas
-              </Button>
-              {!hasDates && (
-                <p className="text-xs text-amber-500 text-center">Preencha pelo menos uma data para continuar</p>
-              )}
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Lista de cronogramas adicionados */}
       {cronogramas.length > 0 && (
@@ -309,13 +207,9 @@ export default function StepCronograma({ cronogramas, setCronogramas, scheduling
             return (
               <div key={crono.id} className="flex items-center justify-between bg-slate-700/40 border border-slate-700 rounded-lg px-3 py-2">
                 <div className="flex items-center gap-2 flex-wrap">
-                  {crono.type === 'vertical' ? (
-                    crono.verticals.map(v => (
-                      <Badge key={v} className={`text-xs ${VERTICAL_COLORS[v] || ''}`}>{VERTICAL_LABELS[v] || v}</Badge>
-                    ))
-                  ) : (
-                    <Badge className="text-xs bg-purple-500/20 text-purple-300 border-purple-500/30">{crono.productName}</Badge>
-                  )}
+                  {crono.verticals.map(v => (
+                    <Badge key={v} className={`text-xs ${VERTICAL_COLORS[v] || ''}`}>{VERTICAL_LABELS[v] || v}</Badge>
+                  ))}
                   <span className="text-xs text-slate-500">{dateCount} data(s)</span>
                 </div>
                 <button onClick={() => setCronogramas(prev => prev.filter(c => c.id !== crono.id))}
@@ -328,7 +222,7 @@ export default function StepCronograma({ cronogramas, setCronogramas, scheduling
         </div>
       )}
 
-      {cronogramas.length === 0 && schedulingType && (
+      {cronogramas.length === 0 && (
         <div className="text-center py-3 text-sm text-amber-500 bg-amber-500/10 border border-amber-500/20 rounded-lg">
           ⚠️ Adicione pelo menos um cronograma com datas para prosseguir
         </div>

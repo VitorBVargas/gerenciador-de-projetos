@@ -11,7 +11,6 @@ import EmptyState from '../components/ui/EmptyState';
 import EntityFilter from '../components/filters/EntityFilter';
 
 import { phaseLabels } from '../components/timeline/phaseLabels';
-import TimelineByVertical from '../components/timeline/TimelineByVertical';
 import TimelineByProduct from '../components/timeline/TimelineByProduct';
 import {
   AlertDialog,
@@ -71,7 +70,6 @@ export default function Timeline() {
   });
 
   const activeProject = projects.find(p => p.id === projectId);
-  const schedulingType = activeProject?.scheduling_type || 'por_produto';
 
   const { data: products = [] } = useQuery({
     queryKey: ['products', projectId],
@@ -295,15 +293,6 @@ export default function Timeline() {
                   Ir para Produtos
                 </Button>
               }
-            />
-          ) : schedulingType === 'por_vertical' ? (
-            <TimelineByVertical
-              verticals={verticals}
-              entityProducts={entityProducts}
-              timelineEvents={timelineEvents}
-              onStatusChange={handleStatusChange}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
             />
           ) : (
             <TimelineByProduct
