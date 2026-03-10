@@ -1,5 +1,6 @@
 import React from 'react';
 import { Building2 } from 'lucide-react';
+import EntityBadge from '../EntityBadge';
 
 export default function EntityFilter({ entities = [], selectedEntity, onEntityChange }) {
   if (entities.length === 0) return null;
@@ -26,13 +27,17 @@ export default function EntityFilter({ entities = [], selectedEntity, onEntityCh
         <button
           key={entity}
           onClick={() => onEntityChange(entity)}
-          className={`px-3 py-1 rounded-full text-xs font-medium transition-all border ${
+          className={`transition-all ${
             selectedEntity === entity
-              ? 'bg-blue-600 text-white border-blue-600'
-              : 'bg-slate-700 text-slate-400 hover:text-white border-slate-600 hover:border-slate-500'
+              ? 'ring-2 ring-blue-600'
+              : 'hover:opacity-80'
           }`}
         >
-          {entity}
+          <EntityBadge 
+            code={entity}
+            variant={selectedEntity === entity ? 'primary' : 'default'}
+            size="sm"
+          />
         </button>
       ))}
     </div>
