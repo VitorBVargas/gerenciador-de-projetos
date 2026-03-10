@@ -245,9 +245,16 @@ export default function ExecutiveStatus() {
     return 0;
   };
 
-  // Usa TODOS os eventos do projeto (igual ao Dashboard) para consistência
+  // Busca eventos do projeto: tenta project_id primeiro, fallback via product_ids
+  const getProjectEvents = (project) => {
+    const byProjectId = allTimelineEvents.filter(e => e.project_id === project.id);
+    if (byProjectId.length > 0) return byProjectId;
+    const productIds = new Set(allProducts.filter(p => p.project_id === project.id).map(p => p.id));
+    return allTimelineEvents.filter(e => productIds.has(e.product_id));
+  };
+
   const calculateProjectProgress = (project) => {
-    const projectEvents = allTimelineEvents.filter(e => e.project_id === project.id);
+    const projectEvents = getProjectEvents(project);
     if (projectEvents.length === 0) return 0;
     const total = projectEvents.reduce((sum, e) => sum + calcEventProgress(e), 0);
     return Math.round(total / projectEvents.length);
