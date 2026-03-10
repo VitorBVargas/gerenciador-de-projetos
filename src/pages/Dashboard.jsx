@@ -262,59 +262,47 @@ export default function Dashboard() {
     ? differenceInDays(new Date(activeProject.deadline), new Date())
     : null;
 
-  // Timeline progress by vertical (respeita scheduling_type)
+  // Timeline progress by vertical - sempre por produto
   const eventsByVertical = {};
   
-  if (activeProject?.scheduling_type === 'por_produto') {
-    // por_produto: agrupa por vertical e pega eventos únicos (product_id tem prioridade, fallback cronograma_id)
-    const verticalGroups = {};
-    filteredProducts.forEach(p => {
-      const v = p.vertical || 'outros';
-      if (!verticalGroups[v]) verticalGroups[v] = [];
-      verticalGroups[v].push(p);
+  const verticalGroups = {};
+  filteredProducts.forEach(p => {
+    const v = p.vertical || 'outros';
+    if (!verticalGroups[v]) verticalGroups[v] = [];
+    verticalGroups[v].push(p);
+  });
+  
+  Object.entries(verticalGroups).forEach(([vertical, prods]) => {
+    const eventIds = new Set();
+    const events = [];
+    
+    prods.forEach(product => {
+      const productEvents = filteredTimelineEvents.filter(e => e.product_id === product.id);
+      productEvents.forEach(e => {
+        if (!eventIds.has(e.id)) {
+          eventIds.add(e.id);
+          events.push(e);
+        }
+      });
     });
     
-    Object.entries(verticalGroups).forEach(([vertical, prods]) => {
-      const eventIds = new Set();
-      const events = [];
-      
-      prods.forEach(product => {
-        const productEvents = filteredTimelineEvents.filter(e => e.product_id === product.id);
-        productEvents.forEach(e => {
+    // Fallback: se não encontrou eventos por product_id, busca por cronograma_id
+    if (events.length === 0) {
+      const cronogramaVert = cronogramas.find(c => c.vertical === vertical);
+      if (cronogramaVert) {
+        filteredTimelineEvents.filter(e => e.cronograma_id === cronogramaVert.id).forEach(e => {
           if (!eventIds.has(e.id)) {
             eventIds.add(e.id);
             events.push(e);
           }
         });
-      });
-      
-      // Fallback: se não encontrou eventos por product_id, busca por cronograma_id
-      if (events.length === 0) {
-        const cronogramaVert = cronogramas.find(c => c.vertical === vertical);
-        if (cronogramaVert) {
-          filteredTimelineEvents.filter(e => e.cronograma_id === cronogramaVert.id).forEach(e => {
-            if (!eventIds.has(e.id)) {
-              eventIds.add(e.id);
-              events.push(e);
-            }
-          });
-        }
       }
-      
-      if (events.length > 0) {
-        eventsByVertical[vertical] = events;
-      }
-    });
-  } else {
-    // por_vertical: usa cronograma_id (todos os produtos da vertical compartilham as mesmas datas)
-    cronogramas.forEach(cronograma => {
-      const vertical = cronograma.vertical;
-      const cronogramaEvents = filteredTimelineEvents.filter(e => e.cronograma_id === cronograma.id);
-      if (cronogramaEvents.length > 0) {
-        eventsByVertical[vertical] = cronogramaEvents;
-      }
-    });
-  }
+    }
+    
+    if (events.length > 0) {
+      eventsByVertical[vertical] = events;
+    }
+  });
 
   const verticalLabels = {
     arrecadacao: 'Arrecadação',
