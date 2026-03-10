@@ -19,16 +19,15 @@ Deno.serve(async (req) => {
     const sourceProject = sourceProjects[0];
 
     // 2. Create new project
-    const newProject = await base44.entities.Project.create({
-      ...sourceProject,
-      name: newProjectName,
-      display_order: 999
-    });
-    delete newProject.id;
-    delete newProject.created_date;
-    delete newProject.updated_date;
-    delete newProject.created_by;
+    const projectData = { ...sourceProject };
+    delete projectData.id;
+    delete projectData.created_date;
+    delete projectData.updated_date;
+    delete projectData.created_by;
+    projectData.name = newProjectName;
+    projectData.display_order = 999;
 
+    const newProject = await base44.entities.Project.create(projectData);
     const newProjectId = newProject.id;
 
     // 3. Copy all related entities
