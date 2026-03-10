@@ -231,57 +231,24 @@ export default function ExecutiveStatus() {
   // Calculate overall progress for a project
   // Para projetos por_vertical: usa apenas os eventos do produto representativo de cada vertical
   // Para projetos por_produto: usa todos os eventos
+  const calcEventProgress = (event) => {
+    if (event.status === 'concluido') return 100;
+    if (event.progress > 0) return event.progress;
+    if (event.start_date && event.end_date) {
+      const now = new Date();
+      const start = new Date(event.start_date);
+      const end = new Date(event.end_date);
+      if (now <= start) return 0;
+      if (now >= end) return 99;
+      return Math.round(((now - start) / (end - start)) * 100);
+    }
+    return 0;
+  };
+
+  // Usa TODOS os eventos do projeto (igual ao Dashboard) para consistência
   const calculateProjectProgress = (project) => {
     const projectEvents = allTimelineEvents.filter(e => e.project_id === project.id);
     if (projectEvents.length === 0) return 0;
-
-    const calcEventProgress = (event) => {
-      if (event.status === 'concluido') return 100;
-      if (event.progress > 0) return event.progress;
-      // Fallback por data quando progress não foi preenchido manualmente
-      if (event.start_date && event.end_date) {
-        const now = new Date();
-        const start = new Date(event.start_date);
-        const end = new Date(event.end_date);
-        if (now <= start) return 0;
-        if (now >= end) return 99;
-        const total = end.getTime() - start.getTime();
-        const elapsed = now.getTime() - start.getTime();
-        return Math.round((elapsed / total) * 100);
-      }
-      return 0;
-    };
-
-    if (project.scheduling_type === 'por_vertical') {
-      // Agrupa os produtos por vertical e usa apenas o produto representativo (primeiro) de cada vertical
-      const projectProducts = allProducts.filter(p => p.project_id === project.id);
-      const verticals = [...new Set(projectProducts.map(p => p.vertical).filter(Boolean))];
-      
-      if (verticals.length === 0) {
-        // Sem verticals definidas: usa todos os eventos
-        const total = projectEvents.reduce((sum, e) => sum + calcEventProgress(e), 0);
-        return Math.round(total / projectEvents.length);
-      }
-
-      let allRepresentativeEvents = [];
-      verticals.forEach(vertical => {
-        const productsInVert = projectProducts.filter(p => p.vertical === vertical);
-        const representativeProduct = productsInVert[0];
-        if (!representativeProduct) return;
-        const vertEvents = projectEvents.filter(e => e.product_id === representativeProduct.id);
-        allRepresentativeEvents = [...allRepresentativeEvents, ...vertEvents];
-      });
-
-      if (allRepresentativeEvents.length === 0) {
-        const total = projectEvents.reduce((sum, e) => sum + calcEventProgress(e), 0);
-        return Math.round(total / projectEvents.length);
-      }
-
-      const total = allRepresentativeEvents.reduce((sum, e) => sum + calcEventProgress(e), 0);
-      return Math.round(total / allRepresentativeEvents.length);
-    }
-
-    // por_produto: usa todos os eventos
     const total = projectEvents.reduce((sum, e) => sum + calcEventProgress(e), 0);
     return Math.round(total / projectEvents.length);
   };
