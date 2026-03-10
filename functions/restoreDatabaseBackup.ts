@@ -26,34 +26,38 @@ Deno.serve(async (req) => {
     const backupData = JSON.parse(backup.backup_data_json);
 
     let restored = 0;
+    let deleted = 0;
     let errors = [];
 
     // Restaura cada entidade
     for (const [entityName, records] of Object.entries(backupData.entities)) {
-      if (!records || records.length === 0) continue;
-
       try {
-        // Primeiro deleta todos os registros atuais
+        // Primeiro deleta TODOS os registros atuais
         const current = await base44.asServiceRole.entities[entityName].list(undefined, 10000);
         
-        for (const record of current || []) {
-          try {
-            await base44.asServiceRole.entities[entityName].delete(record.id);
-          } catch (err) {
-            console.warn(`Error deleting ${entityName} ${record.id}:`, err.message);
+        if (current && current.length > 0) {
+          for (const record of current) {
+            try {
+              await base44.asServiceRole.entities[entityName].delete(record.id);
+              deleted++;
+            } catch (err) {
+              console.warn(`Error deleting ${entityName} ${record.id}:`, err.message);
+            }
           }
         }
 
-        // Depois insere os do backup
-        for (const record of records) {
-          // Remove IDs para deixar o sistema gerar novos
-          const { id, created_date, updated_date, created_by, ...data } = record;
-          
-          try {
-            await base44.asServiceRole.entities[entityName].create(data);
-            restored++;
-          } catch (err) {
-            console.warn(`Error restoring ${entityName}:`, err.message);
+        // Depois insere os do backup (se houver)
+        if (records && records.length > 0) {
+          for (const record of records) {
+            // Remove IDs para deixar o sistema gerar novos
+            const { id, created_date, updated_date, created_by, ...data } = record;
+            
+            try {
+              await base44.asServiceRole.entities[entityName].create(data);
+              restored++;
+            } catch (err) {
+              console.warn(`Error restoring ${entityName}:`, err.message);
+            }
           }
         }
       } catch (err) {
@@ -65,6 +69,7 @@ Deno.serve(async (req) => {
     return Response.json({
       success: true,
       message: 'Restauração completada',
+      deleted_records: deleted,
       restored_records: restored,
       errors: errors.length > 0 ? errors : null
     });
