@@ -140,7 +140,7 @@ export default function KeyDocuments({ projectId, project, products = [] }) {
           </div>
 
           {/* Vertical Filter */}
-          {verticals.length > 0 && (
+          {selectedEntity && verticals.length > 0 && (
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs font-semibold text-slate-300">Vertical:</span>
               {verticals.map(v => (
@@ -164,7 +164,7 @@ export default function KeyDocuments({ projectId, project, products = [] }) {
           )}
 
           {/* Product Filter */}
-          {productsForVertical.length > 0 && (
+          {selectedEntity && selectedVertical && productsForVertical.length > 0 && (
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs font-semibold text-slate-300">Produto:</span>
               {productsForVertical.map(product => (
