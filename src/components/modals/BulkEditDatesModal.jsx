@@ -155,25 +155,23 @@ export default function BulkEditDatesModal({
     setCurrentBatch(0);
 
     try {
-      // Processar um por um para exibir progresso correto
+      // Processar um por um para exibir progresso em tempo real
       for (let i = 0; i < eventsToUpdate.length; i++) {
         const event = eventsToUpdate[i];
-        setCurrentBatch(i + 1);
         
+        // Atualiza o contador ANTES da operação
+        setCurrentBatch(i + 1);
+        setProgress(((i + 1) / eventsToUpdate.length) * 100);
+        
+        // Executa a atualização
         await onApply([event]);
         
-        // Calcular progresso
-        const processed = i + 1;
-        setProgress((processed / eventsToUpdate.length) * 100);
-        
-        // Delay entre atualizações para não sobrecarregar
-        if (i < eventsToUpdate.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 150));
-        }
+        // Pequeno delay para garantir que o UI atualize
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
 
-      // Aguardar um pouco antes de fechar para mostrar 100%
-      await new Promise(resolve => setTimeout(resolve, 800));
+      // Aguarda antes de fechar
+      await new Promise(resolve => setTimeout(resolve, 1000));
     } catch (error) {
       console.error('Erro ao aplicar alterações:', error);
     } finally {

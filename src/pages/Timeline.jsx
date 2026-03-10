@@ -113,20 +113,11 @@ export default function Timeline() {
 
   const bulkUpdateMutation = useMutation({
     mutationFn: async (events) => {
-      // Process in chunks of 5 with 500ms delay between chunks
-      const chunkSize = 5;
-      for (let i = 0; i < events.length; i += chunkSize) {
-        const chunk = events.slice(i, i + chunkSize);
-        await Promise.all(chunk.map(event => base44.entities.TimelineEvent.update(event.id, event)));
-        // 500ms delay between chunks
-        if (i + chunkSize < events.length) {
-          await new Promise(resolve => setTimeout(resolve, 500));
-        }
-      }
+      // Atualiza apenas os eventos recebidos (já processados pelo modal)
+      await Promise.all(events.map(event => base44.entities.TimelineEvent.update(event.id, event)));
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['timelineEvents', projectId] });
-      setEditDatesOpen(false);
+      // Não invalida aqui, deixa o modal controlar
     }
   });
 
