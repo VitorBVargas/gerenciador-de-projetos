@@ -10,15 +10,36 @@ import { createPageUrl } from '../../utils';
 
 export default function ProjectCard({ project, deletingProjectId, onDelete }) {
   const [projectProducts, setProjectProducts] = useState([]);
+  const [timelineEvents, setTimelineEvents] = useState([]);
 
   useEffect(() => {
     if (project.id) {
       base44.entities.Product.filter({ project_id: project.id }).then(setProjectProducts);
+      base44.entities.TimelineEvent.filter({ project_id: project.id }).then(setTimelineEvents);
     }
   }, [project.id]);
 
   const totalImplementation = projectProducts.reduce((sum, p) => sum + (p.implementation_value || 0), 0);
   const totalInclusion = projectProducts.reduce((sum, p) => sum + (p.inclusion_value || 0), 0);
+
+  // Calcular progresso geral
+  const calcEventProgress = (e) => {
+    if (e.status === 'concluido') return 100;
+    if (e.progress > 0) return e.progress;
+    if (e.start_date && e.end_date) {
+      const now = new Date();
+      const start = new Date(e.start_date);
+      const end = new Date(e.end_date);
+      if (now <= start) return 0;
+      if (now >= end) return 99;
+      return Math.round(((now - start) / (end - start)) * 100);
+    }
+    return 0;
+  };
+
+  const projectProgress = timelineEvents.length > 0
+    ? Math.round(timelineEvents.reduce((sum, e) => sum + calcEventProgress(e), 0) / timelineEvents.length)
+    : 0;
 
   return (
     <Card 
@@ -50,32 +71,54 @@ export default function ProjectCard({ project, deletingProjectId, onDelete }) {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {project.manager && (
-          <div className="text-sm text-slate-400">
-            <span className="text-slate-500">Gerente:</span> {project.manager}
+        <div className="space-y-3">
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-slate-400">Progresso Geral</span>
+              <span className="text-xl font-bold text-white">{projectProgress}%</span>
+            </div>
+            <div className="w-full bg-slate-700 rounded-full h-2">
+              <div
+                className="bg-blue-500 h-2 rounded-full transition-all"
+                style={{ width: `${projectProgress}%` }}
+              />
+            </div>
           </div>
-        )}
-        
-        {project.deadline && (
-          <div className="flex items-center gap-2 text-sm text-slate-400">
-            <Calendar className="w-4 h-4" />
-            <span>Prazo: {format(new Date(project.deadline), 'dd/MM/yyyy', { locale: ptBR })}</span>
-          </div>
-        )}
 
-        {totalImplementation > 0 && (
-          <div className="flex items-center gap-2 text-sm text-emerald-400">
-            <DollarSign className="w-4 h-4" />
-            <span>Impl. Produtos: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(totalImplementation)}</span>
-          </div>
-        )}
+          {project.manager && (
+            <div className="text-sm text-slate-400">
+              <span className="text-slate-500">Gerente:</span> {project.manager}
+            </div>
+          )}
+          
+          {project.deadline && (
+            <div className="flex items-center gap-2 text-sm text-slate-400">
+              <Calendar className="w-4 h-4" />
+              <span className="text-slate-500">Prazo Estimado:</span> {format(new Date(project.deadline), 'dd/MM/yyyy', { locale: ptBR })}
+            </div>
+          )}
+        </div>
 
-        {totalInclusion > 0 && (
-          <div className="flex items-center gap-2 text-sm text-blue-400">
-            <DollarSign className="w-4 h-4" />
-            <span>Inclusão: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(totalInclusion)}</span>
-          </div>
-        )}
+        <div className="flex items-center justify-between text-sm pt-3 border-t border-slate-700">
+          {totalImplementation > 0 && (
+            <div className="text-emerald-400">
+              <span className="text-slate-500">Implantação</span><br />
+              <span className="font-semibold">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(totalImplementation)}</span>
+            </div>
+          )}
+          {totalInclusion > 0 && (
+            <div className="text-blue-400">
+              <span className="text-slate-500">Recorrente (calculado)</span><br />
+              <span className="font-semibold">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(totalInclusion)}</span>
+            </div>
+          )}
+          {project.contract_recurring_value > 0 && (
+            <div className="text-purple-400">
+              <span className="text-slate-500">Recorrente (contrato)</span><br />
+              <span className="font-semibold">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(project.contract_recurring_value)}</span>
+            </div>
+          )}
+        </div>
 
         <Link to={createPageUrl(`Dashboard?project_id=${project.id}`)}>
           <Button 
