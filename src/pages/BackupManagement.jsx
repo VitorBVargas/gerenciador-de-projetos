@@ -10,6 +10,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Download, RotateCcw, Trash2, Clock, Database, AlertTriangle, CheckCircle2, Loader2, ArrowLeft } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { toast } from 'sonner';
 
 export default function BackupManagement() {
   const navigate = useNavigate();
@@ -34,10 +35,26 @@ export default function BackupManagement() {
 
   const restoreBackupMutation = useMutation({
     mutationFn: (backupId) => base44.functions.invoke('restoreDatabaseBackup', { backupId }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['backups'] });
-      setRestoreDialogOpen(false);
-      setSelectedBackup(null);
+    onSuccess: (response) => {
+      const data = response.data;
+      console.log('[RESTORE UI] Response:', data);
+      
+      toast.success(`Restauração completa! ${data.deleted_records} registros deletados, ${data.restored_records} restaurados.`, {
+        duration: 5000,
+      });
+      
+      // Aguarda um segundo antes de recarregar para garantir que os dados foram persistidos
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['backups'] });
+        setRestoreDialogOpen(false);
+        setSelectedBackup(null);
+        // Recarrega a página para refletir as mudanças
+        window.location.reload();
+      }, 1000);
+    },
+    onError: (error) => {
+      console.error('[RESTORE UI] Error:', error);
+      toast.error(`Erro na restauração: ${error.message}`);
     }
   });
 
