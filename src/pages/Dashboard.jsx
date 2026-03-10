@@ -263,6 +263,16 @@ export default function Dashboard() {
     ? Math.round(filteredTimelineEvents.reduce((sum, e) => sum + calcEventProgressDash(e), 0) / filteredTimelineEvents.length)
     : 0;
 
+  // Update cache whenever progress changes
+  React.useEffect(() => {
+    if (projectId && projectProgress >= 0) {
+      base44.functions.invoke('updateProjectProgressCache', {
+        project_id: projectId,
+        overall_progress: projectProgress
+      }).catch(err => console.error('Failed to update cache:', err));
+    }
+  }, [projectId, projectProgress]);
+
   const tasksCompleted = filteredHomologationTasks.filter(t => t.completed).length;
   const totalTasks = filteredHomologationTasks.length;
 
