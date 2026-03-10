@@ -372,52 +372,19 @@ export default function ExecutiveStatus() {
     // Helper: pegar a data go_live de um evento (start_date ou end_date)
     const getGoLiveDate = (event) => event.start_date || event.end_date;
 
+    // Sempre por produto: cada produto tem seu próprio evento go_live via product_id
     allProjectsData.filter(p => p.status !== 'concluido').forEach(project => {
       const projectProducts = allProducts.filter(p => p.project_id === project.id);
       if (!projectProducts.length) return;
-      if (project.scheduling_type === 'por_vertical') {
-        const verticalGroups = {};
-        projectProducts.forEach(prod => {
-          const v = prod.vertical || 'outros';
-          if (!verticalGroups[v]) verticalGroups[v] = [];
-          verticalGroups[v].push(prod);
-        });
-        Object.entries(verticalGroups).forEach(([vertical, prods]) => {
-          const cronograma = allCronogramas.find(c => c.project_id === project.id && c.vertical === vertical);
-          let goLiveEvent = null;
-
-          // 1) Busca pelo cronograma_id
-          if (cronograma) {
-            goLiveEvent = allTimelineEvents.find(e => e.cronograma_id === cronograma.id && e.phase === 'go_live' && getGoLiveDate(e));
-          }
-          // 2) Fallback: busca por product_id de qualquer produto da vertical
-          if (!goLiveEvent) {
-            for (const prod of prods) {
-              goLiveEvent = allTimelineEvents.find(e => e.product_id === prod.id && e.phase === 'go_live' && getGoLiveDate(e));
-              if (goLiveEvent) break;
-            }
-          }
-
-          if (!goLiveEvent) return;
-
-          const goLiveDate = getGoLiveDate(goLiveEvent);
-          const goLiveMonth = goLiveDate.substring(0, 7);
-          if (!map[goLiveMonth]) return;
-          prods.forEach(prod => {
-            map[goLiveMonth].push({ product: prod, project, vertical, startDate: goLiveDate, inclusionValue: prod.inclusion_value || 0 });
-          });
-        });
-      } else {
-        // por_produto: cada produto tem seu próprio evento go_live via product_id
-        projectProducts.forEach(prod => {
-          const goLiveEvent = allTimelineEvents.find(e => e.product_id === prod.id && e.phase === 'go_live' && getGoLiveDate(e));
-          if (!goLiveEvent) return;
-          const goLiveDate = getGoLiveDate(goLiveEvent);
-          const goLiveMonth = goLiveDate.substring(0, 7);
-          if (!map[goLiveMonth]) return;
-          map[goLiveMonth].push({ product: prod, project, startDate: goLiveDate, inclusionValue: prod.inclusion_value || 0 });
-        });
-      }
+      
+      projectProducts.forEach(prod => {
+        const goLiveEvent = allTimelineEvents.find(e => e.product_id === prod.id && e.phase === 'go_live' && getGoLiveDate(e));
+        if (!goLiveEvent) return;
+        const goLiveDate = getGoLiveDate(goLiveEvent);
+        const goLiveMonth = goLiveDate.substring(0, 7);
+        if (!map[goLiveMonth]) return;
+        map[goLiveMonth].push({ product: prod, project, startDate: goLiveDate, inclusionValue: prod.inclusion_value || 0 });
+      });
     });
     return map;
   }, [allProducts, allTimelineEvents, allCronogramas, allRecognizedRevenues, allProjectsData]);
@@ -464,48 +431,19 @@ export default function ExecutiveStatus() {
       const projectProducts = allProducts.filter(p => p.project_id === project.id);
       if (!projectProducts.length) return;
 
-      if (project.scheduling_type === 'por_vertical') {
-        const verticalGroups = {};
-        projectProducts.forEach(prod => {
-          const v = prod.vertical || 'outros';
-          if (!verticalGroups[v]) verticalGroups[v] = [];
-          verticalGroups[v].push(prod);
-        });
-        Object.entries(verticalGroups).forEach(([vertical, prods]) => {
-          const cronograma = allCronogramas.find(c => c.project_id === project.id && c.vertical === vertical);
-          let operacaoEvent = null;
-          if (cronograma) {
-            operacaoEvent = allTimelineEvents.find(e => e.cronograma_id === cronograma.id && e.phase === 'operacao_assistida' && e.end_date);
-          }
-          if (!operacaoEvent && prods.length > 0) {
-            operacaoEvent = allTimelineEvents.find(e => e.product_id === prods[0].id && e.phase === 'operacao_assistida' && e.end_date);
-          }
-          if (!operacaoEvent || !operacaoEvent.end_date) return;
-          const implMonth = operacaoEvent.end_date.substring(0, 7);
-          if (!monthlyData[implMonth]) return;
-          prods.forEach(prod => {
-            const totalImplValue = prod.implementation_value || 0;
-            if (totalImplValue > 0) {
-              monthlyData[implMonth].implantacao += totalImplValue;
-              if (!implantacaoProductsMap[implMonth]) implantacaoProductsMap[implMonth] = [];
-              implantacaoProductsMap[implMonth].push({ product: prod, project, end_date: operacaoEvent.end_date, amount: totalImplValue });
-            }
-          });
-        });
-      } else {
-        projectProducts.forEach(prod => {
-          const operacaoEvent = allTimelineEvents.find(e => e.product_id === prod.id && e.phase === 'operacao_assistida' && e.end_date);
-          if (!operacaoEvent || !operacaoEvent.end_date) return;
-          const implMonth = operacaoEvent.end_date.substring(0, 7);
-          if (!monthlyData[implMonth]) return;
-          const totalImplValue = prod.implementation_value || 0;
-          if (totalImplValue > 0) {
-            monthlyData[implMonth].implantacao += totalImplValue;
-            if (!implantacaoProductsMap[implMonth]) implantacaoProductsMap[implMonth] = [];
-            implantacaoProductsMap[implMonth].push({ product: prod, project, end_date: operacaoEvent.end_date, amount: totalImplValue });
-          }
-        });
-      }
+      // Sempre por produto
+      projectProducts.forEach(prod => {
+        const operacaoEvent = allTimelineEvents.find(e => e.product_id === prod.id && e.phase === 'operacao_assistida' && e.end_date);
+        if (!operacaoEvent || !operacaoEvent.end_date) return;
+        const implMonth = operacaoEvent.end_date.substring(0, 7);
+        if (!monthlyData[implMonth]) return;
+        const totalImplValue = prod.implementation_value || 0;
+        if (totalImplValue > 0) {
+          monthlyData[implMonth].implantacao += totalImplValue;
+          if (!implantacaoProductsMap[implMonth]) implantacaoProductsMap[implMonth] = [];
+          implantacaoProductsMap[implMonth].push({ product: prod, project, end_date: operacaoEvent.end_date, amount: totalImplValue });
+        }
+      });
     });
 
     Object.keys(monthlyData).forEach(monthKey => {
@@ -522,55 +460,20 @@ export default function ExecutiveStatus() {
 
     const getGoLiveDate2 = (e) => e.start_date || e.end_date;
 
+    // Sempre por produto
     projects.forEach(project => {
       const projectProducts = allProducts.filter(p => p.project_id === project.id && (p.inclusion_value || 0) > 0);
       if (!projectProducts.length) return;
-      if (project.scheduling_type === 'por_vertical') {
-        const verticalGroups = {};
-        projectProducts.forEach(prod => {
-          const v = prod.vertical || 'outros';
-          if (!verticalGroups[v]) verticalGroups[v] = [];
-          verticalGroups[v].push(prod);
-        });
-        Object.entries(verticalGroups).forEach(([vertical, prods]) => {
-          const cronograma = allCronogramas.find(c => c.project_id === project.id && c.vertical === vertical);
-          let goLiveEvent = null;
-
-          // 1) Busca pelo cronograma_id
-          if (cronograma) {
-            goLiveEvent = allTimelineEvents.find(e => e.cronograma_id === cronograma.id && e.phase === 'go_live' && getGoLiveDate2(e));
-          }
-          // 2) Fallback: busca por product_id de qualquer produto da vertical
-          if (!goLiveEvent) {
-            for (const prod of prods) {
-              goLiveEvent = allTimelineEvents.find(e => e.product_id === prod.id && e.phase === 'go_live' && getGoLiveDate2(e));
-              if (goLiveEvent) break;
-            }
-          }
-
-          if (!goLiveEvent) return;
-
-          const goLiveDate = getGoLiveDate2(goLiveEvent);
-          const goLiveMonth = goLiveDate.substring(0, 7);
-          if (!monthlyData[goLiveMonth]) return;
-          const totalInclusao = prods.reduce((sum, p) => sum + (p.inclusion_value || 0), 0);
-          monthlyData[goLiveMonth].recorrente += totalInclusao;
-          prods.forEach(prod => {
-            monthlyRecorrenteProducts[goLiveMonth].push({ product: prod, project, vertical, startDate: goLiveDate, inclusionValue: prod.inclusion_value || 0 });
-          });
-        });
-      } else {
-        // por_produto: cada produto tem seu próprio evento go_live via product_id
-        projectProducts.forEach(prod => {
-          const goLiveEvent = allTimelineEvents.find(e => e.product_id === prod.id && e.phase === 'go_live' && getGoLiveDate2(e));
-          if (!goLiveEvent) return;
-          const goLiveDate = getGoLiveDate2(goLiveEvent);
-          const goLiveMonth = goLiveDate.substring(0, 7);
-          if (!monthlyData[goLiveMonth]) return;
-          monthlyData[goLiveMonth].recorrente += (prod.inclusion_value || 0);
-          monthlyRecorrenteProducts[goLiveMonth].push({ product: prod, project, startDate: goLiveDate, inclusionValue: prod.inclusion_value || 0 });
-        });
-      }
+      
+      projectProducts.forEach(prod => {
+        const goLiveEvent = allTimelineEvents.find(e => e.product_id === prod.id && e.phase === 'go_live' && getGoLiveDate2(e));
+        if (!goLiveEvent) return;
+        const goLiveDate = getGoLiveDate2(goLiveEvent);
+        const goLiveMonth = goLiveDate.substring(0, 7);
+        if (!monthlyData[goLiveMonth]) return;
+        monthlyData[goLiveMonth].recorrente += (prod.inclusion_value || 0);
+        monthlyRecorrenteProducts[goLiveMonth].push({ product: prod, project, startDate: goLiveDate, inclusionValue: prod.inclusion_value || 0 });
+      });
     });
 
     allRecognizedRevenues.forEach(recognized => {
@@ -1417,79 +1320,32 @@ export default function ExecutiveStatus() {
                       const projectProducts = allProducts.filter(p => p.project_id === project.id && (p.implementation_value || 0) > 0);
                       if (!projectProducts.length) return;
 
-                      if (project.scheduling_type === 'por_vertical') {
-                        const verticalGroups = {};
-                        projectProducts.forEach(prod => {
-                          const v = prod.vertical || 'outros';
-                          if (!verticalGroups[v]) verticalGroups[v] = [];
-                          verticalGroups[v].push(prod);
-                        });
+                      // Sempre por produto
+                      projectProducts.forEach(product => {
+                        const operacaoEvent = allTimelineEvents.find(e => 
+                          e.product_id === product.id && e.phase === 'operacao_assistida' && e.end_date
+                        );
 
-                        Object.entries(verticalGroups).forEach(([vertical, prods]) => {
-                          const cronograma = allCronogramas.find(c => c.project_id === project.id && c.vertical === vertical);
-                          let operacaoEvent = null;
+                        if (!operacaoEvent || !operacaoEvent.end_date) return;
+                        const implMonth = operacaoEvent.end_date.substring(0, 7);
+                        if (implMonth !== selectedMonth) return;
 
-                          if (cronograma) {
-                            operacaoEvent = allTimelineEvents.find(e => 
-                              e.cronograma_id === cronograma.id && e.phase === 'operacao_assistida' && e.end_date
-                            );
-                          }
+                        // Calcular quanto falta reconhecer (descontar de QUALQUER mês)
+                        const totalRecognized = allRecognizedRevenues
+                          .filter(r => r.product_id === product.id && r.type === 'implantacao')
+                          .reduce((sum, r) => sum + r.amount, 0);
+                        const implValue = product.implementation_value || 0;
+                        const pendente = Math.max(0, implValue - totalRecognized);
 
-                          if (!operacaoEvent && prods.length > 0) {
-                            operacaoEvent = allTimelineEvents.find(e => 
-                              e.product_id === prods[0].id && e.phase === 'operacao_assistida' && e.end_date
-                            );
-                          }
-
-                          if (!operacaoEvent || !operacaoEvent.end_date) return;
-                          const implMonth = operacaoEvent.end_date.substring(0, 7);
-                          if (implMonth !== selectedMonth) return;
-
-                          prods.forEach(product => {
-                            // Calcular quanto falta reconhecer (descontar de QUALQUER mês)
-                            const totalRecognized = allRecognizedRevenues
-                              .filter(r => r.product_id === product.id && r.type === 'implantacao')
-                              .reduce((sum, r) => sum + r.amount, 0);
-                            const implValue = product.implementation_value || 0;
-                            const pendente = Math.max(0, implValue - totalRecognized);
-
-                            if (pendente > 0) {
-                              aReceberProds.push({
-                                product,
-                                project,
-                                deadline: operacaoEvent?.end_date,
-                                amount: pendente
-                              });
-                            }
+                        if (pendente > 0) {
+                          aReceberProds.push({
+                            product,
+                            project,
+                            deadline: operacaoEvent?.end_date,
+                            amount: pendente
                           });
-                        });
-                      } else {
-                        projectProducts.forEach(product => {
-                          const operacaoEvent = allTimelineEvents.find(e => 
-                            e.product_id === product.id && e.phase === 'operacao_assistida' && e.end_date
-                          );
-
-                          if (!operacaoEvent || !operacaoEvent.end_date) return;
-                          const implMonth = operacaoEvent.end_date.substring(0, 7);
-                          if (implMonth !== selectedMonth) return;
-
-                          // Calcular quanto falta reconhecer (descontar de QUALQUER mês)
-                          const totalRecognized = allRecognizedRevenues
-                            .filter(r => r.product_id === product.id && r.type === 'implantacao')
-                            .reduce((sum, r) => sum + r.amount, 0);
-                          const implValue = product.implementation_value || 0;
-                          const pendente = Math.max(0, implValue - totalRecognized);
-
-                          if (pendente > 0) {
-                            aReceberProds.push({
-                              product,
-                              project,
-                              deadline: operacaoEvent?.end_date,
-                              amount: pendente
-                            });
-                          }
-                        });
-                      }
+                        }
+                      });
                     });
 
                     // Produtos reconhecidos (roxo) - reconhecimento neste mês
