@@ -245,12 +245,19 @@ export default function ExecutiveStatus() {
     return 0;
   };
 
-  // Busca eventos do projeto: tenta project_id primeiro, fallback via product_ids
+  // Busca eventos do projeto: tenta project_id primeiro, fallback via product_ids e cronograma_ids
   const getProjectEvents = (project) => {
-    const byProjectId = allTimelineEvents.filter(e => e.project_id === project.id);
-    if (byProjectId.length > 0) return byProjectId;
-    const productIds = new Set(allProducts.filter(p => p.project_id === project.id).map(p => p.id));
-    return allTimelineEvents.filter(e => productIds.has(e.product_id));
+    const projectProducts = allProducts.filter(p => p.project_id === project.id);
+    const productIds = new Set(projectProducts.map(p => p.id));
+    const projectCronogramas = allCronogramas.filter(c => c.project_id === project.id);
+    const cronogramaIds = new Set(projectCronogramas.map(c => c.id));
+    
+    // Busca por project_id, product_id ou cronograma_id
+    return allTimelineEvents.filter(e => 
+      e.project_id === project.id || 
+      productIds.has(e.product_id) || 
+      cronogramaIds.has(e.cronograma_id)
+    );
   };
 
   const calculateProjectProgress = (project) => {
