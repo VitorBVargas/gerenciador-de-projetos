@@ -120,21 +120,6 @@ export default function KeyDocuments({ projectId, project, products = [] }) {
           {/* Entity Filter */}
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xs font-semibold text-slate-300">Entidades:</span>
-            <button
-              onClick={() => {
-                setSelectedEntity(null);
-                setSelectedVertical(null);
-                setSelectedProduct(null);
-              }}
-              className={cn(
-                "px-2.5 py-1 rounded text-xs font-medium transition-all border",
-                !selectedEntity
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-slate-700 text-slate-400 hover:text-white border-slate-600'
-              )}
-            >
-              Todos
-            </button>
             {allEntities.map(entity => (
               <button
                 key={entity}
@@ -159,20 +144,6 @@ export default function KeyDocuments({ projectId, project, products = [] }) {
           {verticals.length > 0 && (
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs font-semibold text-slate-300">Vertical:</span>
-              <button
-                onClick={() => {
-                  setSelectedVertical(null);
-                  setSelectedProduct(null);
-                }}
-                className={cn(
-                  "px-2.5 py-1 rounded text-xs font-medium transition-all border",
-                  !selectedVertical
-                    ? 'bg-blue-600 text-white border-blue-600'
-                    : 'bg-slate-700 text-slate-400 hover:text-white border-slate-600'
-                )}
-              >
-                Todos
-              </button>
               {verticals.map(v => (
                 <button
                   key={v}
@@ -197,17 +168,6 @@ export default function KeyDocuments({ projectId, project, products = [] }) {
           {productsForVertical.length > 0 && (
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs font-semibold text-slate-300">Produto:</span>
-              <button
-                onClick={() => setSelectedProduct(null)}
-                className={cn(
-                  "px-2.5 py-1 rounded text-xs font-medium transition-all border",
-                  !selectedProduct
-                    ? 'bg-blue-600 text-white border-blue-600'
-                    : 'bg-slate-700 text-slate-400 hover:text-white border-slate-600'
-                )}
-              >
-                Todos
-              </button>
               {productsForVertical.map(product => (
                 <button
                   key={product.id}
