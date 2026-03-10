@@ -237,17 +237,6 @@ export default function ExecutiveStatus() {
 
     const calcEventProgress = (event) => {
       if (event.status === 'concluido') return 100;
-      if (event.status === 'nao_iniciado') return 0;
-      if (event.start_date && event.end_date) {
-        const now = new Date();
-        const start = new Date(event.start_date);
-        const end = new Date(event.end_date);
-        if (now <= start) return 0;
-        if (now >= end) return 99;
-        const total = end.getTime() - start.getTime();
-        const elapsed = now.getTime() - start.getTime();
-        return Math.round((elapsed / total) * 100);
-      }
       return event.progress || 0;
     };
 
