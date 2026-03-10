@@ -170,8 +170,15 @@ export default function ExecutiveStatus() {
     gcTime: 300000
   });
 
+  const { data: allProgressCache = [], isLoading: loadingProgressCache } = useQuery({
+    queryKey: ['allProgressCache'],
+    queryFn: () => base44.entities.ProjectProgressCache.list('-updated_date', 1000),
+    staleTime: 120000,
+    gcTime: 300000
+  });
+
   // Loading global: aguarda TODOS os dados críticos carregarem
-  const isLoading = loadingProjects || loadingCronogramas || loadingEvents || loadingHomolog || loadingMigration || loadingRisks || loadingExpenses || loadingProducts || loadingRevenues;
+  const isLoading = loadingProjects || loadingCronogramas || loadingEvents || loadingHomolog || loadingMigration || loadingRisks || loadingExpenses || loadingProducts || loadingRevenues || loadingProgressCache;
 
   const createRecognizedRevenueMutation = useMutation({
     mutationFn: (data) => base44.entities.RecognizedRevenue.create(data),
@@ -261,6 +268,13 @@ export default function ExecutiveStatus() {
   };
 
   const calculateProjectProgress = (project) => {
+    // Buscar do cache primeiro (mais rápido e evita recálculos)
+    const cache = allProgressCache.find(c => c.project_id === project.id);
+    if (cache && cache.overall_progress !== undefined) {
+      return Math.round(cache.overall_progress);
+    }
+
+    // Fallback: calcular se cache não existir
     const projectEvents = getProjectEvents(project);
     if (projectEvents.length === 0) return 0;
     const total = projectEvents.reduce((sum, e) => sum + calcEventProgress(e), 0);
@@ -490,17 +504,17 @@ export default function ExecutiveStatus() {
       .map(([, value]) => value);
 
     return { monthlyData, chartData };
-  }, [projects, allProducts, allTimelineEvents, allCronogramas, allRecognizedRevenues, allProjectsData]);
+  }, [projects, allProducts, allTimelineEvents, allCronogramas, allRecognizedRevenues, allProjectsData, allProgressCache]);
 
   // Calculate project with health status
   const projectsWithMetrics = useMemo(() => {
     return projects.map(project => {
       const recognizedRevenues = allRecognizedRevenues.filter(r => r.project_id === project.id);
       const totalRecognized = recognizedRevenues.reduce((sum, r) => sum + (r.amount || 0), 0);
-      
+
       const healthScore = getProjectHealthScore(project);
       const totalBudget = project.budget || 0;
-      
+
       return {
         ...project,
         healthScore,
@@ -516,7 +530,7 @@ export default function ExecutiveStatus() {
       }
       return a.healthScore - b.healthScore;
     });
-  }, [projects, allTimelineEvents, allHomologationTasks, allMigrationTasks, allRisks, allExpenses, allRecognizedRevenues]);
+  }, [projects, allTimelineEvents, allHomologationTasks, allMigrationTasks, allRisks, allExpenses, allRecognizedRevenues, allProgressCache]);
 
   const getHealthColor = (score) => {
     if (score >= 80) return 'text-green-400';
