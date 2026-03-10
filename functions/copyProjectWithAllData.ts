@@ -30,7 +30,25 @@ Deno.serve(async (req) => {
     const newProject = await base44.entities.Project.create(projectData);
     const newProjectId = newProject.id;
 
-    // 3. Copy all related entities
+    // 3. Copy Cronograma first and build ID mapping
+    const cronogramaMap = {}; // old_id -> new_id
+    const cronogramas = await base44.entities.Cronograma.filter({ project_id: sourceProject.id });
+    
+    if (cronogramas && cronogramas.length > 0) {
+      for (const cron of cronogramas) {
+        const cronData = { ...cron };
+        delete cronData.id;
+        delete cronData.created_date;
+        delete cronData.updated_date;
+        delete cronData.created_by;
+        cronData.project_id = newProjectId;
+        
+        const newCron = await base44.entities.Cronograma.create(cronData);
+        cronogramaMap[cron.id] = newCron.id;
+      }
+    }
+
+    // 4. Copy all other related entities
     const entitiesToCopy = [
       'Product',
       'TimelineEvent',
@@ -47,7 +65,6 @@ Deno.serve(async (req) => {
       'ProjectDocument',
       'Expense',
       'RecognizedRevenue',
-      'Cronograma',
       'ProjectProgressCache',
       'ProjectHealthCache'
     ];
@@ -65,9 +82,10 @@ Deno.serve(async (req) => {
           delete copy.created_by;
           copy.project_id = newProjectId;
           
-          // Special handling for related IDs that might need mapping
-          // (e.g., product_id, cronograma_id) - but we'll copy as-is for now
-          // since the new entities should have the same structure
+          // Remap cronograma_id if it exists
+          if (copy.cronograma_id && cronogramaMap[copy.cronograma_id]) {
+            copy.cronograma_id = cronogramaMap[copy.cronograma_id];
+          }
           
           return copy;
         });
