@@ -12,7 +12,13 @@ const KEYWORD_RULES = {
   fms: ['fundo municipal de saúde', 'fundo municipal de saude', 'saúde', 'saude'],
   fme: ['fundo municipal de educação', 'fundo municipal de educacao', 'educação', 'educacao'],
   araprev: ['araprev'],
-  ipas: ['previdencia', 'previdência', 'ipas', 'instituto de previdencia'],
+  ipas: [
+    'previdencia', 'previdência', 'ipas', 
+    'instituto de previdencia', 'instituto de previdência',
+    'instituto de previdência social', 'instituto de previdencia social',
+    'instituto previdenciário', 'instituto previdenciario',
+    'servidor público', 'servidor publico', 'servidores públicos', 'servidores publicos'
+  ],
   fmas: ['assistencia social', 'assistência social', 'fundo municipal assistencia social'],
   fma: ['meio ambiente'],
   fundeb: ['fundeb'],
