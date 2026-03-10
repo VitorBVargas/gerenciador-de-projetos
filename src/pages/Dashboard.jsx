@@ -252,13 +252,33 @@ export default function Dashboard() {
     ? differenceInDays(new Date(activeProject.deadline), new Date())
     : null;
 
-  // Timeline progress by vertical
+  // Timeline progress by vertical (respeita scheduling_type)
   const eventsByVertical = {};
-  const usedVerticals = [...new Set(filteredTimelineEvents.map(e => e.vertical).filter(Boolean))];
   
-  usedVerticals.forEach(vertical => {
-    eventsByVertical[vertical] = filteredTimelineEvents.filter(e => e.vertical === vertical);
-  });
+  if (activeProject?.scheduling_type === 'por_produto') {
+    // por_produto: pega apenas eventos do produto representativo (primeiro) de cada vertical
+    const verticalGroups = {};
+    filteredProducts.forEach(p => {
+      const v = p.vertical || 'outros';
+      if (!verticalGroups[v]) verticalGroups[v] = [];
+      verticalGroups[v].push(p);
+    });
+    
+    Object.entries(verticalGroups).forEach(([vertical, prods]) => {
+      const representativeProduct = prods[0];
+      if (!representativeProduct) return;
+      const vertEvents = filteredTimelineEvents.filter(e => e.product_id === representativeProduct.id);
+      if (vertEvents.length > 0) {
+        eventsByVertical[vertical] = vertEvents;
+      }
+    });
+  } else {
+    // por_vertical: usa todos os eventos da vertical (comportamento anterior)
+    const usedVerticals = [...new Set(filteredTimelineEvents.map(e => e.vertical).filter(Boolean))];
+    usedVerticals.forEach(vertical => {
+      eventsByVertical[vertical] = filteredTimelineEvents.filter(e => e.vertical === vertical);
+    });
+  }
 
   const verticalLabels = {
     arrecadacao: 'Arrecadação',
