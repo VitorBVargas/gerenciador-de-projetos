@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { Calendar, DollarSign, FolderOpen, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -10,15 +11,48 @@ import { createPageUrl } from '../../utils';
 
 export default function ProjectCard({ project, deletingProjectId, onDelete }) {
   const [projectProducts, setProjectProducts] = useState([]);
+  const [timelineEvents, setTimelineEvents] = useState([]);
 
   useEffect(() => {
     if (project.id) {
       base44.entities.Product.filter({ project_id: project.id }).then(setProjectProducts);
+      base44.entities.TimelineEvent.filter({ project_id: project.id }).then(setTimelineEvents);
     }
   }, [project.id]);
 
   const totalImplementation = projectProducts.reduce((sum, p) => sum + (p.implementation_value || 0), 0);
   const totalInclusion = projectProducts.reduce((sum, p) => sum + (p.inclusion_value || 0), 0);
+
+  // Calculate overall progress
+  const calculateOverallProgress = () => {
+    if (!timelineEvents || timelineEvents.length === 0) return 0;
+
+    const validEvents = timelineEvents.filter(e => e.start_date && e.end_date);
+    if (validEvents.length === 0) return 0;
+
+    const totalProgress = validEvents.reduce((sum, event) => {
+      // Use manual progress if available
+      if (typeof event.progress === 'number') {
+        return sum + event.progress;
+      }
+
+      // Otherwise calculate based on dates
+      const start = new Date(event.start_date);
+      const end = new Date(event.end_date);
+      const now = new Date();
+
+      if (now < start) return sum + 0;
+      if (now > end) return sum + 100;
+
+      const total = end - start;
+      const elapsed = now - start;
+      return sum + Math.min(100, Math.max(0, (elapsed / total) * 100));
+    }, 0);
+
+    return Math.round(totalProgress / validEvents.length);
+  };
+
+  const overallProgress = calculateOverallProgress();
 
   return (
     <Card 
@@ -50,6 +84,17 @@ export default function ProjectCard({ project, deletingProjectId, onDelete }) {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Overall Progress */}
+        {timelineEvents.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-slate-400">Progresso Geral</span>
+              <span className="text-sm font-semibold text-white">{overallProgress}%</span>
+            </div>
+            <Progress value={overallProgress} className="h-2" />
+          </div>
+        )}
+
         {project.manager && (
           <div className="text-sm text-slate-400">
             <span className="text-slate-500">Gerente:</span> {project.manager}
