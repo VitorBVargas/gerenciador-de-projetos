@@ -256,18 +256,44 @@ export default function Dashboard() {
   const eventsByVertical = {};
   
   if (activeProject?.scheduling_type === 'por_produto') {
-    // por_produto: cada produto tem seu próprio cronograma (via product_id OU cronograma_id)
-    filteredProducts.forEach(product => {
-      const vertical = product.vertical || 'outros';
-      // Busca eventos vinculados ao produto OU ao cronograma da vertical
-      const cronogramaVert = cronogramas.find(c => c.vertical === vertical);
-      const productEvents = filteredTimelineEvents.filter(e => 
-        e.product_id === product.id || (cronogramaVert && e.cronograma_id === cronogramaVert.id)
-      );
-      if (!eventsByVertical[vertical]) {
-        eventsByVertical[vertical] = [];
+    // por_produto: agrupa por vertical e pega eventos únicos (product_id tem prioridade, fallback cronograma_id)
+    const verticalGroups = {};
+    filteredProducts.forEach(p => {
+      const v = p.vertical || 'outros';
+      if (!verticalGroups[v]) verticalGroups[v] = [];
+      verticalGroups[v].push(p);
+    });
+    
+    Object.entries(verticalGroups).forEach(([vertical, prods]) => {
+      const eventIds = new Set();
+      const events = [];
+      
+      prods.forEach(product => {
+        const productEvents = filteredTimelineEvents.filter(e => e.product_id === product.id);
+        productEvents.forEach(e => {
+          if (!eventIds.has(e.id)) {
+            eventIds.add(e.id);
+            events.push(e);
+          }
+        });
+      });
+      
+      // Fallback: se não encontrou eventos por product_id, busca por cronograma_id
+      if (events.length === 0) {
+        const cronogramaVert = cronogramas.find(c => c.vertical === vertical);
+        if (cronogramaVert) {
+          filteredTimelineEvents.filter(e => e.cronograma_id === cronogramaVert.id).forEach(e => {
+            if (!eventIds.has(e.id)) {
+              eventIds.add(e.id);
+              events.push(e);
+            }
+          });
+        }
       }
-      eventsByVertical[vertical].push(...productEvents);
+      
+      if (events.length > 0) {
+        eventsByVertical[vertical] = events;
+      }
     });
   } else {
     // por_vertical: usa cronograma_id (todos os produtos da vertical compartilham as mesmas datas)
