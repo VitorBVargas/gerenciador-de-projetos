@@ -184,7 +184,7 @@ export default function BulkEditDatesModal({
 
   return (
     <>
-      <Dialog open={open} onOpenChange={!applying ? onOpenChange : undefined}>
+      <Dialog open={open} onOpenChange={onOpenChange && !applying ? onOpenChange : undefined}>
         <DialogContent className="bg-slate-800 border-slate-700 max-w-2xl max-h-[80vh]">
           <DialogHeader>
             <DialogTitle className="text-white">Editar Datas em Lote</DialogTitle>
@@ -405,7 +405,6 @@ export default function BulkEditDatesModal({
               variant="outline"
               onClick={() => onOpenChange(false)}
               className="border-slate-600"
-              disabled={applying}
             >
               Cancelar
             </Button>
