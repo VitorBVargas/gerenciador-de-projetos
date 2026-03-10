@@ -11,7 +11,7 @@ const KEYWORD_RULES = {
   pm: ['prefeitura', 'município', 'municipio'],
   fms: ['fundo municipal de saúde', 'fundo municipal de saude', 'saúde', 'saude'],
   fme: ['fundo municipal de educação', 'fundo municipal de educacao', 'educação', 'educacao'],
-  araprev: ['araprev'],
+  araprev: ['araprev', 'previdência social', 'previdencia social'],
   ipas: [
     'previdencia', 'previdência', 'ipas', 
     'instituto de previdencia', 'instituto de previdência',
@@ -22,6 +22,8 @@ const KEYWORD_RULES = {
   fmas: ['assistencia social', 'assistência social', 'fundo municipal assistencia social'],
   fma: ['meio ambiente'],
   fundeb: ['fundeb'],
+  saema: ['saema', 'serviço de água', 'serviço de agua', 'água esgoto', 'agua esgoto'],
+  tca: ['tca', 'transporte coletivo', 'transportes coletivos'],
 };
 
 const getStoredMap = () => {
