@@ -34,13 +34,13 @@ Deno.serve(async (req) => {
 
       try {
         // Primeiro deleta todos os registros atuais
-        const current = await base44.asServiceRole.entities[entityName].list('-created_date', 10000);
+        const current = await base44.asServiceRole.entities[entityName].list(undefined, 10000);
         
         for (const record of current || []) {
           try {
             await base44.asServiceRole.entities[entityName].delete(record.id);
           } catch (err) {
-            // Ignora erros ao deletar
+            console.warn(`Error deleting ${entityName} ${record.id}:`, err.message);
           }
         }
 
