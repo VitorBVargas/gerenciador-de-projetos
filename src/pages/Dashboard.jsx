@@ -54,10 +54,11 @@ export default function Dashboard() {
   const [isAIWelcomeOpen, setIsAIWelcomeOpen] = useState(isNewProject);
   const [hasShownInsights, setHasShownInsights] = useState(false);
 
-  // Fetch all data
+  // Fetch all data with staleTime to reduce re-fetches
   const { data: projects = [] } = useQuery({
     queryKey: ['projects'],
-    queryFn: () => base44.entities.Project.list('-created_date')
+    queryFn: () => base44.entities.Project.list('-created_date'),
+    staleTime: 5 * 60 * 1000 // 5 minutes
   });
 
   // Redirect to projects list if no project selected
@@ -70,55 +71,64 @@ export default function Dashboard() {
   const { data: teamMembers = [] } = useQuery({
     queryKey: ['teamMembers', projectId],
     queryFn: () => projectId ? base44.entities.TeamMember.filter({ project_id: projectId }) : [],
-    enabled: !!projectId
+    enabled: !!projectId,
+    staleTime: 3 * 60 * 1000
   });
 
   const { data: products = [] } = useQuery({
     queryKey: ['products', projectId],
     queryFn: () => projectId ? base44.entities.Product.filter({ project_id: projectId }) : [],
-    enabled: !!projectId
+    enabled: !!projectId,
+    staleTime: 3 * 60 * 1000
   });
 
   const { data: timelineEvents = [] } = useQuery({
     queryKey: ['timelineEvents', projectId],
     queryFn: () => projectId ? base44.entities.TimelineEvent.filter({ project_id: projectId }) : [],
-    enabled: !!projectId
+    enabled: !!projectId,
+    staleTime: 2 * 60 * 1000
   });
 
   const { data: migrationTasks = [] } = useQuery({
     queryKey: ['migrationTasks', projectId],
     queryFn: () => projectId ? base44.entities.MigrationTask.filter({ project_id: projectId }) : [],
-    enabled: !!projectId
+    enabled: !!projectId,
+    staleTime: 3 * 60 * 1000
   });
 
   const { data: homologationTasks = [] } = useQuery({
     queryKey: ['homologationTasks', projectId],
     queryFn: () => projectId ? base44.entities.HomologationTask.filter({ project_id: projectId }) : [],
-    enabled: !!projectId
+    enabled: !!projectId,
+    staleTime: 3 * 60 * 1000
   });
 
   const { data: risks = [] } = useQuery({
     queryKey: ['risks', projectId],
     queryFn: () => projectId ? base44.entities.Risk.filter({ project_id: projectId }) : [],
-    enabled: !!projectId
+    enabled: !!projectId,
+    staleTime: 5 * 60 * 1000
   });
 
-  const { data: milestones = [], isLoading: isLoadingMilestones } = useQuery({ // [!code ++]
+  const { data: milestones = [], isLoading: isLoadingMilestones } = useQuery({
     queryKey: ['milestones', projectId],
     queryFn: () => projectId ? base44.entities.ProjectMilestone.filter({ project_id: projectId }) : [],
-    enabled: !!projectId
+    enabled: !!projectId,
+    staleTime: 5 * 60 * 1000
   });
 
   const { data: expenses = [] } = useQuery({
     queryKey: ['expenses', projectId],
     queryFn: () => projectId ? base44.entities.Expense.filter({ project_id: projectId }) : [],
-    enabled: !!projectId
+    enabled: !!projectId,
+    staleTime: 5 * 60 * 1000
   });
 
   const { data: cronogramas = [] } = useQuery({
     queryKey: ['cronogramas', projectId],
     queryFn: () => projectId ? base44.entities.Cronograma.filter({ project_id: projectId }) : [],
-    enabled: !!projectId
+    enabled: !!projectId,
+    staleTime: 3 * 60 * 1000
   });
 
   // Active project
