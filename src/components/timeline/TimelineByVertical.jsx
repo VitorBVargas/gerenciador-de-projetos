@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { Pencil } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
 import { phaseLabels } from './phaseLabels';
 import { formatDateForDisplay } from './dateFormatter';
 
@@ -14,7 +14,7 @@ const verticalLabels = {
 
 const statusLabels = {
   nao_iniciado: 'Não Iniciado', em_andamento: 'Em Andamento',
-  concluido: 'Concluído/Não Se Aplica', atrasado: 'Atrasado'
+  concluido: 'Concluído', atrasado: 'Atrasado'
 };
 
 const statusColors = {
