@@ -113,7 +113,7 @@ export default function ExecutiveStatus() {
   // Fetch all cronogramas
   const { data: allCronogramas = [], isLoading: loadingCronogramas } = useQuery({
     queryKey: ['allCronogramas'],
-    queryFn: () => base44.entities.Cronograma.list('-created_date', 500),
+    queryFn: () => base44.entities.Cronograma.list('-created_date', 99999),
     staleTime: 60000,
     gcTime: 300000
   });
