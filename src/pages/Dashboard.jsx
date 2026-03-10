@@ -286,11 +286,7 @@ export default function Dashboard() {
 
   const timelineProgressData = Object.entries(eventsByVertical)
     .map(([vertical, events]) => {
-      const totalProgress = events.reduce((sum, event) => {
-        // Usar 100% se status for concluído, caso contrário usar o valor de progress
-        if (event.status === 'concluido') return sum + 100;
-        return sum + (event.progress || 0);
-      }, 0);
+      const totalProgress = events.reduce((sum, event) => sum + calcEventProgressDash(event), 0);
       const avgProgress = events.length > 0 ? Math.round(totalProgress / events.length) : 0;
       return {
         name: verticalLabels[vertical] || vertical,
