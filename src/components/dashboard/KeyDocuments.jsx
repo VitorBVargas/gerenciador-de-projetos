@@ -7,6 +7,63 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Pencil, Trash2 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
+function ProductDocumentRow({ product, projectId, updateProductMutation }) {
+  const { data: productEvents } = useQuery({
+    queryKey: ['timelineEvents', projectId],
+    queryFn: () => base44.entities.TimelineEvent.filter({ project_id: projectId }),
+    enabled: !!projectId,
+  });
+
+  const event = (productEvents || []).find(e => e.product_id === product.id);
+
+  return (
+    <tr className="border-b border-slate-700/30 hover:bg-slate-700/20">
+      <td className="px-3 py-2.5 text-white">{product.name}</td>
+      <td className="px-3 py-2.5 text-slate-300">
+        {event?.start_date ? new Date(event.start_date).toLocaleDateString('pt-BR') : '—'}
+      </td>
+      <td className="px-3 py-2.5 text-center">
+        <Select
+          value={product.document_sent ? 'sim' : 'nao'}
+          onValueChange={(value) => 
+            updateProductMutation.mutate({
+              id: product.id,
+              data: { document_sent: value === 'sim' }
+            })
+          }
+        >
+          <SelectTrigger className="bg-slate-700 border-slate-600 text-white h-8 w-20 mx-auto text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="bg-slate-800 border-slate-700">
+            <SelectItem value="sim" className="text-white text-xs">Sim</SelectItem>
+            <SelectItem value="nao" className="text-white text-xs">Não</SelectItem>
+          </SelectContent>
+        </Select>
+      </td>
+      <td className="px-3 py-2.5 text-center">
+        <Select
+          value={product.document_signed ? 'sim' : 'nao'}
+          onValueChange={(value) => 
+            updateProductMutation.mutate({
+              id: product.id,
+              data: { document_signed: value === 'sim' }
+            })
+          }
+        >
+          <SelectTrigger className="bg-slate-700 border-slate-600 text-white h-8 w-20 mx-auto text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="bg-slate-800 border-slate-700">
+            <SelectItem value="sim" className="text-white text-xs">Sim</SelectItem>
+            <SelectItem value="nao" className="text-white text-xs">Não</SelectItem>
+          </SelectContent>
+        </Select>
+      </td>
+    </tr>
+  );
+}
+
 const verticalLabels = {
   arrecadacao: 'Arrecadação',
   compras: 'Compras/Contratos',
@@ -39,19 +96,19 @@ export default function KeyDocuments({ projectId, project, products = [] }) {
   const [activeVertical, setActiveVertical] = useState(verticals[0] || '');
   const [selectedEntity, setSelectedEntity] = useState(null);
 
-  // Filter products by entity if selected
-  const currentProducts = selectedEntity
-    ? (productsByVertical[activeVertical] || []).filter(p => p.entity === selectedEntity)
-    : (productsByVertical[activeVertical] || []);
-
-  const entitiesInVertical = [...new Set((productsByVertical[activeVertical] || []).map(p => p.entity).filter(Boolean))];
-
   const updateProductMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Product.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products', projectId] });
     },
   });
+
+  // Filter products by entity if selected
+  const currentProducts = selectedEntity
+    ? (productsByVertical[activeVertical] || []).filter(p => p.entity === selectedEntity)
+    : (productsByVertical[activeVertical] || []);
+
+  const entitiesInVertical = [...new Set((productsByVertical[activeVertical] || []).map(p => p.entity).filter(Boolean))];
 
   if (verticals.length === 0) {
     return (
@@ -132,63 +189,14 @@ export default function KeyDocuments({ projectId, project, products = [] }) {
                     </tr>
                   </thead>
                   <tbody>
-                    {currentProducts.map(product => {
-                      // Buscar timeline event para pegar data
-                      const productEvents = useQuery({
-                        queryKey: ['timelineEvents', projectId],
-                        queryFn: () => base44.entities.TimelineEvent.filter({ project_id: projectId }),
-                        enabled: !!projectId,
-                      });
-                      
-                      const event = (productEvents.data || []).find(e => e.product_id === product.id);
-                      
-                      return (
-                        <tr key={product.id} className="border-b border-slate-700/30 hover:bg-slate-700/20">
-                          <td className="px-3 py-2.5 text-white">{product.name}</td>
-                          <td className="px-3 py-2.5 text-slate-300">
-                            {event?.start_date ? new Date(event.start_date).toLocaleDateString('pt-BR') : '—'}
-                          </td>
-                          <td className="px-3 py-2.5 text-center">
-                            <Select
-                              value={product.document_sent ? 'sim' : 'nao'}
-                              onValueChange={(value) => 
-                                updateProductMutation.mutate({
-                                  id: product.id,
-                                  data: { document_sent: value === 'sim' }
-                                })
-                              }
-                            >
-                              <SelectTrigger className="bg-slate-700 border-slate-600 text-white h-8 w-20 mx-auto text-xs">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent className="bg-slate-800 border-slate-700">
-                                <SelectItem value="sim" className="text-white text-xs">Sim</SelectItem>
-                                <SelectItem value="nao" className="text-white text-xs">Não</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </td>
-                          <td className="px-3 py-2.5 text-center">
-                            <Select
-                              value={product.document_signed ? 'sim' : 'nao'}
-                              onValueChange={(value) => 
-                                updateProductMutation.mutate({
-                                  id: product.id,
-                                  data: { document_signed: value === 'sim' }
-                                })
-                              }
-                            >
-                              <SelectTrigger className="bg-slate-700 border-slate-600 text-white h-8 w-20 mx-auto text-xs">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent className="bg-slate-800 border-slate-700">
-                                <SelectItem value="sim" className="text-white text-xs">Sim</SelectItem>
-                                <SelectItem value="nao" className="text-white text-xs">Não</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                    {currentProducts.map(product => (
+                      <ProductDocumentRow 
+                        key={product.id}
+                        product={product}
+                        projectId={projectId}
+                        updateProductMutation={updateProductMutation}
+                      />
+                    ))}
                     {currentProducts.length === 0 && (
                       <tr>
                         <td colSpan={4} className="px-3 py-8 text-center text-slate-500 text-sm">
