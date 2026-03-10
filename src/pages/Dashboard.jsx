@@ -256,27 +256,24 @@ export default function Dashboard() {
   const eventsByVertical = {};
   
   if (activeProject?.scheduling_type === 'por_produto') {
-    // por_produto: pega apenas eventos do produto representativo (primeiro) de cada vertical
-    const verticalGroups = {};
-    filteredProducts.forEach(p => {
-      const v = p.vertical || 'outros';
-      if (!verticalGroups[v]) verticalGroups[v] = [];
-      verticalGroups[v].push(p);
-    });
-    
-    Object.entries(verticalGroups).forEach(([vertical, prods]) => {
-      const representativeProduct = prods[0];
-      if (!representativeProduct) return;
-      const vertEvents = filteredTimelineEvents.filter(e => e.product_id === representativeProduct.id);
-      if (vertEvents.length > 0) {
-        eventsByVertical[vertical] = vertEvents;
+    // por_produto: cada produto tem seu próprio cronograma
+    // Agrupa eventos por vertical (usando product_id)
+    filteredProducts.forEach(product => {
+      const vertical = product.vertical || 'outros';
+      const productEvents = filteredTimelineEvents.filter(e => e.product_id === product.id);
+      if (!eventsByVertical[vertical]) {
+        eventsByVertical[vertical] = [];
       }
+      eventsByVertical[vertical].push(...productEvents);
     });
   } else {
-    // por_vertical: usa todos os eventos da vertical (comportamento anterior)
-    const usedVerticals = [...new Set(filteredTimelineEvents.map(e => e.vertical).filter(Boolean))];
-    usedVerticals.forEach(vertical => {
-      eventsByVertical[vertical] = filteredTimelineEvents.filter(e => e.vertical === vertical);
+    // por_vertical: usa cronograma_id (todos os produtos da vertical compartilham as mesmas datas)
+    cronogramas.forEach(cronograma => {
+      const vertical = cronograma.vertical;
+      const cronogramaEvents = filteredTimelineEvents.filter(e => e.cronograma_id === cronograma.id);
+      if (cronogramaEvents.length > 0) {
+        eventsByVertical[vertical] = cronogramaEvents;
+      }
     });
   }
 
