@@ -270,7 +270,7 @@ export default function ExecutiveStatus() {
   const calculateProjectProgress = (project) => {
     // Buscar do cache primeiro (mais rápido e evita recálculos)
     const cache = allProgressCache.find(c => c.project_id === project.id);
-    if (cache && cache.overall_progress !== undefined) {
+    if (cache && typeof cache.overall_progress === 'number') {
       return Math.round(cache.overall_progress);
     }
 
