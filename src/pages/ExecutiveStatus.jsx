@@ -99,7 +99,7 @@ export default function ExecutiveStatus() {
   };
 
   // Fetch all projects
-  const { data: allProjectsData = [], isLoading, isError } = useQuery({
+  const { data: allProjectsData = [], isLoading: loadingProjects, isError } = useQuery({
     queryKey: ['projects', portfolioFilter],
     queryFn: () => base44.entities.Project.filter({ portfolio: portfolioFilter }, '-created_date'),
     staleTime: 60000,
@@ -109,11 +109,9 @@ export default function ExecutiveStatus() {
   
   // Filter out completed projects from overview
   const projects = allProjectsData.filter(p => p.status !== 'concluido');
-  
-
 
   // Fetch all cronogramas
-  const { data: allCronogramas = [] } = useQuery({
+  const { data: allCronogramas = [], isLoading: loadingCronogramas } = useQuery({
     queryKey: ['allCronogramas'],
     queryFn: () => base44.entities.Cronograma.list('-created_date', 500),
     staleTime: 60000,
@@ -121,7 +119,7 @@ export default function ExecutiveStatus() {
   });
 
   // Fetch all timeline events
-  const { data: allTimelineEvents = [] } = useQuery({
+  const { data: allTimelineEvents = [], isLoading: loadingEvents } = useQuery({
     queryKey: ['allTimelineEvents'],
     queryFn: () => base44.entities.TimelineEvent.list('-created_date', 99999999),
     staleTime: 60000,
@@ -129,14 +127,14 @@ export default function ExecutiveStatus() {
   });
 
   // Fetch all tasks - necessário para calcular health score corretamente
-  const { data: allHomologationTasks = [] } = useQuery({
+  const { data: allHomologationTasks = [], isLoading: loadingHomolog } = useQuery({
     queryKey: ['allHomologationTasks'],
     queryFn: () => base44.entities.HomologationTask.list('-created_date', 1000),
     staleTime: 120000,
     gcTime: 300000
   });
 
-  const { data: allMigrationTasks = [] } = useQuery({
+  const { data: allMigrationTasks = [], isLoading: loadingMigration } = useQuery({
     queryKey: ['allMigrationTasks'],
     queryFn: () => base44.entities.MigrationTask.list('-created_date', 1000),
     staleTime: 120000,
@@ -144,33 +142,36 @@ export default function ExecutiveStatus() {
   });
 
   // Fetch all risks
-  const { data: allRisks = [] } = useQuery({
+  const { data: allRisks = [], isLoading: loadingRisks } = useQuery({
     queryKey: ['allRisks'],
     queryFn: () => base44.entities.Risk.list('-created_date', 500),
     staleTime: 120000,
     gcTime: 300000
   });
 
-  const { data: allExpenses = [] } = useQuery({
+  const { data: allExpenses = [], isLoading: loadingExpenses } = useQuery({
     queryKey: ['allExpenses'],
     queryFn: () => base44.entities.Expense.list('-created_date', 1000),
     staleTime: 120000,
     gcTime: 300000
   });
 
-  const { data: allProducts = [] } = useQuery({
+  const { data: allProducts = [], isLoading: loadingProducts } = useQuery({
     queryKey: ['allProducts'],
     queryFn: () => base44.entities.Product.list('-created_date', 1000),
     staleTime: 120000,
     gcTime: 300000
   });
 
-  const { data: allRecognizedRevenues = [] } = useQuery({
+  const { data: allRecognizedRevenues = [], isLoading: loadingRevenues } = useQuery({
     queryKey: ['allRecognizedRevenues'],
     queryFn: () => base44.entities.RecognizedRevenue.list('-created_date', 1000),
     staleTime: 60000,
     gcTime: 300000
   });
+
+  // Loading global: aguarda TODOS os dados críticos carregarem
+  const isLoading = loadingProjects || loadingCronogramas || loadingEvents || loadingHomolog || loadingMigration || loadingRisks || loadingExpenses || loadingProducts || loadingRevenues;
 
   const createRecognizedRevenueMutation = useMutation({
     mutationFn: (data) => base44.entities.RecognizedRevenue.create(data),
