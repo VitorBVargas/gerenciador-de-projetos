@@ -25,23 +25,36 @@ const verticalLabels = {
 export default function KeyDocuments({ projectId, project, products = [] }) {
   const queryClient = useQueryClient();
   
-  // Group products by vertical
-  const productsByVertical = {};
-  products.forEach(p => {
-    const v = p.vertical || 'outros';
-    if (!productsByVertical[v]) productsByVertical[v] = [];
-    productsByVertical[v].push(p);
-  });
-  
-  const verticals = Object.keys(productsByVertical).sort();
-  const [activeVertical, setActiveVertical] = useState(verticals[0] || '');
+  // State for filters
+  const [selectedEntity, setSelectedEntity] = useState(null);
+  const [selectedVertical, setSelectedVertical] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
-  // Fetch standard documents for active vertical
+  // Get all entities and verticals from products
+  const allEntities = [...new Set(products.map(p => p.entity).filter(Boolean))].sort((a, b) => {
+    if (a === 'PM') return -1;
+    if (b === 'PM') return 1;
+    return a.localeCompare(b);
+  });
+
+  // Filter products based on selected entity
+  const productsForEntity = selectedEntity 
+    ? products.filter(p => p.entity === selectedEntity)
+    : products;
+
+  // Get verticals for filtered products
+  const verticals = [...new Set(productsForEntity.map(p => p.vertical || 'outros'))].sort();
+
+  // Filter products by vertical
+  const productsForVertical = selectedVertical
+    ? productsForEntity.filter(p => (p.vertical || 'outros') === selectedVertical)
+    : productsForEntity;
+
+  // Fetch standard documents for selected vertical
   const { data: standardDocs = [] } = useQuery({
-    queryKey: ['standardDocuments', activeVertical],
-    queryFn: () => base44.entities.StandardDocument.filter({ vertical: activeVertical }),
-    enabled: !!activeVertical,
+    queryKey: ['standardDocuments', selectedVertical],
+    queryFn: () => base44.entities.StandardDocument.filter({ vertical: selectedVertical }),
+    enabled: !!selectedVertical,
   });
 
   // Fetch product document statuses
@@ -51,14 +64,6 @@ export default function KeyDocuments({ projectId, project, products = [] }) {
     enabled: !!selectedProduct?.id,
   });
 
-  const verticalProducts = productsByVertical[activeVertical] || [];
-  const entitiesInVertical = [...new Set(verticalProducts.map(p => p.entity).filter(Boolean))].sort((a, b) => {
-    if (a === 'PM') return -1;
-    if (b === 'PM') return 1;
-    return a.localeCompare(b);
-  });
-
-  // Filter products by entity if a specific product is selected
   const currentProduct = selectedProduct;
 
   const updateStatusMutation = useMutation({
@@ -94,7 +99,7 @@ export default function KeyDocuments({ projectId, project, products = [] }) {
     }
   };
 
-  if (verticals.length === 0) {
+  if (allEntities.length === 0 || products.length === 0) {
     return (
       <Card className="bg-slate-800/50 border-slate-700/50">
         <CardContent className="py-12 text-center">
@@ -110,110 +115,172 @@ export default function KeyDocuments({ projectId, project, products = [] }) {
         <CardTitle className="text-white">Controle de Documentos</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Tabs value={activeVertical} onValueChange={(v) => {
-          setActiveVertical(v);
-          setSelectedProduct(null);
-        }}>
-          <TabsList className="bg-slate-700 border border-slate-600 flex-wrap h-auto p-1 gap-1">
-            {verticals.map(v => (
-              <TabsTrigger 
-                key={v} 
-                value={v} 
-                className="data-[state=active]:bg-blue-600 text-xs"
-              >
-                {verticalLabels[v] || v}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-
-          {verticals.map(vertical => (
-            <TabsContent key={vertical} value={vertical} className="space-y-4 mt-4">
-              {/* Product Filter */}
-              {entitiesInVertical.length > 0 && (
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs text-slate-400">Produto:</span>
-                  <button
-                    onClick={() => setSelectedProduct(null)}
-                    className={cn(
-                      "px-2.5 py-1 rounded-full text-xs font-medium transition-all border",
-                      !selectedProduct
-                        ? 'bg-blue-600 text-white border-blue-600'
-                        : 'bg-slate-700 text-slate-400 hover:text-white border-slate-600'
-                    )}
-                  >
-                    Todos
-                  </button>
-                  {verticalProducts.map(product => (
-                    <button
-                      key={product.id}
-                      onClick={() => setSelectedProduct(product)}
-                      className={cn(
-                        "px-2.5 py-1 rounded-full text-xs font-medium transition-all border",
-                        selectedProduct?.id === product.id
-                          ? 'bg-blue-600 text-white border-blue-600'
-                          : 'bg-slate-700 text-slate-400 hover:text-white border-slate-600'
-                      )}
-                    >
-                      {product.name} ({product.entity})
-                    </button>
-                  ))}
-                </div>
+        {/* Filters */}
+        <div className="space-y-3 pb-4 border-b border-slate-700">
+          {/* Entity Filter */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs font-semibold text-slate-300">Entidades:</span>
+            <button
+              onClick={() => {
+                setSelectedEntity(null);
+                setSelectedVertical(null);
+                setSelectedProduct(null);
+              }}
+              className={cn(
+                "px-2.5 py-1 rounded text-xs font-medium transition-all border",
+                !selectedEntity
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-slate-700 text-slate-400 hover:text-white border-slate-600'
               )}
-
-              {/* Documents List */}
-              <div className="space-y-2">
-                {standardDocs.length === 0 ? (
-                  <p className="text-slate-500 text-sm py-8 text-center">Nenhum documento padrão para esta vertical</p>
-                ) : (
-                  standardDocs.map(doc => {
-                    const status = docStatuses.find(s => s.document_id === doc.id);
-                    return (
-                      <div key={doc.id} className="flex items-center gap-3 p-3 bg-slate-700/30 rounded-lg border border-slate-700">
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-white">{doc.name}</p>
-                        </div>
-                        
-                        <div className="flex items-center gap-3">
-                          <label className="flex items-center gap-2 cursor-pointer">
-                            <Checkbox
-                              checked={status?.sent || false}
-                              onCheckedChange={(checked) => handleStatusChange(doc.id, 'sent', checked)}
-                              disabled={!currentProduct}
-                              className={cn(
-                                "border-slate-500",
-                                !currentProduct && "opacity-50 cursor-not-allowed"
-                              )}
-                            />
-                            <span className="text-xs text-slate-400">Enviado</span>
-                          </label>
-                          
-                          <label className="flex items-center gap-2 cursor-pointer">
-                            <Checkbox
-                              checked={status?.signed || false}
-                              onCheckedChange={(checked) => handleStatusChange(doc.id, 'signed', checked)}
-                              disabled={!currentProduct}
-                              className={cn(
-                                "border-slate-500",
-                                !currentProduct && "opacity-50 cursor-not-allowed"
-                              )}
-                            />
-                            <span className="text-xs text-slate-400">Assinado</span>
-                          </label>
-                        </div>
-                      </div>
-                    );
-                  })
+            >
+              Todos
+            </button>
+            {allEntities.map(entity => (
+              <button
+                key={entity}
+                onClick={() => {
+                  setSelectedEntity(entity === selectedEntity ? null : entity);
+                  setSelectedVertical(null);
+                  setSelectedProduct(null);
+                }}
+                className={cn(
+                  "px-2.5 py-1 rounded text-xs font-medium transition-all border",
+                  selectedEntity === entity
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-slate-700 text-slate-400 hover:text-white border-slate-600'
                 )}
-              </div>
+              >
+                {entity}
+              </button>
+            ))}
+          </div>
 
-              {currentProduct && (
-                <p className="text-xs text-slate-500 text-center mt-4">
-                  Marcando status para: <span className="font-semibold text-slate-400">{currentProduct.name}</span>
-                </p>
-              )}
-            </TabsContent>
-          ))}
-        </Tabs>
+          {/* Vertical Filter */}
+          {verticals.length > 0 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-semibold text-slate-300">Vertical:</span>
+              <button
+                onClick={() => {
+                  setSelectedVertical(null);
+                  setSelectedProduct(null);
+                }}
+                className={cn(
+                  "px-2.5 py-1 rounded text-xs font-medium transition-all border",
+                  !selectedVertical
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-slate-700 text-slate-400 hover:text-white border-slate-600'
+                )}
+              >
+                Todos
+              </button>
+              {verticals.map(v => (
+                <button
+                  key={v}
+                  onClick={() => {
+                    setSelectedVertical(v === selectedVertical ? null : v);
+                    setSelectedProduct(null);
+                  }}
+                  className={cn(
+                    "px-2.5 py-1 rounded text-xs font-medium transition-all border",
+                    selectedVertical === v
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'bg-slate-700 text-slate-400 hover:text-white border-slate-600'
+                  )}
+                >
+                  {verticalLabels[v] || v}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Product Filter */}
+          {productsForVertical.length > 0 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-semibold text-slate-300">Produto:</span>
+              <button
+                onClick={() => setSelectedProduct(null)}
+                className={cn(
+                  "px-2.5 py-1 rounded text-xs font-medium transition-all border",
+                  !selectedProduct
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-slate-700 text-slate-400 hover:text-white border-slate-600'
+                )}
+              >
+                Todos
+              </button>
+              {productsForVertical.map(product => (
+                <button
+                  key={product.id}
+                  onClick={() => setSelectedProduct(product === selectedProduct ? null : product)}
+                  className={cn(
+                    "px-2.5 py-1 rounded text-xs font-medium transition-all border",
+                    selectedProduct?.id === product.id
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'bg-slate-700 text-slate-400 hover:text-white border-slate-600'
+                  )}
+                >
+                  {product.name}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Documents List */}
+        {selectedVertical ? (
+          <div className="space-y-2">
+            {standardDocs.length === 0 ? (
+              <p className="text-slate-500 text-sm py-8 text-center">Nenhum documento padrão para esta vertical</p>
+            ) : (
+              standardDocs.map(doc => {
+                const status = docStatuses.find(s => s.document_id === doc.id);
+                return (
+                  <div key={doc.id} className="flex items-center gap-3 p-3 bg-slate-700/30 rounded-lg border border-slate-700">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-white">{doc.name}</p>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <Checkbox
+                          checked={status?.sent || false}
+                          onCheckedChange={(checked) => handleStatusChange(doc.id, 'sent', checked)}
+                          disabled={!currentProduct}
+                          className={cn(
+                            "border-slate-500",
+                            !currentProduct && "opacity-50 cursor-not-allowed"
+                          )}
+                        />
+                        <span className="text-xs text-slate-400">Enviado</span>
+                      </label>
+                      
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <Checkbox
+                          checked={status?.signed || false}
+                          onCheckedChange={(checked) => handleStatusChange(doc.id, 'signed', checked)}
+                          disabled={!currentProduct}
+                          className={cn(
+                            "border-slate-500",
+                            !currentProduct && "opacity-50 cursor-not-allowed"
+                          )}
+                        />
+                        <span className="text-xs text-slate-400">Assinado</span>
+                      </label>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        ) : (
+          <p className="text-slate-500 text-sm py-8 text-center">Selecione uma vertical para visualizar documentos</p>
+        )}
+
+        {currentProduct && selectedVertical && (
+          <p className="text-xs text-slate-500 text-center mt-4 border-t border-slate-700 pt-4">
+            Marcando status para: <span className="font-semibold text-slate-400">{currentProduct.name}</span>
+          </p>
+        )}
       </CardContent>
     </Card>
   );
