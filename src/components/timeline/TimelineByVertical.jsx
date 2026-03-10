@@ -125,14 +125,9 @@ export default function TimelineByVertical({ verticals, entityProducts, timeline
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <div className="flex gap-3">
-                          <button onClick={() => onEdit(event, representativeProduct?.id)} className="text-slate-400 hover:text-blue-400 transition">
-                            <Pencil className="w-4 h-4" />
-                          </button>
-                          <button onClick={() => onDelete(event.id)} className="text-slate-400 hover:text-red-400 transition">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
+                        <button onClick={() => onEdit(event, representativeProduct?.id)} className="text-slate-400 hover:text-blue-400 transition">
+                          <Pencil className="w-4 h-4" />
+                        </button>
                       </td>
                     </tr>
                   ))}
