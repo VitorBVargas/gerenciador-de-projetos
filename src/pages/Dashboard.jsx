@@ -621,34 +621,8 @@ export default function Dashboard() {
         <MigrationProgressChart products={filteredProducts} tasks={filteredMigrationTasks} />
       )}
 
-      {/* Marcos e Documentos */}
-     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="bg-slate-800/50 border-slate-700/50">
-          <CardHeader>
-            <CardTitle className="text-white">Etapas Principais</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {milestones.sort((a, b) => a.order - b.order).map((milestone) => (
-              <div key={milestone.id} className="flex items-center gap-3">
-                <Checkbox 
-                  checked={milestone.completed}
-                  onCheckedChange={(checked) => toggleMilestoneMutation.mutate({ 
-                    id: milestone.id, 
-                    completed: checked 
-                  })}
-                  className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" 
-                />
-                <span className={cn(
-                  "text-sm",
-                  milestone.completed ? "text-slate-500 line-through" : "text-white"
-                )}>{milestone.title}</span>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        <KeyDocuments projectId={projectId} project={activeProject} />
-      </div>
+      {/* Documentos Chave */}
+      <KeyDocuments projectId={projectId} project={activeProject} products={products} />
 
       {/* Project Modal */}
       <ProjectModal
