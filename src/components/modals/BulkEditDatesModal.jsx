@@ -214,11 +214,10 @@ export default function BulkEditDatesModal({
                 checked={editAllMode}
                 onCheckedChange={(checked) => {
                   setEditAllMode(checked);
-                  setSelectedEntity('');
+                  setSelectedEntities([]);
                   setSelectedVertical('');
-                  setSelectedPhase(null);
-                  setPhaseStartDate('');
-                  setPhaseEndDate('');
+                  setExpandedPhases([]);
+                  setPhaseEdits({});
                 }}
                 className="border-slate-500"
               />
@@ -311,14 +310,13 @@ export default function BulkEditDatesModal({
                       return <p className="text-slate-400 text-sm py-4 text-center">Nenhuma atividade encontrada</p>;
                     }
 
-                    // Group by title and show one of each
+                    // Group by phase (not title) to show one of each phase
                     const uniqueActivities = [];
-                    const seenTitles = new Set();
+                    const seenPhases = new Set();
 
                     filteredEvents.forEach(event => {
-                      const activityTitle = event.title || phaseLabels[event.phase] || event.phase;
-                      if (!seenTitles.has(activityTitle)) {
-                        seenTitles.add(activityTitle);
+                      if (!seenPhases.has(event.phase)) {
+                        seenPhases.add(event.phase);
                         uniqueActivities.push(event);
                       }
                     });
@@ -330,7 +328,7 @@ export default function BulkEditDatesModal({
                        const edit = getPhaseEdit(event.phase);
 
                        return (
-                         <div key={event.id}>
+                         <div key={event.phase}>
                            <button
                              onClick={() => togglePhaseExpand(event.phase)}
                              className={`w-full flex items-center justify-between p-3 rounded border transition ${
@@ -341,7 +339,7 @@ export default function BulkEditDatesModal({
                            >
                              <div className="flex items-center gap-2 flex-1 text-left">
                                <span className="text-sm">
-                                 {event.title || phaseLabels[event.phase] || event.phase}
+                                 {phaseLabels[event.phase] || event.phase}
                                </span>
                                <span className="text-xs text-slate-500">
                                  ({eventCount} produto{eventCount > 1 ? 's' : ''})
