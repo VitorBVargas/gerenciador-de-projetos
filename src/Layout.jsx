@@ -92,7 +92,7 @@ export default function Layout({ children, currentPageName }) {
           to={createPageUrl(
             currentPageName === 'ProjectsList' ? 'Home' :
             currentPageName === 'Home' || currentPageName === 'ExecutiveStatus' ? 'Home' :
-            'ProjectsList'
+            activeProject?.portfolio ? `ProjectsList?portfolio=${activeProject.portfolio}` : 'ProjectsList'
           )} 
           className="flex items-center h-16 px-4 border-b border-slate-800 hover:bg-slate-800 transition-colors"
         >
