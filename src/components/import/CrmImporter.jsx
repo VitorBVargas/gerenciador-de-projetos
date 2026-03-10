@@ -6,6 +6,7 @@ import { Upload, FileSpreadsheet, AlertCircle, Loader2, Plus } from "lucide-reac
 import * as XLSX from 'xlsx';
 import { base44 } from '@/api/base44Client';
 import ProjectRegistrationFlow from './ProjectRegistrationFlow';
+import { inferEntityCode, registerEntity } from '../EntityNameMap';
 
 // 12 etapas padrão — chave snake_case é a phase key, label é o título
 const STANDARD_PHASES = [
@@ -22,34 +23,6 @@ const STANDARD_PHASES = [
   { key: 'operacao_assistida', title: 'Operação Assistida' },
   { key: 'encerramento_bastao', title: 'Encerramento/Passagem de Bastão' },
 ];
-
-const inferEntityCode = (entityName) => {
-  const name = entityName.toLowerCase();
-  const raw = entityName.trim();
-
-  // Tenta extrair sigla do início do nome (ex: "SAEMA - Serviço..." ou "ARAPREV - ..." ou "TCA ...")
-  // Aceita: SIGLA seguida de traço/espaço/vírgula ou fim de trecho antes de palavra minúscula
-  const siglaMatch = raw.match(/^([A-Z]{2,8})(?:\s*[-–,]|\s+(?=[a-záéíóúâêôãõç])|\s*$)/);
-  if (siglaMatch) return siglaMatch[1];
-
-  // Tenta extrair sigla entre parênteses no início
-  const parenMatch = raw.match(/^\(([A-Z]{2,8})\)/);
-  if (parenMatch) return parenMatch[1];
-
-  // Regras específicas por palavra-chave
-  if (name.includes('câmara') || name.includes('camara')) return 'CM';
-  if (name.includes('prefeitura') || name.includes('município') || name.includes('municipio')) return 'PM';
-  if (name.includes('saúde') || (name.includes('saude') && !name.includes('assistencia'))) return 'FMS';
-  if (name.includes('educação') || name.includes('educacao') || name.includes('fundo municipal de educa')) return 'FME';
-  if (name.includes('araprev')) return 'ARAPREV';
-  if (name.includes('previdencia') || name.includes('previdência') || name.includes('ipas')) return 'IPAS';
-  if (name.includes('assistencia social') || name.includes('assistência social') || name.includes('fmas')) return 'FMAS';
-  if (name.includes('meio ambiente')) return 'FMA';
-  if (name.includes('fundeb')) return 'FUNDEB';
-
-  // Fallback: primeiras letras de palavras com mais de 2 caracteres
-  return raw.split(/[\s\-–]+/).filter(w => w.length > 2 && /^[A-Za-zÀ-ú]/.test(w)).map(w => w[0].toUpperCase()).join('').slice(0, 5);
-};
 
 const inferVertical = (productName) => {
   const name = productName.toLowerCase();
@@ -155,6 +128,7 @@ const parseCrmData = (workbook) => {
     if (!entityFull || !productName) return;
 
     const entityCode = inferEntityCode(entityFull);
+    registerEntity(entityCode, entityFull); // Armazena mapeamento para futuras importações
     entityNames[entityCode] = entityFull;
 
     if (!entityProductMap[entityCode]) entityProductMap[entityCode] = {};
