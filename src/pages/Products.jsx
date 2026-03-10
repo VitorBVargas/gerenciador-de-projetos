@@ -22,6 +22,7 @@ import { VERTICAL_BADGE_COLORS } from '../components/verticalColors';
 import EmptyState from '../components/ui/EmptyState';
 import PasswordGracePeriodModal from '../components/modals/PasswordGracePeriodModal';
 import EntityFilter from '../components/filters/EntityFilter';
+import EntityBadge from '../components/EntityBadge';
 import ProductRecognitionModal from '../components/modals/ProductRecognitionModal';
 import {
   AlertDialog,
@@ -383,9 +384,10 @@ export default function Products() {
                           </div>
                           <h4 className="font-semibold text-white text-xs mb-1.5 line-clamp-2">{product.name}</h4>
                           {product.entity && (
-                            <p className="text-[10px] text-slate-400 mb-1 truncate">
-                              <span className="text-slate-500">Entidade:</span> {product.entity}
-                            </p>
+                            <div className="text-[10px] text-slate-400 mb-1 flex items-center gap-1">
+                              <span className="text-slate-500">Entidade:</span>
+                              <EntityBadge code={product.entity} size="sm" />
+                            </div>
                           )}
                           {product.ticket_number && (
                              <p className="text-[10px] text-slate-400 truncate">
