@@ -25,7 +25,7 @@ import StatCard from '../components/dashboard/StatCard.jsx';
 import ProgressChart from '../components/dashboard/ProgressChart.jsx';
 import MigrationProgressChart from '../components/dashboard/MigrationProgressChart.jsx';
 import HomologationProgressChart from '../components/dashboard/HomologationProgressChart.jsx';
-import ProjectHealthScore from '../components/dashboard/ProjectHealthScore.jsx';
+import ProjectHealthScore, { calculateHealthScore } from '../components/dashboard/ProjectHealthScore.jsx';
 import ProjectModal from '../components/modals/ProjectModal.jsx';
 import ExcelImporter from '../components/import/ExcelImporter.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
@@ -279,7 +279,6 @@ export default function Dashboard() {
   });
 
   // Calculate health score
-  const { calculateHealthScore } = require('../components/dashboard/ProjectHealthScore.jsx');
   const { score: healthScore } = calculateHealthScore({ 
     timeline: timelineEvents, 
     budget: activeProject?.budget || 0, 
