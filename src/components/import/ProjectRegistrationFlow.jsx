@@ -137,8 +137,8 @@ function StepOverview({ data, onChange }) {
             className="bg-slate-700 border-slate-600 text-white" />
         </div>
         <div className="space-y-1.5">
-          <Label className="text-slate-300">Portfólio do Projeto</Label>
-          <Select value={data.portfolio} onValueChange={v => onChange({ ...data, portfolio: v })}>
+          <Label className="text-slate-300">Portfólio do Projeto *</Label>
+          <Select value={data.portfolio} onValueChange={v => onChange({ ...data, portfolio: v })} required>
             <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
               <SelectValue placeholder="Selecione..." />
             </SelectTrigger>
@@ -541,7 +541,7 @@ export default function ProjectRegistrationFlow({ open, onOpenChange, parsedData
   };
 
   const canNext = () => {
-    if (step === 0) return projectInfo.name.trim().length > 0;
+    if (step === 0) return projectInfo.name.trim().length > 0 && projectInfo.portfolio;
     if (step === 1) return cronogramas.length > 0;
     return true;
   };
