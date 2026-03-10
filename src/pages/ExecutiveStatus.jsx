@@ -498,8 +498,9 @@ export default function ExecutiveStatus() {
       if (monthlyData[recMonth]) monthlyData[recMonth].reconhecido += recognized.amount;
     });
 
-    // Filter chartData to show only current month forward (remover este filtro para mostrar todos os meses)
+    // Filter chartData to show only current month forward
     const chartData = Object.entries(monthlyData)
+      .filter(([key]) => key >= currentYearMonth)
       .map(([, value]) => value);
 
     return { monthlyData, chartData };
