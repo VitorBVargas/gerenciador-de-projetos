@@ -14,7 +14,7 @@ const verticalLabels = {
 
 const statusLabels = {
   nao_iniciado: 'Não Iniciado', em_andamento: 'Em Andamento',
-  concluido: 'Concluído', atrasado: 'Atrasado'
+  concluido: 'Concluído/Não Se Aplica', atrasado: 'Atrasado'
 };
 
 const statusColors = {
