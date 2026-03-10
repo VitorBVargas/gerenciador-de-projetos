@@ -225,12 +225,22 @@ export default function Dashboard() {
     ? timelineEvents.filter(e => !e.vertical || filteredVerticals.includes(e.vertical))
     : timelineEvents;
 
+  const calcEventProgressDash = (e) => {
+    if (e.status === 'concluido') return 100;
+    if (e.progress > 0) return e.progress;
+    if (e.start_date && e.end_date) {
+      const now = new Date();
+      const start = new Date(e.start_date);
+      const end = new Date(e.end_date);
+      if (now <= start) return 0;
+      if (now >= end) return 99;
+      return Math.round(((now - start) / (end - start)) * 100);
+    }
+    return 0;
+  };
+
   const projectProgress = filteredTimelineEvents.length > 0
-    ? Math.round(filteredTimelineEvents.reduce((sum, e) => {
-        // Usar 100% se status for concluído, caso contrário usar o valor de progress
-        if (e.status === 'concluido') return sum + 100;
-        return sum + (e.progress || 0);
-      }, 0) / filteredTimelineEvents.length)
+    ? Math.round(filteredTimelineEvents.reduce((sum, e) => sum + calcEventProgressDash(e), 0) / filteredTimelineEvents.length)
     : 0;
 
   const tasksCompleted = filteredHomologationTasks.filter(t => t.completed).length;
