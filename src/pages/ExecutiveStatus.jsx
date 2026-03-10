@@ -647,13 +647,58 @@ export default function ExecutiveStatus() {
     return 'bg-red-500/20 border-red-500/30';
   };
 
+  // Contagem de etapas carregadas para barra de progresso
+  const loadingSteps = [
+    { label: 'Projetos', done: !loadingProjects },
+    { label: 'Cronogramas', done: !loadingCronogramas },
+    { label: 'Etapas do cronograma', done: !loadingEvents },
+    { label: 'Tarefas de homologação', done: !loadingHomolog },
+    { label: 'Tarefas de migração', done: !loadingMigration },
+    { label: 'Riscos', done: !loadingRisks },
+    { label: 'Despesas', done: !loadingExpenses },
+    { label: 'Produtos', done: !loadingProducts },
+    { label: 'Receitas reconhecidas', done: !loadingRevenues },
+  ];
+  const loadedCount = loadingSteps.filter(s => s.done).length;
+  const loadingPercent = Math.round((loadedCount / loadingSteps.length) * 100);
+
   // Early returns MUST come AFTER all hooks
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 p-6 lg:p-8 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3 text-white">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
-          <span className="text-slate-300">Carregando portfólio...</span>
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-6 w-80">
+          <div className="w-16 h-16 rounded-2xl bg-blue-600 flex items-center justify-center">
+            <span className="text-white font-bold text-2xl">B</span>
+          </div>
+          <div className="text-center">
+            <h2 className="text-xl font-bold text-white mb-1">Carregando Portfólio</h2>
+            <p className="text-slate-400 text-sm">Aguarde, buscando todos os dados...</p>
+          </div>
+          {/* Barra de progresso */}
+          <div className="w-full space-y-2">
+            <div className="flex justify-between text-xs text-slate-400">
+              <span>{loadedCount} de {loadingSteps.length} etapas</span>
+              <span>{loadingPercent}%</span>
+            </div>
+            <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-blue-500 rounded-full transition-all duration-500"
+                style={{ width: `${loadingPercent}%` }}
+              />
+            </div>
+          </div>
+          {/* Lista de etapas */}
+          <div className="w-full space-y-1.5">
+            {loadingSteps.map((step) => (
+              <div key={step.label} className="flex items-center gap-2 text-sm">
+                {step.done
+                  ? <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
+                  : <Loader2 className="w-4 h-4 text-blue-400 animate-spin flex-shrink-0" />
+                }
+                <span className={step.done ? 'text-slate-400 line-through' : 'text-slate-300'}>{step.label}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
