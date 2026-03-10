@@ -17,7 +17,8 @@ import {
   ChevronLeft,
   ChevronRight,
   DollarSign,
-  FolderOpen
+  FolderOpen,
+  Database
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
@@ -35,6 +36,7 @@ const navigation = [
   { name: 'IA Projetos Betha', href: 'StatusReports', icon: FileText },
   { name: 'Relatórios', href: 'Reports', icon: FileText },
   { name: 'Riscos', href: 'Risks', icon: AlertTriangle },
+  { name: 'Backups', href: 'BackupManagement', icon: Database },
 ];
 
 export default function Layout({ children, currentPageName }) {
