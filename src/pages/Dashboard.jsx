@@ -263,6 +263,14 @@ export default function Dashboard() {
     ? Math.round(filteredTimelineEvents.reduce((sum, e) => sum + calcEventProgressDash(e), 0) / filteredTimelineEvents.length)
     : 0;
 
+  // Fetch cached data
+  const { data: progressCache = null } = useQuery({
+    queryKey: ['progressCache', projectId],
+    queryFn: () => projectId ? base44.entities.ProjectProgressCache.filter({ project_id: projectId }).then(r => r[0] || null) : null,
+    enabled: !!projectId,
+    staleTime: 5 * 60 * 1000
+  });
+
   // Update cache whenever progress changes
   React.useEffect(() => {
     if (projectId && projectProgress >= 0) {
@@ -272,6 +280,18 @@ export default function Dashboard() {
       }).catch(err => console.error('Failed to update cache:', err));
     }
   }, [projectId, projectProgress]);
+
+  // Get estimated deadline from cache or calculate
+  const estimatedDeadline = progressCache?.estimated_deadline || 
+    (timelineEvents.length > 0 
+      ? (() => {
+          const validDates = timelineEvents
+            .filter(e => e.end_date)
+            .map(e => new Date(e.end_date).getTime())
+            .filter(t => t > 0);
+          return validDates.length > 0 ? new Date(Math.max(...validDates)).toISOString().split('T')[0] : null;
+        })()
+      : null);
 
   const tasksCompleted = filteredHomologationTasks.filter(t => t.completed).length;
   const totalTasks = filteredHomologationTasks.length;
@@ -490,14 +510,21 @@ export default function Dashboard() {
                         )}
 
                         {activeProject.deadline && (
-                          <div className="text-slate-400">
-                            <span className="text-slate-500">Prazo:</span> <span className={cn(
-                              daysToDeadline < 0 ? "text-red-400" : daysToDeadline < 30 ? "text-yellow-400" : "text-white"
-                            )}>
-                              {format(new Date(activeProject.deadline), "dd 'de' MMMM, yyyy", { locale: ptBR })}
-                            </span>
-                          </div>
-                        )}
+                           <div className="text-slate-400">
+                             <span className="text-slate-500">Prazo Contratual:</span> <span className={cn(
+                               daysToDeadline < 0 ? "text-red-400" : daysToDeadline < 30 ? "text-yellow-400" : "text-white"
+                             )}>
+                               {format(new Date(activeProject.deadline), "dd 'de' MMMM, yyyy", { locale: ptBR })}
+                             </span>
+                           </div>
+                         )}
+                         {estimatedDeadline && (
+                           <div className="text-slate-400">
+                             <span className="text-slate-500">Prazo Estimado:</span> <span className="text-blue-400">
+                               {format(new Date(estimatedDeadline), "dd 'de' MMMM, yyyy", { locale: ptBR })}
+                             </span>
+                           </div>
+                         )}
                       </div>
                     </div>
                     {activeProject?.contract_link && (
