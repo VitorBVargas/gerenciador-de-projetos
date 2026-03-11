@@ -92,12 +92,23 @@ const educacaoCloudTasks = parseTasksIntoSections([
   'Treinamento realizado com equipe técnica'
 ]);
 
+const professoresCloudTasks = parseTasksIntoSections([
+  'Diário de Classe',
+  'Diário aberto para a turma',
+  'Frequência disponível',
+  'Avaliações lançadas corretamente',
+  'Conteúdos registrados',
+  'Fechamento do diário realizado'
+]);
+
 export const getExtendedTasksForProduct = (productName) => {
   const tasks = {
     'obras': obrasCloudTasks,
     'obras (cloud)': obrasCloudTasks,
     'educacao': educacaoCloudTasks,
-    'educacao (cloud)': educacaoCloudTasks
+    'educacao (cloud)': educacaoCloudTasks,
+    'professores': professoresCloudTasks,
+    'professores (cloud)': professoresCloudTasks
   };
   
   const normalized = (productName || '').toLowerCase().replace(/\(cloud\)/g, '').trim();

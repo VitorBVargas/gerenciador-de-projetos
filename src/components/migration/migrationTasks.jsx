@@ -1108,6 +1108,14 @@ export const migrationTasksByProduct = {
     'Extrair Dados de Empenhos',
     'Extrair Dados de Licitações'
   ]),
+  'Professores (Cloud)': parseTasksIntoSections([
+    'Diário de Classe',
+    'Diário aberto para a turma',
+    'Frequência disponível',
+    'Avaliações lançadas corretamente',
+    'Conteúdos registrados',
+    'Fechamento do diário realizado'
+  ]),
   'Frotas (Cloud)': [
     {
       section: 'Dados Cadastrais',
