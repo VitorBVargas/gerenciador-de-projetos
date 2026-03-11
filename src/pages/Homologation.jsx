@@ -45,24 +45,22 @@ export default function Homologation() {
   const urlParams = new URLSearchParams(window.location.search);
   const projectId = urlParams.get('project_id');
 
-  const { data: projects = [], isLoading: isLoadingProjects } = useQuery({
+  const { data: projects = [] } = useQuery({
     queryKey: ['projects'],
     queryFn: () => base44.entities.Project.list('-created_date')
   });
 
-  const { data: products = [], isLoading: isLoadingProducts } = useQuery({
+  const { data: products = [] } = useQuery({
     queryKey: ['products', projectId],
     queryFn: () => projectId ? base44.entities.Product.filter({ project_id: projectId }) : [],
     enabled: !!projectId
   });
 
-  const { data: tasks = [], isLoading: isLoadingTasks } = useQuery({
+  const { data: tasks = [] } = useQuery({
     queryKey: ['homologationTasks', projectId],
     queryFn: () => projectId ? base44.entities.HomologationTask.filter({ project_id: projectId }) : [],
     enabled: !!projectId
   });
-
-  const isInitialLoading = !projectId || isLoadingProjects || isLoadingProducts || isLoadingTasks;
 
   const activeProject = projects.find(p => p.id === projectId);
 
@@ -380,24 +378,6 @@ export default function Homologation() {
       queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
     }
   };
-
-  if (isInitialLoading) {
-    return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <Loader2 className="w-12 h-12 animate-spin text-blue-500 mx-auto" />
-          <div>
-            <h3 className="text-lg font-semibold text-white">Carregando Homologação</h3>
-            <p className="text-sm text-slate-400 mt-1">
-              {isLoadingProjects && 'Carregando projeto...'}
-              {!isLoadingProjects && isLoadingProducts && 'Carregando produtos...'}
-              {!isLoadingProjects && !isLoadingProducts && isLoadingTasks && 'Carregando tarefas...'}
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="p-6 lg:p-8 space-y-6">

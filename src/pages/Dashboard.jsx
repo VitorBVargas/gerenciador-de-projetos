@@ -13,8 +13,7 @@ import {
   AlertTriangle,
   Plus,
   ExternalLink,
-  Upload,
-  Loader2
+  Upload
 } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -56,7 +55,7 @@ export default function Dashboard() {
   const [hasShownInsights, setHasShownInsights] = useState(false);
 
   // Fetch all data with staleTime to reduce re-fetches
-  const { data: projects = [], isLoading: isLoadingProjects } = useQuery({
+  const { data: projects = [] } = useQuery({
     queryKey: ['projects'],
     queryFn: () => base44.entities.Project.list('-created_date'),
     staleTime: 5 * 60 * 1000 // 5 minutes
@@ -69,42 +68,42 @@ export default function Dashboard() {
     }
   }, [projectId, projects.length]);
 
-  const { data: teamMembers = [], isLoading: isLoadingTeam } = useQuery({
+  const { data: teamMembers = [] } = useQuery({
     queryKey: ['teamMembers', projectId],
     queryFn: () => projectId ? base44.entities.TeamMember.filter({ project_id: projectId }) : [],
     enabled: !!projectId,
     staleTime: 3 * 60 * 1000
   });
 
-  const { data: products = [], isLoading: isLoadingProducts } = useQuery({
+  const { data: products = [] } = useQuery({
     queryKey: ['products', projectId],
     queryFn: () => projectId ? base44.entities.Product.filter({ project_id: projectId }) : [],
     enabled: !!projectId,
     staleTime: 3 * 60 * 1000
   });
 
-  const { data: timelineEvents = [], isLoading: isLoadingTimeline } = useQuery({
+  const { data: timelineEvents = [] } = useQuery({
     queryKey: ['timelineEvents', projectId],
     queryFn: () => projectId ? base44.entities.TimelineEvent.filter({ project_id: projectId }) : [],
     enabled: !!projectId,
     staleTime: 2 * 60 * 1000
   });
 
-  const { data: migrationTasks = [], isLoading: isLoadingMigration } = useQuery({
+  const { data: migrationTasks = [] } = useQuery({
     queryKey: ['migrationTasks', projectId],
     queryFn: () => projectId ? base44.entities.MigrationTask.filter({ project_id: projectId }) : [],
     enabled: !!projectId,
     staleTime: 3 * 60 * 1000
   });
 
-  const { data: homologationTasks = [], isLoading: isLoadingHomologation } = useQuery({
+  const { data: homologationTasks = [] } = useQuery({
     queryKey: ['homologationTasks', projectId],
     queryFn: () => projectId ? base44.entities.HomologationTask.filter({ project_id: projectId }) : [],
     enabled: !!projectId,
     staleTime: 3 * 60 * 1000
   });
 
-  const { data: risks = [], isLoading: isLoadingRisks } = useQuery({
+  const { data: risks = [] } = useQuery({
     queryKey: ['risks', projectId],
     queryFn: () => projectId ? base44.entities.Risk.filter({ project_id: projectId }) : [],
     enabled: !!projectId,
@@ -131,9 +130,6 @@ export default function Dashboard() {
     enabled: !!projectId,
     staleTime: 3 * 60 * 1000
   });
-
-  const isInitialLoading = !projectId || isLoadingProjects || isLoadingProducts || isLoadingTimeline || 
-    isLoadingMigration || isLoadingHomologation || isLoadingMilestones;
 
   // Active project
   const activeProject = projects.find(p => p.id === projectId);
@@ -448,26 +444,6 @@ export default function Dashboard() {
     pausado: 'Pausado',
     concluido: 'Concluído'
   };
-
-  if (isInitialLoading) {
-    return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <Loader2 className="w-12 h-12 animate-spin text-blue-500 mx-auto" />
-          <div>
-            <h3 className="text-lg font-semibold text-white">Carregando Projeto</h3>
-            <p className="text-sm text-slate-400 mt-1">
-              {isLoadingProjects && 'Carregando dados do projeto...'}
-              {!isLoadingProjects && isLoadingProducts && 'Carregando produtos...'}
-              {!isLoadingProjects && !isLoadingProducts && isLoadingTimeline && 'Carregando cronograma...'}
-              {!isLoadingProjects && !isLoadingProducts && !isLoadingTimeline && isLoadingMigration && 'Carregando migração...'}
-              {!isLoadingProjects && !isLoadingProducts && !isLoadingTimeline && !isLoadingMigration && 'Carregando homologação...'}
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="p-6 lg:p-8 space-y-6">

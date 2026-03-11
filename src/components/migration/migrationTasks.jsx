@@ -250,7 +250,6 @@ export const migrationTasksByProduct = {
     'Extrair ManutencoesCalculoMovto'
   ]),
   'Procuradoria (Cloud)': parseTasksIntoSections([
-    'MIGRAÇÃO DE DADOS',
     'Dados Cadastrais',
     'Extrair Tipos Custas Processuais',
     'Extrair Advogados',
@@ -280,7 +279,6 @@ export const migrationTasksByProduct = {
     'Extrair dados de Documentos'
   ]),
   'Livro Eletrônico': parseTasksIntoSections([
-    'MIGRAÇÃO DE DADOS',
     'Dados Cadastrais',
     'Extrair Competências',
     'Extrair Indexadores',
@@ -537,8 +535,7 @@ export const migrationTasksByProduct = {
 // Normaliza o nome do produto removendo "(Cloud)" e caracteres especiais
 const normalizeProductName = (name) => {
   if (!name) return '';
-  
-  let normalized = name
+  return name
     .toLowerCase()
     .replace(/\(cloud\)/gi, '')
     .replace(/[()]/g, '')
@@ -546,21 +543,6 @@ const normalizeProductName = (name) => {
     .replace(/[\u0300-\u036f]/g, '') // Remove acentos
     .trim()
     .replace(/\s+/g, ' ');
-  
-  // Mapeamento de sinônimos
-  const synonyms = {
-    'contabilidade': 'contabil',
-    'tesouraria': 'tesouraria'
-  };
-  
-  for (const [key, value] of Object.entries(synonyms)) {
-    if (normalized === key) {
-      normalized = value;
-      break;
-    }
-  }
-  
-  return normalized;
 };
 
 // Função para buscar tarefas por nome de produto

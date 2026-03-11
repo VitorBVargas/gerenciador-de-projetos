@@ -54,41 +54,22 @@ export default function Migration() {
   const urlParams = new URLSearchParams(window.location.search);
   const projectId = urlParams.get('project_id');
 
-  const { data: projects = [], isLoading: isLoadingProjects } = useQuery({
+  const { data: projects = [] } = useQuery({
     queryKey: ['projects'],
     queryFn: () => base44.entities.Project.list('-created_date')
   });
 
-  const { data: products = [], isLoading: isLoadingProducts } = useQuery({
+  const { data: products = [] } = useQuery({
     queryKey: ['products', projectId],
     queryFn: () => projectId ? base44.entities.Product.filter({ project_id: projectId }) : [],
     enabled: !!projectId
   });
 
-  const { data: tasks = [], isLoading: isLoadingTasks } = useQuery({
+  const { data: tasks = [] } = useQuery({
     queryKey: ['migrationTasks', projectId],
-    queryFn: async () => {
-      if (!projectId) return [];
-      const allTasks = await base44.entities.MigrationTask.filter({ project_id: projectId });
-      
-      // Remove duplicatas baseando-se em product_id + title (case-insensitive)
-      const uniqueTasks = [];
-      const seen = new Map();
-      
-      for (const task of allTasks) {
-        const key = `${task.product_id}:${task.title.toLowerCase()}`;
-        if (!seen.has(key)) {
-          seen.set(key, task);
-          uniqueTasks.push(task);
-        }
-      }
-      
-      return uniqueTasks;
-    },
-    enabled: !!projectId,
+    queryFn: () => projectId ? base44.entities.MigrationTask.filter({ project_id: projectId }) : [],
+    enabled: !!projectId
   });
-
-  const isInitialLoading = !projectId || isLoadingProjects || isLoadingProducts || isLoadingTasks;
 
   const activeProject = projects.find(p => p.id === projectId);
 
@@ -123,48 +104,44 @@ export default function Migration() {
     if (existingTasks.length > 0) return;
 
     const defaultSections = getDefaultTasksForProduct(product.name);
-    if (!defaultSections || defaultSections.length === 0) return;
+    if (!defaultSections) return; // Produto não tem migração
 
     creatingTasksRef.current.add(product.id);
 
-    try {
-      const tasksToCreate = [];
-      let order = 0;
+    const tasksToCreate = [];
+    let order = 0;
 
-      for (const section of defaultSections) {
-        for (const taskTitle of section.tasks) {
-          tasksToCreate.push({
-            title: taskTitle,
-            project_id: projectId,
-            product_id: product.id,
-            completed: false,
-            order: order++
-          });
-        }
+    for (const section of defaultSections) {
+      for (const taskTitle of section.tasks) {
+        tasksToCreate.push({
+          title: taskTitle,
+          project_id: projectId,
+          product_id: product.id,
+          completed: false,
+          order: order++
+        });
       }
-
-      if (tasksToCreate.length > 0) {
-        await base44.entities.MigrationTask.bulkCreate(tasksToCreate);
-        await queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
-      }
-    } catch (error) {
-      console.error('Erro ao criar tarefas:', error);
-    } finally {
-      creatingTasksRef.current.delete(product.id);
     }
+
+    if (tasksToCreate.length > 0) {
+      await base44.entities.MigrationTask.bulkCreate(tasksToCreate);
+      queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
+    }
+    
+    creatingTasksRef.current.delete(product.id);
   };
 
   React.useEffect(() => {
-    if (selectedProduct && products.length > 0 && !isLoadingTasks) {
+    if (selectedProduct && products.length > 0 && tasks.length >= 0) {
       const product = getCurrentProduct();
-      if (product && productHasMigration(product.name)) {
+      if (product) {
         const existingTasks = tasks.filter(t => t.product_id === product.id);
-        if (existingTasks.length === 0 && !creatingTasksRef.current.has(product.id)) {
+        if (existingTasks.length === 0 && productHasMigration(product.name)) {
           createDefaultTasks(product);
         }
       }
     }
-  }, [selectedProduct, products.length, isLoadingTasks]);
+  }, [selectedProduct, products.length, tasks.length]);
 
   const handleAddTask = () => {
     if (!newTaskTitle.trim() || !selectedProduct) return;
@@ -193,14 +170,45 @@ export default function Migration() {
 
   const getProductProgress = (productId) => {
     const productTasks = getProductTasks(productId);
-    if (productTasks.length === 0) return 0;
+    const product = products.find(p => p.id === productId);
+    const defaultSections = getDefaultTasksForProduct(product?.name) || [];
+    const importedTasks = productTasks.filter(t => t.title.includes('||'));
+    const standardTasks = productTasks.filter(t => !t.title.includes('||'));
     
-    const completed = productTasks.filter(t => t.completed).length;
+    // Remover duplicatas importadas
+    const importedBySection = importedTasks.reduce((acc, task) => {
+      const match = task.title.match(/^\|\|(.+?)\|\|(.+)$/);
+      if (match) {
+        const [, sectionName, taskName] = match;
+        const titleLower = taskName.toLowerCase();
+        if (!acc[sectionName]) acc[sectionName] = new Map();
+        if (!acc[sectionName].has(titleLower)) {
+          acc[sectionName].set(titleLower, task);
+        }
+      }
+      return acc;
+    }, {});
     
-    // Se todas as tarefas estão completas, retorna exatamente 100
-    if (completed === productTasks.length) return 100;
+    // Remover duplicatas padrão
+    const uniqueStandardTasks = [];
+    const seenTitles = new Set();
+    for (const task of standardTasks) {
+      const titleLower = task.title.toLowerCase();
+      if (!seenTitles.has(titleLower)) {
+        seenTitles.add(titleLower);
+        uniqueStandardTasks.push(task);
+      }
+    }
     
-    return Math.round((completed / productTasks.length) * 100);
+    // Contar apenas tarefas visíveis (únicas)
+    const visibleTasks = [
+      ...uniqueStandardTasks,
+      ...Object.values(importedBySection).flatMap(map => Array.from(map.values()))
+    ];
+    
+    if (visibleTasks.length === 0) return 0;
+    const completed = visibleTasks.filter(t => t.completed).length;
+    return Math.round((completed / visibleTasks.length) * 100);
   };
 
   const allEntities = [...new Set(products.map(p => p.entity).filter(Boolean))].sort();
@@ -384,24 +392,6 @@ export default function Migration() {
       queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
     }
   };
-
-  if (isInitialLoading) {
-    return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <Loader2 className="w-12 h-12 animate-spin text-blue-500 mx-auto" />
-          <div>
-            <h3 className="text-lg font-semibold text-white">Carregando Migração</h3>
-            <p className="text-sm text-slate-400 mt-1">
-              {isLoadingProjects && 'Carregando projeto...'}
-              {!isLoadingProjects && isLoadingProducts && 'Carregando produtos...'}
-              {!isLoadingProjects && !isLoadingProducts && isLoadingTasks && 'Carregando tarefas...'}
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
