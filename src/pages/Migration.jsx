@@ -169,7 +169,8 @@ export default function Migration() {
 
   const getProductProgress = (productId) => {
     const productTasks = getProductTasks(productId);
-    const defaultSections = getDefaultTasksForProduct(getCurrentProduct()?.name) || [];
+    const product = products.find(p => p.id === productId);
+    const defaultSections = getDefaultTasksForProduct(product?.name) || [];
     const importedTasks = productTasks.filter(t => t.title.includes('||'));
     const standardTasks = productTasks.filter(t => !t.title.includes('||'));
     
