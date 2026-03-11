@@ -132,6 +132,51 @@ const merendaEscolarCloudTasks = parseTasksIntoSections([
   'Configuração de fornecedores e registro de preços de insumos'
 ]);
 
+const patrimonioCloudTasks = parseTasksIntoSections([
+  'PARÂMETROS GERAIS',
+  'Por exercício',
+  'Portal da Transparência (Email, CNPJ, Almoxarifado, Envia Transparência, Carga Inicial, Token e Script)',
+  'Script de interações (Script e chave de acesso)',
+  'MÉTODOS DE DEPRECIAÇÃO',
+  'Método de depreciação (Descrição, Tipo, Classificação, Script e Dados adicionais)',
+  'ESTRUTURA ORGANIZACIONAL',
+  'Organogramas (sequencial: código e descrição)',
+  'Entidades (Dados Gerais e de Contato)',
+  'CADASTROS AUXILIARES',
+  'Endereços (Informações cadastrais de Logradouros, Condomínios, Bairros, Distritos, Estados e Municípios)',
+  'Natureza da Movimentação (Descrição, Tipo, Classificação e Dados adicionais)',
+  'Unidades de Medida (Descrição e Dados Adicionais)',
+  'Tipos de Bens (Descrição e Dados Adicionais)',
+  'Estados de Conservação (Descrição e Dados Adicionais)',
+  'Localidades (Descrição e Localização)',
+  'Responsáveis (Nome, CPF, Matrícula, Cargo, Natureza do cargo, Função, Complemento, Funcionário do Município?, Endereços, Emails, Telefones e Situação)',
+  'Fornecedores (Nome, Tipo, CPF/CNPJ, Data da inclusão, Dados Pessoais, Contas Bancárias e dados Adicionais)',
+  'BENS PATRIMONIAIS',
+  'Bens (Descrição, Número de controle, Tipo, Localização, Estado de conservação, Responsável, Anexos e Dados adicionais)',
+  'Especificações Técnicas (Marca, Modelo, Série, Número de Patrimônio, Valor e Dados adicionais)',
+  'Histórico de Movimentações (Transferências, Depreciação, Manutenção)',
+  'Componentes de Bens (Itens que compõem um bem complexo)',
+  'MOVIMENTAÇÃO',
+  'Entradas (Data, Tipo de Entrada, Fornecedor, Valor, Localização, Responsável e Anexos)',
+  'Transferências (Dados de origem e destino, Data, Responsável, Observações)',
+  'Saídas (Motivo, Data, Responsável, Observações)',
+  'Manutenção (Tipo, Data, Descrição, Valor, Fornecedor)',
+  'Depreciação (Método, Período, Cálculo Automático)',
+  'DEPRECIAÇÕES',
+  'Cálculo de Depreciação (Método, Taxa, Período)',
+  'Histórico de Depreciações (Exercício, Valor depreciado, Saldo)',
+  'DESCARTES E ALIENAÇÕES',
+  'Bens descartados/alienados (Data, Motivo, Valor contábil, Valor de venda)',
+  'RELATÓRIOS',
+  'Relatório de Patrimônio (Bens cadastrados, Valores, Estados)',
+  'Relatório de Movimentações (Entradas, Transferências, Saídas)',
+  'Relatório de Depreciação (Cálculos, Histórico)',
+  'Relatório de Descartes (Bens alienados, Valores)',
+  'INTEGRAÇÃO',
+  'Integração com o sistema contábil',
+  'Integração com o Portal da Transparência'
+]);
+
 export const getExtendedTasksForProduct = (productName) => {
   const tasks = {
     'obras': obrasCloudTasks,
@@ -139,7 +184,9 @@ export const getExtendedTasksForProduct = (productName) => {
     'professores': professoresCloudTasks,
     'pais e alunos': paisAlunosCloudTasks,
     'biblioteca': bibliotecaCloudTasks,
-    'merenda escolar': merendaEscolarCloudTasks
+    'merenda escolar': merendaEscolarCloudTasks,
+    'patrimonio': patrimonioCloudTasks,
+    'patrimônio': patrimonioCloudTasks
   };
   
   const normalized = (productName || '').toLowerCase().replace(/\(cloud\)/gi, '').trim();
