@@ -405,7 +405,7 @@ export default function Migration() {
           <h1 className="text-2xl lg:text-3xl font-bold text-white">Migração</h1>
           <p className="text-slate-400 mt-1">Acompanhe o progresso de migração por produto</p>
         </div>
-        {productsWithMigration.length > 0 && (
+        {entityFilteredProducts.length > 0 && (
           <div className="flex items-center gap-4 bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
             <div className="text-sm text-slate-400">Progresso Geral</div>
             <div className="w-32">
