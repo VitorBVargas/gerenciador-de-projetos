@@ -1740,54 +1740,35 @@ const normalizeProductName = (name) => {
 export const getDefaultTasksForProduct = (productName) => {
   if (!productName) return null;
   
-  const normalized = (productName || '')
+  const normalizedInput = normalize(productName);
+  return migrationTasksNormalized[normalizedInput] || null;
+};
+
+// Função auxiliar para normalizar nomes
+const normalize = (str) => {
+  return str
     .toLowerCase()
     .replace(/\s*\(cloud\)\s*/gi, '')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/\s+/g, ' ')
     .trim();
-  
-  return migrationTasksNormalized[normalized] || null;
 };
 
 // Dicionário com chaves NORMALIZADAS para fácil busca
-const migrationTasksNormalized = {
-  'procuradoria': migrationTasksByProduct['Procuradoria (Cloud)'],
-  'tributos': migrationTasksByProduct['Tributos (Cloud)'],
-  'livro eletronico': migrationTasksByProduct['Livro Eletrônico'],
-  'protocolo': migrationTasksByProduct['Protocolo (Cloud)'],
-  'contabil': migrationTasksByProduct['Contabil (Cloud)'] || migrationTasksByProduct['Contábil (Cloud)'],
-  'planejamento': migrationTasksByProduct['Planejamento (Cloud)'],
-  'tesouraria': migrationTasksByProduct['Tesouraria (Cloud)'],
-  'e nota': migrationTasksByProduct['e-Nota (Cloud)'],
-  'folha': migrationTasksByProduct['Folha (Cloud)'],
-  'compras': migrationTasksByProduct['Compras (Cloud)'],
-  'contratos': migrationTasksByProduct['Contratos (Cloud)'],
-  'almoxarifado': migrationTasksByProduct['Almoxarifado (Cloud)'] || migrationTasksByProduct['Almoxarifado'],
-  'ponto': migrationTasksByProduct['Ponto (Cloud)'] || migrationTasksByProduct['Ponto'],
-  'recursos humanos': migrationTasksByProduct['Recursos Humanos (Cloud)'] || migrationTasksByProduct['Recursos Humanos'],
-  'obras': migrationTasksByProduct['Obras (Cloud)'],
-  'educacao': migrationTasksByProduct['Educação (Cloud)'],
-  'professores': migrationTasksByProduct['Professores (Cloud)'],
-  'pais e alunos': migrationTasksByProduct['Pais e Alunos (Cloud)'],
-  'biblioteca': migrationTasksByProduct['Biblioteca (Cloud)'],
-  'merenda escolar': migrationTasksByProduct['Merenda Escolar (Cloud)'],
-  'patrimonio': migrationTasksByProduct['Patrimonio'],
-  'frotas': migrationTasksByProduct['Frotas (Cloud)']
-};
+// Monta dinamicamente a partir das chaves existentes em migrationTasksByProduct
+const migrationTasksNormalized = {};
+Object.entries(migrationTasksByProduct).forEach(([key, value]) => {
+  const normalizedKey = normalize(key);
+  if (!migrationTasksNormalized[normalizedKey]) {
+    migrationTasksNormalized[normalizedKey] = value;
+  }
+});
 
 // Verifica se um produto tem processo de migração
 export const productHasMigration = (productName) => {
   if (!productName) return false;
   
-  const normalized = (productName || '')
-    .toLowerCase()
-    .replace(/\s*\(cloud\)\s*/gi, '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-  
-  return migrationTasksNormalized[normalized] !== undefined;
+  const normalizedInput = normalize(productName);
+  return migrationTasksNormalized[normalizedInput] !== undefined;
 };
