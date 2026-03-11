@@ -15,6 +15,7 @@ import {
   ChevronUp,
   ChevronDown,
   Upload,
+  Loader2
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import ImportTasksModal from '../components/modals/ImportTasksModal';
@@ -45,6 +46,7 @@ export default function Migration() {
   const [sectionOrder, setSectionOrder] = useState({});
   const [addTaskSection, setAddTaskSection] = useState('');
   const [importModalOpen, setImportModalOpen] = useState(false);
+  const [markingProgress, setMarkingProgress] = useState({ isLoading: false, current: 0, total: 0 });
   const creatingTasksRef = React.useRef(new Set());
 
   // Get project_id from URL
@@ -296,9 +298,31 @@ export default function Migration() {
 
   const handleMarkSectionTasks = async (sectionTasks, completed) => {
     const tasksToUpdate = sectionTasks.filter(t => t.completed !== completed);
-    for (const task of tasksToUpdate) {
-      await base44.entities.MigrationTask.update(task.id, { completed });
+    
+    if (tasksToUpdate.length === 0) return;
+
+    setMarkingProgress({ isLoading: true, current: 0, total: tasksToUpdate.length });
+
+    // Processar em batches de 5 com delay de 300ms (sustentável)
+    const batchSize = 5;
+    const batchDelay = 300;
+
+    for (let i = 0; i < tasksToUpdate.length; i += batchSize) {
+      const batch = tasksToUpdate.slice(i, i + batchSize);
+      
+      await Promise.all(
+        batch.map(task => base44.entities.MigrationTask.update(task.id, { completed }))
+      );
+
+      const processed = Math.min(i + batchSize, tasksToUpdate.length);
+      setMarkingProgress({ isLoading: true, current: processed, total: tasksToUpdate.length });
+
+      if (i + batchSize < tasksToUpdate.length) {
+        await new Promise(resolve => setTimeout(resolve, batchDelay));
+      }
     }
+
+    setMarkingProgress({ isLoading: false, current: 0, total: 0 });
     queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
   };
 
@@ -531,15 +555,25 @@ export default function Migration() {
                                           {sectionName}
                                         </h3>
                                         <div className="flex items-center gap-1">
-                                          <button
-                                            onClick={() => {
-                                              const allDone = uniqueImportedTasks.every(t => t.completed);
-                                              handleMarkSectionTasks(uniqueImportedTasks, !allDone);
-                                            }}
-                                            className="text-[10px] px-2 py-0.5 rounded border border-green-500/30 text-green-400 hover:bg-green-500/10 transition-colors"
-                                          >
-                                            {uniqueImportedTasks.every(t => t.completed) ? 'Desmarcar' : 'Marcar todos'}
-                                          </button>
+                                         <button
+                                           onClick={() => {
+                                             const allDone = uniqueImportedTasks.every(t => t.completed);
+                                             handleMarkSectionTasks(uniqueImportedTasks, !allDone);
+                                           }}
+                                           disabled={markingProgress.isLoading}
+                                           className="text-[10px] px-2 py-0.5 rounded border border-green-500/30 text-green-400 hover:bg-green-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                                         >
+                                           {markingProgress.isLoading ? (
+                                             <>
+                                               <Loader2 className="w-3 h-3 animate-spin" />
+                                               Processando...
+                                             </>
+                                           ) : uniqueImportedTasks.every(t => t.completed) ? (
+                                             'Desmarcar'
+                                           ) : (
+                                             'Marcar todos'
+                                           )}
+                                         </button>
                                           <Button
                                             size="icon"
                                             variant="ghost"
@@ -578,11 +612,23 @@ export default function Migration() {
                                           </div>
                                         ))}
                                       </div>
-                                    </div>
-                                  );
-                                })}
-                                
-                                {/* Renderizar seções padrão */}
+                                      </div>
+                                      );
+                                      })}
+
+                                      {/* Loading indicator */}
+                                      {markingProgress.isLoading && (
+                                      <div className="p-4 bg-blue-600/10 border border-blue-600/50 rounded">
+                                      <div className="flex items-center gap-2 mb-2">
+                                      <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
+                                      <span className="text-sm text-blue-300">Marcando tarefas...</span>
+                                      </div>
+                                      <Progress value={(markingProgress.current / markingProgress.total) * 100} className="h-2" />
+                                      <p className="text-xs text-slate-400 text-center mt-2">{markingProgress.current}/{markingProgress.total}</p>
+                                      </div>
+                                      )}
+
+                                      {/* Renderizar seções padrão */}
                                 {hasStandardSections && getOrderedSections(product.id, defaultSections).map((section, displayIndex) => {
                                 const sectionTasks = standardTasks.filter(task => 
                                   section.tasks.some(t => t.toLowerCase() === task.title.toLowerCase())
@@ -624,9 +670,19 @@ export default function Migration() {
                                              const allDone = uniqueTasks.every(t => t.completed);
                                              handleMarkSectionTasks(uniqueTasks, !allDone);
                                            }}
-                                           className="text-[10px] px-2 py-0.5 rounded border border-green-500/30 text-green-400 hover:bg-green-500/10 transition-colors"
+                                           disabled={markingProgress.isLoading}
+                                           className="text-[10px] px-2 py-0.5 rounded border border-green-500/30 text-green-400 hover:bg-green-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                                          >
-                                           {uniqueTasks.every(t => t.completed) ? 'Desmarcar' : 'Marcar todos'}
+                                           {markingProgress.isLoading ? (
+                                             <>
+                                               <Loader2 className="w-3 h-3 animate-spin" />
+                                               Processando...
+                                             </>
+                                           ) : uniqueTasks.every(t => t.completed) ? (
+                                             'Desmarcar'
+                                           ) : (
+                                             'Marcar todos'
+                                           )}
                                          </button>
                                          <Button
                                            size="icon"
