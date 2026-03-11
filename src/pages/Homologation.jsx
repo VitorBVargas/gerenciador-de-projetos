@@ -15,7 +15,7 @@ import { toast } from 'sonner';
 import { cn } from "@/lib/utils";
 import EmptyState from '../components/ui/EmptyState';
 import { getDefaultTasksForProduct, productHasHomologation } from '../components/homologation/homologationTasks';
-import { getExtendedTasksForProduct } from '../components/homologation/homologationTasksExtended';
+import { getExtendedTasksForProduct, productHasExtendedTasks } from '../components/homologation/homologationTasksExtended';
 import EntityFilter from '../components/filters/EntityFilter';
 
 const verticalLabels = {
@@ -130,7 +130,7 @@ export default function Homologation() {
       const product = getCurrentProduct();
       if (product) {
         const existingTasks = tasks.filter(t => t.product_id === product.id);
-        if (existingTasks.length === 0 && productHasHomologation(product.name)) {
+        if (existingTasks.length === 0 && (productHasHomologation(product.name) || productHasExtendedTasks(product.name))) {
           createDefaultTasks(product);
         }
       }
@@ -218,7 +218,7 @@ export default function Homologation() {
     if (allEntities.length > 0 && !selectedEntity) {
       // Find first entity that has products with homologation
       const entityWithProducts = allEntities.find(entity => {
-        const entityProds = products.filter(p => p.entity === entity && productHasHomologation(p.name));
+        const entityProds = products.filter(p => p.entity === entity && (productHasHomologation(p.name) || productHasExtendedTasks(p.name)));
         return entityProds.length > 0;
       });
       
@@ -235,7 +235,7 @@ export default function Homologation() {
   const entityFilteredProducts = selectedEntity ? products.filter(p => p.entity === selectedEntity) : products;
 
   const productsByVertical = entityFilteredProducts.reduce((acc, product) => {
-    if (productHasHomologation(product.name)) {
+    if (productHasHomologation(product.name) || productHasExtendedTasks(product.name)) {
       const vertical = product.vertical || 'outros';
       if (!acc[vertical]) acc[vertical] = [];
       acc[vertical].push(product);
@@ -261,7 +261,7 @@ export default function Homologation() {
     }
   }, [selectedVertical]);
 
-  const productsWithHomologation = entityFilteredProducts.filter(p => productHasHomologation(p.name));
+  const productsWithHomologation = entityFilteredProducts.filter(p => productHasHomologation(p.name) || productHasExtendedTasks(p.name));
   const overallProgress = productsWithHomologation.length > 0
     ? Math.round(productsWithHomologation.reduce((sum, p) => sum + getProductProgress(p.id), 0) / productsWithHomologation.length)
     : 0;
