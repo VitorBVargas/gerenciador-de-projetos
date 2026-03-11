@@ -1745,17 +1745,22 @@ export const getDefaultTasksForProduct = (productName) => {
     return migrationTasksByProduct[productName];
   }
   
-  // Fallback: normaliza e tenta novamente
-  const normalized = (productName || '')
-    .toLowerCase()
-    .replace(/\s*\(cloud\)\s*/gi, '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .trim();
+  // Normaliza: remove acentos, converte para lowercase, remove (cloud)/(Cloud)
+  const normalize = (str) => {
+    return str
+      .toLowerCase()
+      .replace(/\s*\(cloud\)\s*/gi, '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  };
+  
+  const normalizedInput = normalize(productName);
   
   // Procura na chave normalizada
   const key = Object.keys(migrationTasksByProduct).find(k => 
-    k.toLowerCase().replace(/\s*\(cloud\)\s*/gi, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim() === normalized
+    normalize(k) === normalizedInput
   );
   
   return key ? migrationTasksByProduct[key] : null;
