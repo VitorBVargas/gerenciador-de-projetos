@@ -22,7 +22,7 @@ import ImportTasksModal from '../components/modals/ImportTasksModal';
 import { toast } from 'sonner';
 import { cn } from "@/lib/utils";
 import EmptyState from '../components/ui/EmptyState';
-import { getDefaultTasksForProduct, productHasMigration } from '../components/migration/migrationTasks';
+
 import EntityFilter from '../components/filters/EntityFilter';
 
 const verticalLabels = {
@@ -95,53 +95,7 @@ export default function Migration() {
     }
   });
 
-  // Cria tarefas padrão para um produto se não existirem
-  const createDefaultTasks = async (product) => {
-    // Previne criação duplicada simultânea
-    if (creatingTasksRef.current.has(product.id)) return;
-    
-    const existingTasks = tasks.filter(t => t.product_id === product.id);
-    if (existingTasks.length > 0) return;
 
-    const defaultSections = getDefaultTasksForProduct(product.name);
-    if (!defaultSections) return; // Produto não tem migração
-
-    creatingTasksRef.current.add(product.id);
-
-    const tasksToCreate = [];
-    let order = 0;
-
-    for (const section of defaultSections) {
-      for (const taskTitle of section.tasks) {
-        tasksToCreate.push({
-          title: taskTitle,
-          project_id: projectId,
-          product_id: product.id,
-          completed: false,
-          order: order++
-        });
-      }
-    }
-
-    if (tasksToCreate.length > 0) {
-      await base44.entities.MigrationTask.bulkCreate(tasksToCreate);
-      queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
-    }
-    
-    creatingTasksRef.current.delete(product.id);
-  };
-
-  React.useEffect(() => {
-    if (selectedProduct && products.length > 0 && tasks.length >= 0) {
-      const product = getCurrentProduct();
-      if (product) {
-        const existingTasks = tasks.filter(t => t.product_id === product.id);
-        if (existingTasks.length === 0 && productHasMigration(product.name)) {
-          createDefaultTasks(product);
-        }
-      }
-    }
-  }, [selectedProduct, products.length, tasks.length]);
 
   const handleAddTask = () => {
     if (!newTaskTitle.trim() || !selectedProduct) return;
@@ -174,65 +128,19 @@ export default function Migration() {
 
   const getProductProgress = (productId) => {
     const productTasks = getProductTasks(productId);
-    const product = products.find(p => p.id === productId);
-    const defaultSections = getDefaultTasksForProduct(product?.name) || [];
-    const importedTasks = productTasks.filter(t => t.title.includes('||'));
-    const standardTasks = productTasks.filter(t => !t.title.includes('||'));
     
-    // Remover duplicatas importadas
-    const importedBySection = importedTasks.reduce((acc, task) => {
-      const match = task.title.match(/^\|\|(.+?)\|\|(.+)$/);
-      if (match) {
-        const [, sectionName, taskName] = match;
-        const titleLower = taskName.toLowerCase();
-        if (!acc[sectionName]) acc[sectionName] = new Map();
-        if (!acc[sectionName].has(titleLower)) {
-          acc[sectionName].set(titleLower, task);
-        }
-      }
-      return acc;
-    }, {});
-    
-    // Remover duplicatas padrão
-    const uniqueStandardTasks = [];
-    const seenTitles = new Set();
-    for (const task of standardTasks) {
-      const titleLower = task.title.toLowerCase();
-      if (!seenTitles.has(titleLower)) {
-        seenTitles.add(titleLower);
-        uniqueStandardTasks.push(task);
-      }
-    }
-    
-    // Contar apenas tarefas visíveis (únicas)
-    const visibleTasks = [
-      ...uniqueStandardTasks,
-      ...Object.values(importedBySection).flatMap(map => Array.from(map.values()))
-    ];
-    
-    if (visibleTasks.length === 0) return 0;
-    const completed = visibleTasks.filter(t => t.completed).length;
-    return Math.round((completed / visibleTasks.length) * 100);
+    if (productTasks.length === 0) return 0;
+    const completed = productTasks.filter(t => t.completed).length;
+    return Math.round((completed / productTasks.length) * 100);
   };
 
   const allEntities = [...new Set(products.map(p => p.entity).filter(Boolean))].sort();
   
-  // Auto-select first entity that has products with migration
+  // Auto-select first entity
   React.useEffect(() => {
     if (allEntities.length > 0 && !selectedEntity) {
-      // Find first entity that has products with migration
-      const entityWithProducts = allEntities.find(entity => {
-        const entityProds = products.filter(p => p.entity === entity && productHasMigration(p.name));
-        return entityProds.length > 0;
-      });
-      
-      if (entityWithProducts) {
-        setSelectedEntity(entityWithProducts);
-      } else {
-        // Fallback to first entity if none have products
-        const firstEntity = allEntities.find(e => e === 'PM') || allEntities[0];
-        setSelectedEntity(firstEntity);
-      }
+      const firstEntity = allEntities.find(e => e === 'PM') || allEntities[0];
+      setSelectedEntity(firstEntity);
     }
   }, [allEntities.length, products.length]);
   
@@ -275,7 +183,7 @@ export default function Migration() {
     if (sectionIndex === 0) return;
     setSectionOrder(prev => {
       const key = productId;
-      const currentOrder = prev[key] || getDefaultTasksForProduct(getCurrentProduct()?.name)?.map((_, i) => i) || [];
+      const currentOrder = prev[key] || [];
       const newOrder = [...currentOrder];
       [newOrder[sectionIndex - 1], newOrder[sectionIndex]] = [newOrder[sectionIndex], newOrder[sectionIndex - 1]];
       return { ...prev, [key]: newOrder };
@@ -286,7 +194,7 @@ export default function Migration() {
     if (sectionIndex >= totalSections - 1) return;
     setSectionOrder(prev => {
       const key = productId;
-      const currentOrder = prev[key] || getDefaultTasksForProduct(getCurrentProduct()?.name)?.map((_, i) => i) || [];
+      const currentOrder = prev[key] || [];
       const newOrder = [...currentOrder];
       [newOrder[sectionIndex], newOrder[sectionIndex + 1]] = [newOrder[sectionIndex + 1], newOrder[sectionIndex]];
       return { ...prev, [key]: newOrder };
@@ -486,27 +394,23 @@ export default function Migration() {
                         {/* Add Task Input */}
                         <div className="space-y-3 mb-6">
                           {(() => {
-                            const defaultSections = getDefaultTasksForProduct(product.name) || [];
+                            const productTasks = getProductTasks(product.id);
                             const importedSectionNames = [...new Set(
-                              getProductTasks(product.id)
+                              productTasks
                                 .filter(t => t.title.includes('||'))
                                 .map(t => t.title.match(/^\|\|(.+?)\|\|/)?.[1])
                                 .filter(Boolean)
                             )];
-                            const allSections = [
-                              ...defaultSections.map(s => s.section),
-                              ...importedSectionNames
-                            ];
                             return (
                               <>
-                                {allSections.length > 0 && (
+                                {importedSectionNames.length > 0 && (
                                   <select
                                     value={addTaskSection}
                                     onChange={e => setAddTaskSection(e.target.value)}
                                     className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2 text-sm"
                                   >
                                     <option value="">Selecione a etapa (opcional)</option>
-                                    {allSections.map(s => (
+                                    {importedSectionNames.map(s => (
                                       <option key={s} value={s}>{s}</option>
                                     ))}
                                   </select>
@@ -540,25 +444,24 @@ export default function Migration() {
                         <div className="space-y-6">
                           {(() => {
                             const productTasks = getProductTasks(product.id);
-                            const defaultSections = getDefaultTasksForProduct(product.name) || [];
                             
-                            // Separar tarefas importadas (com ||) de tarefas padrão
-                            const importedTasks = productTasks.filter(t => t.title.includes('||'));
-                            const standardTasks = productTasks.filter(t => !t.title.includes('||'));
-                            
-                            // Agrupar tarefas importadas por etapa
-                            const importedBySection = importedTasks.reduce((acc, task) => {
-                              const match = task.title.match(/^\|\|(.+?)\|\|(.+)$/);
-                              if (match) {
-                                const [, sectionName, taskName] = match;
-                                if (!acc[sectionName]) acc[sectionName] = [];
-                                acc[sectionName].push({ ...task, displayTitle: taskName });
+                            // Agrupar tarefas por seções (procuram por ||)
+                            const tasksBySection = productTasks.reduce((acc, task) => {
+                              if (task.title.includes('||')) {
+                                const match = task.title.match(/^\|\|(.+?)\|\|(.+)$/);
+                                if (match) {
+                                  const [, sectionName, taskName] = match;
+                                  if (!acc[sectionName]) acc[sectionName] = [];
+                                  acc[sectionName].push({ ...task, displayTitle: taskName });
+                                }
+                              } else {
+                                if (!acc['SEM_SEÇÃO']) acc['SEM_SEÇÃO'] = [];
+                                acc['SEM_SEÇÃO'].push(task);
                               }
                               return acc;
                             }, {});
                             
-                            const hasImportedTasks = Object.keys(importedBySection).length > 0;
-                            const hasStandardSections = defaultSections.length > 0;
+                            const sectionNames = Object.keys(tasksBySection).sort();
                             
                             return (
                               <>
