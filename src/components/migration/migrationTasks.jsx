@@ -535,7 +535,8 @@ export const migrationTasksByProduct = {
 // Normaliza o nome do produto removendo "(Cloud)" e caracteres especiais
 const normalizeProductName = (name) => {
   if (!name) return '';
-  return name
+  
+  let normalized = name
     .toLowerCase()
     .replace(/\(cloud\)/gi, '')
     .replace(/[()]/g, '')
@@ -543,6 +544,21 @@ const normalizeProductName = (name) => {
     .replace(/[\u0300-\u036f]/g, '') // Remove acentos
     .trim()
     .replace(/\s+/g, ' ');
+  
+  // Mapeamento de sinônimos
+  const synonyms = {
+    'contabilidade': 'contabil',
+    'tesouraria': 'tesouraria'
+  };
+  
+  for (const [key, value] of Object.entries(synonyms)) {
+    if (normalized === key) {
+      normalized = value;
+      break;
+    }
+  }
+  
+  return normalized;
 };
 
 // Função para buscar tarefas por nome de produto
