@@ -58,6 +58,7 @@ export default function Timeline() {
   const [eventToDelete, setEventToDelete] = useState(null);
   const [activeVertical, setActiveVertical] = useState('');
   const [selectedEntity, setSelectedEntity] = useState(null);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [editDatesOpen, setEditDatesOpen] = useState(false);
 
   // Get project_id from URL
@@ -179,25 +180,13 @@ export default function Timeline() {
   };
 
   // Entity filter
-  const allEntities = [...new Set(products.map(p => p.entity).filter(Boolean))].sort();
-  
-  // Auto-select first entity that has products
-  React.useEffect(() => {
-    if (allEntities.length > 0 && !selectedEntity) {
-      // Find first entity that has products
-      const entityWithProducts = allEntities.find(entity => {
-        return products.filter(p => p.entity === entity).length > 0;
-      });
-      
-      if (entityWithProducts) {
-        setSelectedEntity(entityWithProducts);
-      } else {
-        // Fallback to first entity if none have products
-        const firstEntity = allEntities.find(e => e === 'PM') || allEntities[0];
-        setSelectedEntity(firstEntity);
-      }
-    }
-  }, [allEntities.length, products.length]);
+  const allEntities = [...new Set(products.map(p => p.entity).filter(Boolean))].sort((a, b) => {
+    if (a === 'PM') return -1;
+    if (b === 'PM') return 1;
+    if (a === 'CM') return -1;
+    if (b === 'CM') return 1;
+    return a.localeCompare(b);
+  });
   
   const entityProducts = selectedEntity
     ? products.filter(p => p.entity === selectedEntity)
@@ -206,33 +195,33 @@ export default function Timeline() {
   // Get unique verticals from selected entity
   const verticals = [...new Set(entityProducts.map(p => p.vertical).filter(Boolean))].sort();
 
-  // Set initial vertical when entity changes or loads
+  // Initialize: Auto-select first valid entity with products and vertical
   React.useEffect(() => {
-    if (verticals.length > 0) {
-      setActiveVertical(verticals[0]);
-    } else if (selectedEntity && verticals.length === 0) {
-      // If selected entity has no verticals, try next entity
-      const currentIndex = allEntities.indexOf(selectedEntity);
-      if (currentIndex < allEntities.length - 1) {
-        const nextEntity = allEntities[currentIndex + 1];
-        if (nextEntity) {
-          setSelectedEntity(nextEntity);
+    if (isInitialized || products.length === 0) return;
+    
+    // Procurar entidade com produtos (prioridade: PM > CM > outras)
+    for (const entity of allEntities) {
+      const entProds = products.filter(p => p.entity === entity);
+      if (entProds.length > 0) {
+        // Verificar se tem vertical
+        const verts = [...new Set(entProds.map(p => p.vertical).filter(Boolean))];
+        if (verts.length > 0) {
+          setSelectedEntity(entity);
+          setActiveVertical(verts[0]);
+          setIsInitialized(true);
+          return;
         }
       }
     }
-  }, [verticals.length, selectedEntity, allEntities]);
+    
+    // Se não encontrou nenhuma entidade válida
+    setIsInitialized(true);
+  }, [products.length, allEntities.length, isInitialized]);
 
   // Get products for active vertical
   const productsInVertical = activeVertical 
     ? entityProducts.filter(p => p.vertical === activeVertical)
     : [];
-
-  // Set initial product when vertical changes
-  React.useEffect(() => {
-    if (productsInVertical.length > 0) {
-      setSelectedProductId(productsInVertical[0].id);
-    }
-  }, [productsInVertical.length, activeVertical]);
 
   // Current product
   const currentProduct = productsInVertical.find(p => p.id === selectedProductId) || null;
