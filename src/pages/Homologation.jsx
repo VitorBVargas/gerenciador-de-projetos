@@ -14,7 +14,7 @@ import ImportTasksModal from '../components/modals/ImportTasksModal';
 import { toast } from 'sonner';
 import { cn } from "@/lib/utils";
 import EmptyState from '../components/ui/EmptyState';
-import { getDefaultTasksForProduct, productHasHomologation, homologationTasksExtended } from '../components/homologation/homologationTasks';
+import { getDefaultTasksForProduct, productHasHomologation } from '../components/homologation/homologationTasks';
 import EntityFilter from '../components/filters/EntityFilter';
 
 const verticalLabels = {
