@@ -101,6 +101,15 @@ const professoresCloudTasks = parseTasksIntoSections([
   'Fechamento do diário realizado'
 ]);
 
+const paisAlunosCloudTasks = parseTasksIntoSections([
+  'Pais e Alunos',
+  'Geração e distribuição de acessos (tokens/chaves) para pais, alunos e responsáveis',
+  'Habilitação da consulta online de desempenho escolar (notas, provas e atividades)',
+  'Habilitação da consulta de frequência e emissão de boletim escolar online',
+  'Configuração do ambiente para publicação de materiais, conteúdos e informativos pelos professores/gestores',
+  'Parametrização da funcionalidade de registro de interesse por rematrícula online'
+]);
+
 export const getExtendedTasksForProduct = (productName) => {
   const tasks = {
     'obras': obrasCloudTasks,
@@ -108,7 +117,9 @@ export const getExtendedTasksForProduct = (productName) => {
     'educacao': educacaoCloudTasks,
     'educacao (cloud)': educacaoCloudTasks,
     'professores': professoresCloudTasks,
-    'professores (cloud)': professoresCloudTasks
+    'professores (cloud)': professoresCloudTasks,
+    'pais e alunos': paisAlunosCloudTasks,
+    'pais e alunos (cloud)': paisAlunosCloudTasks
   };
   
   const normalized = (productName || '').toLowerCase().replace(/\(cloud\)/g, '').trim();

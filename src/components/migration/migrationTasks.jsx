@@ -1116,6 +1116,14 @@ export const migrationTasksByProduct = {
     'Conteúdos registrados',
     'Fechamento do diário realizado'
   ]),
+  'Pais e Alunos (Cloud)': parseTasksIntoSections([
+    'Pais e Alunos',
+    'Geração e distribuição de acessos (tokens/chaves) para pais, alunos e responsáveis',
+    'Habilitação da consulta online de desempenho escolar (notas, provas e atividades)',
+    'Habilitação da consulta de frequência e emissão de boletim escolar online',
+    'Configuração do ambiente para publicação de materiais, conteúdos e informativos pelos professores/gestores',
+    'Parametrização da funcionalidade de registro de interesse por rematrícula online'
+  ]),
   'Frotas (Cloud)': [
     {
       section: 'Dados Cadastrais',
