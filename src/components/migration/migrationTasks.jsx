@@ -776,6 +776,102 @@ export const migrationTasksByProduct = {
       ]
     }
   ],
+  'Almoxarifado (Cloud)': [
+    {
+      section: 'Dados Cadastrais',
+      tasks: [
+        'Extrair Configuração Organograma',
+        'Extrair Parâmetro Exercício',
+        'Extrair Parâmetro Exercício Almoxarifado',
+        'Extrair Centro Custo Movimentos',
+        'Extrair Organograma Nível 1',
+        'Extrair Organograma Nível 2',
+        'Extrair Organograma Nível 3',
+        'Extrair Países',
+        'Extrair Estados',
+        'Extrair Municípios',
+        'Extrair Grupo',
+        'Extrair Classe',
+        'Extrair Unidade Medida',
+        'Extrair Material',
+        'Extrair Natureza',
+        'Extrair Localização 1',
+        'Extrair Localização 2',
+        'Extrair Localização 3',
+        'Extrair Cargos',
+        'Extrair Responsável',
+        'Extrair Fornecedor'
+      ]
+    },
+    {
+      section: 'Dados de Lançamentos',
+      tasks: [
+        'Extrair Requisições',
+        'Extrair Requisições Item',
+        'Extrair Lote',
+        'Extrair Entradas',
+        'Extrair Entradas Itens',
+        'Extrair Entradas Itens Lotes',
+        'Extrair Entradas Finalizar',
+        'Extrair Saídas',
+        'Extrair Saídas Itens',
+        'Extrair Saídas Itens Lotes',
+        'Extrair Saídas Finalizar',
+        'Extrair Estoque',
+        'Extrair Posição Estoque',
+        'Extrair Movimento Atualização',
+        'Extrair Encerramentos'
+      ]
+    }
+  ],
+  'Almoxarifado': [
+    {
+      section: 'Dados Cadastrais',
+      tasks: [
+        'Extrair Configuração Organograma',
+        'Extrair Parâmetro Exercício',
+        'Extrair Parâmetro Exercício Almoxarifado',
+        'Extrair Centro Custo Movimentos',
+        'Extrair Organograma Nível 1',
+        'Extrair Organograma Nível 2',
+        'Extrair Organograma Nível 3',
+        'Extrair Países',
+        'Extrair Estados',
+        'Extrair Municípios',
+        'Extrair Grupo',
+        'Extrair Classe',
+        'Extrair Unidade Medida',
+        'Extrair Material',
+        'Extrair Natureza',
+        'Extrair Localização 1',
+        'Extrair Localização 2',
+        'Extrair Localização 3',
+        'Extrair Cargos',
+        'Extrair Responsável',
+        'Extrair Fornecedor'
+      ]
+    },
+    {
+      section: 'Dados de Lançamentos',
+      tasks: [
+        'Extrair Requisições',
+        'Extrair Requisições Item',
+        'Extrair Lote',
+        'Extrair Entradas',
+        'Extrair Entradas Itens',
+        'Extrair Entradas Itens Lotes',
+        'Extrair Entradas Finalizar',
+        'Extrair Saídas',
+        'Extrair Saídas Itens',
+        'Extrair Saídas Itens Lotes',
+        'Extrair Saídas Finalizar',
+        'Extrair Estoque',
+        'Extrair Posição Estoque',
+        'Extrair Movimento Atualização',
+        'Extrair Encerramentos'
+      ]
+    }
+  ],
   'Contratos (Cloud)': [
     {
       section: 'Dados Cadastrais',
