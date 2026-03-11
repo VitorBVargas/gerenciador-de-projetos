@@ -98,13 +98,24 @@ export default function Migration() {
   // Cria tarefas padrão para um produto se não existirem
   const createDefaultTasks = async (product) => {
     // Previne criação duplicada simultânea
-    if (creatingTasksRef.current.has(product.id)) return;
+    if (creatingTasksRef.current.has(product.id)) {
+      console.log('Já criando tarefas para', product.name);
+      return;
+    }
     
     const existingTasks = tasks.filter(t => t.product_id === product.id);
-    if (existingTasks.length > 0) return;
+    if (existingTasks.length > 0) {
+      console.log('Já existem tarefas para', product.name);
+      return;
+    }
 
     const defaultSections = getDefaultTasksForProduct(product.name);
-    if (!defaultSections) return; // Produto não tem migração
+    console.log('Seções padrão para', product.name, ':', defaultSections);
+    
+    if (!defaultSections) {
+      console.log('Produto sem migração:', product.name);
+      return;
+    }
 
     creatingTasksRef.current.add(product.id);
 
@@ -123,9 +134,16 @@ export default function Migration() {
       }
     }
 
+    console.log('Criando', tasksToCreate.length, 'tarefas para', product.name);
+
     if (tasksToCreate.length > 0) {
-      await base44.entities.MigrationTask.bulkCreate(tasksToCreate);
-      queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
+      try {
+        await base44.entities.MigrationTask.bulkCreate(tasksToCreate);
+        console.log('Tarefas criadas com sucesso');
+        queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
+      } catch (error) {
+        console.error('Erro ao criar tarefas:', error);
+      }
     }
     
     creatingTasksRef.current.delete(product.id);
