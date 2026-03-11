@@ -163,7 +163,11 @@ export default function Homologation() {
   const getProductProgress = (productId) => {
     const productTasks = getProductTasks(productId);
     const product = products.find(p => p.id === productId);
-    const defaultSections = getDefaultTasksForProduct(product?.name) || [];
+    let defaultSections = getDefaultTasksForProduct(product?.name);
+    if (!defaultSections) {
+      defaultSections = getExtendedTasksForProduct(product?.name) || [];
+    }
+    defaultSections = defaultSections || [];
     const importedTasks = productTasks.filter(t => t.title.includes('||'));
     const standardTasks = productTasks.filter(t => !t.title.includes('||'));
     
