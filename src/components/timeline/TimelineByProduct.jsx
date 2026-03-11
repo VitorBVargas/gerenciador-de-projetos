@@ -52,15 +52,19 @@ export default function TimelineByProduct({ verticals, entityProducts, timelineE
     setSelectedProductId(null);
   };
 
-  // Auto-select first product when vertical changes
+  // Auto-select first product when vertical changes or products load
   React.useEffect(() => {
-    if (activeVertical) {
+    if (activeVertical && entityProducts.length > 0) {
       const productsInVert = entityProducts.filter(p => p.vertical === activeVertical);
-      if (productsInVert.length > 0 && !selectedProductId) {
-        setSelectedProductId(productsInVert[0].id);
+      if (productsInVert.length > 0) {
+        // Always set to first product if current selection is invalid or null
+        const currentIsValid = productsInVert.some(p => p.id === selectedProductId);
+        if (!currentIsValid) {
+          setSelectedProductId(productsInVert[0].id);
+        }
       }
     }
-  }, [activeVertical, entityProducts]);
+  }, [activeVertical, entityProducts.length]);
 
   if (verticals.length === 0) return null;
 
