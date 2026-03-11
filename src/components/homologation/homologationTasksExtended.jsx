@@ -119,6 +119,19 @@ const bibliotecaCloudTasks = parseTasksIntoSections([
   'Configuração de alertas e envio de notificações automáticas de atraso'
 ]);
 
+const merendaEscolarCloudTasks = parseTasksIntoSections([
+  'Merenda Escolar',
+  'Cadastro de insumos/alimentos seguindo os padrões das tabelas TACO e IBGE',
+  'Elaboração de receitas/cardápios com cálculo automático de informações nutricionais',
+  'Mapeamento e registro de restrições alimentares e situação nutricional individual dos alunos',
+  'Configuração do planejamento de demanda/quantidade (cálculo contra desperdício integrado à frequência)',
+  'Acompanhamento de aferições de medidas e avaliação nutricional',
+  'Registros de distribuição e consumo de refeições por turma',
+  'Relatórios nutricionais e conformidade com diretrizes de alimentação escolar',
+  'Integração com dados de frequência para ajuste automático de quantidades',
+  'Configuração de fornecedores e registro de preços de insumos'
+]);
+
 export const getExtendedTasksForProduct = (productName) => {
   const tasks = {
     'obras': obrasCloudTasks,
@@ -130,7 +143,9 @@ export const getExtendedTasksForProduct = (productName) => {
     'pais e alunos': paisAlunosCloudTasks,
     'pais e alunos (cloud)': paisAlunosCloudTasks,
     'biblioteca': bibliotecaCloudTasks,
-    'biblioteca (cloud)': bibliotecaCloudTasks
+    'biblioteca (cloud)': bibliotecaCloudTasks,
+    'merenda escolar': merendaEscolarCloudTasks,
+    'merenda escolar (cloud)': merendaEscolarCloudTasks
   };
   
   const normalized = (productName || '').toLowerCase().replace(/\(cloud\)/g, '').trim();

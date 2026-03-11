@@ -1147,6 +1147,18 @@ export const migrationTasksByProduct = {
     'Extrair Reservas',
     'Extrair Multas'
   ]),
+  'Merenda Escolar (Cloud)': parseTasksIntoSections([
+    'Merenda Escolar',
+    'Cadastro de insumos/alimentos seguindo os padrões das tabelas TACO e IBGE',
+    'Elaboração de receitas/cardápios com cálculo automático de informações nutricionais',
+    'Mapeamento e registro de restrições alimentares e situação nutricional individual dos alunos',
+    'Configuração do planejamento de demanda/quantidade (cálculo contra desperdício integrado à frequência)',
+    'Acompanhamento de aferições de medidas e avaliação nutricional',
+    'Registros de distribuição e consumo de refeições por turma',
+    'Relatórios nutricionais e conformidade com diretrizes de alimentação escolar',
+    'Integração com dados de frequência para ajuste automático de quantidades',
+    'Configuração de fornecedores e registro de preços de insumos'
+  ]),
   'Frotas (Cloud)': [
     {
       section: 'Dados Cadastrais',
