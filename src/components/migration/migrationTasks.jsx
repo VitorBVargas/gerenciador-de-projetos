@@ -1722,28 +1722,6 @@ export const migrationTasksByProduct = {
   ]
 };
 
-// Normaliza o nome do produto removendo "(Cloud)" e caracteres especiais
-const normalizeProductName = (name) => {
-  if (!name) return '';
-  return name
-    .toLowerCase()
-    .replace(/\(cloud\)/gi, '')
-    .replace(/[()]/g, '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '') // Remove acentos
-    .trim()
-    .replace(/\s+/g, ' ');
-};
-
-// Função para buscar tarefas por nome de produto
-// Retorna null se o produto não tiver processo de migração
-export const getDefaultTasksForProduct = (productName) => {
-  if (!productName) return null;
-  
-  const normalizedInput = normalize(productName);
-  return migrationTasksNormalized[normalizedInput] || null;
-};
-
 // Função auxiliar para normalizar nomes
 const normalize = (str) => {
   return str
@@ -1755,20 +1733,23 @@ const normalize = (str) => {
     .trim();
 };
 
-// Dicionário com chaves NORMALIZADAS para fácil busca
-// Monta dinamicamente a partir das chaves existentes em migrationTasksByProduct
-const migrationTasksNormalized = {};
-Object.entries(migrationTasksByProduct).forEach(([key, value]) => {
-  const normalizedKey = normalize(key);
-  if (!migrationTasksNormalized[normalizedKey]) {
-    migrationTasksNormalized[normalizedKey] = value;
-  }
-});
+// Função para buscar tarefas por nome de produto
+// Retorna null se o produto não tiver processo de migração
+export const getDefaultTasksForProduct = (productName) => {
+  if (!productName) return null;
+  
+  const normalizedInput = normalize(productName);
+  
+  // Busca direto em migrationTasksByProduct com chaves normalizadas
+  const key = Object.keys(migrationTasksByProduct).find(k => 
+    normalize(k) === normalizedInput
+  );
+  
+  return key ? migrationTasksByProduct[key] : null;
+};
 
 // Verifica se um produto tem processo de migração
 export const productHasMigration = (productName) => {
   if (!productName) return false;
-  
-  const normalizedInput = normalize(productName);
-  return migrationTasksNormalized[normalizedInput] !== undefined;
+  return getDefaultTasksForProduct(productName) !== null;
 };
