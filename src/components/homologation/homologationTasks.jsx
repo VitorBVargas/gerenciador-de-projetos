@@ -1240,12 +1240,7 @@ export const getDefaultTasksForProduct = (productName) => {
     if (normalizedKey === normalizedInput) {
       return tasks;
     }
-  }
-  
-  // Se não encontrou match exato, retorna null (produto sem homologação)
-  return null;
-};
-
+  },
   'Ponto (Cloud)': parseTasksIntoSections([
     'PARÂMETROS GERAIS',
     'Verificar se gera movimentação automaticamente na folha',
@@ -1354,6 +1349,25 @@ export const getDefaultTasksForProduct = (productName) => {
     'Verificar as marcações apuradas',
     'Verificar as ocorrências apuradas'
   ])
+};
+
+// Função para buscar tarefas por nome de produto
+// Retorna null se o produto não tiver processo de homologação
+export const getDefaultTasksForProduct = (productName) => {
+  if (!productName) return null;
+  
+  const normalizedInput = normalizeProductName(productName);
+  
+  // Busca APENAS match exato (considerando com e sem Cloud)
+  for (const [key, tasks] of Object.entries(homologationTasksByProduct)) {
+    const normalizedKey = normalizeProductName(key);
+    if (normalizedKey === normalizedInput) {
+      return tasks;
+    }
+  }
+  
+  // Se não encontrou match exato, retorna null (produto sem homologação)
+  return null;
 };
 
 // Verifica se um produto tem processo de homologação

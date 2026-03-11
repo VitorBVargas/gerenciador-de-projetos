@@ -558,12 +558,7 @@ export const getDefaultTasksForProduct = (productName) => {
     if (normalizedKey === normalizedInput) {
       return tasks;
     }
-  }
-  
-  // Se não encontrou match exato, retorna null (produto sem migração)
-  return null;
-};
-
+  },
   'Ponto (Cloud)': parseTasksIntoSections([
     'Dados Cadastrais',
     'Extrair Cadastro de Horários',
@@ -628,6 +623,25 @@ export const getDefaultTasksForProduct = (productName) => {
     'Extrair Gestão de Avaliação de Desempenho',
     'Extrair Aposentadoria e Pensão'
   ])
+};
+
+// Função para buscar tarefas por nome de produto
+// Retorna null se o produto não tiver processo de migração
+export const getDefaultTasksForProduct = (productName) => {
+  if (!productName) return null;
+  
+  const normalizedInput = normalizeProductName(productName);
+  
+  // Busca APENAS match exato (considerando com e sem Cloud)
+  for (const [key, tasks] of Object.entries(migrationTasksByProduct)) {
+    const normalizedKey = normalizeProductName(key);
+    if (normalizedKey === normalizedInput) {
+      return tasks;
+    }
+  }
+  
+  // Se não encontrou match exato, retorna null (produto sem migração)
+  return null;
 };
 
 // Verifica se um produto tem processo de migração
