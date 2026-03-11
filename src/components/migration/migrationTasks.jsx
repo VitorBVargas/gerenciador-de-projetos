@@ -277,6 +277,28 @@ export const migrationTasksByProduct = {
     'Extrair dados de apensos',
     'Extrair dados de protestos',
     'Extrair dados de Documentos'
+  ]),
+  'Livro Eletrônico': parseTasksIntoSections([
+    'Dados Cadastrais',
+    'Extrair Competências',
+    'Extrair Indexadores',
+    'Extrair Lista de Serviços',
+    'Extrair CNAE',
+    'Extrair Contadores',
+    'Extrair Contribuintes',
+    'Extrair Contribuintes Serviços / Movimento',
+    'Extrair Movimento Optante Simples',
+    'Extarir Incentivos Fiscais',
+    'Extrair Contribuinte Incentivos Fiscais',
+    'Extrair Entidades Especiais',
+    'Extrair Plano de Conta',
+    'Extrair Simples Nacional',
+    'Extrair Cadastro de Tomadores',
+    'Extrair Cadastro de Prestadores',
+    'Dados de Lançamentos',
+    'Extrair Notas Fiscais',
+    'Extrair Declarações',
+    'Extrair Notas Avulsas'
   ])
 };
 
