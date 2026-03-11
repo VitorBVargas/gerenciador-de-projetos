@@ -1,4 +1,4 @@
-// Tarefas de homologação estendidas para novos produtos
+// Tarefas de homologação para Educação (Cloud)
 const parseTasksIntoSections = (tasks) => {
   const sections = [];
   let currentSection = null;
@@ -21,22 +21,7 @@ const parseTasksIntoSections = (tasks) => {
   return sections;
 };
 
-const obrasCloudTasks = parseTasksIntoSections([
-  'OBRAS',
-  'Verificar se as obras foram migradas corretamente',
-  'TIPOS DE OBRA',
-  'Verificar se os tipos de obra foram migrados corretamente',
-  'CATEGORIAS',
-  'Verificar se as categorias foram migradas corretamente',
-  'ORGANOGRAMAS',
-  'Verificar se os organogramas foram migrados corretamente',
-  'MEDIÇÕES',
-  'Verificar se as medições das obras cadastradas foram migradas corretamente',
-  'SITUAÇÕES',
-  'Verificar se as situações das obras foram migradas corretamente'
-]);
-
-const educacaoCloudTasks = parseTasksIntoSections([
+export const educacaoHomologacaoTasks = parseTasksIntoSections([
   'Cadastro de Entidade',
   'Escola cadastrada corretamente (Nome)',
   'Código INEP informado',
@@ -91,15 +76,3 @@ const educacaoCloudTasks = parseTasksIntoSections([
   'Treinamento realizado com gestor',
   'Treinamento realizado com equipe técnica'
 ]);
-
-export const getExtendedTasksForProduct = (productName) => {
-  const tasks = {
-    'obras': obrasCloudTasks,
-    'obras (cloud)': obrasCloudTasks,
-    'educacao': educacaoCloudTasks,
-    'educacao (cloud)': educacaoCloudTasks
-  };
-  
-  const normalized = (productName || '').toLowerCase().replace(/\(cloud\)/g, '').trim();
-  return tasks[normalized] || null;
-};
