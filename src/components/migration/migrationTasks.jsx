@@ -1740,49 +1740,54 @@ const normalizeProductName = (name) => {
 export const getDefaultTasksForProduct = (productName) => {
   if (!productName) return null;
   
-  // Procura a chave exatamente como está no objeto
-  if (migrationTasksByProduct[productName]) {
-    return migrationTasksByProduct[productName];
-  }
+  const normalized = (productName || '')
+    .toLowerCase()
+    .replace(/\s*\(cloud\)\s*/gi, '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
   
-  // Normaliza: remove acentos, converte para lowercase, remove (cloud)/(Cloud)
-  const normalize = (str) => {
-    return str
-      .toLowerCase()
-      .replace(/\s*\(cloud\)\s*/gi, '')
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/\s+/g, ' ')
-      .trim();
-  };
-  
-  const normalizedInput = normalize(productName);
-  
-  // Procura na chave normalizada
-  const key = Object.keys(migrationTasksByProduct).find(k => 
-    normalize(k) === normalizedInput
-  );
-  
-  return key ? migrationTasksByProduct[key] : null;
+  return migrationTasksNormalized[normalized] || null;
+};
+
+// Dicionário com chaves NORMALIZADAS para fácil busca
+const migrationTasksNormalized = {
+  'procuradoria': migrationTasksByProduct['Procuradoria (Cloud)'],
+  'tributos': migrationTasksByProduct['Tributos (Cloud)'],
+  'livro eletronico': migrationTasksByProduct['Livro Eletrônico'],
+  'protocolo': migrationTasksByProduct['Protocolo (Cloud)'],
+  'contabil': migrationTasksByProduct['Contabil (Cloud)'] || migrationTasksByProduct['Contábil (Cloud)'],
+  'planejamento': migrationTasksByProduct['Planejamento (Cloud)'],
+  'tesouraria': migrationTasksByProduct['Tesouraria (Cloud)'],
+  'e nota': migrationTasksByProduct['e-Nota (Cloud)'],
+  'folha': migrationTasksByProduct['Folha (Cloud)'],
+  'compras': migrationTasksByProduct['Compras (Cloud)'],
+  'contratos': migrationTasksByProduct['Contratos (Cloud)'],
+  'almoxarifado': migrationTasksByProduct['Almoxarifado (Cloud)'] || migrationTasksByProduct['Almoxarifado'],
+  'ponto': migrationTasksByProduct['Ponto (Cloud)'] || migrationTasksByProduct['Ponto'],
+  'recursos humanos': migrationTasksByProduct['Recursos Humanos (Cloud)'] || migrationTasksByProduct['Recursos Humanos'],
+  'obras': migrationTasksByProduct['Obras (Cloud)'],
+  'educacao': migrationTasksByProduct['Educação (Cloud)'],
+  'professores': migrationTasksByProduct['Professores (Cloud)'],
+  'pais e alunos': migrationTasksByProduct['Pais e Alunos (Cloud)'],
+  'biblioteca': migrationTasksByProduct['Biblioteca (Cloud)'],
+  'merenda escolar': migrationTasksByProduct['Merenda Escolar (Cloud)'],
+  'patrimonio': migrationTasksByProduct['Patrimonio'],
+  'frotas': migrationTasksByProduct['Frotas (Cloud)']
 };
 
 // Verifica se um produto tem processo de migração
 export const productHasMigration = (productName) => {
   if (!productName) return false;
+  
   const normalized = (productName || '')
     .toLowerCase()
-    .replace(/\(cloud\)/gi, '')
+    .replace(/\s*\(cloud\)\s*/gi, '')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ')
     .trim();
   
-  // Verificar ambas as listas: default e extended
-  const hasDefault = Object.keys(migrationTasksByProduct).some(
-    key => key === normalized
-  );
-  
-  if (hasDefault) return true;
-  
-  // Também verifica na extended (homologação)
-  return getDefaultTasksForProduct(productName) !== null;
+  return migrationTasksNormalized[normalized] !== undefined;
 };
