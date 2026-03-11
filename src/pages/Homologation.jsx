@@ -33,7 +33,7 @@ export default function Homologation() {
   const queryClient = useQueryClient();
   const [selectedVertical, setSelectedVertical] = useState('');
   const [selectedProduct, setSelectedProduct] = useState('');
-  const [selectedEntity, setSelectedEntity] = useState('PM');
+  const [selectedEntity, setSelectedEntity] = useState(null);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [sectionOrder, setSectionOrder] = useState({});
   const [addTaskSection, setAddTaskSection] = useState('');
@@ -163,6 +163,15 @@ export default function Homologation() {
   };
 
   const allEntities = [...new Set(products.map(p => p.entity).filter(Boolean))].sort();
+  
+  // Auto-select first entity if none selected
+  React.useEffect(() => {
+    if (allEntities.length > 0 && !selectedEntity) {
+      const firstEntity = allEntities.find(e => e === 'PM') || allEntities[0];
+      setSelectedEntity(firstEntity);
+    }
+  }, [allEntities.length]);
+  
   const entityFilteredProducts = selectedEntity ? products.filter(p => p.entity === selectedEntity) : products;
 
   const productsByVertical = entityFilteredProducts.reduce((acc, product) => {
@@ -316,7 +325,7 @@ export default function Homologation() {
           setSelectedEntity(e);
           setSelectedVertical('');
           setSelectedProduct('');
-        }} />
+        }} showAllButton={false} />
       )}
 
       {products.length > 0 ? (

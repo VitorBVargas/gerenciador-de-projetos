@@ -187,6 +187,15 @@ export default function Timeline() {
 
   // Entity filter
   const allEntities = [...new Set(products.map(p => p.entity).filter(Boolean))].sort();
+  
+  // Auto-select first entity if none selected
+  React.useEffect(() => {
+    if (allEntities.length > 0 && !selectedEntity) {
+      const firstEntity = allEntities.find(e => e === 'PM') || allEntities[0];
+      setSelectedEntity(firstEntity);
+    }
+  }, [allEntities.length]);
+  
   const entityProducts = selectedEntity
     ? products.filter(p => p.entity === selectedEntity)
     : [];
@@ -260,7 +269,7 @@ export default function Timeline() {
 
       {/* Entity Filter */}
       {allEntities.length > 0 && (
-        <EntityFilter entities={allEntities} selectedEntity={selectedEntity} onEntityChange={setSelectedEntity} />
+        <EntityFilter entities={allEntities} selectedEntity={selectedEntity} onEntityChange={setSelectedEntity} showAllButton={false} />
       )}
 
       {/* Main Tabs - Cronograma do Projeto */}

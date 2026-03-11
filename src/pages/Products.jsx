@@ -81,7 +81,7 @@ export default function Products() {
   const [activeTab, setActiveTab] = useState('all');
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const [productForPassword, setProductForPassword] = useState(null);
-  const [selectedEntity, setSelectedEntity] = useState('PM');
+  const [selectedEntity, setSelectedEntity] = useState(null);
   const [recognitionModalOpen, setRecognitionModalOpen] = useState(false);
   const [productForRecognition, setProductForRecognition] = useState(null);
   const [flagFilters, setFlagFilters] = useState([]);
@@ -244,6 +244,15 @@ export default function Products() {
 
   // Unique entities for filter
   const entities = [...new Set(products.map(p => p.entity).filter(Boolean))].sort();
+  
+  // Auto-select first entity if none selected
+  React.useEffect(() => {
+    if (entities.length > 0 && !selectedEntity) {
+      const firstEntity = entities.find(e => e === 'PM') || entities[0];
+      setSelectedEntity(firstEntity);
+    }
+  }, [entities.length]);
+  
   const entityFilteredProducts = selectedEntity
     ? filteredProducts.filter(p => p.entity === selectedEntity)
     : filteredProducts;
@@ -315,7 +324,7 @@ export default function Products() {
             )}
           </div>
         </div>
-        <EntityFilter entities={entities} selectedEntity={selectedEntity} onEntityChange={setSelectedEntity} />
+        <EntityFilter entities={entities} selectedEntity={selectedEntity} onEntityChange={setSelectedEntity} showAllButton={false} />
       </div>
 
       {/* Products Table by Vertical */}
