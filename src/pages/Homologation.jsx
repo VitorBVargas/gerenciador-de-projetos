@@ -186,14 +186,14 @@ export default function Homologation() {
   const verticals = Object.keys(productsByVertical).sort();
 
   React.useEffect(() => {
-    if (verticals.length > 0 && !selectedVertical) {
+    if (verticals.length > 0) {
       const firstVertical = verticals[0];
       setSelectedVertical(firstVertical);
       if (productsByVertical[firstVertical]?.length > 0) {
         setSelectedProduct(productsByVertical[firstVertical][0].id);
       }
     }
-  }, [verticals.length, products.length]);
+  }, [verticals.length, selectedEntity]);
 
   React.useEffect(() => {
     if (selectedVertical && productsByVertical[selectedVertical]?.length > 0) {

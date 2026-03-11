@@ -203,21 +203,21 @@ export default function Timeline() {
   // Get unique verticals from selected entity
   const verticals = [...new Set(entityProducts.map(p => p.vertical).filter(Boolean))].sort();
 
-  // Set initial vertical
+  // Set initial vertical when entity changes or loads
   React.useEffect(() => {
-    if (verticals.length > 0 && !activeVertical) {
+    if (verticals.length > 0) {
       setActiveVertical(verticals[0]);
     }
-  }, [verticals.length]);
+  }, [verticals.length, selectedEntity]);
 
   // Get products for active vertical
   const productsInVertical = activeVertical 
     ? entityProducts.filter(p => p.vertical === activeVertical)
     : [];
 
-  // Set initial product
+  // Set initial product when vertical changes
   React.useEffect(() => {
-    if (productsInVertical.length > 0 && !selectedProductId) {
+    if (productsInVertical.length > 0) {
       setSelectedProductId(productsInVertical[0].id);
     }
   }, [productsInVertical.length, activeVertical]);

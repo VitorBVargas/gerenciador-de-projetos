@@ -231,17 +231,16 @@ export default function Migration() {
 
   const verticals = Object.keys(productsByVertical).sort();
 
-  // Set initial vertical and product
+  // Set initial vertical and product when entity changes
   React.useEffect(() => {
-    if (verticals.length > 0 && !selectedVertical) {
+    if (verticals.length > 0) {
       const firstVertical = verticals[0];
       setSelectedVertical(firstVertical);
-      // Auto-seleciona o primeiro produto da vertical
       if (productsByVertical[firstVertical]?.length > 0) {
         setSelectedProduct(productsByVertical[firstVertical][0].id);
       }
     }
-  }, [verticals.length, products.length]);
+  }, [verticals.length, selectedEntity]);
 
   // Auto-seleciona o primeiro produto quando mudar de vertical
   React.useEffect(() => {
