@@ -223,6 +223,13 @@ export default function Timeline() {
     ? entityProducts.filter(p => p.vertical === activeVertical)
     : [];
 
+  // Auto-select first product when vertical is set
+  React.useEffect(() => {
+    if (productsInVertical.length > 0 && !selectedProductId) {
+      setSelectedProductId(productsInVertical[0].id);
+    }
+  }, [productsInVertical.length, activeVertical]);
+
   // Current product
   const currentProduct = productsInVertical.find(p => p.id === selectedProductId) || null;
 
