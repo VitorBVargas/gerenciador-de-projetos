@@ -88,7 +88,7 @@ export default function Migration() {
     enabled: !!projectId,
   });
 
-  const isInitialLoading = isLoadingProjects || isLoadingProducts || isLoadingTasks;
+  const isInitialLoading = !projectId || isLoadingProjects || isLoadingProducts || isLoadingTasks;
 
   const activeProject = projects.find(p => p.id === projectId);
 
