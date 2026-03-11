@@ -248,6 +248,35 @@ export const migrationTasksByProduct = {
     'Extrair ManutencoesCalculoReceitas',
     'Extrair ManutencoesCalculoGuias',
     'Extrair ManutencoesCalculoMovto'
+  ]),
+  'Procuradoria (Cloud)': parseTasksIntoSections([
+    'Dados Cadastrais',
+    'Extrair Tipos Custas Processuais',
+    'Extrair Advogados',
+    'Extrair Tribunais',
+    'Extrair Comarcas',
+    'Extrair Varas',
+    'Extrair Praças',
+    'Extrair Áreas',
+    'Extrair Assuntos',
+    'Extrair Classes Pai',
+    'Extrair Classes Filhas',
+    'Extrair Naturezas Jurídicas',
+    'Extrair Naturezas Textos',
+    'Extrair Motivos',
+    'Extrair Tipos Documentos',
+    'Dados de Lançamentos',
+    'Extrair dados de Execuções',
+    'Extrair dados de config execuções fiscais',
+    'Extrair dados de execuções fiscais',
+    'Extrair dados de execuções fiscais mov',
+    'Extrair dados de execuções fiscais dividas',
+    'Extrair dados de execuções fiscais custas',
+    'Extrair dados de protestos',
+    'Extrair dados de protestos movtos',
+    'Extrair dados de apensos',
+    'Extrair dados de protestos',
+    'Extrair dados de Documentos'
   ])
 };
 
