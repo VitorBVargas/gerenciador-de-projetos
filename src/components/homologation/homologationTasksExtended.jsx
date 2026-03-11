@@ -340,7 +340,6 @@ export const getExtendedTasksForProduct = (productName) => {
     'biblioteca': bibliotecaCloudTasks,
     'merenda escolar': merendaEscolarCloudTasks,
     'patrimonio': patrimonioCloudTasks,
-    'patrimônio': patrimonioCloudTasks,
     'pontual': pontualTasks,
     'esocial': esocialTasks,
     'minha folha': minhaFolhaTasks,
@@ -351,6 +350,11 @@ export const getExtendedTasksForProduct = (productName) => {
     'saude': saudeTasks
   };
   
-  const normalized = (productName || '').toLowerCase().replace(/\(cloud\)/gi, '').trim();
+  const normalized = (productName || '')
+    .toLowerCase()
+    .replace(/\(cloud\)/gi, '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
   return tasks[normalized] || null;
 };
