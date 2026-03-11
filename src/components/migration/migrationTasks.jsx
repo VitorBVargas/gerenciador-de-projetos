@@ -776,7 +776,64 @@ export const migrationTasksByProduct = {
       ]
     }
   ],
-  'RH (Cloud)': [
+  'Contratos (Cloud)': [
+    {
+      section: 'Dados Cadastrais',
+      tasks: [
+        'Extrair Tipo Instrumento Contratação',
+        'Extrair Tipo Aditivo',
+        'Extrair Tipo Publicação Contrato',
+        'Extrair Tipo Administração',
+        'Extrair Tipo Sanção',
+        'Extrair Tipo Rescisão',
+        'Extrair Motivo Rescisão',
+        'Extrair Fonte Divulgação',
+        'Extrair Tipo Comprovante',
+        'Extrair Tipo Apostilamento',
+        'Extrair Tipo Garantia',
+        'Extrair Tipo Responsável Contrato'
+      ]
+    },
+    {
+      section: 'Dados de Lançamentos',
+      tasks: [
+        'Extrair Compras Diretas',
+        'Extrair Compras Diretas Item',
+        'Extrair Compras Diretas Despesa',
+        'Extrair Compras Diretas Publicação',
+        'Extrair Contratações',
+        'Extrair Contratações Sem Processo',
+        'Extrair Contratação Item',
+        'Extrair Contratação Responsável Adm',
+        'Extrair Contratação Publicação',
+        'Extrair Contratação Despesa',
+        'Extrair Contratação Textos',
+        'Extrair Contratação Anexos',
+        'Extrair Contratação Aditivo',
+        'Extrair Contratação Aditivo Item',
+        'Extrair Contratação Aditivo Sem Processo',
+        'Extrair Contratação Aditivo Item Não Previsto',
+        'Extrair Contratação Apostila',
+        'Extrair Contratação Apostila Item',
+        'Extrair Solicitação Fornecimento Compra Direta',
+        'Extrair Solicitação Fornecimento Compra Direta Item',
+        'Extrair Solicitação Fornecimento',
+        'Extrair Solicitação Fornecimento Multi',
+        'Extrair Solicitação Fornecimento Item',
+        'Extrair Recebimento Compra Direta',
+        'Extrair Recebimento Item Compra Direta',
+        'Extrair Comprovante Compra Direta',
+        'Extrair Comprovante Recebimentos',
+        'Extrair Recebimento',
+        'Extrair Recebimento Item',
+        'Extrair Comprovante',
+        'Extrair Comprovante Recebimentos',
+        'Extrair Rescisão Contratual',
+        'Extrair Sanção'
+      ]
+    }
+  ],
+  'Recursos Humanos (Cloud)': [
     {
       section: 'Dados Cadastrais',
       tasks: [

@@ -1389,7 +1389,7 @@ export const homologationTasksByProduct = {
     'PRESTAÇÃO DE CONTAS',
     'Validar necessidade de campos relacionados às prestações de contas'
   ]),
-  'RH (Cloud)': parseTasksIntoSections([
+  'Recursos Humanos (Cloud)': parseTasksIntoSections([
     'CADASTRO DE PESSOAS',
     'Experiências Anteriores',
     'Manutenção de averbações',
