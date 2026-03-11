@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { cn } from "@/lib/utils";
 import EmptyState from '../components/ui/EmptyState';
 import { getDefaultTasksForProduct, productHasHomologation } from '../components/homologation/homologationTasks';
+import { getExtendedTasksForProduct } from '../components/homologation/homologationTasksExtended';
 import EntityFilter from '../components/filters/EntityFilter';
 
 const verticalLabels = {
@@ -93,7 +94,10 @@ export default function Homologation() {
     const existingTasks = tasks.filter(t => t.product_id === product.id);
     if (existingTasks.length > 0) return;
 
-    const defaultSections = getDefaultTasksForProduct(product.name);
+    let defaultSections = getDefaultTasksForProduct(product.name);
+    if (!defaultSections) {
+      defaultSections = getExtendedTasksForProduct(product.name);
+    }
     if (!defaultSections) return;
 
     creatingTasksRef.current.add(product.id);
