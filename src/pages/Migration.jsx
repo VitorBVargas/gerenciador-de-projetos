@@ -98,55 +98,41 @@ export default function Migration() {
   // Cria tarefas padrão para um produto se não existirem
   const createDefaultTasks = async (product) => {
     // Previne criação duplicada simultânea
-    if (creatingTasksRef.current.has(product.id)) {
-      console.log('Já criando tarefas para', product.name);
-      return;
-    }
+    if (creatingTasksRef.current.has(product.id)) return;
     
     const existingTasks = tasks.filter(t => t.product_id === product.id);
-    if (existingTasks.length > 0) {
-      console.log('Já existem tarefas para', product.name);
-      return;
-    }
+    if (existingTasks.length > 0) return;
 
     const defaultSections = getDefaultTasksForProduct(product.name);
-    console.log('Seções padrão para', product.name, ':', defaultSections);
-    
-    if (!defaultSections) {
-      console.log('Produto sem migração:', product.name);
-      return;
-    }
+    if (!defaultSections || defaultSections.length === 0) return;
 
     creatingTasksRef.current.add(product.id);
 
-    const tasksToCreate = [];
-    let order = 0;
+    try {
+      const tasksToCreate = [];
+      let order = 0;
 
-    for (const section of defaultSections) {
-      for (const taskTitle of section.tasks) {
-        tasksToCreate.push({
-          title: taskTitle,
-          project_id: projectId,
-          product_id: product.id,
-          completed: false,
-          order: order++
-        });
+      for (const section of defaultSections) {
+        for (const taskTitle of section.tasks) {
+          tasksToCreate.push({
+            title: taskTitle,
+            project_id: projectId,
+            product_id: product.id,
+            completed: false,
+            order: order++
+          });
+        }
       }
-    }
 
-    console.log('Criando', tasksToCreate.length, 'tarefas para', product.name);
-
-    if (tasksToCreate.length > 0) {
-      try {
+      if (tasksToCreate.length > 0) {
         await base44.entities.MigrationTask.bulkCreate(tasksToCreate);
-        console.log('Tarefas criadas com sucesso');
-        queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
-      } catch (error) {
-        console.error('Erro ao criar tarefas:', error);
+        await queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
       }
+    } catch (error) {
+      console.error('Erro ao criar tarefas:', error);
+    } finally {
+      creatingTasksRef.current.delete(product.id);
     }
-    
-    creatingTasksRef.current.delete(product.id);
   };
 
   React.useEffect(() => {
