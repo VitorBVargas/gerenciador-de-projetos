@@ -26,7 +26,36 @@ const parseTasksIntoSections = (tasks) => {
 
 // Mapa de produtos com suas tarefas de migração
 export const migrationTasksByProduct = {
-  // Produtos serão adicionados conforme os Excels forem enviados
+  'e-Nota (Cloud)': parseTasksIntoSections([
+    'DADOS CADASTRAIS',
+    'Extrair Competências',
+    'Extrair Indexadores',
+    'Extrair Lista de Serviços',
+    'Extair Incentivos Fiscais',
+    'Extrair Serviços Pessoa',
+    'Extrair Simples Nacional',
+    'Extrair Incentivo Pessoa',
+    'Extrair Contribuinte Prestador',
+    'Extrair Isenção Pessoa',
+    'Extrair Perfil Prestador',
+    'Extrair Serviço Contribuinte Prestador',
+    'Extrair Tributos Federais do Contribuinte Prestador',
+    'Extrair e-mail Prestador',
+    'Extrair Cadastro de Tomadores',
+    'DADOS DE LANÇAMENTOS',
+    'Extrair RPS',
+    'Extrair Impressão de RPS',
+    'Extrair Notas Fiscais (Prestador, Tomador, Serviço, Obra...)',
+    'Extrair XML Notas Fiscais',
+    'Extrair Substituição Nota / Estorno',
+    'Extrair Cancelamento Nota',
+    'Extrair Resumo Créditos Tributários',
+    'Extrair Movimentação Créditos Tributários',
+    'Extrair Denúncias',
+    'Extrair Infrações',
+    'Extrair Autos',
+    'Extrair Guias de Pagamentos'
+  ])
 };
 
 // Normaliza o nome do produto removendo "(Cloud)" e caracteres especiais
