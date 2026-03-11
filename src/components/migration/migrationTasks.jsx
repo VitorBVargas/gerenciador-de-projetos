@@ -521,6 +521,14 @@ export const migrationTasksByProduct = {
     'Extrair Grupo Despesas LOA',
     'Extrair Despesas LOA',
     'Extrair Transferências Financeiras LOA'
+  ]),
+  'Tesouraria (Cloud)': parseTasksIntoSections([
+    'Dados de Lançamentos',
+    'Extrair Ajustes Bancários',
+    'Extrair Transferências',
+    'Extrair Conciliações Bancárias',
+    'Extrair Saldos Bancários',
+    'Extrair Gestão Bancária'
   ])
 };
 
