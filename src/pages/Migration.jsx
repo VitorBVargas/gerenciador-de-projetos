@@ -156,9 +156,13 @@ export default function Migration() {
   };
 
   const handleToggleTask = (task) => {
+    const newCompleted = !task.completed;
     updateTaskMutation.mutate({
       id: task.id,
-      data: { completed: !task.completed }
+      data: { 
+        completed: newCompleted,
+        completed_date: newCompleted ? new Date().toISOString() : null
+      }
     });
   };
 
@@ -342,7 +346,10 @@ export default function Migration() {
       const batch = tasksToUpdate.slice(i, i + batchSize);
       
       await Promise.all(
-        batch.map(task => base44.entities.MigrationTask.update(task.id, { completed }))
+        batch.map(task => base44.entities.MigrationTask.update(task.id, { 
+          completed,
+          completed_date: completed ? new Date().toISOString() : null
+        }))
       );
 
       const processed = Math.min(i + batchSize, tasksToUpdate.length);
@@ -646,11 +653,16 @@ export default function Migration() {
                                               className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
                                             />
                                             <span className={cn(
-                                              "flex-1 text-sm",
-                                              task.completed ? "text-slate-500 line-through" : "text-white"
-                                            )}>
-                                              {task.displayTitle}
-                                            </span>
+                                               "flex-1 text-sm",
+                                               task.completed ? "text-slate-500 line-through" : "text-white"
+                                             )}>
+                                               {task.displayTitle}
+                                               {task.completed && task.completed_date && (
+                                                 <span className="text-slate-500 text-xs ml-2">
+                                                   ({new Date(task.completed_date).toLocaleDateString('pt-BR')})
+                                                 </span>
+                                               )}
+                                             </span>
                                             <Button
                                               size="icon"
                                               variant="ghost"
@@ -781,6 +793,11 @@ export default function Migration() {
                                               task.completed ? "text-slate-500 line-through" : "text-white"
                                             )}>
                                               {task.title}
+                                              {task.completed && task.completed_date && (
+                                                <span className="text-slate-500 text-xs ml-2">
+                                                  ({new Date(task.completed_date).toLocaleDateString('pt-BR')})
+                                                </span>
+                                              )}
                                             </span>
                                             <Button
                                               size="icon"
@@ -830,11 +847,16 @@ export default function Migration() {
                                           className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
                                         />
                                         <span className={cn(
-                                          "flex-1 text-sm",
-                                          task.completed ? "text-slate-500 line-through" : "text-white"
-                                        )}>
-                                          {task.title}
-                                        </span>
+                                           "flex-1 text-sm",
+                                           task.completed ? "text-slate-500 line-through" : "text-white"
+                                         )}>
+                                           {task.title}
+                                           {task.completed && task.completed_date && (
+                                             <span className="text-slate-500 text-xs ml-2">
+                                               ({new Date(task.completed_date).toLocaleDateString('pt-BR')})
+                                             </span>
+                                           )}
+                                         </span>
                                         <Button
                                           size="icon"
                                           variant="ghost"
