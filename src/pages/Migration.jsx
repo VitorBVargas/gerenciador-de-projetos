@@ -161,9 +161,9 @@ export default function Migration() {
   };
 
   const getProductProgress = (productId) => {
-    const productTasks = getProductTasks(productId);
-    const product = products.find(p => p.id === productId);
-    const defaultSections = getDefaultTasksForProduct(product?.name) || [];
+  const productTasks = getProductTasks(productId);
+  const product = products.find(p => p.id === productId);
+  const defaultSections = getDefaultTasksForProduct(product?.name) || [];
     const importedTasks = productTasks.filter(t => t.title.includes('||'));
     const standardTasks = productTasks.filter(t => !t.title.includes('||'));
     
@@ -383,8 +383,6 @@ export default function Migration() {
       await base44.entities.MigrationTask.bulkCreate(tasksToCreate);
       toast.success(`${tasksToCreate.length} tarefas importadas com sucesso!`);
       queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
-    } else {
-      toast.error('Nenhuma tarefa válida encontrada no arquivo.');
     }
   };
 
@@ -748,7 +746,7 @@ export default function Migration() {
                                       variant="ghost"
                                       className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover/section:opacity-100 transition-opacity"
                                       onClick={async () => {
-                                        await Promise.all(uniqueTasks.map(t => deleteTaskMutation.mutate(t.id)));
+                                        await Promise.all(sectionTasks.map(t => deleteTaskMutation.mutate(t.id)));
                                         toast.success(`Seção "${section.section}" deletada`);
                                       }}
                                     >
@@ -843,7 +841,7 @@ export default function Migration() {
                             );
                           })()}
 
-                          {getProductTasks(product.id).length === 0 && defaultSections.length > 0 && (
+                          {getProductTasks(product.id).length === 0 && (
                             <p className="text-center text-slate-500 py-4 text-sm">
                               Carregando tarefas padrão...
                             </p>
