@@ -333,29 +333,30 @@ const saudeTasks = parseTasksIntoSections([
 
 export const getEducationTasksForProduct = (productName) => {
   const tasks = {
-    'obras': obrasCloudTasks,
-    'educacao': educacaoCloudTasks,
-    'professores': professoresCloudTasks,
-    'pais e alunos': paisAlunosCloudTasks,
-    'biblioteca': bibliotecaCloudTasks,
-    'merenda escolar': merendaEscolarCloudTasks,
-    'patrimonio': patrimonioCloudTasks,
-    'pontual': pontualTasks,
-    'esocial': esocialTasks,
-    'minha folha': minhaFolhaTasks,
-    'transporte escolar': transporteEscolarTasks,
-    'saude domiciliar': saudeDomiciliarTasks,
-    'conecta': conectaTasks,
-    'documentos': documentosTasks,
-    'saude': saudeTasks
+    'obras cloud': obrasCloudTasks,
+    'educacao cloud': educacaoCloudTasks,
+    'professores cloud': professoresCloudTasks,
+    'pais e alunos cloud': paisAlunosCloudTasks,
+    'biblioteca cloud': bibliotecaCloudTasks,
+    'merenda escolar cloud': merendaEscolarCloudTasks,
+    'patrimonio cloud': patrimonioCloudTasks,
+    'pontual cloud': pontualTasks,
+    'esocial cloud': esocialTasks,
+    'minha folha cloud': minhaFolhaTasks,
+    'transporte escolar cloud': transporteEscolarTasks,
+    'saude domiciliar cloud': saudeDomiciliarTasks,
+    'conecta cloud': conectaTasks,
+    'documentos cloud': documentosTasks,
+    'saude cloud': saudeTasks
   };
   
   const normalized = (productName || '')
     .toLowerCase()
-    .replace(/\(cloud\)/gi, '')
-    .replace(/\s+/g, ' ')
+    .replace(/\(cloud\)/gi, 'cloud')
+    .replace(/[()]/g, '')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ')
     .trim();
   return tasks[normalized] || null;
 };
