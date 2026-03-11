@@ -359,3 +359,8 @@ export const getExtendedTasksForProduct = (productName) => {
     .trim();
   return tasks[normalized] || null;
 };
+
+// Verifica se um produto tem tarefas estendidas
+export const productHasExtendedTasks = (productName) => {
+  return getExtendedTasksForProduct(productName) !== null;
+};
