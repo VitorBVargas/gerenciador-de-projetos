@@ -250,6 +250,7 @@ export const migrationTasksByProduct = {
     'Extrair ManutencoesCalculoMovto'
   ]),
   'Procuradoria (Cloud)': parseTasksIntoSections([
+    'MIGRAÇÃO DE DADOS',
     'Dados Cadastrais',
     'Extrair Tipos Custas Processuais',
     'Extrair Advogados',
@@ -279,6 +280,7 @@ export const migrationTasksByProduct = {
     'Extrair dados de Documentos'
   ]),
   'Livro Eletrônico': parseTasksIntoSections([
+    'MIGRAÇÃO DE DADOS',
     'Dados Cadastrais',
     'Extrair Competências',
     'Extrair Indexadores',

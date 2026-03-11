@@ -150,16 +150,16 @@ export default function Migration() {
   };
 
   React.useEffect(() => {
-    if (selectedProduct && products.length > 0) {
+    if (selectedProduct && products.length > 0 && !isLoadingTasks) {
       const product = getCurrentProduct();
       if (product && productHasMigration(product.name)) {
         const existingTasks = tasks.filter(t => t.product_id === product.id);
-        if (existingTasks.length === 0) {
+        if (existingTasks.length === 0 && !creatingTasksRef.current.has(product.id)) {
           createDefaultTasks(product);
         }
       }
     }
-  }, [selectedProduct, products, tasks]);
+  }, [selectedProduct, products.length, isLoadingTasks]);
 
   const handleAddTask = () => {
     if (!newTaskTitle.trim() || !selectedProduct) return;
