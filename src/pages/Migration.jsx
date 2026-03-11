@@ -65,10 +65,27 @@ export default function Migration() {
     enabled: !!projectId
   });
 
-  const { data: tasks = [] } = useQuery({
+  const { data: tasks = [], isLoading: isLoadingTasks } = useQuery({
     queryKey: ['migrationTasks', projectId],
-    queryFn: () => projectId ? base44.entities.MigrationTask.filter({ project_id: projectId }) : [],
-    enabled: !!projectId
+    queryFn: async () => {
+      if (!projectId) return [];
+      const allTasks = await base44.entities.MigrationTask.filter({ project_id: projectId });
+      
+      // Remove duplicatas baseando-se em product_id + title (case-insensitive)
+      const uniqueTasks = [];
+      const seen = new Map();
+      
+      for (const task of allTasks) {
+        const key = `${task.product_id}:${task.title.toLowerCase()}`;
+        if (!seen.has(key)) {
+          seen.set(key, task);
+          uniqueTasks.push(task);
+        }
+      }
+      
+      return uniqueTasks;
+    },
+    enabled: !!projectId,
   });
 
   const activeProject = projects.find(p => p.id === projectId);
@@ -174,45 +191,14 @@ export default function Migration() {
 
   const getProductProgress = (productId) => {
     const productTasks = getProductTasks(productId);
-    const product = products.find(p => p.id === productId);
-    const defaultSections = getDefaultTasksForProduct(product?.name) || [];
-    const importedTasks = productTasks.filter(t => t.title.includes('||'));
-    const standardTasks = productTasks.filter(t => !t.title.includes('||'));
+    if (productTasks.length === 0) return 0;
     
-    // Remover duplicatas importadas
-    const importedBySection = importedTasks.reduce((acc, task) => {
-      const match = task.title.match(/^\|\|(.+?)\|\|(.+)$/);
-      if (match) {
-        const [, sectionName, taskName] = match;
-        const titleLower = taskName.toLowerCase();
-        if (!acc[sectionName]) acc[sectionName] = new Map();
-        if (!acc[sectionName].has(titleLower)) {
-          acc[sectionName].set(titleLower, task);
-        }
-      }
-      return acc;
-    }, {});
+    const completed = productTasks.filter(t => t.completed).length;
     
-    // Remover duplicatas padrão
-    const uniqueStandardTasks = [];
-    const seenTitles = new Set();
-    for (const task of standardTasks) {
-      const titleLower = task.title.toLowerCase();
-      if (!seenTitles.has(titleLower)) {
-        seenTitles.add(titleLower);
-        uniqueStandardTasks.push(task);
-      }
-    }
+    // Se todas as tarefas estão completas, retorna exatamente 100
+    if (completed === productTasks.length) return 100;
     
-    // Contar apenas tarefas visíveis (únicas)
-    const visibleTasks = [
-      ...uniqueStandardTasks,
-      ...Object.values(importedBySection).flatMap(map => Array.from(map.values()))
-    ];
-    
-    if (visibleTasks.length === 0) return 0;
-    const completed = visibleTasks.filter(t => t.completed).length;
-    return Math.round((completed / visibleTasks.length) * 100);
+    return Math.round((completed / productTasks.length) * 100);
   };
 
   const allEntities = [...new Set(products.map(p => p.entity).filter(Boolean))].sort();
