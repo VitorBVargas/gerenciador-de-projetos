@@ -57,7 +57,7 @@ export default function Timeline() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [eventToDelete, setEventToDelete] = useState(null);
   const [activeVertical, setActiveVertical] = useState('');
-  const [selectedEntity, setSelectedEntity] = useState('PM');
+  const [selectedEntity, setSelectedEntity] = useState(null);
   const [editDatesOpen, setEditDatesOpen] = useState(false);
 
   // Get project_id from URL
@@ -217,15 +217,17 @@ export default function Timeline() {
   React.useEffect(() => {
     if (verticals.length > 0) {
       setActiveVertical(verticals[0]);
-    } else if (selectedEntity && verticals.length === 0 && allEntities.length > 1) {
+    } else if (selectedEntity && verticals.length === 0) {
       // If selected entity has no verticals, try next entity
       const currentIndex = allEntities.indexOf(selectedEntity);
-      const nextEntity = allEntities[currentIndex + 1];
-      if (nextEntity) {
-        setSelectedEntity(nextEntity);
+      if (currentIndex < allEntities.length - 1) {
+        const nextEntity = allEntities[currentIndex + 1];
+        if (nextEntity) {
+          setSelectedEntity(nextEntity);
+        }
       }
     }
-  }, [verticals.length, selectedEntity]);
+  }, [verticals.length, selectedEntity, allEntities]);
 
   // Get products for active vertical
   const productsInVertical = activeVertical 
