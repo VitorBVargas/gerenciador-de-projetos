@@ -24,16 +24,16 @@ const parseTasksIntoSections = (tasks) => {
 export const homologationTasksExtended = {
   'Obras (Cloud)': parseTasksIntoSections([
     'OBRAS',
-    'Verificar se as obras foram migradas corretamente (Acessar tela de obras)',
+    'Verificar se as obras foram migradas corretamente',
     'TIPOS DE OBRA',
-    'Verificar se os tipos de obra foram migrados corretamente (Acessar cadastro de Tipo de Obra)',
+    'Verificar se os tipos de obra foram migrados corretamente',
     'CATEGORIAS',
-    'Verificar se as categorias foram migradas corretamente (Acessar cadastro de Tipo de Categoria)',
+    'Verificar se as categorias foram migradas corretamente',
     'ORGANOGRAMAS',
-    'Verificar se os organogramas foram migrados corretamente (Acessar cadastro de organogramas)',
+    'Verificar se os organogramas foram migrados corretamente',
     'MEDIÇÕES',
-    'Verificar se as medições das obras cadastradas foram migradas corretamente (Acessar tela de Obras)',
+    'Verificar se as medições das obras cadastradas foram migradas corretamente',
     'SITUAÇÕES',
-    'Situações Verificar se as situações das obras foram migradas corretamente (Acessar tela de Obras)'
+    'Verificar se as situações das obras foram migradas corretamente'
   ])
 };
