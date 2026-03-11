@@ -188,13 +188,23 @@ export default function Timeline() {
   // Entity filter
   const allEntities = [...new Set(products.map(p => p.entity).filter(Boolean))].sort();
   
-  // Auto-select first entity if none selected
+  // Auto-select first entity that has products
   React.useEffect(() => {
     if (allEntities.length > 0 && !selectedEntity) {
-      const firstEntity = allEntities.find(e => e === 'PM') || allEntities[0];
-      setSelectedEntity(firstEntity);
+      // Find first entity that has products
+      const entityWithProducts = allEntities.find(entity => {
+        return products.filter(p => p.entity === entity).length > 0;
+      });
+      
+      if (entityWithProducts) {
+        setSelectedEntity(entityWithProducts);
+      } else {
+        // Fallback to first entity if none have products
+        const firstEntity = allEntities.find(e => e === 'PM') || allEntities[0];
+        setSelectedEntity(firstEntity);
+      }
     }
-  }, [allEntities.length]);
+  }, [allEntities.length, products.length]);
   
   const entityProducts = selectedEntity
     ? products.filter(p => p.entity === selectedEntity)
@@ -207,6 +217,13 @@ export default function Timeline() {
   React.useEffect(() => {
     if (verticals.length > 0) {
       setActiveVertical(verticals[0]);
+    } else if (selectedEntity && verticals.length === 0 && allEntities.length > 1) {
+      // If selected entity has no verticals, try next entity
+      const currentIndex = allEntities.indexOf(selectedEntity);
+      const nextEntity = allEntities[currentIndex + 1];
+      if (nextEntity) {
+        setSelectedEntity(nextEntity);
+      }
     }
   }, [verticals.length, selectedEntity]);
 
