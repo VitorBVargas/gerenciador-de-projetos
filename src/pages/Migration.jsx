@@ -94,10 +94,7 @@ export default function Migration() {
     const existingTasks = tasks.filter(t => t.product_id === product.id);
     if (existingTasks.length > 0) return;
 
-    let defaultSections = getDefaultTasksForProduct(product.name);
-    if (!defaultSections) {
-      defaultSections = getExtendedTasksForProduct(product.name);
-    }
+    const defaultSections = getDefaultTasksForProduct(product.name);
     if (!defaultSections) return;
 
     creatingTasksRef.current.add(product.id);
@@ -165,13 +162,9 @@ export default function Migration() {
   };
 
   const getProductProgress = (productId) => {
-    const productTasks = getProductTasks(productId);
-    const product = products.find(p => p.id === productId);
-    let defaultSections = getDefaultTasksForProduct(product?.name);
-    if (!defaultSections) {
-      defaultSections = getExtendedTasksForProduct(product?.name) || [];
-    }
-    defaultSections = defaultSections || [];
+  const productTasks = getProductTasks(productId);
+  const product = products.find(p => p.id === productId);
+  const defaultSections = getDefaultTasksForProduct(product?.name) || [];
     const importedTasks = productTasks.filter(t => t.title.includes('||'));
     const standardTasks = productTasks.filter(t => !t.title.includes('||'));
     
@@ -478,11 +471,7 @@ export default function Migration() {
                       <CardContent className="p-6">
                         <div className="space-y-3 mb-6">
                           {(() => {
-                            let defaultSections = getDefaultTasksForProduct(product.name);
-                            if (!defaultSections) {
-                              defaultSections = getExtendedTasksForProduct(product.name);
-                            }
-                            defaultSections = defaultSections || [];
+                            const defaultSections = getDefaultTasksForProduct(product.name) || [];
                             const importedSectionNames = [...new Set(
                               getProductTasks(product.id)
                                 .filter(t => t.title.includes('||'))
@@ -535,11 +524,7 @@ export default function Migration() {
                         <div className="space-y-6">
                           {(() => {
                             const productTasks = getProductTasks(product.id);
-                            let defaultSections = getDefaultTasksForProduct(product.name);
-                            if (!defaultSections) {
-                              defaultSections = getExtendedTasksForProduct(product.name);
-                            }
-                            defaultSections = defaultSections || [];
+                            const defaultSections = getDefaultTasksForProduct(product.name) || [];
                             
                             // Separar tarefas importadas (com ||) de tarefas padrão
                             const importedTasks = productTasks.filter(t => t.title.includes('||'));
