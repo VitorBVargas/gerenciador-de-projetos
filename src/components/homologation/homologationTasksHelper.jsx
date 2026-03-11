@@ -1,10 +1,12 @@
 // Helper para buscar tarefas de homologação
 // Faz fallback entre homologationTasks e homologationTasksEducation
 
-import { getDefaultTasksForProduct as getStandardTasks, productHasHomologation as checkStandard } from './homologationTasks';
-import { getEducationTasksForProduct, productHasEducationTasks } from './homologationTasksEducation';
+import { getDefaultTasksForProduct as getStandardTasks } from './homologationTasks';
+import { getEducationTasksForProduct } from './homologationTasksEducation';
 
 export const getDefaultTasksForProduct = (productName) => {
+  if (!productName) return null;
+  
   // Tenta primeiro em homologationTasks (padrão)
   const standardTasks = getStandardTasks(productName);
   if (standardTasks) return standardTasks;
