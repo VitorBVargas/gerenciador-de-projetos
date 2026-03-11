@@ -177,6 +177,132 @@ const patrimonioCloudTasks = parseTasksIntoSections([
   'Integração com o Portal da Transparência'
 ]);
 
+const pontualTasks = parseTasksIntoSections([
+  'CADASTROS BÁSICOS',
+  'Validar configurações gerais do sistema',
+  'Verificar integração com folha de pagamento',
+  'Testar acesso de usuários',
+  'Validar calendário de períodos',
+  'FUNCIONALIDADES',
+  'Testar registro de ponto/marcação',
+  'Validar cálculo de horas',
+  'Testar relatórios de presença',
+  'Validar integração com RH',
+  'DADOS E INTEGRAÇÕES',
+  'Verificar sincronização de dados',
+  'Testar exportação de relatórios',
+  'Validar permissões de acesso',
+  'Testar recuperação de dados'
+]);
+
+const esocialTasks = parseTasksIntoSections([
+  'CONFIGURAÇÕES INICIAIS',
+  'Validar dados da empresa/entidade',
+  'Verificar configurações de envio',
+  'Testar conexão com servidores da RFB',
+  'Validar certificados digitais',
+  'EVENTOS E COMUNICAÇÕES',
+  'Testar envio de eventos obrigatórios',
+  'Validar respostas do eSocial',
+  'Testar retificações de eventos',
+  'Validar comunicações recebidas',
+  'CONFORMIDADE E RELATÓRIOS',
+  'Verificar conformidade de dados',
+  'Testar relatórios de validação',
+  'Validar histórico de transmissões',
+  'Testar recuperação de falhas'
+]);
+
+const minhaFolhaTasks = parseTasksIntoSections([
+  'ACESSO E AUTENTICAÇÃO',
+  'Validar acesso do funcionário',
+  'Testar recuperação de senha',
+  'Validar segurança de dados pessoais',
+  'Testar navegação do portal',
+  'VISUALIZAÇÃO DE DADOS',
+  'Testar exibição de contracheque',
+  'Validar exibição de férias',
+  'Testar histórico de pagamentos',
+  'Validar informações de benefícios',
+  'FUNCIONALIDADES',
+  'Testar download de documentos',
+  'Validar impressão de comprovantes',
+  'Testar envio de dúvidas/mensagens',
+  'Validar atualização de dados pessoais'
+]);
+
+const transporteEscolarTasks = parseTasksIntoSections([
+  'CADASTROS E CONFIGURAÇÃO',
+  'Validar cadastro de rotas',
+  'Testar cadastro de veículos',
+  'Validar cadastro de motoristas',
+  'Testar configuração de paradas',
+  'OPERACIONAL',
+  'Validar atribuição de alunos às rotas',
+  'Testar acompanhamento de rotas',
+  'Validar comunicação com pais',
+  'Testar relatórios de frequência',
+  'CONFORMIDADE',
+  'Validar segurança dos alunos',
+  'Testar rastreamento de veículos',
+  'Validar documentação obrigatória',
+  'Testar procedimentos de emergência'
+]);
+
+const saudeDomiciliarTasks = parseTasksIntoSections([
+  'CADASTROS E DADOS',
+  'Validar cadastro de pacientes',
+  'Testar registro de endereços',
+  'Validar informações de contato',
+  'Testar histórico de atendimentos',
+  'FUNCIONALIDADES CLÍNICAS',
+  'Validar agendamento de visitas',
+  'Testar registro de avaliação clínica',
+  'Validar prescrição de medicamentos',
+  'Testar evolução do paciente',
+  'INTEGRAÇÃO E CONFORMIDADE',
+  'Validar integração com prontuário eletrônico',
+  'Testar conformidade com HIPAA/LGPD',
+  'Validar geração de relatórios clínicos',
+  'Testar auditoria de acessos'
+]);
+
+const conectaTasks = parseTasksIntoSections([
+  'CONFIGURAÇÃO INICIAL',
+  'Validar credenciais e autenticação',
+  'Testar conectividade com parceiros',
+  'Validar certificados de segurança',
+  'Testar sincronização inicial de dados',
+  'FLUXO DE DADOS',
+  'Validar envio de transações',
+  'Testar recebimento de mensagens',
+  'Validar formato de dados trocados',
+  'Testar confirmações de entrega',
+  'MONITORAMENTO',
+  'Validar logs de transações',
+  'Testar alertas de falhas',
+  'Validar relatórios de atividade',
+  'Testar recuperação de erros'
+]);
+
+const documentosTasks = parseTasksIntoSections([
+  'CONFIGURAÇÃO DO SISTEMA',
+  'Validar tipos de documentos',
+  'Testar categorias/classificações',
+  'Validar regras de retenção',
+  'Testar fluxos de aprovação',
+  'FUNCIONALIDADES',
+  'Validar upload de documentos',
+  'Testar busca e localização',
+  'Validar compartilhamento de acesso',
+  'Testar versionamento de documentos',
+  'CONFORMIDADE E SEGURANÇA',
+  'Validar assinatura digital',
+  'Testar criptografia de dados',
+  'Validar rastreabilidade de acesso',
+  'Testar backup e recuperação'
+]);
+
 export const getExtendedTasksForProduct = (productName) => {
   const tasks = {
     'obras': obrasCloudTasks,
@@ -186,7 +312,14 @@ export const getExtendedTasksForProduct = (productName) => {
     'biblioteca': bibliotecaCloudTasks,
     'merenda escolar': merendaEscolarCloudTasks,
     'patrimonio': patrimonioCloudTasks,
-    'patrimônio': patrimonioCloudTasks
+    'patrimônio': patrimonioCloudTasks,
+    'pontual': pontualTasks,
+    'esocial': esocialTasks,
+    'minha folha': minhaFolhaTasks,
+    'transporte escolar': transporteEscolarTasks,
+    'saude domiciliar': saudeDomiciliarTasks,
+    'conecta': conectaTasks,
+    'documentos': documentosTasks
   };
   
   const normalized = (productName || '').toLowerCase().replace(/\(cloud\)/gi, '').trim();
