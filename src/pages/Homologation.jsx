@@ -645,7 +645,7 @@ export default function Homologation() {
                                           )}>
                                             {task.displayTitle}
                                             {task.completed && task.completed_date && (
-                                              <span className="text-slate-500 text-xs ml-2">
+                                              <span className="text-slate-400 text-xs ml-2 no-underline">
                                                 ({new Date(task.completed_date).toLocaleDateString('pt-BR')})
                                               </span>
                                             )}
@@ -778,7 +778,7 @@ export default function Homologation() {
                                            )}>
                                              {task.title}
                                              {task.completed && task.completed_date && (
-                                               <span className="text-slate-500 text-xs ml-2">
+                                               <span className="text-slate-400 text-xs ml-2 no-underline">
                                                  ({new Date(task.completed_date).toLocaleDateString('pt-BR')})
                                                </span>
                                              )}
@@ -826,7 +826,7 @@ export default function Homologation() {
                                               )}>
                                                {task.title}
                                                {task.completed && task.completed_date && (
-                                                 <span className="text-slate-500 text-xs ml-2">
+                                                 <span className="text-slate-400 text-xs ml-2 no-underline">
                                                    ({new Date(task.completed_date).toLocaleDateString('pt-BR')})
                                                  </span>
                                                )}
