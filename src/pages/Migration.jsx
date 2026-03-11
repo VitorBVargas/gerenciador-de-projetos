@@ -44,6 +44,7 @@ export default function Migration() {
   const [selectedEntity, setSelectedEntity] = useState(null);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [sectionOrder, setSectionOrder] = useState({});
+  const [importedSectionOrder, setImportedSectionOrder] = useState({});
   const [addTaskSection, setAddTaskSection] = useState('');
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [markingProgress, setMarkingProgress] = useState({ isLoading: false, current: 0, total: 0 });
@@ -297,6 +298,35 @@ export default function Migration() {
     return order.map(i => sections[i]).filter(Boolean);
   };
 
+  const moveImportedSectionUp = (productId, sectionNames, sectionIndex) => {
+    if (sectionIndex === 0) return;
+    setImportedSectionOrder(prev => {
+      const key = productId;
+      const currentOrder = prev[key] || sectionNames.map((_, i) => i);
+      const newOrder = [...currentOrder];
+      [newOrder[sectionIndex - 1], newOrder[sectionIndex]] = [newOrder[sectionIndex], newOrder[sectionIndex - 1]];
+      return { ...prev, [key]: newOrder };
+    });
+  };
+
+  const moveImportedSectionDown = (productId, sectionNames, sectionIndex) => {
+    if (sectionIndex >= sectionNames.length - 1) return;
+    setImportedSectionOrder(prev => {
+      const key = productId;
+      const currentOrder = prev[key] || sectionNames.map((_, i) => i);
+      const newOrder = [...currentOrder];
+      [newOrder[sectionIndex], newOrder[sectionIndex + 1]] = [newOrder[sectionIndex + 1], newOrder[sectionIndex]];
+      return { ...prev, [key]: newOrder };
+    });
+  };
+
+  const getOrderedImportedSections = (productId, sectionEntries) => {
+    const key = productId;
+    const sectionNames = sectionEntries.map(([name]) => name);
+    const order = importedSectionOrder[key] || sectionNames.map((_, i) => i);
+    return order.map(i => sectionEntries[i]).filter(Boolean);
+  };
+
   const handleMarkSectionTasks = async (sectionTasks, completed) => {
     const tasksToUpdate = sectionTasks.filter(t => t.completed !== completed);
     
@@ -529,7 +559,8 @@ export default function Migration() {
                             return (
                               <>
                                 {/* Renderizar seções importadas */}
-                                {Object.entries(importedBySection).map(([sectionName, sectionTasks], idx) => {
+                                {getOrderedImportedSections(product.id, Object.entries(importedBySection)).map(([sectionName, sectionTasks], displayIndex) => {
+                                  const totalImportedSections = Object.keys(importedBySection).length;
                                   // Remover duplicados nas seções importadas
                                   const uniqueImportedTasks = [];
                                   const seenTitles = new Map();
@@ -548,33 +579,51 @@ export default function Migration() {
                                       }
                                     }
                                   }
-                                  
+
                                   return (
-                                    <div key={`imported-${idx}`}>
+                                    <div key={`imported-${displayIndex}`}>
                                       <div className="flex items-center justify-between mb-3 group/section">
                                         <h3 className="text-cyan-400 font-semibold text-sm uppercase flex-1">
                                           {sectionName}
                                         </h3>
                                         <div className="flex items-center gap-1">
-                                         <button
-                                           onClick={() => {
-                                             const allDone = uniqueImportedTasks.every(t => t.completed);
-                                             handleMarkSectionTasks(uniqueImportedTasks, !allDone);
-                                           }}
-                                           disabled={markingProgress.isLoading}
-                                           className="text-[10px] px-2 py-0.5 rounded border border-green-500/30 text-green-400 hover:bg-green-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                                         >
-                                           {markingProgress.isLoading ? (
-                                             <>
-                                               <Loader2 className="w-3 h-3 animate-spin" />
-                                               Processando...
-                                             </>
-                                           ) : uniqueImportedTasks.every(t => t.completed) ? (
-                                             'Desmarcar'
-                                           ) : (
-                                             'Marcar todos'
-                                           )}
-                                         </button>
+                                          <button
+                                            onClick={() => {
+                                              const allDone = uniqueImportedTasks.every(t => t.completed);
+                                              handleMarkSectionTasks(uniqueImportedTasks, !allDone);
+                                            }}
+                                            disabled={markingProgress.isLoading}
+                                            className="text-[10px] px-2 py-0.5 rounded border border-green-500/30 text-green-400 hover:bg-green-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                                          >
+                                            {markingProgress.isLoading ? (
+                                              <>
+                                                <Loader2 className="w-3 h-3 animate-spin" />
+                                                Processando...
+                                              </>
+                                            ) : uniqueImportedTasks.every(t => t.completed) ? (
+                                              'Desmarcar'
+                                            ) : (
+                                              'Marcar todos'
+                                            )}
+                                          </button>
+                                          <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            disabled={displayIndex === 0}
+                                            className="h-6 w-6 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/20 disabled:opacity-30"
+                                            onClick={() => moveImportedSectionUp(product.id, Object.keys(importedBySection), displayIndex)}
+                                          >
+                                            <ChevronUp className="w-4 h-4" />
+                                          </Button>
+                                          <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            disabled={displayIndex >= totalImportedSections - 1}
+                                            className="h-6 w-6 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/20 disabled:opacity-30"
+                                            onClick={() => moveImportedSectionDown(product.id, Object.keys(importedBySection), displayIndex)}
+                                          >
+                                            <ChevronDown className="w-4 h-4" />
+                                          </Button>
                                           <Button
                                             size="icon"
                                             variant="ghost"
