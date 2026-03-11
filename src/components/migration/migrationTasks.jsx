@@ -1004,6 +1004,19 @@ export const migrationTasksByProduct = {
       ]
     }
   ],
+  'Obras (Cloud)': [
+    {
+      section: 'Dados Cadastrais',
+      tasks: [
+        'OBRAS',
+        'TIPOS DE OBRA',
+        'CATEGORIAS',
+        'ORGANOGRAMAS',
+        'MEDIÇÕES',
+        'SITUAÇÕES'
+      ]
+    }
+  ],
   'Frotas (Cloud)': [
     {
       section: 'Dados Cadastrais',
