@@ -654,6 +654,31 @@ export const migrationTasksByProduct = {
       ]
     }
   ],
+  'Ponto (Cloud)': [
+    {
+      section: 'Dados Cadastrais',
+      tasks: [
+        'Extrair Cadastro de Horários',
+        'Extrair Jornadas de Trabalho',
+        'Extrair Cadastro de Turmas',
+        'Extrair Motivos de Alteração de Ponto',
+        'Extrair Tipos de Funções de Relógio',
+        'Extrair Funções de Relógio',
+        'Extrair Parâmetros do Ponto',
+        'Extrair Tipos de Ausências'
+      ]
+    },
+    {
+      section: 'Dados de Lançamentos',
+      tasks: [
+        'Extrair Lançamento de Ausências',
+        'Extrair Relógios',
+        'Extrair Compensação de Horas',
+        'Extrair Ocorrências do Ponto',
+        'Extrair Períodos de Apuração do Ponto'
+      ]
+    }
+  ],
   'RH (Cloud)': [
     {
       section: 'Dados Cadastrais',
