@@ -17,6 +17,7 @@ import {
   Upload,
   Loader2
 } from 'lucide-react';
+import { getDefaultTasksForProduct } from '../components/migration/migrationTasks';
 import * as XLSX from 'xlsx';
 import ImportTasksModal from '../components/modals/ImportTasksModal';
 import { toast } from 'sonner';
@@ -128,10 +129,20 @@ export default function Migration() {
 
   const getProductProgress = (productId) => {
     const productTasks = getProductTasks(productId);
+    const product = products.find(p => p.id === productId);
     
-    if (productTasks.length === 0) return 0;
-    const completed = productTasks.filter(t => t.completed).length;
-    return Math.round((completed / productTasks.length) * 100);
+    // Se houver tarefas no BD, usa essas
+    if (productTasks.length > 0) {
+      const completed = productTasks.filter(t => t.completed).length;
+      return Math.round((completed / productTasks.length) * 100);
+    }
+    
+    // Fallback: busca tarefas padrão do arquivo hardcoded
+    const defaultSections = getDefaultTasksForProduct(product?.name) || [];
+    const totalDefaultTasks = defaultSections.reduce((sum, s) => sum + s.tasks.length, 0);
+    if (totalDefaultTasks === 0) return 0;
+    
+    return 0; // Se não há tarefas criadas ainda
   };
 
   const allEntities = [...new Set(products.map(p => p.entity).filter(Boolean))].sort();
@@ -444,26 +455,29 @@ export default function Migration() {
                         <div className="space-y-6">
                           {(() => {
                              const productTasks = getProductTasks(product.id);
+                             const defaultSections = getDefaultTasksForProduct(product.name) || [];
 
-                             // Agrupar tarefas por seções (procuram por ||)
-                             const tasksBySection = productTasks.reduce((acc, task) => {
-                               if (task.title.includes('||')) {
-                                 const match = task.title.match(/^\|\|(.+?)\|\|(.+)$/);
-                                 if (match) {
-                                   const [, sectionName, taskName] = match;
-                                   if (!acc[sectionName]) acc[sectionName] = [];
-                                   acc[sectionName].push({ ...task, displayTitle: taskName });
+                             // Se houver tarefas no BD, usa essas
+                             if (productTasks.length > 0) {
+                               // Agrupar tarefas por seções (procuram por ||)
+                               const tasksBySection = productTasks.reduce((acc, task) => {
+                                 if (task.title.includes('||')) {
+                                   const match = task.title.match(/^\|\|(.+?)\|\|(.+)$/);
+                                   if (match) {
+                                     const [, sectionName, taskName] = match;
+                                     if (!acc[sectionName]) acc[sectionName] = [];
+                                     acc[sectionName].push({ ...task, displayTitle: taskName });
+                                   }
                                  }
-                               }
-                               return acc;
-                             }, {});
+                                 return acc;
+                               }, {});
 
-                             const sectionEntries = Object.entries(tasksBySection);
+                               const sectionEntries = Object.entries(tasksBySection);
 
-                             return (
-                               <>
-                                 {/* Renderizar seções do banco de dados */}
-                                 {sectionEntries.map(([sectionName, sectionTasks], displayIndex) => {
+return (
+  <>
+    {/* Renderizar seções do banco de dados */}
+    {sectionEntries.map(([sectionName, sectionTasks], displayIndex) => {
                                    // Remover duplicados
                                     const uniqueTasks = [];
                                     const seenTitles = new Map();
@@ -586,6 +600,47 @@ export default function Migration() {
                                         </div>
                                       )}
                                       </>
+                                      );
+                                      }
+
+                                      // Fallback: Mostrar tarefas padrão do arquivo hardcoded
+                                      if (defaultSections.length > 0) {
+                                      return (
+                                      <>
+                                        {defaultSections.map((section, displayIndex) => (
+                                          <div key={`default-${displayIndex}`}>
+                                            <div className="flex items-center justify-between mb-3 group/section">
+                                              <h3 className="text-cyan-400 font-semibold text-sm uppercase flex-1">
+                                                {section.section}
+                                              </h3>
+                                            </div>
+                                            <div className="space-y-2">
+                                              {section.tasks.map((taskTitle, idx) => (
+                                                <div key={`${displayIndex}-${idx}`} className="flex items-center gap-3 group">
+                                                  <Checkbox
+                                                    checked={false}
+                                                    disabled
+                                                    className="border-slate-500"
+                                                  />
+                                                  <span className="flex-1 text-sm text-slate-400">
+                                                    {taskTitle}
+                                                  </span>
+                                                  <span className="text-xs text-slate-500">
+                                                    (click Importar Excel para criar)
+                                                  </span>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </>
+                                      );
+                                      }
+
+                                      return (
+                                      <p className="text-center text-slate-500 py-4 text-sm">
+                                      Nenhuma tarefa de migração encontrada
+                                      </p>
                                       );
                                       })()}
 
