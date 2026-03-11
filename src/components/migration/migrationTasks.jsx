@@ -1740,7 +1740,12 @@ const normalizeProductName = (name) => {
 export const getDefaultTasksForProduct = (productName) => {
   if (!productName) return null;
   
-  const normalized = (productName || '').toLowerCase().replace(/\(cloud\)/gi, '').trim();
+  const normalized = (productName || '')
+    .toLowerCase()
+    .replace(/\(cloud\)/gi, '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
   return migrationTasksByProduct[normalized] || null;
 };
 
