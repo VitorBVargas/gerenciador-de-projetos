@@ -15,7 +15,6 @@ import { toast } from 'sonner';
 import { cn } from "@/lib/utils";
 import EmptyState from '../components/ui/EmptyState';
 import { getDefaultTasksForProduct, productHasMigration } from '../components/migration/migrationTasks';
-import { getExtendedTasksForProduct } from '../components/homologation/homologationTasksExtended';
 import EntityFilter from '../components/filters/EntityFilter';
 
 const verticalLabels = {
