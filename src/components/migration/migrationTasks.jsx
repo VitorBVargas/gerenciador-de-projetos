@@ -654,29 +654,33 @@ export const migrationTasksByProduct = {
       ]
     }
   ],
-  'RH (Cloud)': parseTasksIntoSections([
-    'Dados Cadastrais',
-    'Extrair Distância',
-    'Extrair Região',
-    'Extrair Natureza Diária',
-    'Extrair Diária',
-    'Extrair Cursos',
-    'Extrair Tipos Cursos',
-    'Extrair Instituições',
-    'Extrair Pessoas',
-    'Extrair Pessoal Cursos',
-    'Extrair Pessoal Filiação',
-    'Extrair Pessoal Documento',
-    'Extrair Pessoal Endereço',
-    'Extrair Pessoal Email',
-    'Extrair Pessoal Telefone',
-    'Extrair Pessoal Dependente',
-    'Extrair Pessoal Experiência',
-    'Extrair Pessoal Averbação',
-    'Extrair Pessoal Conta Bancária',
-    'Extrair Pessoal Cota Sindical',
-    'Extrair Pessoal Bolsa Estudos'
-  ])
+  'RH (Cloud)': [
+    {
+      section: 'Dados Cadastrais',
+      tasks: [
+        'Extrair Distância',
+        'Extrair Região',
+        'Extrair Natureza Diária',
+        'Extrair Diária',
+        'Extrair Cursos',
+        'Extrair Tipos Cursos',
+        'Extrair Instituições',
+        'Extrair Pessoas',
+        'Extrair Pessoal Cursos',
+        'Extrair Pessoal Filiação',
+        'Extrair Pessoal Documento',
+        'Extrair Pessoal Endereço',
+        'Extrair Pessoal Email',
+        'Extrair Pessoal Telefone',
+        'Extrair Pessoal Dependente',
+        'Extrair Pessoal Experiência',
+        'Extrair Pessoal Averbação',
+        'Extrair Pessoal Conta Bancária',
+        'Extrair Pessoal Cota Sindical',
+        'Extrair Pessoal Bolsa Estudos'
+      ]
+    }
+  ]
 };
 
 // Normaliza o nome do produto removendo "(Cloud)" e caracteres especiais
