@@ -1351,18 +1351,8 @@ const normalizeProductName = (name) => {
 export const getDefaultTasksForProduct = (productName) => {
   if (!productName) return null;
   
-  const normalizedInput = normalizeProductName(productName);
-  
-  // Busca APENAS match exato (considerando com e sem Cloud)
-  for (const [key, tasks] of Object.entries(migrationTasksByProduct)) {
-    const normalizedKey = normalizeProductName(key);
-    if (normalizedKey === normalizedInput) {
-      return tasks;
-    }
-  }
-  
-  // Se não encontrou match exato, retorna null (produto sem migração)
-  return null;
+  const normalized = (productName || '').toLowerCase().replace(/\(cloud\)/gi, '').trim();
+  return migrationTasksByProduct[normalized] || null;
 };
 
 // Verifica se um produto tem processo de migração

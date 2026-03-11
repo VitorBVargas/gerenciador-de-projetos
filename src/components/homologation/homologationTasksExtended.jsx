@@ -135,19 +135,13 @@ const merendaEscolarCloudTasks = parseTasksIntoSections([
 export const getExtendedTasksForProduct = (productName) => {
   const tasks = {
     'obras': obrasCloudTasks,
-    'obras (cloud)': obrasCloudTasks,
     'educacao': educacaoCloudTasks,
-    'educacao (cloud)': educacaoCloudTasks,
     'professores': professoresCloudTasks,
-    'professores (cloud)': professoresCloudTasks,
     'pais e alunos': paisAlunosCloudTasks,
-    'pais e alunos (cloud)': paisAlunosCloudTasks,
     'biblioteca': bibliotecaCloudTasks,
-    'biblioteca (cloud)': bibliotecaCloudTasks,
-    'merenda escolar': merendaEscolarCloudTasks,
-    'merenda escolar (cloud)': merendaEscolarCloudTasks
+    'merenda escolar': merendaEscolarCloudTasks
   };
   
-  const normalized = (productName || '').toLowerCase().replace(/\(cloud\)/g, '').trim();
+  const normalized = (productName || '').toLowerCase().replace(/\(cloud\)/gi, '').trim();
   return tasks[normalized] || null;
 };
