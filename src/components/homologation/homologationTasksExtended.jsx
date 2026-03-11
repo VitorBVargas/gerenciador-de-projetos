@@ -303,6 +303,34 @@ const documentosTasks = parseTasksIntoSections([
   'Testar backup e recuperação'
 ]);
 
+const saudeTasks = parseTasksIntoSections([
+  'CADASTROS E CONFIGURAÇÃO',
+  'Validar cadastro de unidades de saúde',
+  'Testar configuração de especialidades',
+  'Validar cadastro de profissionais de saúde',
+  'Testar tabelas de medicamentos',
+  'Validar tabelas de exames/testes',
+  'Testar configuração de convênios',
+  'GESTÃO DE PACIENTES',
+  'Validar cadastro de pacientes',
+  'Testar registro de alergias/reações adversas',
+  'Validar histórico médico',
+  'Testar autorização de tratamentos',
+  'OPERACIONAL',
+  'Validar sistema de agendamento',
+  'Testar registro de consultas',
+  'Validar prescrição de medicamentos',
+  'Testar lançamento de resultados de exames',
+  'Validar registro de diagnósticos',
+  'Testar geração de receituários',
+  'CONFORMIDADE E SEGURANÇA',
+  'Validar conformidade LGPD',
+  'Testar criptografia de dados sensíveis',
+  'Validar rastreabilidade de acessos',
+  'Testar backup de prontuários eletrônicos',
+  'Validar conformidade com normas de saúde'
+]);
+
 export const getExtendedTasksForProduct = (productName) => {
   const tasks = {
     'obras': obrasCloudTasks,
@@ -319,7 +347,8 @@ export const getExtendedTasksForProduct = (productName) => {
     'transporte escolar': transporteEscolarTasks,
     'saude domiciliar': saudeDomiciliarTasks,
     'conecta': conectaTasks,
-    'documentos': documentosTasks
+    'documentos': documentosTasks,
+    'saude': saudeTasks
   };
   
   const normalized = (productName || '').toLowerCase().replace(/\(cloud\)/gi, '').trim();

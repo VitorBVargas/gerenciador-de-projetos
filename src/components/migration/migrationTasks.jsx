@@ -1609,7 +1609,117 @@ export const migrationTasksByProduct = {
     'Configuração Geral',
     'Dados de Lançamentos',
     'Relatórios e Consultas'
-  ])
+  ]),
+  'Saúde': [
+    {
+      section: 'Dados Cadastrais',
+      tasks: [
+        'Extrair Configurações Gerais',
+        'Extrair Unidades de Saúde',
+        'Extrair Setores/Departamentos',
+        'Extrair Especialidades Médicas',
+        'Extrair Equipamentos Médicos',
+        'Extrair Medicamentos/Fármacos',
+        'Extrair Testes/Exames Disponíveis',
+        'Extrair Profissionais de Saúde',
+        'Extrair Horários de Atendimento',
+        'Extrair Convênios/Seguros'
+      ]
+    },
+    {
+      section: 'Dados de Pacientes',
+      tasks: [
+        'Extrair Dados Pessoais de Pacientes',
+        'Extrair Documentos de Pacientes',
+        'Extrair Contatos de Pacientes',
+        'Extrair Endereços de Pacientes',
+        'Extrair Alergias/Reações Adversas',
+        'Extrair Histórico Médico',
+        'Extrair Responsáveis/Acompanhantes',
+        'Extrair Autorizações de Tratamento'
+      ]
+    },
+    {
+      section: 'Dados de Atendimento',
+      tasks: [
+        'Extrair Agendamentos',
+        'Extrair Consultas Realizadas',
+        'Extrair Prescrições Médicas',
+        'Extrair Resultados de Exames',
+        'Extrair Diagnósticos',
+        'Extrair Procedimentos Realizados',
+        'Extrair Notas de Internação',
+        'Extrair Histórico de Tratamentos'
+      ]
+    },
+    {
+      section: 'Dados Financeiros e Administrativos',
+      tasks: [
+        'Extrair Faturamento de Procedimentos',
+        'Extrair Faturamento de Consultas',
+        'Extrair Faturamento de Exames',
+        'Extrair Pagamentos de Pacientes',
+        'Extrair Reembolsos de Convênios',
+        'Extrair Gestão de Estoques',
+        'Extrair Custos de Medicamentos'
+      ]
+    }
+  ],
+  'Saúde (Cloud)': [
+    {
+      section: 'Dados Cadastrais',
+      tasks: [
+        'Extrair Configurações Gerais',
+        'Extrair Unidades de Saúde',
+        'Extrair Setores/Departamentos',
+        'Extrair Especialidades Médicas',
+        'Extrair Equipamentos Médicos',
+        'Extrair Medicamentos/Fármacos',
+        'Extrair Testes/Exames Disponíveis',
+        'Extrair Profissionais de Saúde',
+        'Extrair Horários de Atendimento',
+        'Extrair Convênios/Seguros'
+      ]
+    },
+    {
+      section: 'Dados de Pacientes',
+      tasks: [
+        'Extrair Dados Pessoais de Pacientes',
+        'Extrair Documentos de Pacientes',
+        'Extrair Contatos de Pacientes',
+        'Extrair Endereços de Pacientes',
+        'Extrair Alergias/Reações Adversas',
+        'Extrair Histórico Médico',
+        'Extrair Responsáveis/Acompanhantes',
+        'Extrair Autorizações de Tratamento'
+      ]
+    },
+    {
+      section: 'Dados de Atendimento',
+      tasks: [
+        'Extrair Agendamentos',
+        'Extrair Consultas Realizadas',
+        'Extrair Prescrições Médicas',
+        'Extrair Resultados de Exames',
+        'Extrair Diagnósticos',
+        'Extrair Procedimentos Realizados',
+        'Extrair Notas de Internação',
+        'Extrair Histórico de Tratamentos'
+      ]
+    },
+    {
+      section: 'Dados Financeiros e Administrativos',
+      tasks: [
+        'Extrair Faturamento de Procedimentos',
+        'Extrair Faturamento de Consultas',
+        'Extrair Faturamento de Exames',
+        'Extrair Pagamentos de Pacientes',
+        'Extrair Reembolsos de Convênios',
+        'Extrair Gestão de Estoques',
+        'Extrair Custos de Medicamentos'
+      ]
+    }
+  ]
 };
 
 // Normaliza o nome do produto removendo "(Cloud)" e caracteres especiais
