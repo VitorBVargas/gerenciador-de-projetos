@@ -443,52 +443,48 @@ export default function Migration() {
                         {/* Tasks List by Section */}
                         <div className="space-y-6">
                           {(() => {
-                            const productTasks = getProductTasks(product.id);
-                            
-                            // Agrupar tarefas por seções (procuram por ||)
-                            const tasksBySection = productTasks.reduce((acc, task) => {
-                              if (task.title.includes('||')) {
-                                const match = task.title.match(/^\|\|(.+?)\|\|(.+)$/);
-                                if (match) {
-                                  const [, sectionName, taskName] = match;
-                                  if (!acc[sectionName]) acc[sectionName] = [];
-                                  acc[sectionName].push({ ...task, displayTitle: taskName });
-                                }
-                              } else {
-                                if (!acc['SEM_SEÇÃO']) acc['SEM_SEÇÃO'] = [];
-                                acc['SEM_SEÇÃO'].push(task);
-                              }
-                              return acc;
-                            }, {});
-                            
-                            const sectionNames = Object.keys(tasksBySection).sort();
-                            
-                            return (
-                              <>
-                                {/* Renderizar seções importadas */}
-                                {getOrderedImportedSections(product.id, Object.entries(importedBySection)).map(([sectionName, sectionTasks], displayIndex) => {
-                                  const totalImportedSections = Object.keys(importedBySection).length;
-                                  // Remover duplicados nas seções importadas
-                                  const uniqueImportedTasks = [];
-                                  const seenTitles = new Map();
-                                  
-                                  for (const task of sectionTasks) {
-                                    const titleLower = task.displayTitle.toLowerCase();
-                                    if (!seenTitles.has(titleLower)) {
-                                      seenTitles.set(titleLower, task);
-                                      uniqueImportedTasks.push(task);
-                                    } else {
-                                      const existing = seenTitles.get(titleLower);
-                                      if (task.completed && !existing.completed) {
-                                        const idx = uniqueImportedTasks.indexOf(existing);
-                                        uniqueImportedTasks[idx] = task;
+                             const productTasks = getProductTasks(product.id);
+
+                             // Agrupar tarefas por seções (procuram por ||)
+                             const tasksBySection = productTasks.reduce((acc, task) => {
+                               if (task.title.includes('||')) {
+                                 const match = task.title.match(/^\|\|(.+?)\|\|(.+)$/);
+                                 if (match) {
+                                   const [, sectionName, taskName] = match;
+                                   if (!acc[sectionName]) acc[sectionName] = [];
+                                   acc[sectionName].push({ ...task, displayTitle: taskName });
+                                 }
+                               }
+                               return acc;
+                             }, {});
+
+                             const sectionEntries = Object.entries(tasksBySection);
+
+                             return (
+                               <>
+                                 {/* Renderizar seções do banco de dados */}
+                                 {sectionEntries.map(([sectionName, sectionTasks], displayIndex) => {
+                                   // Remover duplicados
+                                    const uniqueTasks = [];
+                                    const seenTitles = new Map();
+
+                                    for (const task of sectionTasks) {
+                                      const titleLower = task.displayTitle.toLowerCase();
+                                      if (!seenTitles.has(titleLower)) {
                                         seenTitles.set(titleLower, task);
+                                        uniqueTasks.push(task);
+                                      } else {
+                                        const existing = seenTitles.get(titleLower);
+                                        if (task.completed && !existing.completed) {
+                                          const idx = uniqueTasks.indexOf(existing);
+                                          uniqueTasks[idx] = task;
+                                          seenTitles.set(titleLower, task);
+                                        }
                                       }
                                     }
-                                  }
 
                                   return (
-                                    <div key={`imported-${displayIndex}`}>
+                                    <div key={`section-${displayIndex}`}>
                                       <div className="flex items-center justify-between mb-3 group/section">
                                         <h3 className="text-cyan-400 font-semibold text-sm uppercase flex-1">
                                           {sectionName}
@@ -496,8 +492,8 @@ export default function Migration() {
                                         <div className="flex items-center gap-1">
                                           <button
                                             onClick={() => {
-                                              const allDone = uniqueImportedTasks.every(t => t.completed);
-                                              handleMarkSectionTasks(uniqueImportedTasks, !allDone);
+                                              const allDone = uniqueTasks.every(t => t.completed);
+                                              handleMarkSectionTasks(uniqueTasks, !allDone);
                                             }}
                                             disabled={markingProgress.isLoading}
                                             className="text-[10px] px-2 py-0.5 rounded border border-green-500/30 text-green-400 hover:bg-green-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
@@ -507,7 +503,7 @@ export default function Migration() {
                                                 <Loader2 className="w-3 h-3 animate-spin" />
                                                 Processando...
                                               </>
-                                            ) : uniqueImportedTasks.every(t => t.completed) ? (
+                                            ) : uniqueTasks.every(t => t.completed) ? (
                                               'Desmarcar'
                                             ) : (
                                               'Marcar todos'
@@ -518,16 +514,16 @@ export default function Migration() {
                                             variant="ghost"
                                             disabled={displayIndex === 0}
                                             className="h-6 w-6 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/20 disabled:opacity-30"
-                                            onClick={() => moveImportedSectionUp(product.id, Object.keys(importedBySection), displayIndex)}
+                                            onClick={() => moveImportedSectionUp(product.id, sectionEntries.map(([name]) => name), displayIndex)}
                                           >
                                             <ChevronUp className="w-4 h-4" />
                                           </Button>
                                           <Button
                                             size="icon"
                                             variant="ghost"
-                                            disabled={displayIndex >= totalImportedSections - 1}
+                                            disabled={displayIndex >= sectionEntries.length - 1}
                                             className="h-6 w-6 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/20 disabled:opacity-30"
-                                            onClick={() => moveImportedSectionDown(product.id, Object.keys(importedBySection), displayIndex)}
+                                            onClick={() => moveImportedSectionDown(product.id, sectionEntries.map(([name]) => name), displayIndex)}
                                           >
                                             <ChevronDown className="w-4 h-4" />
                                           </Button>
@@ -545,7 +541,7 @@ export default function Migration() {
                                         </div>
                                       </div>
                                       <div className="space-y-2">
-                                        {uniqueImportedTasks.map(task => (
+                                        {uniqueTasks.map(task => (
                                           <div key={task.id} className="flex items-center gap-3 group">
                                             <Checkbox
                                               checked={task.completed}
@@ -574,205 +570,24 @@ export default function Migration() {
                                           </div>
                                         ))}
                                       </div>
-                                      </div>
-                                      );
-                                      })}
-
-                                      {/* Loading indicator */}
-                                      {markingProgress.isLoading && (
-                                      <div className="p-4 bg-blue-600/10 border border-blue-600/50 rounded">
-                                      <div className="flex items-center gap-2 mb-2">
-                                      <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
-                                      <span className="text-sm text-blue-300">Marcando tarefas...</span>
-                                      </div>
-                                      <Progress value={(markingProgress.current / markingProgress.total) * 100} className="h-2" />
-                                      <p className="text-xs text-slate-400 text-center mt-2">{markingProgress.current}/{markingProgress.total}</p>
-                                      </div>
-                                      )}
-
-                                      {/* Renderizar seções padrão */}
-                                {hasStandardSections && getOrderedSections(product.id, defaultSections).map((section, displayIndex) => {
-                                const sectionTasks = standardTasks.filter(task => 
-                                  section.tasks.some(t => t.toLowerCase() === task.title.toLowerCase())
-                                );
-
-                                // Remover duplicados, mantendo o que está marcado
-                                const uniqueTasks = [];
-                                const seenTitles = new Map();
-
-                                for (const task of sectionTasks) {
-                                  const titleLower = task.title.toLowerCase();
-                                  if (!seenTitles.has(titleLower)) {
-                                    seenTitles.set(titleLower, task);
-                                    uniqueTasks.push(task);
-                                  } else {
-                                    // Se já existe, mantém o marcado
-                                    const existing = seenTitles.get(titleLower);
-                                    if (task.completed && !existing.completed) {
-                                      const idx = uniqueTasks.indexOf(existing);
-                                      uniqueTasks[idx] = task;
-                                      seenTitles.set(titleLower, task);
-                                    }
-                                  }
-                                }
-
-                                if (uniqueTasks.length === 0) return null;
-
-                                 const totalSections = defaultSections.length;
-
-                                 return (
-                                   <div key={displayIndex}>
-                                     <div className="flex items-center justify-between mb-3 group/section">
-                                       <h3 className="text-cyan-400 font-semibold text-sm uppercase flex-1">
-                                         {section.section}
-                                       </h3>
-                                       <div className="flex items-center gap-1">
-                                         <button
-                                           onClick={() => {
-                                             const allDone = uniqueTasks.every(t => t.completed);
-                                             handleMarkSectionTasks(uniqueTasks, !allDone);
-                                           }}
-                                           disabled={markingProgress.isLoading}
-                                           className="text-[10px] px-2 py-0.5 rounded border border-green-500/30 text-green-400 hover:bg-green-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                                         >
-                                           {markingProgress.isLoading ? (
-                                             <>
-                                               <Loader2 className="w-3 h-3 animate-spin" />
-                                               Processando...
-                                             </>
-                                           ) : uniqueTasks.every(t => t.completed) ? (
-                                             'Desmarcar'
-                                           ) : (
-                                             'Marcar todos'
-                                           )}
-                                         </button>
-                                         <Button
-                                           size="icon"
-                                           variant="ghost"
-                                           disabled={displayIndex === 0}
-                                           className="h-6 w-6 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/20 disabled:opacity-30"
-                                           onClick={() => moveSectionUp(product.id, displayIndex)}
-                                         >
-                                           <ChevronUp className="w-4 h-4" />
-                                         </Button>
-                                         <Button
-                                           size="icon"
-                                           variant="ghost"
-                                           disabled={displayIndex >= totalSections - 1}
-                                           className="h-6 w-6 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/20 disabled:opacity-30"
-                                           onClick={() => moveSectionDown(product.id, displayIndex, totalSections)}
-                                         >
-                                           <ChevronDown className="w-4 h-4" />
-                                         </Button>
-                                         <Button
-                                           size="icon"
-                                           variant="ghost"
-                                           className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover/section:opacity-100 transition-opacity"
-                                           onClick={async () => {
-                                             await Promise.all(sectionTasks.map(t => deleteTaskMutation.mutate(t.id)));
-                                             toast.success(`Seção "${section.section}" deletada`);
-                                           }}
-                                         >
-                                           <Trash2 className="w-3 h-3" />
-                                         </Button>
-                                       </div>
-                                     </div>
-                                      <div className="space-y-2">
-                                        {uniqueTasks.map(task => (
-                                          <div
-                                            key={task.id}
-                                            className="flex items-center gap-3 group"
-                                          >
-                                            <Checkbox
-                                              checked={task.completed}
-                                              onCheckedChange={() => handleToggleTask(task)}
-                                              className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
-                                            />
-                                            <span className={cn(
-                                              "flex-1 text-sm",
-                                              task.completed ? "text-slate-500 line-through" : "text-white"
-                                            )}>
-                                              {task.title}
-                                              {task.completed && task.completed_date && (
-                                                <span className="text-slate-400 text-xs ml-2 no-underline">
-                                                  ({new Date(task.completed_date).toLocaleDateString('pt-BR')})
-                                                </span>
-                                              )}
-                                            </span>
-                                            <Button
-                                              size="icon"
-                                              variant="ghost"
-                                              className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity"
-                                              onClick={() => deleteTaskMutation.mutate(task.id)}
-                                            >
-                                              <Trash2 className="w-3 h-3" />
-                                            </Button>
-                                          </div>
-                                        ))}
-                                      </div>
                                     </div>
                                   );
                                 })}
-                              </>
-                            );
-                          })()}
 
-                          {/* Custom tasks not in sections */}
-                          {(() => {
-                            const productTasks = getProductTasks(product.id);
-                            const defaultSections = getDefaultTasksForProduct(product.name);
-                            if (!defaultSections) return null;
-
-                            const allSectionTasks = defaultSections
-                              .flatMap(s => s.tasks.map(t => t.toLowerCase()));
-                            const customTasks = productTasks.filter(task =>
-                              !allSectionTasks.includes(task.title.toLowerCase()) && !task.title.includes('||')
-                            );
-                            
-                            if (customTasks.length > 0) {
-                              return (
-                                <div>
-                                  <h3 className="text-cyan-400 font-semibold text-sm mb-3 uppercase">
-                                    TAREFAS PERSONALIZADAS
-                                  </h3>
-                                  <div className="space-y-2">
-                                    {customTasks.map(task => (
-                                      <div
-                                        key={task.id}
-                                        className="flex items-center gap-3 group"
-                                      >
-                                        <Checkbox
-                                          checked={task.completed}
-                                          onCheckedChange={() => handleToggleTask(task)}
-                                          className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
-                                        />
-                                        <span className={cn(
-                                           "flex-1 text-sm",
-                                           task.completed ? "text-slate-500 line-through" : "text-white"
-                                         )}>
-                                           {task.title}
-                                           {task.completed && task.completed_date && (
-                                             <span className="text-slate-400 text-xs ml-2 no-underline">
-                                               ({new Date(task.completed_date).toLocaleDateString('pt-BR')})
-                                             </span>
-                                           )}
-                                         </span>
-                                        <Button
-                                          size="icon"
-                                          variant="ghost"
-                                          className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity"
-                                          onClick={() => deleteTaskMutation.mutate(task.id)}
-                                        >
-                                          <Trash2 className="w-3 h-3" />
-                                        </Button>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              );
-                            }
-                            return null;
-                          })()}
+                                      {/* Loading indicator */}
+                                      {markingProgress.isLoading && (
+                                        <div className="p-4 bg-blue-600/10 border border-blue-600/50 rounded">
+                                          <div className="flex items-center gap-2 mb-2">
+                                            <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
+                                            <span className="text-sm text-blue-300">Marcando tarefas...</span>
+                                          </div>
+                                          <Progress value={(markingProgress.current / markingProgress.total) * 100} className="h-2" />
+                                          <p className="text-xs text-slate-400 text-center mt-2">{markingProgress.current}/{markingProgress.total}</p>
+                                        </div>
+                                      )}
+                                      </>
+                                      );
+                                      })()}
 
                           {getProductTasks(product.id).length === 0 && (
                             <p className="text-center text-slate-500 py-4 text-sm">
