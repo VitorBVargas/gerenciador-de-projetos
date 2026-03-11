@@ -1751,5 +1751,21 @@ export const getDefaultTasksForProduct = (productName) => {
 
 // Verifica se um produto tem processo de migração
 export const productHasMigration = (productName) => {
+  if (!productName) return false;
+  const normalized = (productName || '')
+    .toLowerCase()
+    .replace(/\(cloud\)/gi, '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+  
+  // Verificar ambas as listas: default e extended
+  const hasDefault = Object.keys(migrationTasksByProduct).some(
+    key => key === normalized
+  );
+  
+  if (hasDefault) return true;
+  
+  // Também verifica na extended (homologação)
   return getDefaultTasksForProduct(productName) !== null;
 };
