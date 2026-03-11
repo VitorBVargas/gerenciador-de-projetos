@@ -238,13 +238,11 @@ export default function Migration() {
   
   const entityFilteredProducts = selectedEntity ? products.filter(p => p.entity === selectedEntity) : products;
 
-  // Group products by vertical (apenas produtos com migração)
+  // Group products by vertical (todos os produtos)
   const productsByVertical = entityFilteredProducts.reduce((acc, product) => {
-    if (productHasMigration(product.name)) {
-      const vertical = product.vertical || 'outros';
-      if (!acc[vertical]) acc[vertical] = [];
-      acc[vertical].push(product);
-    }
+    const vertical = product.vertical || 'outros';
+    if (!acc[vertical]) acc[vertical] = [];
+    acc[vertical].push(product);
     return acc;
   }, {});
 
@@ -268,10 +266,9 @@ export default function Migration() {
     }
   }, [selectedVertical]);
 
-  // Overall migration progress (apenas produtos com migração, filtrados por entidade)
-  const productsWithMigration = entityFilteredProducts.filter(p => productHasMigration(p.name));
-  const overallProgress = productsWithMigration.length > 0
-    ? Math.round(productsWithMigration.reduce((sum, p) => sum + getProductProgress(p.id), 0) / productsWithMigration.length)
+  // Overall migration progress (todos os produtos)
+  const overallProgress = entityFilteredProducts.length > 0
+    ? Math.round(entityFilteredProducts.reduce((sum, p) => sum + getProductProgress(p.id), 0) / entityFilteredProducts.length)
     : 0;
 
   const moveSectionUp = (productId, sectionIndex) => {
