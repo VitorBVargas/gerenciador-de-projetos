@@ -751,6 +751,31 @@ export const migrationTasksByProduct = {
       ]
     }
   ],
+  'Ponto': [
+    {
+      section: 'Dados Cadastrais',
+      tasks: [
+        'Extrair Cadastro de Horários',
+        'Extrair Jornadas de Trabalho',
+        'Extrair Cadastro de Turmas',
+        'Extrair Motivos de Alteração de Ponto',
+        'Extrair Tipos de Funções de Relógio',
+        'Extrair Funções de Relógio',
+        'Extrair Parâmetros do Ponto',
+        'Extrair Tipos de Ausências'
+      ]
+    },
+    {
+      section: 'Dados de Lançamentos',
+      tasks: [
+        'Extrair Lançamento de Ausências',
+        'Extrair Relógios',
+        'Extrair Compensação de Horas',
+        'Extrair Ocorrências do Ponto',
+        'Extrair Períodos de Apuração do Ponto'
+      ]
+    }
+  ],
   'Ponto (Cloud)': [
     {
       section: 'Dados Cadastrais',
@@ -926,6 +951,33 @@ export const migrationTasksByProduct = {
         'Extrair Comprovante Recebimentos',
         'Extrair Rescisão Contratual',
         'Extrair Sanção'
+      ]
+    }
+  ],
+  'Recursos Humanos': [
+    {
+      section: 'Dados Cadastrais',
+      tasks: [
+        'Extrair Distância',
+        'Extrair Região',
+        'Extrair Natureza Diária',
+        'Extrair Diária',
+        'Extrair Cursos',
+        'Extrair Tipos Cursos',
+        'Extrair Instituições',
+        'Extrair Pessoas',
+        'Extrair Pessoal Cursos',
+        'Extrair Pessoal Filiação',
+        'Extrair Pessoal Documento',
+        'Extrair Pessoal Endereço',
+        'Extrair Pessoal Email',
+        'Extrair Pessoal Telefone',
+        'Extrair Pessoal Dependente',
+        'Extrair Pessoal Experiência',
+        'Extrair Pessoal Averbação',
+        'Extrair Pessoal Conta Bancária',
+        'Extrair Pessoal Cota Sindical',
+        'Extrair Pessoal Bolsa Estudos'
       ]
     }
   ],
@@ -1358,7 +1410,14 @@ export const migrationTasksByProduct = {
         'Extrair Pessoal Bolsa Estudos'
       ]
     }
-  ]
+  ],
+  'Portal do Gestor': parseTasksIntoSections([
+    'Dados Cadastrais',
+    'Informações Institucionais',
+    'Configuração Geral',
+    'Dados de Lançamentos',
+    'Relatórios e Consultas'
+  ])
 };
 
 // Normaliza o nome do produto removendo "(Cloud)" e caracteres especiais
