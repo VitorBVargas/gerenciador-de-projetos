@@ -1,8 +1,7 @@
-// Helper para exibir datas com timezone compensation
+// Helper para exibir datas exatamente como salvas
 export const formatDateForDisplay = (dateStr) => {
   if (!dateStr) return '-';
-  // Subtraí 1 dia para desfazer a compensação de timezone feita no save
-  const date = new Date(dateStr + 'T00:00:00');
-  date.setDate(date.getDate() - 1);
-  return date.toLocaleDateString('pt-BR');
+  // Exibir a data exatamente como está no banco
+  const [year, month, day] = dateStr.split('-');
+  return `${day}/${month}/${year}`;
 };
