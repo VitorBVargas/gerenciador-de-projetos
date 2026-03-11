@@ -1124,6 +1124,29 @@ export const migrationTasksByProduct = {
     'Configuração do ambiente para publicação de materiais, conteúdos e informativos pelos professores/gestores',
     'Parametrização da funcionalidade de registro de interesse por rematrícula online'
   ]),
+  'Biblioteca (Cloud)': parseTasksIntoSections([
+    'Dados Cadastrais',
+    'Extrair Bibliotecas',
+    'Extrair Títulos de Materiais',
+    'Extrair Classificações Cutter',
+    'Extrair Municípios',
+    'Extrair Autores',
+    'Extrair Assuntos',
+    'Extrair Editoras',
+    'Extrair Leitores',
+    'Extrair Categorias de Materiais',
+    'Extrair Tipos de Materiais',
+    'Extrair Localizações',
+    'Extrair Status de Materiais',
+    'Extrair Configurações de Empréstimos',
+    'Extrair Regras de Multa',
+    'Dados de Lançamentos',
+    'Extrair Exemplares de Materiais',
+    'Extrair Empréstimos',
+    'Extrair Devoluções',
+    'Extrair Reservas',
+    'Extrair Multas'
+  ]),
   'Frotas (Cloud)': [
     {
       section: 'Dados Cadastrais',

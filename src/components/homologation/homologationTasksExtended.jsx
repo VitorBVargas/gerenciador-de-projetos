@@ -110,6 +110,15 @@ const paisAlunosCloudTasks = parseTasksIntoSections([
   'Parametrização da funcionalidade de registro de interesse por rematrícula online'
 ]);
 
+const bibliotecaCloudTasks = parseTasksIntoSections([
+  'Biblioteca',
+  'Cadastro do acervo geral (livros, revistas, mídias digitais e especificações dos materiais)',
+  'Cadastro de tabelas auxiliares (autores, assuntos e editoras)',
+  'Cadastro/Integração de leitores (alunos, professores e comunidade)',
+  'Parametrização de regras de gestão de empréstimos, limites de dias, atrasos e devoluções',
+  'Configuração de alertas e envio de notificações automáticas de atraso'
+]);
+
 export const getExtendedTasksForProduct = (productName) => {
   const tasks = {
     'obras': obrasCloudTasks,
@@ -119,7 +128,9 @@ export const getExtendedTasksForProduct = (productName) => {
     'professores': professoresCloudTasks,
     'professores (cloud)': professoresCloudTasks,
     'pais e alunos': paisAlunosCloudTasks,
-    'pais e alunos (cloud)': paisAlunosCloudTasks
+    'pais e alunos (cloud)': paisAlunosCloudTasks,
+    'biblioteca': bibliotecaCloudTasks,
+    'biblioteca (cloud)': bibliotecaCloudTasks
   };
   
   const normalized = (productName || '').toLowerCase().replace(/\(cloud\)/g, '').trim();
