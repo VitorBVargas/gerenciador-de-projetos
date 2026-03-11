@@ -1004,6 +1004,55 @@ export const migrationTasksByProduct = {
       ]
     }
   ],
+  'Frotas (Cloud)': [
+    {
+      section: 'Dados Cadastrais',
+      tasks: [
+        'Extrair Configuração Organograma',
+        'Extrair Parâmetro Exercício',
+        'Extrair Organograma Órgão',
+        'Extrair Organograma Unidade',
+        'Extrair Organograma Centro Custo',
+        'Extrair Países',
+        'Extrair Estados',
+        'Extrair Municípios',
+        'Extrair Marca Veículo',
+        'Extrair Modelo Veículo',
+        'Extrair Tipo Veículo',
+        'Extrair Tipo Despesa Frota',
+        'Extrair Tipo Finalidade Reserva Veículo',
+        'Extrair Tipo Taxa Licenciamento',
+        'Extrair Rota',
+        'Extrair Tipo Ocorrência Veículo',
+        'Extrair Funcionário',
+        'Extrair Fornecedor',
+        'Extrair Motorista',
+        'Extrair Parâmetro Notificação',
+        'Extrair Veículo',
+        'Extrair Veículo Agregado',
+        'Extrair Veículo Combustível',
+        'Extrair Veículo Organograma'
+      ]
+    },
+    {
+      section: 'Dados de Lançamentos',
+      tasks: [
+        'Extrair Reserva Veículo',
+        'Extrair Controle Revisão',
+        'Extrair Acompanhamento Mensal',
+        'Extrair Taxa Licenciamento',
+        'Extrair Taxa Licenciamento Parcela',
+        'Extrair Ocorrência',
+        'Extrair Ordem Abastecimento',
+        'Extrair Ordem Abastecimento Item',
+        'Extrair Lançamento Despesa',
+        'Extrair Lançamento Despesa Item',
+        'Extrair Controle Viagem',
+        'Extrair Controle Viagem Finalidade',
+        'Extrair Controle Viagem Rota'
+      ]
+    }
+  ],
   'Almoxarifado (Cloud)': [
     {
       section: 'Dados Cadastrais',
