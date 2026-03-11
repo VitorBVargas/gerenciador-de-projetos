@@ -209,13 +209,24 @@ export default function Migration() {
 
   const allEntities = [...new Set(products.map(p => p.entity).filter(Boolean))].sort();
   
-  // Auto-select first entity if none selected
+  // Auto-select first entity that has products with migration
   React.useEffect(() => {
     if (allEntities.length > 0 && !selectedEntity) {
-      const firstEntity = allEntities.find(e => e === 'PM') || allEntities[0];
-      setSelectedEntity(firstEntity);
+      // Find first entity that has products with migration
+      const entityWithProducts = allEntities.find(entity => {
+        const entityProds = products.filter(p => p.entity === entity && productHasMigration(p.name));
+        return entityProds.length > 0;
+      });
+      
+      if (entityWithProducts) {
+        setSelectedEntity(entityWithProducts);
+      } else {
+        // Fallback to first entity if none have products
+        const firstEntity = allEntities.find(e => e === 'PM') || allEntities[0];
+        setSelectedEntity(firstEntity);
+      }
     }
-  }, [allEntities.length]);
+  }, [allEntities.length, products.length]);
   
   const entityFilteredProducts = selectedEntity ? products.filter(p => p.entity === selectedEntity) : products;
 
