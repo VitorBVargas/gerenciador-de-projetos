@@ -93,10 +93,7 @@ export default function Homologation() {
     const existingTasks = tasks.filter(t => t.product_id === product.id);
     if (existingTasks.length > 0) return;
 
-    let defaultSections = getDefaultTasksForProduct(product.name);
-    if (!defaultSections) {
-      defaultSections = getExtendedTasksForProduct(product.name);
-    }
+    const defaultSections = getDefaultTasksForProduct(product.name);
     if (!defaultSections) return;
 
     creatingTasksRef.current.add(product.id);
@@ -166,11 +163,7 @@ export default function Homologation() {
   const getProductProgress = (productId) => {
     const productTasks = getProductTasks(productId);
     const product = products.find(p => p.id === productId);
-    let defaultSections = getDefaultTasksForProduct(product?.name);
-    if (!defaultSections) {
-      defaultSections = getExtendedTasksForProduct(product?.name) || [];
-    }
-    defaultSections = defaultSections || [];
+    const defaultSections = getDefaultTasksForProduct(product?.name) || [];
     const importedTasks = productTasks.filter(t => t.title.includes('||'));
     const standardTasks = productTasks.filter(t => !t.title.includes('||'));
     
