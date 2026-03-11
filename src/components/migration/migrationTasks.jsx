@@ -1740,13 +1740,25 @@ const normalizeProductName = (name) => {
 export const getDefaultTasksForProduct = (productName) => {
   if (!productName) return null;
   
+  // Procura a chave exatamente como está no objeto
+  if (migrationTasksByProduct[productName]) {
+    return migrationTasksByProduct[productName];
+  }
+  
+  // Fallback: normaliza e tenta novamente
   const normalized = (productName || '')
     .toLowerCase()
-    .replace(/\(cloud\)/gi, '')
+    .replace(/\s*\(cloud\)\s*/gi, '')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .trim();
-  return migrationTasksByProduct[normalized] || null;
+  
+  // Procura na chave normalizada
+  const key = Object.keys(migrationTasksByProduct).find(k => 
+    k.toLowerCase().replace(/\s*\(cloud\)\s*/gi, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim() === normalized
+  );
+  
+  return key ? migrationTasksByProduct[key] : null;
 };
 
 // Verifica se um produto tem processo de migração
