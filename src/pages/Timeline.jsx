@@ -129,18 +129,11 @@ export default function Timeline() {
   });
 
   const handleSave = (data) => {
-    // Compensate timezone offset by adding 1 day to dates
-    const addOneDay = (dateStr) => {
-      if (!dateStr) return '';
-      const date = new Date(dateStr + 'T00:00:00');
-      date.setDate(date.getDate() + 1);
-      return date.toISOString().split('T')[0];
-    };
-
+    // Não ajustar datas - usar exatamente como informadas
     const adjustedData = {
       ...data,
-      start_date: addOneDay(data.start_date),
-      end_date: addOneDay(data.end_date)
+      start_date: data.start_date,
+      end_date: data.end_date
     };
 
     if (selectedEvent) {
@@ -271,6 +264,7 @@ export default function Timeline() {
   };
 
   const handleEditDatesApply = async (updatedEvents) => {
+    // Não precisa ajustar timezone - usar as datas exatamente como informadas
     await bulkUpdateMutation.mutateAsync(updatedEvents);
   };
 
