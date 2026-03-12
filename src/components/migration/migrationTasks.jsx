@@ -532,7 +532,7 @@ export const migrationTasksByProduct = {
     'Extrair VPA',
     'Extrair VPD'
   ]),
-  'Planejamento (Cloud)': parseTasksIntoSections([
+  'Planejamento': parseTasksIntoSections([
     'Dados Cadastrais',
     'Extrair Configurações - PPAs',
     'Extrair Configurações - LDOs',
