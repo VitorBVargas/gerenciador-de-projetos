@@ -254,7 +254,8 @@ export default function Products() {
   // Auto-select first entity if none selected
   React.useEffect(() => {
     if (entities.length > 0 && !selectedEntity) {
-      const firstEntity = entities.find(e => e === 'PM') || entities[0];
+      const pmEntity = entities.find(e => e.code === 'PM');
+      const firstEntity = pmEntity ? pmEntity.code : entities[0].code;
       setSelectedEntity(firstEntity);
     }
   }, [entities.length]);
