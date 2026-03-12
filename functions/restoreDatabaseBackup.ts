@@ -9,62 +9,53 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
-    const { backupId } = await req.json();
+    const { backupFilename } = await req.json();
 
-    if (!backupId) {
-      return Response.json({ error: 'backupId is required' }, { status: 400 });
+    if (!backupFilename) {
+      return Response.json({ error: 'backupFilename is required' }, { status: 400 });
     }
 
-    console.log(`[RESTORE START] User: ${user.email}, BackupId: ${backupId}`);
+    console.error(`[RESTORE START] User: ${user.email}, Filename: ${backupFilename}`);
 
-    // Busca o backup - usa list() ao invés de filter()
-    let allBackups = await base44.asServiceRole.entities.DatabaseBackup.list('-created_date', 100);
-    console.log(`[RESTORE DEBUG] allBackups type:`, typeof allBackups);
-    console.log(`[RESTORE DEBUG] allBackups is array:`, Array.isArray(allBackups));
+    // Busca o backup pelo filename usando filter com projection para não trazer backup_data_json
+    const backupRecords = await base44.asServiceRole.entities.DatabaseBackup.filter(
+      { filename: backupFilename }
+    );
     
-    // Converte para array se necessário
-    if (!Array.isArray(allBackups)) {
-      allBackups = Array.from(allBackups || []);
-    }
-    
-    console.log(`[RESTORE DEBUG] Total backups found: ${allBackups.length}`);
-    
-    const backup = allBackups.find(b => b.id === backupId);
-    
-    if (!backup) {
-      console.error(`[RESTORE ERROR] Backup not found: ${backupId}`);
-      console.error(`[RESTORE ERROR] Available backup IDs:`, allBackups.map(b => b.id).join(', '));
+    if (!backupRecords || backupRecords.length === 0) {
+      console.error(`[RESTORE ERROR] Backup not found: ${backupFilename}`);
       return Response.json({ error: 'Backup not found' }, { status: 404 });
     }
+
+    const backupMeta = backupRecords[0];
+    console.error(`[RESTORE] Found backup metadata: ${backupMeta.filename}, ID: ${backupMeta.id}`);
     
-    console.log(`[RESTORE DEBUG] Backup object keys:`, Object.keys(backup));
-    console.log(`[RESTORE DEBUG] Backup has filename:`, backup.filename);
-    console.log(`[RESTORE DEBUG] Backup has backup_data_json:`, !!backup.backup_data_json);
-    
-    // Log completo do objeto para debug
-    console.log('[RESTORE DEBUG] Backup record structure:', JSON.stringify(backup, null, 2).substring(0, 500));
-    console.log('[RESTORE DEBUG] typeof backup:', typeof backup);
-    console.log('[RESTORE DEBUG] backup.filename:', backup?.filename);
-    console.log('[RESTORE DEBUG] backup.backup_data_json exists:', !!backup?.backup_data_json);
-    console.log('[RESTORE DEBUG] typeof backup.backup_data_json:', typeof backup?.backup_data_json);
-    
-    const backupDataJson = backup.backup_data_json;
-    
-    if (!backupDataJson || typeof backupDataJson !== 'string') {
-      console.error('[RESTORE ERROR] Invalid backup_data_json, type:', typeof backupDataJson);
-      return Response.json({ 
-        error: 'Invalid backup data format',
-        debug: {
-          type: typeof backupDataJson,
-          exists: !!backupDataJson,
-          backupKeys: Object.keys(backup || {})
+    // Agora busca APENAS o backup_data_json usando uma query direcionada
+    // Usa fetch direto da API para evitar o SDK trazer tudo
+    const backupDataResponse = await fetch(
+      `https://api.base44.com/v1/apps/${Deno.env.get('BASE44_APP_ID')}/entities/DatabaseBackup/${backupMeta.id}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${Deno.env.get('BASE44_SERVICE_ROLE_KEY')}`
         }
-      }, { status: 400 });
+      }
+    );
+    
+    if (!backupDataResponse.ok) {
+      throw new Error(`Failed to fetch backup data: ${backupDataResponse.statusText}`);
     }
     
-    console.log(`[RESTORE] Found backup: ${backup.filename}`);
+    const fullBackup = await backupDataResponse.json();
+    const backupDataJson = fullBackup.backup_data_json;
+    
+    if (!backupDataJson || typeof backupDataJson !== 'string') {
+      console.error('[RESTORE ERROR] Invalid backup_data_json');
+      return Response.json({ error: 'Invalid backup data format' }, { status: 400 });
+    }
+    
+    console.error(`[RESTORE] Parsing backup data (${backupDataJson.length} chars)`);
     const backupData = JSON.parse(backupDataJson);
-    console.log(`[RESTORE] Backup contains entities: ${Object.keys(backupData.entities).join(', ')}`);
+    console.error(`[RESTORE] Backup contains ${Object.keys(backupData.entities).length} entities`);
 
     let restored = 0;
     let deleted = 0;
@@ -74,15 +65,18 @@ Deno.serve(async (req) => {
     // Restaura cada entidade
     for (const [entityName, records] of Object.entries(backupData.entities)) {
       try {
-        console.log(`[RESTORE] Processing entity: ${entityName}`);
+        console.error(`[RESTORE] Processing entity: ${entityName} (${records?.length || 0} records in backup)`);
         
         // Primeiro deleta TODOS os registros atuais
         let currentRecords = [];
         try {
           currentRecords = await base44.asServiceRole.entities[entityName].list(undefined, 10000) || [];
-          console.log(`[RESTORE] Entity ${entityName} has ${currentRecords.length} current records`);
+          if (!Array.isArray(currentRecords)) {
+            currentRecords = [];
+          }
+          console.error(`[RESTORE] Entity ${entityName} has ${currentRecords.length} current records to delete`);
         } catch (e) {
-          console.warn(`[RESTORE] Could not list ${entityName}:`, e.message);
+          console.error(`[RESTORE] Could not list ${entityName}:`, e.message);
         }
         
         // Deleta cada registro individual
@@ -90,16 +84,15 @@ Deno.serve(async (req) => {
           try {
             await base44.asServiceRole.entities[entityName].delete(record.id);
             deleted++;
-            console.log(`[RESTORE] Deleted ${entityName} record: ${record.id}`);
           } catch (err) {
-            console.warn(`[RESTORE] Error deleting ${entityName} ${record.id}:`, err.message);
+            console.error(`[RESTORE] Error deleting ${entityName} ${record.id}:`, err.message);
             errors.push(`Erro ao deletar ${entityName}: ${err.message}`);
           }
         }
 
         // Depois insere os do backup (se houver)
-        if (records && records.length > 0) {
-          console.log(`[RESTORE] Restoring ${records.length} ${entityName} records from backup`);
+        if (records && Array.isArray(records) && records.length > 0) {
+          console.error(`[RESTORE] Restoring ${records.length} ${entityName} records from backup`);
           
           for (const record of records) {
             // Remove IDs para deixar o sistema gerar novos
@@ -108,14 +101,13 @@ Deno.serve(async (req) => {
             try {
               await base44.asServiceRole.entities[entityName].create(data);
               restored++;
-              console.log(`[RESTORE] Restored ${entityName} record`);
             } catch (err) {
               console.error(`[RESTORE] Error restoring ${entityName}:`, err.message);
               errors.push(`Erro ao restaurar ${entityName}: ${err.message}`);
             }
           }
         } else {
-          console.log(`[RESTORE] Entity ${entityName} has no records in backup (entity cleared)`);
+          console.error(`[RESTORE] Entity ${entityName} has no records in backup (entity cleared)`);
         }
         
         processedEntities.push(entityName);
@@ -125,7 +117,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    console.log(`[RESTORE COMPLETE] Deleted: ${deleted}, Restored: ${restored}, Errors: ${errors.length}`);
+    console.error(`[RESTORE COMPLETE] Deleted: ${deleted}, Restored: ${restored}, Errors: ${errors.length}`);
 
     return Response.json({
       success: true,
