@@ -402,7 +402,7 @@ export default function Products() {
                           {product.entity && (
                             <div className="text-[10px] text-slate-400 mb-1 flex items-center gap-1">
                               <span className="text-slate-500">Entidade:</span>
-                              <EntityBadge code={product.entity} fullName={product.entity_full_name} size="sm" />
+                              <EntityBadge code={product.entity} size="sm" />
                             </div>
                           )}
                           {product.ticket_number && (
