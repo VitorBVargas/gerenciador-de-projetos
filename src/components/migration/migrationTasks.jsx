@@ -1285,7 +1285,7 @@ export const migrationTasksByProduct = {
     'Extrair Relatórios de Reconhecimento'
   ]),
   'patrimonio': parseTasksIntoSections([
-    'Dados Cadastrais',
+    'DADOS CADASTRAIS',
     'Extrair Configuração Organograma',
     'Extrair Parâmetro Exercício',
     'Extrair Organograma',
