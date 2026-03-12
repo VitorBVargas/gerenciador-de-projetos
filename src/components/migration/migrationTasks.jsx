@@ -620,7 +620,7 @@ export const migrationTasksByProduct = {
     'Extrair Transferências Financeiras LOA'
   ]),
   'Tesouraria': parseTasksIntoSections([
-    'Dados de Lançamentos',
+    'DADOS DE LANÇAMENTOS',
     'Extrair Ajustes Bancários',
     'Extrair Transferências',
     'Extrair Conciliações Bancárias',
@@ -628,7 +628,7 @@ export const migrationTasksByProduct = {
     'Extrair Gestão Bancária'
   ]),
   'Tesouraria (Cloud)': parseTasksIntoSections([
-    'Dados de Lançamentos',
+    'DADOS DE LANÇAMENTOS',
     'Extrair Ajustes Bancários',
     'Extrair Transferências',
     'Extrair Conciliações Bancárias',
