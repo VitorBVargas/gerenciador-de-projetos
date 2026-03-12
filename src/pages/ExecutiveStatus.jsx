@@ -129,8 +129,8 @@ export default function ExecutiveStatus() {
        }
        return allCronogramas;
      },
-     staleTime: 5 * 60 * 1000,
-     gcTime: 30 * 60 * 1000
+     staleTime: Infinity,
+     gcTime: Infinity
    });
 
    // Fetch all timeline events
