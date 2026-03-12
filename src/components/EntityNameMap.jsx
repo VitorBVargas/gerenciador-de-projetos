@@ -121,3 +121,12 @@ export const normalizeEntityName = (name) => {
 export const getEntityFullName = (code) => {
   return code || '';
 };
+
+/**
+ * Registra uma entidade (mantido para compatibilidade)
+ * Não faz nada pois não há mais persistência
+ */
+export const registerEntity = (code, fullName) => {
+  // Função mantida apenas para compatibilidade
+  // Não persiste mais dados
+};
