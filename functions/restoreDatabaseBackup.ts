@@ -26,29 +26,16 @@ Deno.serve(async (req) => {
     }
 
     const backup = backupRecords[0];
+    console.log(`[RESTORE] Found backup with filename: ${backup.filename}`);
     
-    // Debug completo da estrutura
-    console.log(`[RESTORE DEBUG] Backup object type:`, typeof backup);
-    console.log(`[RESTORE DEBUG] Backup keys:`, Object.keys(backup));
-    console.log(`[RESTORE DEBUG] Has backup_data_json?:`, 'backup_data_json' in backup);
-    console.log(`[RESTORE DEBUG] backup.filename:`, backup.filename);
-    
-    // Tenta acessar o backup_data_json de diferentes formas
+    // Acessa o backup_data_json diretamente
     const backupDataJson = backup.backup_data_json;
     
-    if (!backupDataJson) {
-      console.error('[RESTORE ERROR] Cannot find backup_data_json');
-      console.error('[RESTORE ERROR] Full backup object:', JSON.stringify(backup, null, 2));
-      return Response.json({ 
-        error: 'Backup data not accessible', 
-        debug: { 
-          keys: Object.keys(backup),
-          hasBackupDataJson: 'backup_data_json' in backup
-        } 
-      }, { status: 400 });
+    if (typeof backupDataJson !== 'string') {
+      console.error('[RESTORE ERROR] backup_data_json is not a string, type:', typeof backupDataJson);
+      return Response.json({ error: 'Invalid backup data format' }, { status: 400 });
     }
     
-    console.log(`[RESTORE] Found backup: ${backup.filename}`);
     const backupData = JSON.parse(backupDataJson);
     console.log(`[RESTORE] Backup contains entities: ${Object.keys(backupData.entities).join(', ')}`);
 
