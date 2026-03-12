@@ -85,6 +85,18 @@ export default function ExecutiveStatus() {
   const urlParams = new URLSearchParams(window.location.search);
   const portfolioFilter = urlParams.get('portfolio') || 'grandes_contas_sc_mg';
 
+  // Forçar recalculo de caches ao entrar em ExecutiveStatus
+  React.useEffect(() => {
+    base44.functions.invoke('recalculateAllCaches', {}).then(() => {
+      // Invalidar queries para forçar recarregamento
+      queryClient.invalidateQueries({ queryKey: ['allProgressCache'] });
+      queryClient.invalidateQueries({ queryKey: ['allOverallProgressCache'] });
+      queryClient.invalidateQueries({ queryKey: ['allTimelineEvents'] });
+    }).catch(err => {
+      console.error('Erro ao recalcular caches:', err);
+    });
+  }, [queryClient]);
+
   const portfolioLabels = {
     grandes_contas_sc_mg: 'Grande Contas SC/MG',
     grandes_contas_sc_sp: 'Grande Contas SC/SP',
