@@ -10,7 +10,21 @@ Deno.serve(async (req) => {
         }
 
         const body = await req.json();
-        const { project_id } = body;
+        
+        // Se vier de automação, pega project_id dos dados do evento
+        let project_id = body.project_id;
+        if (!project_id && body.data && body.data.project_id) {
+            project_id = body.data.project_id;
+        }
+        if (!project_id && body.event && body.event.entity_id) {
+            // Se não tiver project_id, buscar o evento pra pegar
+            const event = await base44.asServiceRole.entities.TimelineEvent.filter({
+                id: body.event.entity_id
+            });
+            if (event && event.length > 0) {
+                project_id = event[0].project_id;
+            }
+        }
 
         if (!project_id) {
             return Response.json({ error: 'project_id é obrigatório' }, { status: 400 });
