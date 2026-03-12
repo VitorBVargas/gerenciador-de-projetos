@@ -14,7 +14,7 @@ import ImportTasksModal from '../components/modals/ImportTasksModal';
 import { toast } from 'sonner';
 import { cn } from "@/lib/utils";
 import EmptyState from '../components/ui/EmptyState';
-import { getDefaultTasksForProduct, productHasMigration } from '../components/migration/migrationTasks';
+import { getDefaultTasksForProduct, productHasMigration, migrationTasksByProduct } from '../components/migration/migrationTasks';
 import EntityFilter from '../components/filters/EntityFilter';
 
 const verticalLabels = {
@@ -163,7 +163,16 @@ export default function Migration() {
   const getProductProgress = (productId) => {
   const productTasks = getProductTasks(productId);
   const product = products.find(p => p.id === productId);
+  
+  // 🔍 DEBUG LOG: Verificar busca de tarefas padrão
+  console.log('🔍 [Migration Debug] Produto:', product?.name);
   const defaultSections = getDefaultTasksForProduct(product?.name) || [];
+  console.log('📋 [Migration Debug] Seções encontradas:', defaultSections.length);
+  if (defaultSections.length === 0) {
+    console.warn('⚠️ [Migration Debug] Nenhuma seção encontrada para:', product?.name);
+    console.log('💡 [Migration Debug] Produtos disponíveis em migrationTasks:', Object.keys(migrationTasksByProduct));
+  }
+  
     const importedTasks = productTasks.filter(t => t.title.includes('||'));
     const standardTasks = productTasks.filter(t => !t.title.includes('||'));
     
@@ -521,9 +530,14 @@ export default function Migration() {
                         </div>
 
                         <div className="space-y-6">
-                          {(() => {
-                            const productTasks = getProductTasks(product.id);
-                            const defaultSections = getDefaultTasksForProduct(product.name) || [];
+                         {(() => {
+                           const productTasks = getProductTasks(product.id);
+
+                           // 🔍 DEBUG LOG: Verificar renderização de tarefas
+                           console.log('🎨 [Migration Render] Produto:', product.name);
+                           const defaultSections = getDefaultTasksForProduct(product.name) || [];
+                           console.log('📋 [Migration Render] Seções padrão:', defaultSections.length);
+                           console.log('📝 [Migration Render] Tarefas do produto:', productTasks.length);
                             
                             // Separar tarefas importadas (com ||) de tarefas padrão
                             const importedTasks = productTasks.filter(t => t.title.includes('||'));
