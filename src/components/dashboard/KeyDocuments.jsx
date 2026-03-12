@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 const verticalLabels = {
@@ -119,24 +120,37 @@ export default function KeyDocuments({ projectId, project, products = [] }) {
           {/* Entity Filter */}
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xs font-semibold text-slate-300">Entidades:</span>
-            {allEntities.map(entity => (
-              <button
-                key={entity}
-                onClick={() => {
-                  setSelectedEntity(entity === selectedEntity ? null : entity);
-                  setSelectedVertical(null);
-                  setSelectedProduct(null);
-                }}
-                className={cn(
-                  "px-2.5 py-1 rounded text-xs font-medium transition-all border",
-                  selectedEntity === entity
-                    ? 'bg-blue-600 text-white border-blue-600'
-                    : 'bg-slate-700 text-slate-400 hover:text-white border-slate-600'
-                )}
-              >
-                {entity}
-              </button>
-            ))}
+            <TooltipProvider>
+              {allEntities.map(entity => {
+                const fullName = products.find(p => p.entity === entity)?.entity_full_name;
+                return (
+                  <Tooltip key={entity}>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => {
+                          setSelectedEntity(entity === selectedEntity ? null : entity);
+                          setSelectedVertical(null);
+                          setSelectedProduct(null);
+                        }}
+                        className={cn(
+                          "px-2.5 py-1 rounded text-xs font-medium transition-all border",
+                          selectedEntity === entity
+                            ? 'bg-blue-600 text-white border-blue-600'
+                            : 'bg-slate-700 text-slate-400 hover:text-white border-slate-600'
+                        )}
+                      >
+                        {entity}
+                      </button>
+                    </TooltipTrigger>
+                    {fullName && (
+                      <TooltipContent>
+                        <p>{fullName}</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                );
+              })}
+            </TooltipProvider>
           </div>
 
           {/* Vertical Filter */}
