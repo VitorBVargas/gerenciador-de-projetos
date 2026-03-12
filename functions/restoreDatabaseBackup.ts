@@ -26,16 +26,17 @@ Deno.serve(async (req) => {
     }
 
     const backup = backupRecords[0];
-    console.log(`[RESTORE] Full backup object:`, JSON.stringify(backup, null, 2));
-    console.log(`[RESTORE] Found backup: ${backup.filename || backup.data?.filename}`);
+    console.log(`[RESTORE] Found backup: ${backup.filename}`);
+    console.log(`[RESTORE] Backup keys:`, Object.keys(backup).join(', '));
     
-    const backupDataJson = backup.backup_data_json || backup.data?.backup_data_json;
-    if (!backupDataJson) {
-      console.error('[RESTORE ERROR] backup_data_json not found in backup record');
-      return Response.json({ error: 'Backup data not found in record' }, { status: 400 });
+    // O backup_data_json está direto no objeto retornado pelo SDK
+    if (!backup.backup_data_json) {
+      console.error('[RESTORE ERROR] backup_data_json field is missing');
+      console.error('[RESTORE ERROR] Available fields:', JSON.stringify(Object.keys(backup)));
+      return Response.json({ error: 'Backup data field not found' }, { status: 400 });
     }
     
-    const backupData = JSON.parse(backupDataJson);
+    const backupData = JSON.parse(backup.backup_data_json);
     console.log(`[RESTORE] Backup contains entities: ${Object.keys(backupData.entities).join(', ')}`);
 
     let restored = 0;
