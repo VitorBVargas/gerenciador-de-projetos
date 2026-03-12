@@ -18,13 +18,22 @@ Deno.serve(async (req) => {
     console.log(`[RESTORE START] User: ${user.email}, BackupId: ${backupId}`);
 
     // Busca o backup - usa list() ao invés de filter()
-    const allBackups = await base44.asServiceRole.entities.DatabaseBackup.list('-created_date', 100);
-    console.log(`[RESTORE DEBUG] Total backups found: ${allBackups?.length}`);
+    let allBackups = await base44.asServiceRole.entities.DatabaseBackup.list('-created_date', 100);
+    console.log(`[RESTORE DEBUG] allBackups type:`, typeof allBackups);
+    console.log(`[RESTORE DEBUG] allBackups is array:`, Array.isArray(allBackups));
+    
+    // Converte para array se necessário
+    if (!Array.isArray(allBackups)) {
+      allBackups = Array.from(allBackups || []);
+    }
+    
+    console.log(`[RESTORE DEBUG] Total backups found: ${allBackups.length}`);
     
     const backup = allBackups.find(b => b.id === backupId);
     
     if (!backup) {
       console.error(`[RESTORE ERROR] Backup not found: ${backupId}`);
+      console.error(`[RESTORE ERROR] Available backup IDs:`, allBackups.map(b => b.id).join(', '));
       return Response.json({ error: 'Backup not found' }, { status: 404 });
     }
     
