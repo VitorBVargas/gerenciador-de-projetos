@@ -254,7 +254,8 @@ export default function Dashboard() {
 
   const calcEventProgressDash = (e) => {
     if (e.status === 'concluido') return 100;
-    if (e.progress > 0) return e.progress;
+    if (e.status === 'nao_iniciado') return 0;
+    if (e.progress !== undefined && e.progress !== null) return e.progress;
     if (e.start_date && e.end_date) {
       const now = new Date();
       const start = new Date(e.start_date);
