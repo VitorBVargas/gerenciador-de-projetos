@@ -1,5 +1,4 @@
 import React from 'react';
-import { getEntityFullName } from './EntityNameMap';
 import { cn } from '@/lib/utils';
 
 /**
@@ -8,11 +7,11 @@ import { cn } from '@/lib/utils';
  */
 export default function EntityBadge({ 
   code, 
+  fullName = null,
   className = '',
   variant = 'default',
   size = 'md'
 }) {
-  const fullName = getEntityFullName(code);
   
   const sizeClasses = {
     sm: 'text-xs px-2 py-0.5',
