@@ -1,15 +1,22 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 Deno.serve(async (req) => {
+  console.error('[RESTORE] Function started');
   try {
+    console.error('[RESTORE] Creating base44 client');
     const base44 = createClientFromRequest(req);
+    console.error('[RESTORE] Authenticating user');
     const user = await base44.auth.me();
+    console.error(`[RESTORE] User authenticated: ${user?.email}, role: ${user?.role}`);
 
     if (!user || user.role !== 'admin') {
+      console.error('[RESTORE] Access denied - not admin');
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
+    console.error('[RESTORE] Parsing request body');
     const { backupId } = await req.json();
+    console.error(`[RESTORE] Received backupId: ${backupId}`);
 
     if (!backupId) {
       return Response.json({ error: 'backupId is required' }, { status: 400 });
