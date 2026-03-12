@@ -88,9 +88,9 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
   }
 
   // --- 4. RISKS (20 pts) ---
-  if (risks.length > 0) {
-    const criticalRisks = risks.filter(r => (r.probability >= 4 && r.impact >= 4) || (r.probability * r.impact >= 16));
-    const highRisks = risks.filter(r => !criticalRisks.includes(r) && ((r.probability >= 4) || (r.impact >= 4)));
+   if (risks.length > 0) {
+     const criticalRisks = risks.filter(r => r.probability >= 4 && r.impact >= 4);
+     const highRisks = risks.filter(r => !criticalRisks.includes(r) && (r.probability >= 3 && r.impact >= 3));
     const riskDeduction = Math.min(20, criticalRisks.length * 6 + highRisks.length * 2);
     score -= riskDeduction;
 
