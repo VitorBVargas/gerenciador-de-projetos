@@ -179,14 +179,22 @@ export default function Timeline() {
     }
   };
 
-  // Entity filter
-  const allEntities = [...new Set(products.map(p => p.entity).filter(Boolean))].sort((a, b) => {
-    if (a === 'PM') return -1;
-    if (b === 'PM') return 1;
-    if (a === 'CM') return -1;
-    if (b === 'CM') return 1;
-    return a.localeCompare(b);
+  // Entity filter with full names
+  const entityMap = new Map();
+  products.forEach(p => {
+    if (p.entity) {
+      entityMap.set(p.entity, p.entity_full_name || p.entity);
+    }
   });
+  const allEntities = Array.from(entityMap.entries())
+    .map(([code, fullName]) => ({ code, fullName }))
+    .sort((a, b) => {
+      if (a.code === 'PM') return -1;
+      if (b.code === 'PM') return 1;
+      if (a.code === 'CM') return -1;
+      if (b.code === 'CM') return 1;
+      return a.code.localeCompare(b.code);
+    });
   
   const entityProducts = selectedEntity
     ? products.filter(p => p.entity === selectedEntity)
@@ -206,7 +214,7 @@ export default function Timeline() {
     
     // Procurar entidade com produtos (prioridade: PM > CM > outras)
     for (const entity of allEntities) {
-      const entProds = products.filter(p => p.entity === entity);
+      const entProds = products.filter(p => p.entity === entity.code);
       if (entProds.length > 0) {
         // Verificar se tem vertical
         const verts = [...new Set(entProds.map(p => p.vertical).filter(Boolean))];
@@ -214,7 +222,7 @@ export default function Timeline() {
           // Pegar produtos da primeira vertical
           const firstVertProds = entProds.filter(p => p.vertical === verts[0]);
           if (firstVertProds.length > 0) {
-            setSelectedEntity(entity);
+            setSelectedEntity(entity.code);
             setActiveVertical(verts[0]);
             setSelectedProductId(firstVertProds[0].id);
             setIsInitialized(true);
@@ -250,11 +258,7 @@ export default function Timeline() {
   };
 
   const getUniqueEntities = () => {
-    return [...new Set(products.map(p => p.entity))].sort((a, b) => {
-      if (a === 'PM') return -1;
-      if (b === 'PM') return 1;
-      return a.localeCompare(b);
-    });
+    return allEntities.map(e => e.code);
   };
 
   const handleEditDatesApply = async (updatedEvents) => {

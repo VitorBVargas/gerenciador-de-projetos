@@ -134,14 +134,21 @@ export default function Dashboard() {
   // Active project
   const activeProject = projects.find(p => p.id === projectId);
 
-  // Entity filter
-  const allEntities = [...new Set(products.map(p => p.entity).filter(Boolean))].sort();
+  // Entity filter with full names
+  const entityMap = new Map();
+  products.forEach(p => {
+    if (p.entity) {
+      entityMap.set(p.entity, p.entity_full_name || p.entity);
+    }
+  });
+  const allEntities = Array.from(entityMap.entries()).map(([code, fullName]) => ({ code, fullName }));
   
   // Auto-select first entity if not selected and entities exist
   React.useEffect(() => {
     if (allEntities.length > 0 && selectedEntity === null) {
       // Prefer PM, but if not available, select first entity
-      const entityToSelect = allEntities.includes('PM') ? 'PM' : allEntities[0];
+      const pmEntity = allEntities.find(e => e.code === 'PM');
+      const entityToSelect = pmEntity ? pmEntity.code : allEntities[0].code;
       setSelectedEntity(entityToSelect);
     }
   }, [allEntities.length, selectedEntity]);
