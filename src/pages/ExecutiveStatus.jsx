@@ -305,8 +305,11 @@ export default function ExecutiveStatus() {
       return Math.round(cache.overall_progress);
     }
 
-    // Fallback: retornar 0 se não encontrar cache (o Dashboard vai calcular e atualizar)
-    return 0;
+    // Fallback: calcular com TODOS os eventos do projeto se cache não existir
+    const projectEvents = getProjectEvents(project);
+    if (projectEvents.length === 0) return 0;
+    const total = projectEvents.reduce((sum, e) => sum + calcEventProgress(e), 0);
+    return Math.round(total / projectEvents.length);
   };
 
   // Classify project status based on health score only (igual aos cards)
