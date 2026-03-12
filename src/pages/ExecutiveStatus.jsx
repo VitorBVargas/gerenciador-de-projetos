@@ -99,13 +99,13 @@ export default function ExecutiveStatus() {
   };
 
   // Fetch all projects
-   const { data: allProjectsData = [], isLoading: loadingProjects, isError } = useQuery({
-     queryKey: ['projects', portfolioFilter],
-     queryFn: () => base44.entities.Project.filter({ portfolio: portfolioFilter }, '-created_date', 500),
-     staleTime: 5 * 60 * 1000, // 5 min cache
-     gcTime: 30 * 60 * 1000,   // 30 min garbage collection
-     retry: 2,
-   });
+  const { data: allProjectsData = [], isLoading: loadingProjects, isError } = useQuery({
+    queryKey: ['projects', portfolioFilter],
+    queryFn: () => base44.entities.Project.filter({ portfolio: portfolioFilter }, '-created_date', 500),
+    staleTime: Infinity,
+    gcTime: Infinity,
+    retry: 2,
+  });
 
    // Filter out completed projects from overview
    const projects = allProjectsData.filter(p => p.status !== 'concluido');
