@@ -36,11 +36,11 @@ Deno.serve(async (req) => {
       { id: backupMeta.id }
     );
     
-    if (!backupDataResponse.ok) {
-      throw new Error(`Failed to fetch backup data: ${backupDataResponse.statusText}`);
+    if (!fullBackupRecords || fullBackupRecords.length === 0) {
+      throw new Error('Failed to fetch backup data');
     }
     
-    const fullBackup = await backupDataResponse.json();
+    const fullBackup = fullBackupRecords[0];
     const backupDataJson = fullBackup.backup_data_json;
     
     if (!backupDataJson || typeof backupDataJson !== 'string') {
