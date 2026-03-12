@@ -6,7 +6,6 @@ const parseTasksIntoSections = (tasks) => {
   const stack = [{ tasks: result, level: -1 }];
 
   tasks.forEach((taskItem) => {
-    // Determine depth based on leading spaces (2 spaces = 1 level)
     const trimmed = taskItem.trim();
     const depth = taskItem.length - trimmed.length;
     const isHeader =
@@ -16,7 +15,6 @@ const parseTasksIntoSections = (tasks) => {
 
     const node = { title: trimmed, tasks: [] };
 
-    // Pop the stack until we find the parent of this current depth
     while (stack.length > 1 && stack[stack.length - 1].level >= depth) {
       stack.pop();
     }
@@ -29,7 +27,9 @@ const parseTasksIntoSections = (tasks) => {
     } else {
       currentParent.tasks.push(trimmed);
     }
-  })
+  });
+
+  return result; 
 };
 
 // Mapa de produtos com suas tarefas de migração
