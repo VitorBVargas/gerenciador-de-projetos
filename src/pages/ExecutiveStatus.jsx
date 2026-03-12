@@ -99,83 +99,218 @@ export default function ExecutiveStatus() {
   };
 
   // Fetch all projects
-  const { data: allProjectsData = [], isLoading: loadingProjects, isError } = useQuery({
-    queryKey: ['projects', portfolioFilter],
-    queryFn: () => base44.entities.Project.filter({ portfolio: portfolioFilter }, '-created_date'),
-    staleTime: 0,
-    gcTime: 0,
-    retry: 2,
-  });
-  
-  // Filter out completed projects from overview
-  const projects = allProjectsData.filter(p => p.status !== 'concluido');
+   const { data: allProjectsData = [], isLoading: loadingProjects, isError } = useQuery({
+     queryKey: ['projects', portfolioFilter],
+     queryFn: () => base44.entities.Project.filter({ portfolio: portfolioFilter }, '-created_date', 500),
+     staleTime: 5 * 60 * 1000, // 5 min cache
+     gcTime: 30 * 60 * 1000,   // 30 min garbage collection
+     retry: 2,
+   });
 
-  // Fetch all cronogramas
-  const { data: allCronogramas = [], isLoading: loadingCronogramas } = useQuery({
-    queryKey: ['allCronogramas'],
-    queryFn: () => base44.entities.Cronograma.list('-created_date', 99999),
-    staleTime: 0,
-    gcTime: 0
-  });
+   // Filter out completed projects from overview
+   const projects = allProjectsData.filter(p => p.status !== 'concluido');
 
-  // Fetch all timeline events
-  const { data: allTimelineEvents = [], isLoading: loadingEvents } = useQuery({
-    queryKey: ['allTimelineEvents'],
-    queryFn: () => base44.entities.TimelineEvent.list('-created_date', 99999999),
-    staleTime: 0,
-    gcTime: 0
-  });
+   // Fetch all cronogramas
+   const { data: allCronogramas = [], isLoading: loadingCronogramas } = useQuery({
+     queryKey: ['allCronogramas', portfolioFilter],
+     queryFn: async () => {
+       const allCronogramas = [];
+       let offset = 0;
+       const limit = 200;
+       let hasMore = true;
+       while (hasMore) {
+         const batch = await base44.entities.Cronograma.list('-created_date', limit);
+         if (batch.length === 0) {
+           hasMore = false;
+         } else {
+           allCronogramas.push(...batch);
+           offset += limit;
+         }
+       }
+       return allCronogramas;
+     },
+     staleTime: 5 * 60 * 1000,
+     gcTime: 30 * 60 * 1000
+   });
 
-  // Fetch all tasks - necessário para calcular health score corretamente
-  const { data: allHomologationTasks = [], isLoading: loadingHomolog } = useQuery({
-    queryKey: ['allHomologationTasks'],
-    queryFn: () => base44.entities.HomologationTask.list('-created_date', 1000),
-    staleTime: 0,
-    gcTime: 0
-  });
+   // Fetch all timeline events
+   const { data: allTimelineEvents = [], isLoading: loadingEvents } = useQuery({
+     queryKey: ['allTimelineEvents', portfolioFilter],
+     queryFn: async () => {
+       const allEvents = [];
+       let offset = 0;
+       const limit = 500;
+       let hasMore = true;
+       while (hasMore) {
+         const batch = await base44.entities.TimelineEvent.list('-created_date', limit);
+         if (batch.length === 0) {
+           hasMore = false;
+         } else {
+           allEvents.push(...batch);
+           offset += limit;
+         }
+       }
+       return allEvents;
+     },
+     staleTime: 5 * 60 * 1000,
+     gcTime: 30 * 60 * 1000
+   });
 
-  const { data: allMigrationTasks = [], isLoading: loadingMigration } = useQuery({
-    queryKey: ['allMigrationTasks'],
-    queryFn: () => base44.entities.MigrationTask.list('-created_date', 1000),
-    staleTime: 0,
-    gcTime: 0
-  });
+   // Fetch all tasks - necessário para calcular health score corretamente
+   const { data: allHomologationTasks = [], isLoading: loadingHomolog } = useQuery({
+     queryKey: ['allHomologationTasks', portfolioFilter],
+     queryFn: async () => {
+       const allTasks = [];
+       let offset = 0;
+       const limit = 200;
+       let hasMore = true;
+       while (hasMore) {
+         const batch = await base44.entities.HomologationTask.list('-created_date', limit);
+         if (batch.length === 0) {
+           hasMore = false;
+         } else {
+           allTasks.push(...batch);
+           offset += limit;
+         }
+       }
+       return allTasks;
+     },
+     staleTime: 5 * 60 * 1000,
+     gcTime: 30 * 60 * 1000
+   });
 
-  // Fetch all risks
-  const { data: allRisks = [], isLoading: loadingRisks } = useQuery({
-    queryKey: ['allRisks'],
-    queryFn: () => base44.entities.Risk.list('-created_date', 500),
-    staleTime: 0,
-    gcTime: 0
-  });
+   const { data: allMigrationTasks = [], isLoading: loadingMigration } = useQuery({
+     queryKey: ['allMigrationTasks', portfolioFilter],
+     queryFn: async () => {
+       const allTasks = [];
+       let offset = 0;
+       const limit = 200;
+       let hasMore = true;
+       while (hasMore) {
+         const batch = await base44.entities.MigrationTask.list('-created_date', limit);
+         if (batch.length === 0) {
+           hasMore = false;
+         } else {
+           allTasks.push(...batch);
+           offset += limit;
+         }
+       }
+       return allTasks;
+     },
+     staleTime: 5 * 60 * 1000,
+     gcTime: 30 * 60 * 1000
+   });
 
-  const { data: allExpenses = [], isLoading: loadingExpenses } = useQuery({
-    queryKey: ['allExpenses'],
-    queryFn: () => base44.entities.Expense.list('-created_date', 1000),
-    staleTime: 0,
-    gcTime: 0
-  });
+   // Fetch all risks
+   const { data: allRisks = [], isLoading: loadingRisks } = useQuery({
+     queryKey: ['allRisks', portfolioFilter],
+     queryFn: async () => {
+       const allRisksData = [];
+       let offset = 0;
+       const limit = 200;
+       let hasMore = true;
+       while (hasMore) {
+         const batch = await base44.entities.Risk.list('-created_date', limit);
+         if (batch.length === 0) {
+           hasMore = false;
+         } else {
+           allRisksData.push(...batch);
+           offset += limit;
+         }
+       }
+       return allRisksData;
+     },
+     staleTime: 5 * 60 * 1000,
+     gcTime: 30 * 60 * 1000
+   });
 
-  const { data: allProducts = [], isLoading: loadingProducts } = useQuery({
-    queryKey: ['allProducts'],
-    queryFn: () => base44.entities.Product.list('-created_date', 1000),
-    staleTime: 0,
-    gcTime: 0
-  });
+   const { data: allExpenses = [], isLoading: loadingExpenses } = useQuery({
+     queryKey: ['allExpenses', portfolioFilter],
+     queryFn: async () => {
+       const allExpensesData = [];
+       let offset = 0;
+       const limit = 300;
+       let hasMore = true;
+       while (hasMore) {
+         const batch = await base44.entities.Expense.list('-created_date', limit);
+         if (batch.length === 0) {
+           hasMore = false;
+         } else {
+           allExpensesData.push(...batch);
+           offset += limit;
+         }
+       }
+       return allExpensesData;
+     },
+     staleTime: 5 * 60 * 1000,
+     gcTime: 30 * 60 * 1000
+   });
 
-  const { data: allRecognizedRevenues = [], isLoading: loadingRevenues } = useQuery({
-    queryKey: ['allRecognizedRevenues'],
-    queryFn: () => base44.entities.RecognizedRevenue.list('-created_date', 1000),
-    staleTime: 0,
-    gcTime: 0
-  });
+   const { data: allProducts = [], isLoading: loadingProducts } = useQuery({
+     queryKey: ['allProducts', portfolioFilter],
+     queryFn: async () => {
+       const allProdsData = [];
+       let offset = 0;
+       const limit = 300;
+       let hasMore = true;
+       while (hasMore) {
+         const batch = await base44.entities.Product.list('-created_date', limit);
+         if (batch.length === 0) {
+           hasMore = false;
+         } else {
+           allProdsData.push(...batch);
+           offset += limit;
+         }
+       }
+       return allProdsData;
+     },
+     staleTime: 5 * 60 * 1000,
+     gcTime: 30 * 60 * 1000
+   });
 
-  const { data: allProgressCache = [], isLoading: loadingProgressCache } = useQuery({
-    queryKey: ['allProgressCache'],
-    queryFn: () => base44.entities.ProjectProgressCache.list('-updated_date', 1000),
-    staleTime: 0,
-    gcTime: 0
-  });
+   const { data: allRecognizedRevenues = [], isLoading: loadingRevenues } = useQuery({
+     queryKey: ['allRecognizedRevenues', portfolioFilter],
+     queryFn: async () => {
+       const allRevenuesData = [];
+       let offset = 0;
+       const limit = 300;
+       let hasMore = true;
+       while (hasMore) {
+         const batch = await base44.entities.RecognizedRevenue.list('-created_date', limit);
+         if (batch.length === 0) {
+           hasMore = false;
+         } else {
+           allRevenuesData.push(...batch);
+           offset += limit;
+         }
+       }
+       return allRevenuesData;
+     },
+     staleTime: 5 * 60 * 1000,
+     gcTime: 30 * 60 * 1000
+   });
+
+   const { data: allProgressCache = [], isLoading: loadingProgressCache } = useQuery({
+     queryKey: ['allProgressCache', portfolioFilter],
+     queryFn: async () => {
+       const allCacheData = [];
+       let offset = 0;
+       const limit = 200;
+       let hasMore = true;
+       while (hasMore) {
+         const batch = await base44.entities.ProjectProgressCache.list('-updated_date', limit);
+         if (batch.length === 0) {
+           hasMore = false;
+         } else {
+           allCacheData.push(...batch);
+           offset += limit;
+         }
+       }
+       return allCacheData;
+     },
+     staleTime: 5 * 60 * 1000,
+     gcTime: 30 * 60 * 1000
+   });
 
   // Loading global: aguarda TODOS os dados críticos carregarem
   const isLoading = loadingProjects || loadingCronogramas || loadingEvents || loadingHomolog || loadingMigration || loadingRisks || loadingExpenses || loadingProducts || loadingRevenues || loadingProgressCache;
