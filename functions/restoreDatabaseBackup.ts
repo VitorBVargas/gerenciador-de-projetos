@@ -17,28 +17,20 @@ Deno.serve(async (req) => {
 
     console.log(`[RESTORE START] User: ${user.email}, BackupId: ${backupId}`);
 
-    // Busca o backup
-    let backupRecords = await base44.asServiceRole.entities.DatabaseBackup.filter({ id: backupId });
+    // Busca o backup - usa list() ao invés de filter()
+    const allBackups = await base44.asServiceRole.entities.DatabaseBackup.list('-created_date', 100);
+    console.log(`[RESTORE DEBUG] Total backups found: ${allBackups?.length}`);
     
-    console.log('[RESTORE DEBUG] Raw backupRecords type:', typeof backupRecords);
-    console.log('[RESTORE DEBUG] Raw backupRecords is array:', Array.isArray(backupRecords));
-    console.log('[RESTORE DEBUG] Raw backupRecords length:', backupRecords?.length);
-    console.log('[RESTORE DEBUG] backupRecords[0] type:', typeof backupRecords?.[0]);
-    console.log('[RESTORE DEBUG] backupRecords[0] keys:', Object.keys(backupRecords?.[0] || {}));
-    console.log('[RESTORE DEBUG] backupRecords[0] JSON (first 500 chars):', JSON.stringify(backupRecords?.[0], null, 2).substring(0, 500));
+    const backup = allBackups.find(b => b.id === backupId);
     
-    if (!backupRecords || backupRecords.length === 0) {
+    if (!backup) {
       console.error(`[RESTORE ERROR] Backup not found: ${backupId}`);
       return Response.json({ error: 'Backup not found' }, { status: 404 });
     }
-
-    let backup = backupRecords[0];
     
-    // Se o backup veio como array dentro de array, desempacota
-    if (Array.isArray(backup)) {
-      console.log('[RESTORE DEBUG] Backup is an array, taking first element');
-      backup = backup[0];
-    }
+    console.log(`[RESTORE DEBUG] Backup object keys:`, Object.keys(backup));
+    console.log(`[RESTORE DEBUG] Backup has filename:`, backup.filename);
+    console.log(`[RESTORE DEBUG] Backup has backup_data_json:`, !!backup.backup_data_json);
     
     // Log completo do objeto para debug
     console.log('[RESTORE DEBUG] Backup record structure:', JSON.stringify(backup, null, 2).substring(0, 500));
