@@ -646,11 +646,11 @@ export default function Migration() {
                                           />
                                           <span className={cn(
                                             "flex-1 text-sm",
-                                            task.completed ? "text-slate-500 line-through" : "text-white"
+                                            task.completed ? "text-slate-400" : "text-white"
                                           )}>
                                             {task.displayTitle}
                                             {task.completed && task.completed_date && (
-                                              <span className="text-slate-400 text-xs ml-2 font-bold" style={{ textDecoration: 'none' }}>
+                                              <span className="text-slate-400 text-xs ml-2 font-bold">
                                                 ({new Date(task.completed_date).toLocaleDateString('pt-BR')})
                                               </span>
                                             )}
@@ -779,11 +779,11 @@ export default function Migration() {
                                        />
                                        <span className={cn(
                                          "flex-1 text-sm",
-                                         task.completed ? "text-slate-500 line-through" : "text-white"
+                                         task.completed ? "text-slate-400" : "text-white"
                                        )}>
                                          {task.title}
                                          {task.completed && task.completed_date && (
-                                           <span className="text-slate-400 text-xs ml-2 font-bold" style={{ textDecoration: 'none' }}>
+                                           <span className="text-slate-400 text-xs ml-2 font-bold">
                                              ({new Date(task.completed_date).toLocaleDateString('pt-BR')})
                                            </span>
                                          )}
@@ -827,11 +827,11 @@ export default function Migration() {
                                           />
                                           <span className={cn(
                                            "flex-1 text-sm",
-                                           task.completed ? "text-slate-500 line-through" : "text-white"
+                                           task.completed ? "text-slate-400" : "text-white"
                                           )}>
                                            {task.title}
                                            {task.completed && task.completed_date && (
-                                             <span className="text-slate-400 text-xs ml-2 font-bold" style={{ textDecoration: 'none' }}>
+                                             <span className="text-slate-400 text-xs ml-2 font-bold">
                                                ({new Date(task.completed_date).toLocaleDateString('pt-BR')})
                                              </span>
                                            )}
