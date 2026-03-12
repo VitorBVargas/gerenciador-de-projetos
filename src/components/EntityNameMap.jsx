@@ -111,3 +111,13 @@ export const normalizeEntityName = (name) => {
     .replace(/\s+/g, ' ')
     .trim();
 };
+
+/**
+ * Obtém o nome completo de uma entidade usando seu código abreviado
+ * Como não há mais persistência, retorna apenas o código
+ * @param {string} code - Código abreviado (ex: "IPASI")
+ * @returns {string} - Retorna o próprio código
+ */
+export const getEntityFullName = (code) => {
+  return code || '';
+};
