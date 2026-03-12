@@ -88,13 +88,19 @@ export default function ExecutiveStatus() {
 
   // Forçar recalculo de caches ao entrar em ExecutiveStatus
   React.useEffect(() => {
+    setIsRecalculating(true);
     base44.functions.invoke('recalculateAllCaches', {}).then(() => {
-      // Invalidar queries para forçar recarregamento
-      queryClient.invalidateQueries({ queryKey: ['allProgressCache'] });
-      queryClient.invalidateQueries({ queryKey: ['allOverallProgressCache'] });
-      queryClient.invalidateQueries({ queryKey: ['allTimelineEvents'] });
+      // Aguardar 2 segundos para respeitar o tempo de processamento
+      setTimeout(() => {
+        // Invalidar queries para forçar recarregamento
+        queryClient.invalidateQueries({ queryKey: ['allProgressCache'] });
+        queryClient.invalidateQueries({ queryKey: ['allOverallProgressCache'] });
+        queryClient.invalidateQueries({ queryKey: ['allTimelineEvents'] });
+        setIsRecalculating(false);
+      }, 2000);
     }).catch(err => {
       console.error('Erro ao recalcular caches:', err);
+      setIsRecalculating(false);
     });
   }, [queryClient]);
 
