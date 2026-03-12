@@ -81,6 +81,7 @@ export default function ExecutiveStatus() {
   const [editingProjectId, setEditingProjectId] = useState(null);
   const [isEditRecurringModalOpen, setIsEditRecurringModalOpen] = useState(false);
   const [selectedEntity, setSelectedEntity] = useState(null);
+  const [isRecalculating, setIsRecalculating] = useState(true);
   const queryClient = useQueryClient();
   const urlParams = new URLSearchParams(window.location.search);
   const portfolioFilter = urlParams.get('portfolio') || 'grandes_contas_sc_mg';
