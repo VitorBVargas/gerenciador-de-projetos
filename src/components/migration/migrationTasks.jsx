@@ -338,7 +338,7 @@ export const migrationTasksByProduct = {
     'Extrair Arquivamentos',
     'Extrair Localização'
   ]),
-  'Contabil': parseTasksIntoSections([
+  'Contabilidade (Cloud)': parseTasksIntoSections([
     'DADOS CADASTRAIS',
     'Extrair Credores',
     'Extrair Responsáveis',
