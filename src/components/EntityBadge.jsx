@@ -39,8 +39,8 @@ export default function EntityBadge({
         {code}
       </span>
       
-      {/* Tooltip - só mostra se tiver nome completo */}
-      {fullName && (
+      {/* Tooltip - mostra nome completo se fornecido, senão mostra apenas o código */}
+      {fullName && fullName !== code && (
         <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block z-50 pointer-events-none">
           <div className="bg-slate-900 text-white text-xs rounded px-2.5 py-1.5 whitespace-nowrap border border-slate-700 shadow-lg max-w-xs">
             {fullName}
