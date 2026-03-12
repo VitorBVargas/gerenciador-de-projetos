@@ -63,6 +63,8 @@ export default function Budget() {
   const [importerOpen, setImporterOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState(false);
   const [implementationBudget, setImplementationBudget] = useState('');
+  const [editingTotalBudget, setEditingTotalBudget] = useState(false);
+  const [totalBudgetValue, setTotalBudgetValue] = useState('');
   const [deleteAllDialogOpen, setDeleteAllDialogOpen] = useState(false);
   const [deletingAll, setDeletingAll] = useState(false);
 
