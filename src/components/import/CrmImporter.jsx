@@ -221,6 +221,7 @@ export default function CrmImporter({ open, onOpenChange, portfolioFilter = 'gra
           project_id: project.id,
           name: productName,
           entity: entityCode,
+          entity_full_name: parsedData.entityNames[entityCode] || '',
           vertical: inferVertical(productName),
           ticket_number: vals.chamado,
           implementation_value: vals.impl,
