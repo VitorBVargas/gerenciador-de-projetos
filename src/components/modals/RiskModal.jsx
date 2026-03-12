@@ -88,10 +88,10 @@ export default function RiskModal({ open, onOpenChange, risk, onSave, projectId 
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-slate-700 border-slate-600">
-                  <SelectItem value="identificado">Identificado</SelectItem>
-                  <SelectItem value="em_monitoramento">Em Monitoramento</SelectItem>
-                  <SelectItem value="mitigado">Mitigado</SelectItem>
-                  <SelectItem value="ocorreu">Ocorreu</SelectItem>
+                   <SelectItem value="identificado">Identificado</SelectItem>
+                   <SelectItem value="em_monitoramento">Em Monitoramento</SelectItem>
+                   <SelectItem value="em_andamento">Em Andamento</SelectItem>
+                   <SelectItem value="mitigado">Mitigado</SelectItem>
                 </SelectContent>
               </Select>
             </div>
