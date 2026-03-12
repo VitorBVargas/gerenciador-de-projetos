@@ -53,6 +53,7 @@ export default function Dashboard() {
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [isAIWelcomeOpen, setIsAIWelcomeOpen] = useState(isNewProject);
   const [hasShownInsights, setHasShownInsights] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   // Fetch all data with staleTime to reduce re-fetches
   const { data: projects = [] } = useQuery({
