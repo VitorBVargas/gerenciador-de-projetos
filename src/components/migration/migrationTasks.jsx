@@ -56,8 +56,8 @@ export const migrationTasksByProduct = {
     'Extrair Autos',
     'Extrair Guias de Pagamentos'
   ]),
-  'Tributos (Cloud)': [
-    'DADOS CADASTRAIS',
+  'Tributos (Cloud)': parseTasksIntoSections([
+    'Dados Cadastrais',
     'Extrair Paises',
     'Extrair Estados',
     'Extrair Cidades',
@@ -173,7 +173,7 @@ export const migrationTasksByProduct = {
     'Extrair ObrasOpcoes',
     'Extrair ObrasOpcoesCompl',
     'Extrair ObrasEngenheiros',
-    'DADOS DE LANÇAMENTO',
+    'Dados de Lançamentos',
     'Extrair ReceitasDiversas',
     'Extrair ReceitasDiversasMovimentacoes',
     'Extrair ReceitasDiversasCamposAdicionais',
@@ -248,7 +248,7 @@ export const migrationTasksByProduct = {
     'Extrair ManutencoesCalculoReceitas',
     'Extrair ManutencoesCalculoGuias',
     'Extrair ManutencoesCalculoMovto'
-  ],
+  ]),
   'Procuradoria (Cloud)': parseTasksIntoSections([
     'Dados Cadastrais',
     'Extrair Tipos Custas Processuais',
@@ -1285,7 +1285,7 @@ export const migrationTasksByProduct = {
     'Extrair Relatórios de Reconhecimento'
   ]),
   'patrimonio': parseTasksIntoSections([
-    'Dados Cadastrais',
+    'DADOS CADASTRAIS',
     'Extrair Configuração Organograma',
     'Extrair Parâmetro Exercício',
     'Extrair Organograma',
@@ -1660,8 +1660,7 @@ export const getDefaultTasksForProduct = (productName) => {
   
   //return key ? migrationTasksByProduct[key] : null;
   const tasks = migrationTasksByProduct[key]
-console.log({tasks})
-return tasks ?? []
+  return tasks ?? []
 };
 
 // Verifica se um produto tem processo de migração
