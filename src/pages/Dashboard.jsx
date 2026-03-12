@@ -309,10 +309,11 @@ export default function Dashboard() {
     if (projectId && projectProgress >= 0) {
       base44.functions.invoke('updateProjectProgressCache', {
         project_id: projectId,
-        overall_progress: projectProgress
+        overall_progress: projectProgress,
+        overall_progress_all_entities: allEntitiesProgress
       }).catch(err => console.error('Failed to update progress cache:', err));
     }
-  }, [projectId, projectProgress]);
+  }, [projectId, projectProgress, allEntitiesProgress]);
 
   React.useEffect(() => {
     if (projectId && healthScore >= 0) {

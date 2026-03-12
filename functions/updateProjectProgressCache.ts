@@ -4,7 +4,7 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const body = await req.json();
-    const { project_id, overall_progress } = body;
+    const { project_id, overall_progress, overall_progress_all_entities } = body;
 
     if (!project_id) {
       return Response.json({ error: 'project_id required' }, { status: 400 });
@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Check if cache exists
+    // Update ProjectProgressCache (entidade-específico)
     const existing = await base44.asServiceRole.entities.ProjectProgressCache.filter({ 
       project_id: project_id
     });
@@ -58,10 +58,30 @@ Deno.serve(async (req) => {
       await base44.asServiceRole.entities.ProjectProgressCache.create(cacheData);
     }
 
+    // Update ProjectOverallProgressCache (todas as entidades)
+    if (overall_progress_all_entities !== undefined) {
+      const overallExisting = await base44.asServiceRole.entities.ProjectOverallProgressCache.filter({ 
+        project_id: project_id
+      });
+
+      const overallCacheData = {
+        overall_progress: overall_progress_all_entities || 0,
+        last_updated: new Date().toISOString()
+      };
+
+      if (overallExisting.length > 0) {
+        await base44.asServiceRole.entities.ProjectOverallProgressCache.update(overallExisting[0].id, overallCacheData);
+      } else {
+        overallCacheData.project_id = project_id;
+        await base44.asServiceRole.entities.ProjectOverallProgressCache.create(overallCacheData);
+      }
+    }
+
     return Response.json({ 
       success: true, 
       project_id,
       overall_progress: cacheData.overall_progress,
+      overall_progress_all_entities: overall_progress_all_entities || 0,
       estimated_deadline: estimatedDeadline
     });
   } catch (error) {
