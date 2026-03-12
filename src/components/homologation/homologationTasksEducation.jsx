@@ -37,6 +37,7 @@ const obrasCloudTasks = parseTasksIntoSections([
 ]);
 
 const educacaoCloudTasks = parseTasksIntoSections([
+  'DADOS CADASTRAIS',
   'Cadastro de Entidade',
   'Escola cadastrada corretamente (Nome)',
   'Código INEP informado',
@@ -93,6 +94,7 @@ const educacaoCloudTasks = parseTasksIntoSections([
 ]);
 
 const professoresCloudTasks = parseTasksIntoSections([
+  'DADOS GERAIS',
   'Diário de Classe',
   'Diário aberto para a turma',
   'Frequência disponível',
@@ -102,6 +104,7 @@ const professoresCloudTasks = parseTasksIntoSections([
 ]);
 
 const paisAlunosCloudTasks = parseTasksIntoSections([
+  'DADOS GERAIS',
   'Pais e Alunos',
   'Geração e distribuição de acessos (tokens/chaves) para pais, alunos e responsáveis',
   'Habilitação da consulta online de desempenho escolar (notas, provas e atividades)',
@@ -111,6 +114,7 @@ const paisAlunosCloudTasks = parseTasksIntoSections([
 ]);
 
 const bibliotecaCloudTasks = parseTasksIntoSections([
+  'DADOS GERAIS',
   'Biblioteca',
   'Cadastro do acervo geral (livros, revistas, mídias digitais e especificações dos materiais)',
   'Cadastro de tabelas auxiliares (autores, assuntos e editoras)',
@@ -120,6 +124,7 @@ const bibliotecaCloudTasks = parseTasksIntoSections([
 ]);
 
 const merendaEscolarCloudTasks = parseTasksIntoSections([
+  'DADOS GERAIS',
   'Merenda Escolar',
   'Cadastro de insumos/alimentos seguindo os padrões das tabelas TACO e IBGE',
   'Elaboração de receitas/cardápios com cálculo automático de informações nutricionais',
