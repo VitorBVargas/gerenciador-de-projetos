@@ -210,7 +210,7 @@ export default function CrmImporter({ open, onOpenChange, portfolioFilter = 'gra
       contract_link: formData.projectInfo.contract_link || '',
       status: 'em_andamento',
       scheduling_type: formData.schedulingType || 'por_vertical',
-      portfolio: portfolioFilter
+      portfolio: formData.projectInfo.portfolio
     });
 
     // 2. Criar produtos
