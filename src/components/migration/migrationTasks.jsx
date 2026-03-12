@@ -1653,13 +1653,15 @@ export const getDefaultTasksForProduct = (productName) => {
   const normalizedInput = normalizeProductName(productName);
   console.log(normalizedInput,productName, Object.keys(migrationTasksByProduct))
   // Busca direto em migrationTasksByProduct com chaves normalizadas
-  const key = Object.keys(migrationTasksByProduct).find(k => {
-    console.log(normalizeProductName(k), normalizedInput)
+  const key = Object.keys(migrationTasksByProduct).find(k => {   
    return normalizeProductName(k) === normalizedInput
   }
   );
-  console.log({key})
-  return key ? migrationTasksByProduct[key] : null;
+  
+  //return key ? migrationTasksByProduct[key] : null;
+  const tasks = migrationTasksByProduct[key]
+console.log({tasks})
+return tasks ?? []
 };
 
 // Verifica se um produto tem processo de migração
