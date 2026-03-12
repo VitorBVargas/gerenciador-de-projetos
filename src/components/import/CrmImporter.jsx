@@ -47,7 +47,8 @@ const inferVertical = (productName) => {
   if (name.includes('saúde') || name.includes('saude') || name.includes('social')) return 'saude';
   // Educação
   if (name.includes('educação') || name.includes('educacao') || name.includes('professores') ||
-      name.includes('biblioteca') || name.includes('merenda') || name.includes('transporte escolar')) return 'educacao';
+      name.includes('biblioteca') || name.includes('merenda') || name.includes('transporte escolar') ||
+      name.includes('pais e alunos') || name.includes('pais e filhos')) return 'educacao';
   // Atendimento
   if (name.includes('protocolo') || name.includes('atendimento') || name.includes('transparência') ||
       name.includes('transparencia') || name.includes('beth') || name.includes('gov digital') ||
