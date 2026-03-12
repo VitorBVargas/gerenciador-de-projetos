@@ -1663,7 +1663,6 @@ export const getDefaultTasksForProduct = (productName) => {
   
   //return key ? migrationTasksByProduct[key] : null;
   const tasks = migrationTasksByProduct[key]
-console.log({tasks})
 return tasks ?? []
 };
 
