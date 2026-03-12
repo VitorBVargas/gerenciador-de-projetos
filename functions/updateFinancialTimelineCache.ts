@@ -18,13 +18,40 @@ Deno.serve(async (req) => {
     const cachesToCreate = [];
     
     allProducts.forEach(product => {
-      const operacaoEvent = allTimelineEvents.find(
+      // Busca por product_id PRIMEIRO
+      let operacaoEvent = allTimelineEvents.find(
         e => e.product_id === product.id && e.phase === 'operacao_assistida' && e.end_date
       );
       
-      const goLiveEvent = allTimelineEvents.find(
+      let goLiveEvent = allTimelineEvents.find(
         e => e.product_id === product.id && e.phase === 'go_live' && (e.start_date || e.end_date)
       );
+      
+      // Se não encontrar por product_id, tenta por cronograma_id (via verticais)
+      if (!operacaoEvent || !goLiveEvent) {
+        const projectCronogramas = allTimelineEvents
+          .filter(e => e.project_id === product.project_id)
+          .map(e => e.cronograma_id)
+          .filter(Boolean);
+        
+        const uniqueCronogramaIds = [...new Set(projectCronogramas)];
+        
+        if (!operacaoEvent) {
+          operacaoEvent = allTimelineEvents.find(
+            e => (e.product_id === product.id || uniqueCronogramaIds.includes(e.cronograma_id)) 
+              && e.phase === 'operacao_assistida' 
+              && e.end_date
+          );
+        }
+        
+        if (!goLiveEvent) {
+          goLiveEvent = allTimelineEvents.find(
+            e => (e.product_id === product.id || uniqueCronogramaIds.includes(e.cronograma_id)) 
+              && e.phase === 'go_live' 
+              && (e.start_date || e.end_date)
+          );
+        }
+      }
       
       cachesToCreate.push({
         project_id: product.project_id,
