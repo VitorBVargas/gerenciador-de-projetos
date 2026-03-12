@@ -15,7 +15,7 @@ import {
   ExternalLink,
   Upload
 } from 'lucide-react';
-import { format, differenceInDays } from 'date-fns';
+import { format, differenceInDays, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from "@/lib/utils";
 import { createPageUrl } from '../utils';
