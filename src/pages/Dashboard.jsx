@@ -212,6 +212,15 @@ export default function Dashboard() {
     queryClient.invalidateQueries({ queryKey: ['projects'] });
   };
 
+  // Atualizar prazo estimado sempre que entra na Visão Geral
+  React.useEffect(() => {
+    if (projectId) {
+      base44.functions.invoke('updateEstimatedDeadline', { project_id: projectId })
+        .then(() => queryClient.invalidateQueries({ queryKey: ['projectProgressCache', projectId] }))
+        .catch(err => console.error('Erro ao atualizar prazo estimado:', err));
+    }
+  }, [projectId, queryClient]);
+
   // Inicializa os marcos padrão se não existirem
   const milestonesInitializedRef = React.useRef(false);
   
