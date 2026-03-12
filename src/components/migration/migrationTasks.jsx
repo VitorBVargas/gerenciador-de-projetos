@@ -56,8 +56,8 @@ export const migrationTasksByProduct = {
     'Extrair Autos',
     'Extrair Guias de Pagamentos'
   ]),
-  'Tributos (Cloud)': parseTasksIntoSections([
-    'Dados Cadastrais',
+  'Tributos (Cloud)': [
+    'DADOS CADASTRAIS',
     'Extrair Paises',
     'Extrair Estados',
     'Extrair Cidades',
@@ -173,7 +173,7 @@ export const migrationTasksByProduct = {
     'Extrair ObrasOpcoes',
     'Extrair ObrasOpcoesCompl',
     'Extrair ObrasEngenheiros',
-    'Dados de Lançamentos',
+    'DADOS DE LANÇAMENTO',
     'Extrair ReceitasDiversas',
     'Extrair ReceitasDiversasMovimentacoes',
     'Extrair ReceitasDiversasCamposAdicionais',
@@ -248,7 +248,7 @@ export const migrationTasksByProduct = {
     'Extrair ManutencoesCalculoReceitas',
     'Extrair ManutencoesCalculoGuias',
     'Extrair ManutencoesCalculoMovto'
-  ]),
+  ],
   'Procuradoria (Cloud)': parseTasksIntoSections([
     'Dados Cadastrais',
     'Extrair Tipos Custas Processuais',
@@ -1285,7 +1285,7 @@ export const migrationTasksByProduct = {
     'Extrair Relatórios de Reconhecimento'
   ]),
   'patrimonio': parseTasksIntoSections([
-    'DADOS CADASTRAIS',
+    'Dados Cadastrais',
     'Extrair Configuração Organograma',
     'Extrair Parâmetro Exercício',
     'Extrair Organograma',
@@ -1659,7 +1659,7 @@ export const getDefaultTasksForProduct = (productName) => {
   );
   
   //return key ? migrationTasksByProduct[key] : null;
-  const tasks = migrationTasksByProduct["patrimonio"]
+  const tasks = migrationTasksByProduct[key]
 console.log({tasks})
 return tasks ?? []
 };
