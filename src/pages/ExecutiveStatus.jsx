@@ -152,8 +152,8 @@ export default function ExecutiveStatus() {
        }
        return allEvents;
      },
-     staleTime: 5 * 60 * 1000,
-     gcTime: 30 * 60 * 1000
+     staleTime: Infinity,
+     gcTime: Infinity
    });
 
    // Fetch all tasks - necessário para calcular health score corretamente
