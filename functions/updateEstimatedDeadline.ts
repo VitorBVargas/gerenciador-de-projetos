@@ -23,11 +23,12 @@ Deno.serve(async (req) => {
         if (events && events.length > 0) {
             const validDates = events
                 .filter(e => e.end_date)
-                .map(e => ({ date: e.end_date, time: new Date(e.end_date).getTime() }))
-                .filter(d => d.time > 0);
+                .map(e => e.end_date)
+                .sort()
+                .reverse();
             
             if (validDates.length > 0) {
-                estimatedDeadline = validDates.reduce((max, d) => d.time > max.time ? d : max).date;
+                estimatedDeadline = validDates[0];
             }
         }
 
