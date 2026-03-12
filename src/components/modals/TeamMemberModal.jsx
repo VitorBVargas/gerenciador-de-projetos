@@ -13,7 +13,8 @@ const verticals = [
   { value: 'educacao', label: 'Educação' },
   { value: 'iss', label: 'ISS' },
   { value: 'parceiros', label: 'Parceiros' },
-  { value: 'plataforma', label: 'Plataforma' }
+  { value: 'plataforma', label: 'Plataforma' },
+  { value: 'atendimento', label: 'Atendimento' }
 ];
 
 export default function TeamMemberModal({ open, onOpenChange, member, onSave, projectId }) {
