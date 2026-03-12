@@ -242,8 +242,14 @@ export default function Products() {
     });
   }
 
-  // Unique entities for filter
-  const entities = [...new Set(products.map(p => p.entity).filter(Boolean))].sort();
+  // Unique entities for filter - com nomes completos
+  const entityMap = new Map();
+  products.forEach(p => {
+    if (p.entity) {
+      entityMap.set(p.entity, p.entity_full_name || p.entity);
+    }
+  });
+  const entities = Array.from(entityMap.entries()).map(([code, fullName]) => ({ code, fullName }));
   
   // Auto-select first entity if none selected
   React.useEffect(() => {
