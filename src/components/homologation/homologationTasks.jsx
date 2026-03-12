@@ -449,7 +449,7 @@ export const homologationTasksByProduct = {
     'ENCERRAMENTO MENSAL',
     'PRESTAÇÃO DE CONTAS'
   ]),
-  'Contábil (Cloud)': parseTasksIntoSections([
+  'Contabilidade (Cloud)': parseTasksIntoSections([
     'PARÂMETROS GERAIS',
     'Parâmetros (Efetivar retenção, Ordem de baixa)',
     'Portal da transparência fly (Informações Gerais, Envio de Relatórios)',
