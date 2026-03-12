@@ -1,146 +1,113 @@
 /**
- * Entity Name Map - mantém histórico de entidades criadas com suas abreviações
- * Armazenado no localStorage para persistência entre sessões
+ * Entity Name Map - Infere código de entidade baseado em regras de palavras-chave e extração de siglas
+ * SEM persistência entre projetos (evita contaminação de dados)
  */
 
-const STORAGE_KEY = 'betha_entity_names';
-
-// Mapa de palavras-chave diretas (muito robustas)
+// Mapa de palavras-chave para detectar tipos de entidade
 const KEYWORD_RULES = {
-  cm: ['câmara', 'camara', 'câmara municipal'],
-  pm: ['prefeitura', 'município', 'municipio'],
-  fms: ['fundo municipal de saúde', 'fundo municipal de saude', 'saúde', 'saude'],
-  fme: ['fundo municipal de educação', 'fundo municipal de educacao', 'educação', 'educacao'],
-  araprev: ['araprev', 'previdência social', 'previdencia social'],
-  ipas: [
-    'previdencia', 'previdência', 'ipas', 
-    'instituto de previdencia', 'instituto de previdência',
-    'instituto de previdência social', 'instituto de previdencia social',
+  CM: ['câmara', 'camara', 'câmara municipal', 'camara municipal'],
+  PM: ['prefeitura municipal', 'prefeitura de', 'município de', 'municipio de'],
+  IPASI: [
+    'instituto de previdência', 'instituto de previdencia',
+    'previdência social', 'previdencia social',
     'instituto previdenciário', 'instituto previdenciario',
-    'servidor público', 'servidor publico', 'servidores públicos', 'servidores publicos'
+    'regime próprio', 'regime proprio', 'rpps',
+    'ipasi', 'ipas'
   ],
-  fmas: ['assistencia social', 'assistência social', 'fundo municipal assistencia social'],
-  fma: ['meio ambiente'],
-  fundeb: ['fundeb'],
-  saema: ['saema', 'serviço de água', 'serviço de agua', 'água esgoto', 'agua esgoto'],
-  tca: ['tca', 'transporte coletivo', 'transportes coletivos'],
-};
-
-const getStoredMap = () => {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : {};
-  } catch {
-    return {};
-  }
-};
-
-const saveStoredMap = (map) => {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
-  } catch (e) {
-    console.warn('Failed to save entity map to localStorage:', e);
-  }
+  FMAS: [
+    'fundo municipal de assistência social', 'fundo municipal de assistencia social',
+    'assistência social', 'assistencia social',
+    'fmas'
+  ],
+  FMS: [
+    'fundo municipal de saúde', 'fundo municipal de saude',
+    'fundo de saúde', 'fundo de saude',
+    'fms'
+  ],
+  FME: [
+    'fundo municipal de educação', 'fundo municipal de educacao',
+    'fundo de educação', 'fundo de educacao',
+    'fme'
+  ],
+  FMCA: [
+    'fundo municipal da criança', 'fundo da criança',
+    'criança e adolescente', 'crianca e adolescente',
+    'fmca'
+  ],
+  FMHIS: [
+    'fundo municipal de habitação', 'fundo de habitacao',
+    'habitação de interesse social', 'habitacao de interesse social',
+    'fmhis'
+  ],
+  FMII: [
+    'fundo municipal do idoso', 'fundo do idoso',
+    'fmii'
+  ],
+  FMMA: [
+    'fundo municipal de meio ambiente', 'meio ambiente',
+    'fmma'
+  ],
+  FUNDEB: ['fundeb'],
 };
 
 /**
- * Infere código de entidade com lógica robusta
- * @param {string} entityName - Nome completo da entidade (ex: "SAEMA - Serviço de Água")
- * @returns {string} - Código abreviado (ex: "SAEMA")
+ * Infere código de entidade com lógica robusta (sem persistência)
+ * @param {string} entityName - Nome completo da entidade (ex: "IPASI - Instituto de Previdência")
+ * @returns {string} - Código abreviado (ex: "IPASI")
  */
 export const inferEntityCode = (entityName) => {
-  if (!entityName) return 'UNKN';
+  if (!entityName) return 'ENTIDADE';
   
-  const storedMap = getStoredMap();
   const normalized = entityName.toLowerCase().trim();
+  const raw = entityName.trim();
   
-  // 1. Checar se já foi visto antes (most important - usa histórico)
-  for (const [code, fullNames] of Object.entries(storedMap)) {
-    if (fullNames.includes(entityName)) {
+  // 1. Tentar extrair sigla do início PRIMEIRO (ex: "IPASI - Instituto..." ou "CM - Câmara...")
+  // Isso tem prioridade sobre palavras-chave para evitar conflitos
+  const siglaMatch = raw.match(/^([A-Z]{2,10})(?:\s*[-–—,]|\s+)/);
+  if (siglaMatch) {
+    return siglaMatch[1];
+  }
+  
+  // 2. Sigla entre parênteses no início (ex: "(IPASI) Instituto...")
+  const parenMatch = raw.match(/^\(([A-Z]{2,10})\)/);
+  if (parenMatch) {
+    return parenMatch[1];
+  }
+  
+  // 3. Checar palavras-chave específicas (ordem importa - mais específicas primeiro)
+  for (const [code, keywords] of Object.entries(KEYWORD_RULES)) {
+    if (keywords.some(kw => normalized.includes(kw))) {
       return code;
     }
   }
   
-  // 2. Checar palavras-chave específicas (muito robustas)
-  for (const [code, keywords] of Object.entries(KEYWORD_RULES)) {
-    if (keywords.some(kw => normalized.includes(kw))) {
-      // Armazenar mapeamento para próximas vezes
-      const upperCode = code.toUpperCase();
-      storedMap[upperCode] = [...(storedMap[upperCode] || []), entityName];
-      saveStoredMap(storedMap);
-      return upperCode;
-    }
-  }
+  // 4. Fallback: primeiras letras de palavras significativas (>2 caracteres)
+  const words = raw
+    .split(/[\s\-–—]+/)
+    .filter(w => 
+      w.length > 2 && 
+      /^[A-Za-zÀ-ú]/.test(w) &&
+      !['fundo', 'municipal', 'instituto'].includes(w.toLowerCase())
+    );
   
-  // 3. Tentar extrair sigla do início (ex: "SAEMA - Serviço..." ou "ARAPREV - ...")
-  const raw = entityName.trim();
-  const siglaMatch = raw.match(/^([A-Z]{2,8})(?:\s*[-–,]|\s+(?=[a-záéíóúâêôãõç])|\s*$)/);
-  if (siglaMatch) {
-    const code = siglaMatch[1];
-    storedMap[code] = [...(storedMap[code] || []), entityName];
-    saveStoredMap(storedMap);
-    return code;
-  }
+  const fallbackCode = words
+    .map(w => w[0].toUpperCase())
+    .join('')
+    .slice(0, 5);
   
-  // 4. Sigla entre parênteses no início
-  const parenMatch = raw.match(/^\(([A-Z]{2,8})\)/);
-  if (parenMatch) {
-    const code = parenMatch[1];
-    storedMap[code] = [...(storedMap[code] || []), entityName];
-    saveStoredMap(storedMap);
-    return code;
-  }
-  
-  // 5. Fallback: primeiras letras de palavras com mais de 2 caracteres
-  const words = raw.split(/[\s\-–]+/).filter(w => w.length > 2 && /^[A-Za-zÀ-ú]/.test(w));
-  const code = words.map(w => w[0].toUpperCase()).join('').slice(0, 5) || 'ENT';
-  
-  storedMap[code] = [...(storedMap[code] || []), entityName];
-  saveStoredMap(storedMap);
-  
-  return code;
+  return fallbackCode || 'ENT';
 };
 
 /**
- * Obtém o nome completo de uma entidade usando seu código abreviado
- * @param {string} code - Código abreviado (ex: "SAEMA")
- * @returns {string|null} - Nome completo ou null se não encontrado
+ * Normaliza um nome de entidade para comparação
+ * Remove acentos, converte para minúsculas e remove espaços extras
  */
-export const getEntityFullName = (code) => {
-  const storedMap = getStoredMap();
-  const names = storedMap[code?.toUpperCase()] || [];
-  // Retorna o primeiro (mais recente registrado)
-  return names.length > 0 ? names[0] : null;
-};
-
-/**
- * Registra ou atualiza um mapeamento de código para nome completo
- * @param {string} code - Código abreviado
- * @param {string} fullName - Nome completo
- */
-export const registerEntity = (code, fullName) => {
-  const storedMap = getStoredMap();
-  const key = code?.toUpperCase();
-  if (!key || !fullName) return;
-  
-  // Evitar duplicatas
-  if (!storedMap[key]) {
-    storedMap[key] = [];
-  }
-  if (!storedMap[key].includes(fullName)) {
-    storedMap[key].unshift(fullName); // Adiciona no início
-  }
-  
-  saveStoredMap(storedMap);
-};
-
-/**
- * Limpa o mapa armazenado (útil para testes ou reset)
- */
-export const clearEntityMap = () => {
-  try {
-    localStorage.removeItem(STORAGE_KEY);
-  } catch (e) {
-    console.warn('Failed to clear entity map:', e);
-  }
+export const normalizeEntityName = (name) => {
+  if (!name) return '';
+  return name
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 };
