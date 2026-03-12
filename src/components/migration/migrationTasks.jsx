@@ -1226,7 +1226,7 @@ export const migrationTasksByProduct = {
     'Fechamento do diário realizado'
   ]),
   'Pais e Alunos (Cloud)': parseTasksIntoSections([
-    'Pais e Alunos',
+    'DADOS CADASTRAIS',
     'Geração e distribuição de acessos (tokens/chaves) para pais, alunos e responsáveis',
     'Habilitação da consulta online de desempenho escolar (notas, provas e atividades)',
     'Habilitação da consulta de frequência e emissão de boletim escolar online',
@@ -1257,7 +1257,7 @@ export const migrationTasksByProduct = {
     'Extrair Multas'
   ]),
   'Merenda Escolar (Cloud)': parseTasksIntoSections([
-    'Merenda Escolar',
+    'DADOS CADASTRAIS',
     'Cadastro de insumos/alimentos seguindo os padrões das tabelas TACO e IBGE',
     'Elaboração de receitas/cardápios com cálculo automático de informações nutricionais',
     'Mapeamento e registro de restrições alimentares e situação nutricional individual dos alunos',
