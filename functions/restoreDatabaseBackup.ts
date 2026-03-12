@@ -30,15 +30,10 @@ Deno.serve(async (req) => {
     const backupMeta = backupRecords[0];
     console.error(`[RESTORE] Found backup metadata: ${backupMeta.filename}, ID: ${backupMeta.id}`);
     
-    // Agora busca APENAS o backup_data_json usando uma query direcionada
-    // Usa fetch direto da API para evitar o SDK trazer tudo
-    const backupDataResponse = await fetch(
-      `https://api.base44.com/v1/apps/${Deno.env.get('BASE44_APP_ID')}/entities/DatabaseBackup/${backupMeta.id}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${Deno.env.get('BASE44_SERVICE_ROLE_KEY')}`
-        }
-      }
+    // Agora busca o backup completo com backup_data_json
+    // Precisa buscar novamente porque filter não traz campos grandes
+    const fullBackupRecords = await base44.asServiceRole.entities.DatabaseBackup.filter(
+      { id: backupMeta.id }
     );
     
     if (!backupDataResponse.ok) {
