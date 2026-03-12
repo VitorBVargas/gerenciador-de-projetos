@@ -483,6 +483,72 @@ export default function Dashboard() {
     concluido: 'Concluído'
   };
 
+  // Loading screen similar to ExecutiveStatus
+  if (isInitialLoading) {
+    const loadingSteps = [
+      { label: 'Projetos', done: !loadingProjects },
+      { label: 'Produtos', done: !loadingProducts },
+      { label: 'Cronograma', done: !loadingCronogramas },
+      { label: 'Etapas', done: !loadingTimelineEvents },
+      { label: 'Homologação', done: !loadingHomolog },
+      { label: 'Migração', done: !loadingMigration },
+      { label: 'Riscos', done: !loadingRisks },
+      { label: 'Despesas', done: !loadingExpenses },
+      { label: 'Sincronizando...', done: false },
+    ];
+
+    const completedSteps = loadingSteps.filter(s => s.done).length;
+    const progressPercent = Math.round((completedSteps / loadingSteps.length) * 100);
+
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-slate-900">
+        <div className="w-full max-w-md px-8">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mx-auto mb-4">
+              <span className="text-white font-bold text-2xl">B</span>
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-2">Carregando Projeto</h2>
+            <p className="text-slate-400 text-sm">Aguarde, buscando todos os dados...</p>
+          </div>
+
+          <div className="mb-8">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm text-slate-400">{completedSteps} de {loadingSteps.length} etapas</span>
+              <span className="text-sm font-semibold text-white">{progressPercent}%</span>
+            </div>
+            <div className="w-full bg-slate-700 rounded-full h-2">
+              <div
+                className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-300"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            {loadingSteps.map((step, idx) => (
+              <div key={idx} className="flex items-center gap-3">
+                {step.done ? (
+                  <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-3 h-3 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                ) : (
+                  <div className="w-5 h-5 rounded-full border-2 border-slate-600 flex items-center justify-center flex-shrink-0">
+                    <div className="w-2 h-2 rounded-full bg-slate-500" />
+                  </div>
+                )}
+                <span className={`text-sm ${step.done ? 'text-slate-300 line-through' : 'text-slate-400'}`}>
+                  {step.label}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 lg:p-8 space-y-6">
       {/* Header */}
