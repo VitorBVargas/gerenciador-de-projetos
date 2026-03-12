@@ -564,7 +564,7 @@ export default function Dashboard() {
                          {estimatedDeadline && (
                            <div className="text-slate-400">
                              <span className="text-slate-500">Prazo Estimado:</span> <span className="text-blue-400">
-                               {format(new Date(estimatedDeadline), "dd 'de' MMMM, yyyy", { locale: ptBR })}
+                               {format(parseISO(estimatedDeadline), "dd 'de' MMMM, yyyy", { locale: ptBR })}
                              </span>
                            </div>
                          )}
