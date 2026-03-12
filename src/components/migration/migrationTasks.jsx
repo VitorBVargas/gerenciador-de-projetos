@@ -1719,15 +1719,18 @@ export const migrationTasksByProduct = {
 };
 
 // Função auxiliar para normalizar nomes
-const normalize = (str) => {
-  return str
+const normalizeProductName = (name) => {
+  if (!name) return '';
+  return name
     .toLowerCase()
-    .replace(/\s*\(cloud\)\s*/gi, '')
+    .replace(/\(cloud\)/gi, '')
+    .replace(/[()]/g, '')
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
+    .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+    .trim()
+    .replace(/\s+/g, ' ');
 };
+
 
 // Função para buscar tarefas por nome de produto
 // Retorna null se o produto não tiver processo de migração
