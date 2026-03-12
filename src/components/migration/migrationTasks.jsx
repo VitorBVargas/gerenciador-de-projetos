@@ -1403,6 +1403,22 @@ export const migrationTasksByProduct = {
     'Integração com dados de frequência para ajuste automático de quantidades',
     'Configuração de fornecedores e registro de preços de insumos'
   ]),
+  'Transporte Escolar (Cloud)': parseTasksIntoSections([
+    'Dados Cadastrais',
+    'Extrair Configurações de Senha de Liberação',
+    'Extrair Aceite de Implantação',
+    'Extrair Rotas de Transporte',
+    'Extrair Veículos',
+    'Extrair Motoristas',
+    'Extrair Monitores',
+    'Extrair Pontos de Parada',
+    'Extrair Alunos Beneficiados',
+    'Dados de Lançamentos',
+    'Extrair Alocação de Alunos em Rotas',
+    'Extrair Controle de Frequência',
+    'Extrair Registro de Ocorrências',
+    'Extrair Relatórios de Reconhecimento'
+  ]),
   'Patrimonio': parseTasksIntoSections([
     'Dados Cadastrais',
     'Extrair Configuração Organograma',
