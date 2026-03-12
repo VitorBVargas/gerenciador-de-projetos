@@ -26,13 +26,17 @@ Deno.serve(async (req) => {
 
     // Busca o backup diretamente por ID usando filter
     console.log('[RESTORE] Fetching backup record...');
-    const backupRecords = await base44.asServiceRole.entities.DatabaseBackup.filter({ id: backupId });
-    console.log(`[RESTORE] Got backupRecords, type: ${typeof backupRecords}, isArray: ${Array.isArray(backupRecords)}, length: ${backupRecords?.length}`);
+    let backupRecords = await base44.asServiceRole.entities.DatabaseBackup.filter({ id: backupId });
+    console.log(`[RESTORE] Got backupRecords, type: ${typeof backupRecords}`);
     
-    console.log(`[RESTORE] backupRecords keys: ${Object.keys(backupRecords || {}).join(',')}`);
+    // O SDK retorna uma string JSON gigante ao invés de objeto/array
+    if (typeof backupRecords === 'string') {
+      console.log('[RESTORE] Parsing JSON string...');
+      backupRecords = JSON.parse(backupRecords);
+    }
     
-    // O SDK retorna objeto indexado por string, não array
-    const backup = backupRecords["0"] || backupRecords[0];
+    // Pode vir como array ou objeto indexado
+    const backup = Array.isArray(backupRecords) ? backupRecords[0] : (backupRecords["0"] || backupRecords[0]);
     
     if (!backup) {
       console.log(`[RESTORE ERROR] Backup not found: ${backupId}`);
