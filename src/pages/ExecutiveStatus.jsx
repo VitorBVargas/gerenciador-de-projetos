@@ -175,8 +175,8 @@ export default function ExecutiveStatus() {
        }
        return allTasks;
      },
-     staleTime: 5 * 60 * 1000,
-     gcTime: 30 * 60 * 1000
+     staleTime: Infinity,
+     gcTime: Infinity
    });
 
    const { data: allMigrationTasks = [], isLoading: loadingMigration } = useQuery({
@@ -197,8 +197,8 @@ export default function ExecutiveStatus() {
        }
        return allTasks;
      },
-     staleTime: 5 * 60 * 1000,
-     gcTime: 30 * 60 * 1000
+     staleTime: Infinity,
+     gcTime: Infinity
    });
 
    // Fetch all risks
@@ -220,8 +220,8 @@ export default function ExecutiveStatus() {
        }
        return allRisksData;
      },
-     staleTime: 5 * 60 * 1000,
-     gcTime: 30 * 60 * 1000
+     staleTime: Infinity,
+     gcTime: Infinity
    });
 
    const { data: allExpenses = [], isLoading: loadingExpenses } = useQuery({
@@ -242,8 +242,8 @@ export default function ExecutiveStatus() {
        }
        return allExpensesData;
      },
-     staleTime: 5 * 60 * 1000,
-     gcTime: 30 * 60 * 1000
+     staleTime: Infinity,
+     gcTime: Infinity
    });
 
    const { data: allProducts = [], isLoading: loadingProducts } = useQuery({
@@ -264,8 +264,8 @@ export default function ExecutiveStatus() {
        }
        return allProdsData;
      },
-     staleTime: 5 * 60 * 1000,
-     gcTime: 30 * 60 * 1000
+     staleTime: Infinity,
+     gcTime: Infinity
    });
 
    const { data: allRecognizedRevenues = [], isLoading: loadingRevenues } = useQuery({
@@ -286,8 +286,8 @@ export default function ExecutiveStatus() {
        }
        return allRevenuesData;
      },
-     staleTime: 5 * 60 * 1000,
-     gcTime: 30 * 60 * 1000
+     staleTime: Infinity,
+     gcTime: Infinity
    });
 
    const { data: allProgressCache = [], isLoading: loadingProgressCache } = useQuery({
@@ -308,8 +308,8 @@ export default function ExecutiveStatus() {
        }
        return allCacheData;
      },
-     staleTime: 5 * 60 * 1000,
-     gcTime: 30 * 60 * 1000
+     staleTime: Infinity,
+     gcTime: Infinity
    });
 
   // Loading global: aguarda TODOS os dados críticos carregarem
