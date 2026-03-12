@@ -89,26 +89,27 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
 
   // --- 4. RISKS (20 pts) ---
   if (risks.length > 0) {
-    const criticalRisks = risks.filter(r => r.probability >= 5 && r.impact >= 5 && (r.status === 'em_monitoramento' || r.status === 'em_andamento'));
-    const highRisks = risks.filter(r => !criticalRisks.includes(r) && (r.probability >= 4 || r.impact >= 4) && (r.status === 'em_monitoramento' || r.status === 'em_andamento'));
-     const riskDeduction = Math.min(20, criticalRisks.length * 6 + highRisks.length * 2);
-     score -= riskDeduction;
+    const criticalRisks = risks.filter(r => r.probability >= 5 && (r.status === 'em_monitoramento' || r.status === 'em_andamento'));
+    const highRisks = risks.filter(r => r.probability === 4 && !criticalRisks.includes(r) && (r.status === 'em_monitoramento' || r.status === 'em_andamento'));
+    const riskDeduction = Math.min(20, criticalRisks.length * 6 + highRisks.length * 2);
+    score -= riskDeduction;
 
-     if (criticalRisks.length > 0) {
-       const names = criticalRisks.slice(0, 2).map(r => r.title).join(', ');
-       alerts.push({
-         severity: 'high',
-         text: `${criticalRisks.length} risco${criticalRisks.length > 1 ? 's' : ''} crítico${criticalRisks.length > 1 ? 's' : ''}`,
-         detail: names + (criticalRisks.length > 2 ? ` e mais ${criticalRisks.length - 2}` : '')
-       });
-     } else if (highRisks.length > 0) {
-       alerts.push({
-         severity: 'medium',
-         text: `${highRisks.length} risco${highRisks.length > 1 ? 's' : ''} em monitoramento`,
-         detail: highRisks.slice(0, 2).map(r => r.title).join(', ')
-       });
-     }
-   }
+    if (criticalRisks.length > 0) {
+      const names = criticalRisks.slice(0, 2).map(r => r.title).join(', ');
+      alerts.push({
+        severity: 'high',
+        text: `${criticalRisks.length} risco${criticalRisks.length > 1 ? 's' : ''} crítico${criticalRisks.length > 1 ? 's' : ''}`,
+        detail: names + (criticalRisks.length > 2 ? ` e mais ${criticalRisks.length - 2}` : '')
+      });
+    }
+    if (highRisks.length > 0) {
+      alerts.push({
+        severity: 'medium',
+        text: `${highRisks.length} risco${highRisks.length > 1 ? 's' : ''} em Alto`,
+        detail: highRisks.slice(0, 2).map(r => r.title).join(', ')
+      });
+    }
+  }
 
   const finalScore = Math.max(0, Math.round(score));
 
