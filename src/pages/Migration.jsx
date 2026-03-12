@@ -650,7 +650,7 @@ export default function Migration() {
                                           )}>
                                             {task.displayTitle}
                                             {task.completed && task.completed_date && (
-                                              <span className="text-slate-400 text-xs ml-2 no-underline">
+                                              <span className="text-slate-400 text-xs ml-2 font-bold" style={{ textDecoration: 'none' }}>
                                                 ({new Date(task.completed_date).toLocaleDateString('pt-BR')})
                                               </span>
                                             )}
@@ -783,7 +783,7 @@ export default function Migration() {
                                        )}>
                                          {task.title}
                                          {task.completed && task.completed_date && (
-                                           <span className="text-slate-400 text-xs ml-2 no-underline">
+                                           <span className="text-slate-400 text-xs ml-2 font-bold" style={{ textDecoration: 'none' }}>
                                              ({new Date(task.completed_date).toLocaleDateString('pt-BR')})
                                            </span>
                                          )}
@@ -831,7 +831,7 @@ export default function Migration() {
                                           )}>
                                            {task.title}
                                            {task.completed && task.completed_date && (
-                                             <span className="text-slate-400 text-xs ml-2 no-underline">
+                                             <span className="text-slate-400 text-xs ml-2 font-bold" style={{ textDecoration: 'none' }}>
                                                ({new Date(task.completed_date).toLocaleDateString('pt-BR')})
                                              </span>
                                            )}
