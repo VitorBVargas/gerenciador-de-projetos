@@ -168,22 +168,6 @@ export default function BackupManagement() {
                         size="icon"
                         onClick={() => {
                           setSelectedBackup(backup);
-                          setRestoreDialogOpen(true);
-                        }}
-                        className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
-                        disabled={restoreBackupMutation.isPending}
-                      >
-                        {restoreBackupMutation.isPending && restoreBackupMutation.variables === backup.id ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <RotateCcw className="w-4 h-4" />
-                        )}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                          setSelectedBackup(backup);
                           setDeleteDialogOpen(true);
                         }}
                         className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
