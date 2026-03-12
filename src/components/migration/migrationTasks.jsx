@@ -339,7 +339,7 @@ export const migrationTasksByProduct = {
     'Extrair Localização'
   ]),
   'Contabil': parseTasksIntoSections([
-    'Dados Cadastrais',
+    'DADOS CADASTRAIS',
     'Extrair Credores',
     'Extrair Responsáveis',
     'Extrair Ordenadores',
@@ -360,7 +360,7 @@ export const migrationTasksByProduct = {
     'Extrair Retenções Ativar',
     'Extrair Configuração Componentes',
     'Extrair Configuração Contas Correntes',
-    'Dados de Lançamentos',
+    'DADOS DE LANÇAMENTO',
     'Extrair Receitas Não Previstas',
     'Extrair Receitas Extras',
     'Extrair Receitas Extras Ativar',
@@ -436,7 +436,7 @@ export const migrationTasksByProduct = {
     'Extrair VPD'
   ]),
   'Contábil (Cloud)': parseTasksIntoSections([
-    'Dados Cadastrais',
+    'DADOS CADASTRAIS',
     'Extrair Credores',
     'Extrair Responsáveis',
     'Extrair Ordenadores',
@@ -457,7 +457,7 @@ export const migrationTasksByProduct = {
     'Extrair Retenções Ativar',
     'Extrair Configuração Componentes',
     'Extrair Configuração Contas Correntes',
-    'Dados de Lançamentos',
+    'DADOS DE LANÇAMENTOS',
     'Extrair Receitas Não Previstas',
     'Extrair Receitas Extras',
     'Extrair Receitas Extras Ativar',
@@ -533,7 +533,7 @@ export const migrationTasksByProduct = {
     'Extrair VPD'
   ]),
   'Planejamento (Cloud)': parseTasksIntoSections([
-    'Dados Cadastrais',
+    'DADOS CADASTRAIS',
     'Extrair Configurações - PPAs',
     'Extrair Configurações - LDOs',
     'Extrair Configurações - LOAs',
@@ -594,7 +594,7 @@ export const migrationTasksByProduct = {
     'Extrair Natureza Receita',
     'Extrair Dedução Receitas Ativar',
     'Extrair Atos',
-    'Dados de Lançamentos',
+    'DADOS DE LANÇAMENTOS',
     'Extrair Receitas PPA',
     'Extrair Grupo Despesas PPA',
     'Extrair Despesas PPA',
