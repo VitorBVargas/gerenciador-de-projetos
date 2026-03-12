@@ -21,6 +21,8 @@ export default function TeamMemberModal({ open, onOpenChange, member, onSave, pr
     name: '',
     vertical: '',
     role: '',
+    entity: '',
+    ticket_number: '',
     email: '',
     phone: ''
   });
