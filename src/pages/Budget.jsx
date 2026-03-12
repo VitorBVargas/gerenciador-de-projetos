@@ -164,6 +164,27 @@ export default function Budget() {
     setImplementationBudget('');
   };
 
+  const handleEditTotalBudget = () => {
+    setTotalBudgetValue(activeProject?.budget?.toString() || '');
+    setEditingTotalBudget(true);
+  };
+
+  const handleSaveTotalBudget = () => {
+    updateProjectMutation.mutate({
+      id: activeProject.id,
+      data: {
+        budget: parseFloat(totalBudgetValue) || 0
+      }
+    });
+    setEditingTotalBudget(false);
+    setTotalBudgetValue('');
+  };
+
+  const handleCancelTotalBudget = () => {
+    setEditingTotalBudget(false);
+    setTotalBudgetValue('');
+  };
+
   const handleDeleteAll = () => {
     setDeletingAll(true);
     (async () => {
