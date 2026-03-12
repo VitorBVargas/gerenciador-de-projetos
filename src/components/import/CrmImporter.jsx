@@ -250,13 +250,10 @@ export default function CrmImporter({ open, onOpenChange, portfolioFilter = 'gra
       });
     }
 
-    // Função para corrigir datas (adiciona 1 dia para compensar timezone shift do SDK)
+    // Manter a data exata sem ajustes de timezone
     const fixDateTimezoneShift = (dateStr) => {
       if (!dateStr) return null;
-      const [year, month, day] = dateStr.split('-').map(Number);
-      const date = new Date(year, month - 1, day);
-      date.setDate(date.getDate() + 1);
-      return date.toISOString().split('T')[0];
+      return dateStr;
     };
 
     // Mapa de data de operação assistida por produto (vinda do CRM)
