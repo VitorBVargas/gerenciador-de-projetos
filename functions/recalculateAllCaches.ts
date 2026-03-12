@@ -23,6 +23,13 @@ Deno.serve(async (req) => {
         let cacheUpdates = 0;
         const summary = [];
 
+        // Atualizar Financial Timeline Cache primeiro
+        try {
+            await base44.functions.invoke('updateFinancialTimelineCache', {});
+        } catch (error) {
+            console.error('Erro ao atualizar FinancialTimelineCache:', error.message);
+        }
+
         // Para cada projeto, recalcular cache geral
         for (const project of projects) {
             try {
