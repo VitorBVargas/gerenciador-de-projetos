@@ -104,6 +104,28 @@ export default function TeamMemberModal({ open, onOpenChange, member, onSave, pr
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
+              <Label htmlFor="entity">Entidade</Label>
+              <Input
+                id="entity"
+                value={formData.entity}
+                onChange={(e) => setFormData({ ...formData, entity: e.target.value })}
+                className="bg-slate-700 border-slate-600 text-white"
+                placeholder="Ex: CM, IPASI, PM"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ticket">Chamado</Label>
+              <Input
+                id="ticket"
+                value={formData.ticket_number}
+                onChange={(e) => setFormData({ ...formData, ticket_number: e.target.value })}
+                className="bg-slate-700 border-slate-600 text-white"
+                placeholder="Número do chamado"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
