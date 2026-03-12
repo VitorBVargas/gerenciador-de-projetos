@@ -102,8 +102,8 @@ export default function ExecutiveStatus() {
   const { data: allProjectsData = [], isLoading: loadingProjects, isError } = useQuery({
     queryKey: ['projects', portfolioFilter],
     queryFn: () => base44.entities.Project.filter({ portfolio: portfolioFilter }, '-created_date', 500),
-    staleTime: Infinity,
-    gcTime: Infinity,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
     retry: 2,
   });
 
@@ -129,8 +129,8 @@ export default function ExecutiveStatus() {
        }
        return allCronogramas;
      },
-     staleTime: Infinity,
-     gcTime: Infinity
+     staleTime: 5 * 60 * 1000,
+     gcTime: 30 * 60 * 1000
    });
 
    // Fetch all timeline events
@@ -152,8 +152,8 @@ export default function ExecutiveStatus() {
        }
        return allEvents;
      },
-     staleTime: Infinity,
-     gcTime: Infinity
+     staleTime: 5 * 60 * 1000,
+     gcTime: 30 * 60 * 1000
    });
 
    // Fetch all tasks - necessário para calcular health score corretamente
@@ -175,8 +175,8 @@ export default function ExecutiveStatus() {
        }
        return allTasks;
      },
-     staleTime: Infinity,
-     gcTime: Infinity
+     staleTime: 5 * 60 * 1000,
+     gcTime: 30 * 60 * 1000
    });
 
    const { data: allMigrationTasks = [], isLoading: loadingMigration } = useQuery({
@@ -197,8 +197,8 @@ export default function ExecutiveStatus() {
        }
        return allTasks;
      },
-     staleTime: Infinity,
-     gcTime: Infinity
+     staleTime: 5 * 60 * 1000,
+     gcTime: 30 * 60 * 1000
    });
 
    // Fetch all risks
@@ -220,8 +220,8 @@ export default function ExecutiveStatus() {
        }
        return allRisksData;
      },
-     staleTime: Infinity,
-     gcTime: Infinity
+     staleTime: 5 * 60 * 1000,
+     gcTime: 30 * 60 * 1000
    });
 
    const { data: allExpenses = [], isLoading: loadingExpenses } = useQuery({
@@ -242,8 +242,8 @@ export default function ExecutiveStatus() {
        }
        return allExpensesData;
      },
-     staleTime: Infinity,
-     gcTime: Infinity
+     staleTime: 5 * 60 * 1000,
+     gcTime: 30 * 60 * 1000
    });
 
    const { data: allProducts = [], isLoading: loadingProducts } = useQuery({
@@ -264,8 +264,8 @@ export default function ExecutiveStatus() {
        }
        return allProdsData;
      },
-     staleTime: Infinity,
-     gcTime: Infinity
+     staleTime: 5 * 60 * 1000,
+     gcTime: 30 * 60 * 1000
    });
 
    const { data: allRecognizedRevenues = [], isLoading: loadingRevenues } = useQuery({
@@ -286,8 +286,8 @@ export default function ExecutiveStatus() {
        }
        return allRevenuesData;
      },
-     staleTime: Infinity,
-     gcTime: Infinity
+     staleTime: 5 * 60 * 1000,
+     gcTime: 30 * 60 * 1000
    });
 
    const { data: allProgressCache = [], isLoading: loadingProgressCache } = useQuery({
@@ -308,8 +308,8 @@ export default function ExecutiveStatus() {
        }
        return allCacheData;
      },
-     staleTime: Infinity,
-     gcTime: Infinity
+     staleTime: 5 * 60 * 1000,
+     gcTime: 30 * 60 * 1000
    });
 
   // Loading global: aguarda TODOS os dados críticos carregarem
