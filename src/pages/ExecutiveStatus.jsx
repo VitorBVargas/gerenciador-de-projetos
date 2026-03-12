@@ -884,18 +884,16 @@ export default function ExecutiveStatus() {
                       </div>
                     )}
                     {(() => {
-                      const projectEvents = getProjectEvents(project);
-                      const latestDate = projectEvents.length > 0 
-                        ? new Date(Math.max(...projectEvents.map(e => e.end_date ? new Date(e.end_date).getTime() : 0)))
-                        : null;
-                      return (
-                        <div>
-                          <div className="text-xs text-slate-400 font-medium">Prazo Estimado</div>
-                          <div className="text-sm text-white">
-                            {latestDate && latestDate.getTime() > 0 ? latestDate.toLocaleDateString('pt-BR') : '—'}
-                          </div>
-                        </div>
-                      );
+                       const projectCache = allProgressCache.find(c => c.project_id === project.id);
+                       const estimatedDeadline = projectCache?.estimated_deadline;
+                       return (
+                         <div>
+                           <div className="text-xs text-slate-400 font-medium">Prazo Estimado</div>
+                           <div className="text-sm text-white">
+                             {estimatedDeadline ? new Date(estimatedDeadline).toLocaleDateString('pt-BR') : '—'}
+                           </div>
+                         </div>
+                       );
                     })()}
                     {project.deadline && (
                       <div>
