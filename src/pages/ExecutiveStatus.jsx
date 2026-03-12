@@ -111,71 +111,80 @@ export default function ExecutiveStatus() {
    const projects = allProjectsData.filter(p => p.status !== 'concluido');
 
    // Fetch all cronogramas
-   const { data: allCronogramas = [], isLoading: loadingCronogramas } = useQuery({
-     queryKey: ['allCronogramas', portfolioFilter],
-     queryFn: () => base44.entities.Cronograma.list('-created_date', 500),
-     staleTime: 5 * 60 * 1000,
-     gcTime: 30 * 60 * 1000
-   });
+    const { data: allCronogramas = [], isLoading: loadingCronogramas } = useQuery({
+      queryKey: ['allCronogramas', portfolioFilter],
+      queryFn: () => base44.entities.Cronograma.list('-created_date', 500),
+      staleTime: 5 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
+      enabled: !loadingProjects
+    });
 
-   // Fetch all timeline events
-   const { data: allTimelineEvents = [], isLoading: loadingEvents } = useQuery({
-     queryKey: ['allTimelineEvents', portfolioFilter],
-     queryFn: () => base44.entities.TimelineEvent.list('-created_date', 1000),
-     staleTime: 5 * 60 * 1000,
-     gcTime: 30 * 60 * 1000
-   });
+    // Fetch all timeline events
+    const { data: allTimelineEvents = [], isLoading: loadingEvents } = useQuery({
+      queryKey: ['allTimelineEvents', portfolioFilter],
+      queryFn: () => base44.entities.TimelineEvent.list('-created_date', 1000),
+      staleTime: 5 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
+      enabled: !loadingCronogramas
+    });
 
-   // Fetch all tasks - necessário para calcular health score corretamente
-   const { data: allHomologationTasks = [], isLoading: loadingHomolog } = useQuery({
-     queryKey: ['allHomologationTasks', portfolioFilter],
-     queryFn: () => base44.entities.HomologationTask.list('-created_date', 500),
-     staleTime: 5 * 60 * 1000,
-     gcTime: 30 * 60 * 1000
-   });
+    // Fetch all tasks - necessário para calcular health score corretamente
+    const { data: allHomologationTasks = [], isLoading: loadingHomolog } = useQuery({
+      queryKey: ['allHomologationTasks', portfolioFilter],
+      queryFn: () => base44.entities.HomologationTask.list('-created_date', 500),
+      staleTime: 5 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
+      enabled: !loadingEvents
+    });
 
-   const { data: allMigrationTasks = [], isLoading: loadingMigration } = useQuery({
-     queryKey: ['allMigrationTasks', portfolioFilter],
-     queryFn: () => base44.entities.MigrationTask.list('-created_date', 500),
-     staleTime: 5 * 60 * 1000,
-     gcTime: 30 * 60 * 1000
-   });
+    const { data: allMigrationTasks = [], isLoading: loadingMigration } = useQuery({
+      queryKey: ['allMigrationTasks', portfolioFilter],
+      queryFn: () => base44.entities.MigrationTask.list('-created_date', 500),
+      staleTime: 5 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
+      enabled: !loadingHomolog
+    });
 
-   // Fetch all risks
-   const { data: allRisks = [], isLoading: loadingRisks } = useQuery({
-     queryKey: ['allRisks', portfolioFilter],
-     queryFn: () => base44.entities.Risk.list('-created_date', 500),
-     staleTime: 5 * 60 * 1000,
-     gcTime: 30 * 60 * 1000
-   });
+    // Fetch all risks
+    const { data: allRisks = [], isLoading: loadingRisks } = useQuery({
+      queryKey: ['allRisks', portfolioFilter],
+      queryFn: () => base44.entities.Risk.list('-created_date', 500),
+      staleTime: 5 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
+      enabled: !loadingMigration
+    });
 
-   const { data: allExpenses = [], isLoading: loadingExpenses } = useQuery({
-     queryKey: ['allExpenses', portfolioFilter],
-     queryFn: () => base44.entities.Expense.list('-created_date', 1000),
-     staleTime: 5 * 60 * 1000,
-     gcTime: 30 * 60 * 1000
-   });
+    const { data: allExpenses = [], isLoading: loadingExpenses } = useQuery({
+      queryKey: ['allExpenses', portfolioFilter],
+      queryFn: () => base44.entities.Expense.list('-created_date', 1000),
+      staleTime: 5 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
+      enabled: !loadingRisks
+    });
 
-   const { data: allProducts = [], isLoading: loadingProducts } = useQuery({
-     queryKey: ['allProducts', portfolioFilter],
-     queryFn: () => base44.entities.Product.list('-created_date', 1000),
-     staleTime: 5 * 60 * 1000,
-     gcTime: 30 * 60 * 1000
-   });
+    const { data: allProducts = [], isLoading: loadingProducts } = useQuery({
+      queryKey: ['allProducts', portfolioFilter],
+      queryFn: () => base44.entities.Product.list('-created_date', 1000),
+      staleTime: 5 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
+      enabled: !loadingExpenses
+    });
 
-   const { data: allRecognizedRevenues = [], isLoading: loadingRevenues } = useQuery({
-     queryKey: ['allRecognizedRevenues', portfolioFilter],
-     queryFn: () => base44.entities.RecognizedRevenue.list('-created_date', 1000),
-     staleTime: 5 * 60 * 1000,
-     gcTime: 30 * 60 * 1000
-   });
+    const { data: allRecognizedRevenues = [], isLoading: loadingRevenues } = useQuery({
+      queryKey: ['allRecognizedRevenues', portfolioFilter],
+      queryFn: () => base44.entities.RecognizedRevenue.list('-created_date', 1000),
+      staleTime: 5 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
+      enabled: !loadingProducts
+    });
 
-   const { data: allProgressCache = [], isLoading: loadingProgressCache } = useQuery({
-     queryKey: ['allProgressCache', portfolioFilter],
-     queryFn: () => base44.entities.ProjectProgressCache.list('-updated_date', 500),
-     staleTime: 5 * 60 * 1000,
-     gcTime: 30 * 60 * 1000
-   });
+    const { data: allProgressCache = [], isLoading: loadingProgressCache } = useQuery({
+      queryKey: ['allProgressCache', portfolioFilter],
+      queryFn: () => base44.entities.ProjectProgressCache.list('-updated_date', 500),
+      staleTime: 5 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
+      enabled: !loadingRevenues
+    });
 
   // Loading global: aguarda TODOS os dados críticos carregarem
   const isLoading = loadingProjects || loadingCronogramas || loadingEvents || loadingHomolog || loadingMigration || loadingRisks || loadingExpenses || loadingProducts || loadingRevenues || loadingProgressCache;
