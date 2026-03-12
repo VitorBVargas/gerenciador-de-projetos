@@ -23,6 +23,9 @@ Deno.serve(async (req) => {
     console.log('[RESTORE DEBUG] Raw backupRecords type:', typeof backupRecords);
     console.log('[RESTORE DEBUG] Raw backupRecords is array:', Array.isArray(backupRecords));
     console.log('[RESTORE DEBUG] Raw backupRecords length:', backupRecords?.length);
+    console.log('[RESTORE DEBUG] backupRecords[0] type:', typeof backupRecords?.[0]);
+    console.log('[RESTORE DEBUG] backupRecords[0] keys:', Object.keys(backupRecords?.[0] || {}));
+    console.log('[RESTORE DEBUG] backupRecords[0] JSON (first 500 chars):', JSON.stringify(backupRecords?.[0], null, 2).substring(0, 500));
     
     if (!backupRecords || backupRecords.length === 0) {
       console.error(`[RESTORE ERROR] Backup not found: ${backupId}`);
