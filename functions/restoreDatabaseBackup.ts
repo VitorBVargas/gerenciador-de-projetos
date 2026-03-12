@@ -30,27 +30,27 @@ Deno.serve(async (req) => {
     console.log(`[RESTORE] Got backupRecords, type: ${typeof backupRecords}, isArray: ${Array.isArray(backupRecords)}, length: ${backupRecords?.length}`);
     
     if (!backupRecords || backupRecords.length === 0) {
-      console.error(`[RESTORE ERROR] Backup not found: ${backupId}`);
+      console.log(`[RESTORE ERROR] Backup not found: ${backupId}`);
       return Response.json({ error: 'Backup not found' }, { status: 404 });
     }
 
-    console.error('[RESTORE] Extracting backup from records...');
+    console.log('[RESTORE] Extracting backup from records...');
     const backup = backupRecords[0];
-    console.error(`[RESTORE] backup type: ${typeof backup}, keys: ${Object.keys(backup || {}).join(',')}`);
+    console.log(`[RESTORE] backup type: ${typeof backup}, keys: ${Object.keys(backup || {}).join(',')}`);
     const backupDataJson = backup.backup_data_json;
-    console.error(`[RESTORE] backupDataJson type: ${typeof backupDataJson}, exists: ${!!backupDataJson}`);
+    console.log(`[RESTORE] backupDataJson type: ${typeof backupDataJson}, exists: ${!!backupDataJson}`);
     
     if (!backupDataJson || typeof backupDataJson !== 'string') {
-      console.error('[RESTORE ERROR] Invalid backup_data_json');
+      console.log('[RESTORE ERROR] Invalid backup_data_json');
       return Response.json({ error: 'Invalid backup data format' }, { status: 400 });
     }
     
-    console.error(`[RESTORE] Found backup: ${backup.filename}`);
-    console.error(`[RESTORE] Parsing backup data (${backupDataJson.length} chars)`);
+    console.log(`[RESTORE] Found backup: ${backup.filename}`);
+    console.log(`[RESTORE] Parsing backup data (${backupDataJson.length} chars)`);
     
     const backupData = JSON.parse(backupDataJson);
     const entityNames = Object.keys(backupData.entities);
-    console.error(`[RESTORE] Backup contains ${entityNames.length} entities: ${entityNames.join(', ')}`);
+    console.log(`[RESTORE] Backup contains ${entityNames.length} entities: ${entityNames.join(', ')}`);
 
     let restored = 0;
     let deleted = 0;
@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
     // Restaura cada entidade
     for (const [entityName, records] of Object.entries(backupData.entities)) {
       try {
-        console.error(`[RESTORE] Processing ${entityName} (${records?.length || 0} records in backup)`);
+        console.log(`[RESTORE] Processing ${entityName} (${records?.length || 0} records in backup)`);
         
         // Primeiro deleta TODOS os registros atuais
         let currentRecords = [];
@@ -69,9 +69,9 @@ Deno.serve(async (req) => {
           if (!Array.isArray(currentRecords)) {
             currentRecords = [];
           }
-          console.error(`[RESTORE] ${entityName} has ${currentRecords.length} current records to delete`);
+          console.log(`[RESTORE] ${entityName} has ${currentRecords.length} current records to delete`);
         } catch (e) {
-          console.error(`[RESTORE] Could not list ${entityName}:`, e.message);
+          console.log(`[RESTORE] Could not list ${entityName}:`, e.message);
         }
         
         // Deleta cada registro individual
@@ -80,13 +80,13 @@ Deno.serve(async (req) => {
             await base44.asServiceRole.entities[entityName].delete(record.id);
             deleted++;
           } catch (err) {
-            console.error(`[RESTORE] Error deleting ${entityName} ${record.id}:`, err.message);
+            console.log(`[RESTORE] Error deleting ${entityName} ${record.id}:`, err.message);
           }
         }
 
         // Depois insere os do backup (se houver)
         if (records && Array.isArray(records) && records.length > 0) {
-          console.error(`[RESTORE] Restoring ${records.length} ${entityName} records`);
+          console.log(`[RESTORE] Restoring ${records.length} ${entityName} records`);
           
           for (const record of records) {
             // Remove IDs para deixar o sistema gerar novos
@@ -96,22 +96,22 @@ Deno.serve(async (req) => {
               await base44.asServiceRole.entities[entityName].create(data);
               restored++;
             } catch (err) {
-              console.error(`[RESTORE] Error restoring ${entityName}:`, err.message);
+              console.log(`[RESTORE] Error restoring ${entityName}:`, err.message);
               errors.push(`${entityName}: ${err.message}`);
             }
           }
         } else {
-          console.error(`[RESTORE] ${entityName} has no records in backup (cleared)`);
+          console.log(`[RESTORE] ${entityName} has no records in backup (cleared)`);
         }
         
         processedEntities.push(entityName);
       } catch (err) {
-        console.error(`[RESTORE] Error processing ${entityName}:`, err.message);
+        console.log(`[RESTORE] Error processing ${entityName}:`, err.message);
         errors.push(`${entityName}: ${err.message}`);
       }
     }
 
-    console.error(`[RESTORE COMPLETE] Deleted: ${deleted}, Restored: ${restored}, Errors: ${errors.length}`);
+    console.log(`[RESTORE COMPLETE] Deleted: ${deleted}, Restored: ${restored}, Errors: ${errors.length}`);
 
     return Response.json({
       success: true,
@@ -122,7 +122,7 @@ Deno.serve(async (req) => {
       errors: errors.length > 0 ? errors : null
     });
   } catch (error) {
-    console.error('[RESTORE FATAL ERROR]:', error.message);
+    console.log('[RESTORE FATAL ERROR]:', error.message);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
