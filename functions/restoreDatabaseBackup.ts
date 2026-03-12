@@ -27,8 +27,11 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Backup not found' }, { status: 404 });
     }
 
+    console.error('[RESTORE] Extracting backup from records...');
     const backup = backupRecords[0];
+    console.error(`[RESTORE] backup type: ${typeof backup}, keys: ${Object.keys(backup || {}).join(',')}`);
     const backupDataJson = backup.backup_data_json;
+    console.error(`[RESTORE] backupDataJson type: ${typeof backupDataJson}, exists: ${!!backupDataJson}`);
     
     if (!backupDataJson || typeof backupDataJson !== 'string') {
       console.error('[RESTORE ERROR] Invalid backup_data_json');
