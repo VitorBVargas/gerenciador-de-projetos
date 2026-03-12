@@ -5,24 +5,24 @@ Deno.serve(async (req) => {
   try {
     console.log('[RESTORE] Creating base44 client');
     const base44 = createClientFromRequest(req);
-    console.error('[RESTORE] Authenticating user');
+    console.log('[RESTORE] Authenticating user');
     const user = await base44.auth.me();
-    console.error(`[RESTORE] User authenticated: ${user?.email}, role: ${user?.role}`);
+    console.log(`[RESTORE] User authenticated: ${user?.email}, role: ${user?.role}`);
 
     if (!user || user.role !== 'admin') {
-      console.error('[RESTORE] Access denied - not admin');
+      console.log('[RESTORE] Access denied - not admin');
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
-    console.error('[RESTORE] Parsing request body');
+    console.log('[RESTORE] Parsing request body');
     const { backupId } = await req.json();
-    console.error(`[RESTORE] Received backupId: ${backupId}`);
+    console.log(`[RESTORE] Received backupId: ${backupId}`);
 
     if (!backupId) {
       return Response.json({ error: 'backupId is required' }, { status: 400 });
     }
 
-    console.error(`[RESTORE START] User: ${user.email}, BackupId: ${backupId}`);
+    console.log(`[RESTORE START] User: ${user.email}, BackupId: ${backupId}`);
 
     // Busca o backup diretamente por ID usando filter
     console.log('[RESTORE] Fetching backup record...');
