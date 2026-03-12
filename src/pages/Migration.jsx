@@ -124,7 +124,8 @@ export default function Migration() {
   React.useEffect(() => {
     if (selectedProduct && products.length > 0 && tasks.length >= 0) {
       const product = getCurrentProduct();
-      if (product) {      
+      if (product) {   
+        console.log(product)   
         const existingTasks = tasks.filter(t => t.product_id === product.id);
         if (existingTasks.length === 0 && productHasMigration(product.name)) {
           createDefaultTasks(product);
