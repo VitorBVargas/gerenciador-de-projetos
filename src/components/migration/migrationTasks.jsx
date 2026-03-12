@@ -250,7 +250,7 @@ export const migrationTasksByProduct = {
     'Extrair ManutencoesCalculoMovto'
   ]),
   'Procuradoria (Cloud)': parseTasksIntoSections([
-    'Dados Cadastrais',
+    'DADOS CADASTRAIS',
     'Extrair Tipos Custas Processuais',
     'Extrair Advogados',
     'Extrair Tribunais',
@@ -265,7 +265,7 @@ export const migrationTasksByProduct = {
     'Extrair Naturezas Textos',
     'Extrair Motivos',
     'Extrair Tipos Documentos',
-    'Dados de Lançamentos',
+    'DADOS DE LANÇAMENTOS',
     'Extrair dados de Execuções',
     'Extrair dados de config execuções fiscais',
     'Extrair dados de execuções fiscais',
@@ -279,7 +279,7 @@ export const migrationTasksByProduct = {
     'Extrair dados de Documentos'
   ]),
   'Livro Eletrônico': parseTasksIntoSections([
-    'Dados Cadastrais',
+    'DADOS CADASTRAIS',
     'Extrair Competências',
     'Extrair Indexadores',
     'Extrair Lista de Serviços',
@@ -295,13 +295,13 @@ export const migrationTasksByProduct = {
     'Extrair Simples Nacional',
     'Extrair Cadastro de Tomadores',
     'Extrair Cadastro de Prestadores',
-    'Dados de Lançamentos',
+    'DADOS DE LANÇAMENTOS',
     'Extrair Notas Fiscais',
     'Extrair Declarações',
     'Extrair Notas Avulsas'
   ]),
   'Protocolo (Cloud)': parseTasksIntoSections([
-    'Dados Cadastrais',
+    'DADOS CADASTRAIS',
     'Extrair Pessoa',
     'Extrair Pessoa e-Mail',
     'Extrair Pessoa Telefone',
@@ -328,7 +328,7 @@ export const migrationTasksByProduct = {
     'Extrair Taxas',
     'Extrair Taxas Valores',
     'Extrair Assuntos Taxas',
-    'Dados de Lançamentos',
+    'DADOS DE LANÇAMENTOS',
     'Extrair Protocolos',
     'Extrair Processos',
     'Extrair Processos Partes',
