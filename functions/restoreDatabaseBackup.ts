@@ -26,9 +26,9 @@ Deno.serve(async (req) => {
     }
 
     const backup = backupRecords[0];
-    console.log(`[RESTORE] Found backup: ${backup.filename}`);
+    console.log(`[RESTORE] Found backup: ${backup.data.filename}`);
     
-    const backupData = JSON.parse(backup.backup_data_json);
+    const backupData = JSON.parse(backup.data.backup_data_json);
     console.log(`[RESTORE] Backup contains entities: ${Object.keys(backupData.entities).join(', ')}`);
 
     let restored = 0;
