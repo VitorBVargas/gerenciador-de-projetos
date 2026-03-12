@@ -115,7 +115,6 @@ export default function ExecutiveStatus() {
      queryKey: ['allCronogramas', portfolioFilter],
      queryFn: async () => {
        const allCronogramas = [];
-       let offset = 0;
        const limit = 200;
        let hasMore = true;
        while (hasMore) {
@@ -124,7 +123,7 @@ export default function ExecutiveStatus() {
            hasMore = false;
          } else {
            allCronogramas.push(...batch);
-           offset += limit;
+           await new Promise(resolve => setTimeout(resolve, 100));
          }
        }
        return allCronogramas;
@@ -138,7 +137,6 @@ export default function ExecutiveStatus() {
      queryKey: ['allTimelineEvents', portfolioFilter],
      queryFn: async () => {
        const allEvents = [];
-       let offset = 0;
        const limit = 500;
        let hasMore = true;
        while (hasMore) {
@@ -147,7 +145,7 @@ export default function ExecutiveStatus() {
            hasMore = false;
          } else {
            allEvents.push(...batch);
-           offset += limit;
+           await new Promise(resolve => setTimeout(resolve, 100));
          }
        }
        return allEvents;
@@ -161,7 +159,6 @@ export default function ExecutiveStatus() {
      queryKey: ['allHomologationTasks', portfolioFilter],
      queryFn: async () => {
        const allTasks = [];
-       let offset = 0;
        const limit = 200;
        let hasMore = true;
        while (hasMore) {
@@ -170,7 +167,7 @@ export default function ExecutiveStatus() {
            hasMore = false;
          } else {
            allTasks.push(...batch);
-           offset += limit;
+           await new Promise(resolve => setTimeout(resolve, 100));
          }
        }
        return allTasks;
@@ -183,7 +180,6 @@ export default function ExecutiveStatus() {
      queryKey: ['allMigrationTasks', portfolioFilter],
      queryFn: async () => {
        const allTasks = [];
-       let offset = 0;
        const limit = 200;
        let hasMore = true;
        while (hasMore) {
@@ -192,7 +188,7 @@ export default function ExecutiveStatus() {
            hasMore = false;
          } else {
            allTasks.push(...batch);
-           offset += limit;
+           await new Promise(resolve => setTimeout(resolve, 100));
          }
        }
        return allTasks;
@@ -206,7 +202,6 @@ export default function ExecutiveStatus() {
      queryKey: ['allRisks', portfolioFilter],
      queryFn: async () => {
        const allRisksData = [];
-       let offset = 0;
        const limit = 200;
        let hasMore = true;
        while (hasMore) {
@@ -215,7 +210,7 @@ export default function ExecutiveStatus() {
            hasMore = false;
          } else {
            allRisksData.push(...batch);
-           offset += limit;
+           await new Promise(resolve => setTimeout(resolve, 100));
          }
        }
        return allRisksData;
@@ -228,7 +223,6 @@ export default function ExecutiveStatus() {
      queryKey: ['allExpenses', portfolioFilter],
      queryFn: async () => {
        const allExpensesData = [];
-       let offset = 0;
        const limit = 300;
        let hasMore = true;
        while (hasMore) {
@@ -237,7 +231,7 @@ export default function ExecutiveStatus() {
            hasMore = false;
          } else {
            allExpensesData.push(...batch);
-           offset += limit;
+           await new Promise(resolve => setTimeout(resolve, 100));
          }
        }
        return allExpensesData;
@@ -250,7 +244,6 @@ export default function ExecutiveStatus() {
      queryKey: ['allProducts', portfolioFilter],
      queryFn: async () => {
        const allProdsData = [];
-       let offset = 0;
        const limit = 300;
        let hasMore = true;
        while (hasMore) {
@@ -259,7 +252,7 @@ export default function ExecutiveStatus() {
            hasMore = false;
          } else {
            allProdsData.push(...batch);
-           offset += limit;
+           await new Promise(resolve => setTimeout(resolve, 100));
          }
        }
        return allProdsData;
@@ -272,7 +265,6 @@ export default function ExecutiveStatus() {
      queryKey: ['allRecognizedRevenues', portfolioFilter],
      queryFn: async () => {
        const allRevenuesData = [];
-       let offset = 0;
        const limit = 300;
        let hasMore = true;
        while (hasMore) {
@@ -281,7 +273,7 @@ export default function ExecutiveStatus() {
            hasMore = false;
          } else {
            allRevenuesData.push(...batch);
-           offset += limit;
+           await new Promise(resolve => setTimeout(resolve, 100));
          }
        }
        return allRevenuesData;
@@ -294,7 +286,6 @@ export default function ExecutiveStatus() {
      queryKey: ['allProgressCache', portfolioFilter],
      queryFn: async () => {
        const allCacheData = [];
-       let offset = 0;
        const limit = 200;
        let hasMore = true;
        while (hasMore) {
@@ -303,7 +294,7 @@ export default function ExecutiveStatus() {
            hasMore = false;
          } else {
            allCacheData.push(...batch);
-           offset += limit;
+           await new Promise(resolve => setTimeout(resolve, 100));
          }
        }
        return allCacheData;
