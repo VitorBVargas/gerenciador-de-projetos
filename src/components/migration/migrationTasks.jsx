@@ -1234,7 +1234,7 @@ export const migrationTasksByProduct = {
     'Parametrização da funcionalidade de registro de interesse por rematrícula online'
   ]),
   'Biblioteca (Cloud)': parseTasksIntoSections([
-    'Dados Cadastrais',
+    'DADOS CADASTRAIS',
     'Extrair Bibliotecas',
     'Extrair Títulos de Materiais',
     'Extrair Classificações Cutter',
@@ -1249,7 +1249,7 @@ export const migrationTasksByProduct = {
     'Extrair Status de Materiais',
     'Extrair Configurações de Empréstimos',
     'Extrair Regras de Multa',
-    'Dados de Lançamentos',
+    'DADOS DE LANÇAMENTOS',
     'Extrair Exemplares de Materiais',
     'Extrair Empréstimos',
     'Extrair Devoluções',
@@ -1269,7 +1269,7 @@ export const migrationTasksByProduct = {
     'Configuração de fornecedores e registro de preços de insumos'
   ]),
   'Transporte Escolar (Cloud)': parseTasksIntoSections([
-    'Dados Cadastrais',
+    'DADOS CADASTRAIS',
     'Extrair Configurações de Senha de Liberação',
     'Extrair Aceite de Implantação',
     'Extrair Rotas de Transporte',
@@ -1278,7 +1278,7 @@ export const migrationTasksByProduct = {
     'Extrair Monitores',
     'Extrair Pontos de Parada',
     'Extrair Alunos Beneficiados',
-    'Dados de Lançamentos',
+    'DADOS DE LANÇAMENTOS',
     'Extrair Alocação de Alunos em Rotas',
     'Extrair Controle de Frequência',
     'Extrair Registro de Ocorrências',
@@ -1300,7 +1300,7 @@ export const migrationTasksByProduct = {
     'Extrair Localidade',
     'Extrair Responsável',
     'Extrair Fornecedor',
-    'Dados de Lançamentos',
+    'DADOS DE LANÇAMENTOS',
     'Extrair Bem Patrimonial',
     'Extrair Especificação Bem',
     'Extrair Entrada Bem',
@@ -1328,7 +1328,7 @@ export const migrationTasksByProduct = {
     'Extrair Localidade',
     'Extrair Responsável',
     'Extrair Fornecedor',
-    'Dados de Lançamentos',
+    'DADOS DE LANÇAMENTOS',
     'Extrair Bem Patrimonial',
     'Extrair Especificação Bem',
     'Extrair Entrada Bem',
@@ -1513,7 +1513,7 @@ export const migrationTasksByProduct = {
     }
   ],
   'Portal do Gestor': parseTasksIntoSections([
-    'Dados Cadastrais',
+    'DADOS CADASTRAIS',
     'Informações Institucionais',
     'Configuração Geral',
     'Dados de Lançamentos',
