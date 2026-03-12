@@ -1312,7 +1312,7 @@ export const migrationTasksByProduct = {
     'Extrair Movimentação Bem',
     'Extrair Componente Bem'
   ]),
-  'Patrimonio (Cloud)': parseTasksIntoSections([
+  'Patrimônio (Cloud)': parseTasksIntoSections([
     'Dados Cadastrais',
     'Extrair Configuração Organograma',
     'Extrair Parâmetro Exercício',
