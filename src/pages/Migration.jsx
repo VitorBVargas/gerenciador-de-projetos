@@ -213,7 +213,14 @@ export default function Migration() {
     return Math.round((completed / visibleTasks.length) * 100);
   };
 
-  const allEntities = [...new Set(products.map(p => p.entity).filter(Boolean))].sort();
+  // Entity filter with full names
+  const entityMap = new Map();
+  products.forEach(p => {
+    if (p.entity) {
+      entityMap.set(p.entity, p.entity_full_name || p.entity);
+    }
+  });
+  const allEntities = Array.from(entityMap.entries()).map(([code, fullName]) => ({ code, fullName }));
   
   // Auto-select first entity that has products with migration
   React.useEffect(() => {
