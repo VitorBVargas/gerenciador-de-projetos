@@ -18,7 +18,9 @@ Deno.serve(async (req) => {
     console.error(`[RESTORE START] User: ${user.email}, BackupId: ${backupId}`);
 
     // Busca o backup diretamente por ID usando filter
+    console.error('[RESTORE] Fetching backup record...');
     const backupRecords = await base44.asServiceRole.entities.DatabaseBackup.filter({ id: backupId });
+    console.error(`[RESTORE] Got backupRecords, type: ${typeof backupRecords}, length: ${backupRecords?.length}`);
     
     if (!backupRecords || backupRecords.length === 0) {
       console.error(`[RESTORE ERROR] Backup not found: ${backupId}`);
