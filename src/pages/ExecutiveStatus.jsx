@@ -607,6 +607,7 @@ export default function ExecutiveStatus() {
     { label: 'Despesas', done: !loadingExpenses },
     { label: 'Produtos', done: !loadingProducts },
     { label: 'Receitas reconhecidas', done: !loadingRevenues },
+    { label: 'Sincronizando caches', done: !isRecalculating },
   ];
   const loadedCount = loadingSteps.filter(s => s.done).length;
   const loadingPercent = Math.round((loadedCount / loadingSteps.length) * 100);
