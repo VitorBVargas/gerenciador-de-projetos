@@ -1,9 +1,9 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 Deno.serve(async (req) => {
-  console.error('[RESTORE] Function started');
+  console.log('[RESTORE] Function started');
   try {
-    console.error('[RESTORE] Creating base44 client');
+    console.log('[RESTORE] Creating base44 client');
     const base44 = createClientFromRequest(req);
     console.error('[RESTORE] Authenticating user');
     const user = await base44.auth.me();
