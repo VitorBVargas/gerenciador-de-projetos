@@ -24,7 +24,7 @@ import { Link } from 'react-router-dom';
 
 import PasswordReleasesChart from '../components/executive/PasswordReleasesChart';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
-import { format, addMonths } from 'date-fns';
+import { format, addMonths, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import RecognizedRevenueModal from '../components/modals/RecognizedRevenueModal';
 import RecognizeAllVerticalModal from '../components/modals/RecognizeAllVerticalModal';
