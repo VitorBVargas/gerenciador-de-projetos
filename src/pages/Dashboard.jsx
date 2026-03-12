@@ -267,6 +267,12 @@ export default function Dashboard() {
     return 0;
   };
 
+  // Progresso Geral: todas as entidades
+  const allEntitiesProgress = timelineEvents.length > 0
+    ? Math.round(timelineEvents.reduce((sum, e) => sum + calcEventProgressDash(e), 0) / timelineEvents.length)
+    : 0;
+
+  // Progresso Entidade: apenas a entidade selecionada
   const projectProgress = filteredTimelineEvents.length > 0
     ? Math.round(filteredTimelineEvents.reduce((sum, e) => sum + calcEventProgressDash(e), 0) / filteredTimelineEvents.length)
     : 0;
@@ -584,24 +590,41 @@ export default function Dashboard() {
                       </div>
                       <div>
                         <p className="text-xs text-slate-400">Progresso Geral</p>
-                        <p className="text-2xl font-bold text-white">{projectProgress}%</p>
+                        <p className="text-2xl font-bold text-white">{allEntitiesProgress}%</p>
+                        {selectedEntity && (
+                          <p className="text-xs text-slate-500 mt-0.5">Todas as entidades</p>
+                        )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <div className={cn(
-                        "w-12 h-12 rounded-lg flex items-center justify-center",
-                        highRisks > 0 ? "bg-red-500/20" : "bg-green-500/20"
-                      )}>
-                        <AlertTriangle className={cn(
-                          "w-6 h-6",
-                          highRisks > 0 ? "text-red-400" : "text-green-400"
-                        )} />
+                    {selectedEntity && (
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                          <TrendingUp className="w-6 h-6 text-purple-400" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-400">Progresso Entidade</p>
+                          <p className="text-2xl font-bold text-white">{projectProgress}%</p>
+                          <p className="text-xs text-slate-500 mt-0.5">{allEntities.find(e => e.code === selectedEntity)?.fullName}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-xs text-slate-400">Riscos Altos</p>
-                        <p className="text-2xl font-bold text-white">{highRisks}</p>
+                    )}
+                    {!selectedEntity && (
+                      <div className="flex items-center gap-3">
+                        <div className={cn(
+                          "w-12 h-12 rounded-lg flex items-center justify-center",
+                          highRisks > 0 ? "bg-red-500/20" : "bg-green-500/20"
+                        )}>
+                          <AlertTriangle className={cn(
+                            "w-6 h-6",
+                            highRisks > 0 ? "text-red-400" : "text-green-400"
+                          )} />
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-400">Riscos Altos</p>
+                          <p className="text-2xl font-bold text-white">{highRisks}</p>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               </CardContent>
