@@ -16,10 +16,10 @@ Deno.serve(async (req) => {
         if (!project_id && body.data && body.data.project_id) {
             project_id = body.data.project_id;
         }
-        if (!project_id && body.event && body.event.entity_id) {
-            // Se não tiver project_id, buscar o evento pra pegar
+        if (!project_id && body.data && body.data.id) {
+            // Se vier de automação, buscar o evento pelo ID
             const event = await base44.asServiceRole.entities.TimelineEvent.filter({
-                id: body.event.entity_id
+                id: body.data.id
             });
             if (event && event.length > 0) {
                 project_id = event[0].project_id;
