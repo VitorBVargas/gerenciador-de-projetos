@@ -324,17 +324,8 @@ export default function Dashboard() {
     }
   }, [projectId, healthScore]);
 
-  // Get estimated deadline from cache or calculate
-  const estimatedDeadline = progressCache?.estimated_deadline || 
-    (timelineEvents.length > 0 
-      ? (() => {
-          const validDates = timelineEvents
-            .filter(e => e.end_date)
-            .map(e => new Date(e.end_date).getTime())
-            .filter(t => t > 0);
-          return validDates.length > 0 ? new Date(Math.max(...validDates)).toISOString().split('T')[0] : null;
-        })()
-      : null);
+  // Get estimated deadline from cache (atualizado automaticamente)
+  const estimatedDeadline = progressCache?.estimated_deadline;
 
   const tasksCompleted = filteredHomologationTasks.filter(t => t.completed).length;
   const totalTasks = filteredHomologationTasks.length;
