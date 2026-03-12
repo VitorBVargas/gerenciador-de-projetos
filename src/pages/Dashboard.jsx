@@ -56,7 +56,7 @@ export default function Dashboard() {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   // Fetch all data with staleTime to reduce re-fetches
-  const { data: projects = [] } = useQuery({
+  const { data: projects = [], isLoading: loadingProjects } = useQuery({
     queryKey: ['projects'],
     queryFn: () => base44.entities.Project.list('-created_date'),
     staleTime: 5 * 60 * 1000 // 5 minutes
@@ -76,35 +76,35 @@ export default function Dashboard() {
     staleTime: 3 * 60 * 1000
   });
 
-  const { data: products = [] } = useQuery({
+  const { data: products = [], isLoading: loadingProducts } = useQuery({
     queryKey: ['products', projectId],
     queryFn: () => projectId ? base44.entities.Product.filter({ project_id: projectId }) : [],
     enabled: !!projectId,
     staleTime: 3 * 60 * 1000
   });
 
-  const { data: timelineEvents = [] } = useQuery({
+  const { data: timelineEvents = [], isLoading: loadingTimelineEvents } = useQuery({
     queryKey: ['timelineEvents', projectId],
     queryFn: () => projectId ? base44.entities.TimelineEvent.filter({ project_id: projectId }) : [],
     enabled: !!projectId,
     staleTime: 2 * 60 * 1000
   });
 
-  const { data: migrationTasks = [] } = useQuery({
+  const { data: migrationTasks = [], isLoading: loadingMigration } = useQuery({
     queryKey: ['migrationTasks', projectId],
     queryFn: () => projectId ? base44.entities.MigrationTask.filter({ project_id: projectId }) : [],
     enabled: !!projectId,
     staleTime: 3 * 60 * 1000
   });
 
-  const { data: homologationTasks = [] } = useQuery({
+  const { data: homologationTasks = [], isLoading: loadingHomolog } = useQuery({
     queryKey: ['homologationTasks', projectId],
     queryFn: () => projectId ? base44.entities.HomologationTask.filter({ project_id: projectId }) : [],
     enabled: !!projectId,
     staleTime: 3 * 60 * 1000
   });
 
-  const { data: risks = [] } = useQuery({
+  const { data: risks = [], isLoading: loadingRisks } = useQuery({
     queryKey: ['risks', projectId],
     queryFn: () => projectId ? base44.entities.Risk.filter({ project_id: projectId }) : [],
     enabled: !!projectId,
@@ -118,14 +118,14 @@ export default function Dashboard() {
     staleTime: 5 * 60 * 1000
   });
 
-  const { data: expenses = [] } = useQuery({
+  const { data: expenses = [], isLoading: loadingExpenses } = useQuery({
     queryKey: ['expenses', projectId],
     queryFn: () => projectId ? base44.entities.Expense.filter({ project_id: projectId }) : [],
     enabled: !!projectId,
     staleTime: 5 * 60 * 1000
   });
 
-  const { data: cronogramas = [] } = useQuery({
+  const { data: cronogramas = [], isLoading: loadingCronogramas } = useQuery({
     queryKey: ['cronogramas', projectId],
     queryFn: () => projectId ? base44.entities.Cronograma.filter({ project_id: projectId }) : [],
     enabled: !!projectId,
@@ -139,7 +139,7 @@ export default function Dashboard() {
     const criticalDataLoaded = 
       !loadingProjects && 
       projectId && 
-      activeProject &&
+      projects.length > 0 &&
       !loadingProducts &&
       !loadingTimelineEvents &&
       !loadingHomolog &&
@@ -150,58 +150,9 @@ export default function Dashboard() {
 
     if (criticalDataLoaded && !initialLoadDoneRef.current) {
       initialLoadDoneRef.current = true;
-      setTimeout(() => setIsInitialLoading(false), 500);
+      setTimeout(() => setIsInitialLoading(false), 800);
     }
-  }, [loadingProjects, projectId, activeProject, loadingProducts, loadingTimelineEvents, loadingHomolog, loadingMigration, loadingRisks, loadingExpenses, loadingCronogramas]);
-
-  // Get isLoading values from queries
-  const { isLoading: loadingProjects } = useQuery({
-    queryKey: ['projects'],
-    queryFn: () => base44.entities.Project.list('-created_date'),
-    staleTime: 5 * 60 * 1000
-  });
-
-  const { isLoading: loadingTimelineEvents } = useQuery({
-    queryKey: ['timelineEvents', projectId],
-    queryFn: () => projectId ? base44.entities.TimelineEvent.filter({ project_id: projectId }) : [],
-    enabled: !!projectId,
-    staleTime: 2 * 60 * 1000
-  });
-
-  const { isLoading: loadingHomolog } = useQuery({
-    queryKey: ['homologationTasks', projectId],
-    queryFn: () => projectId ? base44.entities.HomologationTask.filter({ project_id: projectId }) : [],
-    enabled: !!projectId,
-    staleTime: 3 * 60 * 1000
-  });
-
-  const { isLoading: loadingMigration } = useQuery({
-    queryKey: ['migrationTasks', projectId],
-    queryFn: () => projectId ? base44.entities.MigrationTask.filter({ project_id: projectId }) : [],
-    enabled: !!projectId,
-    staleTime: 3 * 60 * 1000
-  });
-
-  const { isLoading: loadingRisks } = useQuery({
-    queryKey: ['risks', projectId],
-    queryFn: () => projectId ? base44.entities.Risk.filter({ project_id: projectId }) : [],
-    enabled: !!projectId,
-    staleTime: 5 * 60 * 1000
-  });
-
-  const { isLoading: loadingExpenses } = useQuery({
-    queryKey: ['expenses', projectId],
-    queryFn: () => projectId ? base44.entities.Expense.filter({ project_id: projectId }) : [],
-    enabled: !!projectId,
-    staleTime: 5 * 60 * 1000
-  });
-
-  const { isLoading: loadingCronogramas } = useQuery({
-    queryKey: ['cronogramas', projectId],
-    queryFn: () => projectId ? base44.entities.Cronograma.filter({ project_id: projectId }) : [],
-    enabled: !!projectId,
-    staleTime: 3 * 60 * 1000
-  });
+  }, [loadingProjects, projectId, projects.length, loadingProducts, loadingTimelineEvents, loadingHomolog, loadingMigration, loadingRisks, loadingExpenses, loadingCronogramas]);
 
   // Active project
   const activeProject = projects.find(p => p.id === projectId);
