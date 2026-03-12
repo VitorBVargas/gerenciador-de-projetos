@@ -186,8 +186,16 @@ export default function ExecutiveStatus() {
       enabled: !loadingRevenues
     });
 
+    const { data: allOverallProgressCache = [], isLoading: loadingOverallProgressCache } = useQuery({
+      queryKey: ['allOverallProgressCache', portfolioFilter],
+      queryFn: () => base44.entities.ProjectOverallProgressCache.list('-updated_date', 500),
+      staleTime: 5 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
+      enabled: !loadingProgressCache
+    });
+
   // Loading global: aguarda TODOS os dados críticos carregarem
-  const isLoading = loadingProjects || loadingCronogramas || loadingEvents || loadingHomolog || loadingMigration || loadingRisks || loadingExpenses || loadingProducts || loadingRevenues || loadingProgressCache;
+  const isLoading = loadingProjects || loadingCronogramas || loadingEvents || loadingHomolog || loadingMigration || loadingRisks || loadingExpenses || loadingProducts || loadingRevenues || loadingProgressCache || loadingOverallProgressCache;
 
   const createRecognizedRevenueMutation = useMutation({
     mutationFn: (data) => base44.entities.RecognizedRevenue.create(data),
@@ -288,6 +296,17 @@ export default function ExecutiveStatus() {
     if (projectEvents.length === 0) return 0;
     const total = projectEvents.reduce((sum, e) => sum + calcEventProgress(e), 0);
     return Math.round(total / projectEvents.length);
+  };
+
+  const getProjectOverallProgress = (project) => {
+    // Buscar do cache de progresso geral (todas as entidades) - mais rápido
+    const cache = allOverallProgressCache.find(c => c.project_id === project.id);
+    if (cache && typeof cache.overall_progress === 'number') {
+      return Math.round(cache.overall_progress);
+    }
+
+    // Fallback: retornar 0 se não encontrar cache (o Dashboard vai calcular e atualizar)
+    return 0;
   };
 
   // Classify project status based on health score only (igual aos cards)
