@@ -115,8 +115,9 @@ export default function KeyDocuments({ projectId, project, products = [] }) {
         <CardTitle className="text-white">Controle de Documentos</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Filters */}
-        <div className="space-y-3 pb-4 border-b border-slate-700">
+        <TooltipProvider>
+          {/* Filters */}
+          <div className="space-y-3 pb-4 border-b border-slate-700">
           {/* Entity Filter */}
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xs font-semibold text-slate-300">Entidades:</span>
@@ -195,7 +196,8 @@ export default function KeyDocuments({ projectId, project, products = [] }) {
               ))}
             </div>
           )}
-        </div>
+          </div>
+        </TooltipProvider>
 
         {/* Documents List */}
         {selectedProduct ? (
