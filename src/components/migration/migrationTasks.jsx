@@ -56,8 +56,8 @@ export const migrationTasksByProduct = {
     'Extrair Autos',
     'Extrair Guias de Pagamentos'
   ]),
-  'Tributos (Cloud)': parseTasksIntoSections([
-    'Dados Cadastrais',
+  'Tributos (Cloud)': [
+    'DADOS CADASTRAIS',
     'Extrair Paises',
     'Extrair Estados',
     'Extrair Cidades',
@@ -173,7 +173,7 @@ export const migrationTasksByProduct = {
     'Extrair ObrasOpcoes',
     'Extrair ObrasOpcoesCompl',
     'Extrair ObrasEngenheiros',
-    'Dados de Lançamentos',
+    'DADOS DE LANÇAMENTO',
     'Extrair ReceitasDiversas',
     'Extrair ReceitasDiversasMovimentacoes',
     'Extrair ReceitasDiversasCamposAdicionais',
@@ -248,9 +248,9 @@ export const migrationTasksByProduct = {
     'Extrair ManutencoesCalculoReceitas',
     'Extrair ManutencoesCalculoGuias',
     'Extrair ManutencoesCalculoMovto'
-  ]),
+  ],
   'Procuradoria (Cloud)': parseTasksIntoSections([
-    'Dados Cadastrais',
+    'DADOS CADASTRAIS',
     'Extrair Tipos Custas Processuais',
     'Extrair Advogados',
     'Extrair Tribunais',
@@ -279,7 +279,7 @@ export const migrationTasksByProduct = {
     'Extrair dados de Documentos'
   ]),
   'Livro Eletrônico': parseTasksIntoSections([
-    'Dados Cadastrais',
+    'DADOS CADASTRAIS',
     'Extrair Competências',
     'Extrair Indexadores',
     'Extrair Lista de Serviços',
@@ -301,7 +301,7 @@ export const migrationTasksByProduct = {
     'Extrair Notas Avulsas'
   ]),
   'Protocolo (Cloud)': parseTasksIntoSections([
-    'Dados Cadastrais',
+    'DADOS CADASTRAIS',
     'Extrair Pessoa',
     'Extrair Pessoa e-Mail',
     'Extrair Pessoa Telefone',
@@ -339,7 +339,7 @@ export const migrationTasksByProduct = {
     'Extrair Localização'
   ]),
   'Contabil': parseTasksIntoSections([
-    'Dados Cadastrais',
+    'DADOS CADASTRAIS',
     'Extrair Credores',
     'Extrair Responsáveis',
     'Extrair Ordenadores',
@@ -436,7 +436,7 @@ export const migrationTasksByProduct = {
     'Extrair VPD'
   ]),
   'Contábil (Cloud)': parseTasksIntoSections([
-    'Dados Cadastrais',
+    'DADOS CADASTRAIS',
     'Extrair Credores',
     'Extrair Responsáveis',
     'Extrair Ordenadores',
@@ -533,7 +533,7 @@ export const migrationTasksByProduct = {
     'Extrair VPD'
   ]),
   'Planejamento (Cloud)': parseTasksIntoSections([
-    'Dados Cadastrais',
+    'DADOS CADASTRAIS',
     'Extrair Configurações - PPAs',
     'Extrair Configurações - LDOs',
     'Extrair Configurações - LOAs',
@@ -1127,7 +1127,7 @@ export const migrationTasksByProduct = {
     }
   ],
   'Educação (Cloud)': parseTasksIntoSections([
-    'Dados Cadastrais',
+    'DADOS CADASTRAIS',
     'Extrair Países',
     'Extrair Estados',
     'Extrair Municípios',
@@ -1218,6 +1218,7 @@ export const migrationTasksByProduct = {
     'Extrair Dados de Licitações'
   ]),
   'Professores (Cloud)': parseTasksIntoSections([
+    'DADOS CADASTRAIS',
     'Diário de Classe',
     'Diário aberto para a turma',
     'Frequência disponível',
@@ -1226,6 +1227,7 @@ export const migrationTasksByProduct = {
     'Fechamento do diário realizado'
   ]),
   'Pais e Alunos (Cloud)': parseTasksIntoSections([
+    'DADOS CADASTRAIS',
     'Pais e Alunos',
     'Geração e distribuição de acessos (tokens/chaves) para pais, alunos e responsáveis',
     'Habilitação da consulta online de desempenho escolar (notas, provas e atividades)',
@@ -1234,7 +1236,7 @@ export const migrationTasksByProduct = {
     'Parametrização da funcionalidade de registro de interesse por rematrícula online'
   ]),
   'Biblioteca (Cloud)': parseTasksIntoSections([
-    'Dados Cadastrais',
+    'DADOS CADASTRAIS',
     'Extrair Bibliotecas',
     'Extrair Títulos de Materiais',
     'Extrair Classificações Cutter',
@@ -1257,6 +1259,7 @@ export const migrationTasksByProduct = {
     'Extrair Multas'
   ]),
   'Merenda Escolar (Cloud)': parseTasksIntoSections([
+    'DADOS CADASTRAIS',
     'Merenda Escolar',
     'Cadastro de insumos/alimentos seguindo os padrões das tabelas TACO e IBGE',
     'Elaboração de receitas/cardápios com cálculo automático de informações nutricionais',
@@ -1269,7 +1272,7 @@ export const migrationTasksByProduct = {
     'Configuração de fornecedores e registro de preços de insumos'
   ]),
   'Transporte Escolar (Cloud)': parseTasksIntoSections([
-    'Dados Cadastrais',
+    'DADOS CADASTRAIS',
     'Extrair Configurações de Senha de Liberação',
     'Extrair Aceite de Implantação',
     'Extrair Rotas de Transporte',
@@ -1313,7 +1316,7 @@ export const migrationTasksByProduct = {
     'Extrair Componente Bem'
   ]),
   'Patrimônio (Cloud)': parseTasksIntoSections([
-    'Dados Cadastrais',
+    'DADOS CADASTRAIS',
     'Extrair Configuração Organograma',
     'Extrair Parâmetro Exercício',
     'Extrair Organograma',
@@ -1513,7 +1516,7 @@ export const migrationTasksByProduct = {
     }
   ],
   'Portal do Gestor': parseTasksIntoSections([
-    'Dados Cadastrais',
+    'DADOS CADASTRAIS',
     'Informações Institucionais',
     'Configuração Geral',
     'Dados de Lançamentos',
@@ -1660,7 +1663,8 @@ export const getDefaultTasksForProduct = (productName) => {
   
   //return key ? migrationTasksByProduct[key] : null;
   const tasks = migrationTasksByProduct[key]
-  return tasks ?? []
+console.log({tasks})
+return tasks ?? []
 };
 
 // Verifica se um produto tem processo de migração
