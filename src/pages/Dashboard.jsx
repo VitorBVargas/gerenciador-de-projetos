@@ -332,7 +332,7 @@ export default function Dashboard() {
   const tasksCompleted = filteredHomologationTasks.filter(t => t.completed).length;
   const totalTasks = filteredHomologationTasks.length;
 
-  const highRisks = risks.filter(r => (r.probability >= 4) || (r.impact >= 4)).length;
+  const highRisks = risks.filter(r => (r.probability >= 4 || r.impact >= 4) && (r.status === 'em_monitoramento' || r.status === 'em_andamento')).length;
 
   const daysToDeadline = activeProject?.deadline 
     ? differenceInDays(new Date(activeProject.deadline), new Date())
