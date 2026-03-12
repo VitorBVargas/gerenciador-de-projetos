@@ -890,7 +890,7 @@ export default function ExecutiveStatus() {
                          <div>
                            <div className="text-xs text-slate-400 font-medium">Prazo Estimado</div>
                            <div className="text-sm text-white">
-                             {estimatedDeadline ? new Date(estimatedDeadline).toLocaleDateString('pt-BR') : '—'}
+                             {estimatedDeadline ? format(parseISO(estimatedDeadline), 'dd/MM/yyyy', { locale: ptBR }) : '—'}
                            </div>
                          </div>
                        );
