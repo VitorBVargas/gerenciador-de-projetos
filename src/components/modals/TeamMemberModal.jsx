@@ -33,6 +33,8 @@ export default function TeamMemberModal({ open, onOpenChange, member, onSave, pr
         name: member.name || '',
         vertical: member.vertical || '',
         role: member.role || '',
+        entity: member.entity || '',
+        ticket_number: member.ticket_number || '',
         email: member.email || '',
         phone: member.phone || ''
       });
@@ -41,6 +43,8 @@ export default function TeamMemberModal({ open, onOpenChange, member, onSave, pr
         name: '',
         vertical: '',
         role: '',
+        entity: '',
+        ticket_number: '',
         email: '',
         phone: ''
       });
