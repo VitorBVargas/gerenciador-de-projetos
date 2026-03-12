@@ -218,6 +218,13 @@ export default function Team() {
                             {member.role && (
                               <div className="text-xs text-slate-400 mt-0.5">{member.role}</div>
                             )}
+                            {(member.entity || member.ticket_number) && (
+                              <div className="text-xs text-slate-500 mt-0.5">
+                                {member.entity && <span>{member.entity}</span>}
+                                {member.entity && member.ticket_number && <span> • </span>}
+                                {member.ticket_number && <span>{member.ticket_number}</span>}
+                              </div>
+                            )}
                             {member.email && (
                               <div className="flex items-center gap-1 text-[11px] text-slate-500 mt-1">
                                 <Mail className="w-2.5 h-2.5" />
