@@ -26,16 +26,29 @@ Deno.serve(async (req) => {
     }
 
     const backup = backupRecords[0];
-    console.log(`[RESTORE] Found backup with filename: ${backup.filename}`);
     
-    // Acessa o backup_data_json diretamente
+    // Log completo do objeto para debug
+    console.log('[RESTORE DEBUG] Backup record structure:', JSON.stringify(backup, null, 2).substring(0, 500));
+    console.log('[RESTORE DEBUG] typeof backup:', typeof backup);
+    console.log('[RESTORE DEBUG] backup.filename:', backup?.filename);
+    console.log('[RESTORE DEBUG] backup.backup_data_json exists:', !!backup?.backup_data_json);
+    console.log('[RESTORE DEBUG] typeof backup.backup_data_json:', typeof backup?.backup_data_json);
+    
     const backupDataJson = backup.backup_data_json;
     
-    if (typeof backupDataJson !== 'string') {
-      console.error('[RESTORE ERROR] backup_data_json is not a string, type:', typeof backupDataJson);
-      return Response.json({ error: 'Invalid backup data format' }, { status: 400 });
+    if (!backupDataJson || typeof backupDataJson !== 'string') {
+      console.error('[RESTORE ERROR] Invalid backup_data_json, type:', typeof backupDataJson);
+      return Response.json({ 
+        error: 'Invalid backup data format',
+        debug: {
+          type: typeof backupDataJson,
+          exists: !!backupDataJson,
+          backupKeys: Object.keys(backup || {})
+        }
+      }, { status: 400 });
     }
     
+    console.log(`[RESTORE] Found backup: ${backup.filename}`);
     const backupData = JSON.parse(backupDataJson);
     console.log(`[RESTORE] Backup contains entities: ${Object.keys(backupData.entities).join(', ')}`);
 
