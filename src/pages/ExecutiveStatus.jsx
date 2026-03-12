@@ -213,8 +213,8 @@ export default function ExecutiveStatus() {
       enabled: !loadingProgressCache
     });
 
-  // Loading global: aguarda TODOS os dados críticos carregarem
-  const isLoading = loadingProjects || loadingCronogramas || loadingEvents || loadingHomolog || loadingMigration || loadingRisks || loadingExpenses || loadingProducts || loadingRevenues || loadingProgressCache || loadingOverallProgressCache;
+  // Loading global: aguarda TODOS os dados críticos carregarem + recalculo
+  const isLoading = isRecalculating || loadingProjects || loadingCronogramas || loadingEvents || loadingHomolog || loadingMigration || loadingRisks || loadingExpenses || loadingProducts || loadingRevenues || loadingProgressCache || loadingOverallProgressCache;
 
   const createRecognizedRevenueMutation = useMutation({
     mutationFn: (data) => base44.entities.RecognizedRevenue.create(data),
