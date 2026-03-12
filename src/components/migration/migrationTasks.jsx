@@ -1127,7 +1127,7 @@ export const migrationTasksByProduct = {
     }
   ],
   'Educação (Cloud)': parseTasksIntoSections([
-    'Dados Cadastrais',
+    'DADOS CADASTRAIS',
     'Extrair Países',
     'Extrair Estados',
     'Extrair Municípios',
@@ -1218,6 +1218,7 @@ export const migrationTasksByProduct = {
     'Extrair Dados de Licitações'
   ]),
   'Professores (Cloud)': parseTasksIntoSections([
+    'DADOS CADASTRAIS',
     'Diário de Classe',
     'Diário aberto para a turma',
     'Frequência disponível',
