@@ -1737,11 +1737,11 @@ const normalizeProductName = (name) => {
 export const getDefaultTasksForProduct = (productName) => {
   if (!productName) return null;
   
-  const normalizedInput = normalize(productName);
+  const normalizedInput = normalizeProductName(productName);
   
   // Busca direto em migrationTasksByProduct com chaves normalizadas
   const key = Object.keys(migrationTasksByProduct).find(k => 
-    normalize(k) === normalizedInput
+    normalizeProductName(k) === normalizedInput
   );
   
   return key ? migrationTasksByProduct[key] : null;
