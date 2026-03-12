@@ -18,14 +18,24 @@ Deno.serve(async (req) => {
     console.log(`[RESTORE START] User: ${user.email}, BackupId: ${backupId}`);
 
     // Busca o backup
-    const backupRecords = await base44.asServiceRole.entities.DatabaseBackup.filter({ id: backupId });
+    let backupRecords = await base44.asServiceRole.entities.DatabaseBackup.filter({ id: backupId });
+    
+    console.log('[RESTORE DEBUG] Raw backupRecords type:', typeof backupRecords);
+    console.log('[RESTORE DEBUG] Raw backupRecords is array:', Array.isArray(backupRecords));
+    console.log('[RESTORE DEBUG] Raw backupRecords length:', backupRecords?.length);
     
     if (!backupRecords || backupRecords.length === 0) {
       console.error(`[RESTORE ERROR] Backup not found: ${backupId}`);
       return Response.json({ error: 'Backup not found' }, { status: 404 });
     }
 
-    const backup = backupRecords[0];
+    let backup = backupRecords[0];
+    
+    // Se o backup veio como array dentro de array, desempacota
+    if (Array.isArray(backup)) {
+      console.log('[RESTORE DEBUG] Backup is an array, taking first element');
+      backup = backup[0];
+    }
     
     // Log completo do objeto para debug
     console.log('[RESTORE DEBUG] Backup record structure:', JSON.stringify(backup, null, 2).substring(0, 500));
