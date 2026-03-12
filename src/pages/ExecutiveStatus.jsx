@@ -546,7 +546,7 @@ export default function ExecutiveStatus() {
       return {
         ...project,
         healthScore,
-        progress: calculateProjectProgress(project),
+        progress: getProjectOverallProgress(project),
         dynamicStatus: getStatusFromHealthScore(healthScore),
         totalRecognized,
         totalBudget
@@ -558,7 +558,7 @@ export default function ExecutiveStatus() {
       }
       return a.healthScore - b.healthScore;
     });
-  }, [projects, allTimelineEvents, allHomologationTasks, allMigrationTasks, allRisks, allExpenses, allRecognizedRevenues, allProgressCache]);
+  }, [projects, allTimelineEvents, allHomologationTasks, allMigrationTasks, allRisks, allExpenses, allRecognizedRevenues, allProgressCache, allOverallProgressCache]);
 
   const getHealthColor = (score) => {
     if (score >= 80) return 'text-green-400';
