@@ -1661,9 +1661,10 @@ export const getDefaultTasksForProduct = (productName) => {
   }
   );
   
-  //return key ? migrationTasksByProduct[key] : null;
-  const tasks = migrationTasksByProduct[key]
-return tasks ?? []
+  return key ? migrationTasksByProduct[key] : null;
+//const tasks = migrationTasksByProduct[key]
+
+//return tasks ?? []
 };
 
 // Verifica se um produto tem processo de migração
