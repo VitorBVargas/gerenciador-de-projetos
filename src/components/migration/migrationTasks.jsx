@@ -2,34 +2,26 @@
 // IMPORTANTE: Produtos que não aparecem aqui NÃO têm processo de migração (ex: Conecta, Documentos)
 
 const parseTasksIntoSections = (tasks) => {
-  const result = [];
-  const stack = [{ tasks: result, level: -1 }];
+  const sections = [];
+  let currentSection = null;
 
-  tasks.forEach((taskItem) => {
-    const trimmed = taskItem.trim();
-    const depth = taskItem.length - trimmed.length;
-    const isHeader =
-      trimmed === trimmed.toUpperCase() ||
-      trimmed.startsWith("ETAPA") ||
-      trimmed.startsWith("MIGRAÇÃO");
-
-    const node = { title: trimmed, tasks: [] };
-
-    while (stack.length > 1 && stack[stack.length - 1].level >= depth) {
-      stack.pop();
-    }
-
-    const currentParent = stack[stack.length - 1];
-
-    if (isHeader) {
-      currentParent.tasks.push(node);
-      stack.push({ tasks: node.tasks, level: depth });
-    } else {
-      currentParent.tasks.push(trimmed);
+  tasks.forEach(task => {
+    // Se a tarefa está em UPPERCASE completo ou começa com "ETAPA" ou "MIGRAÇÃO", é uma seção
+    if (task === task.toUpperCase() || task.startsWith('ETAPA') || task.startsWith('MIGRAÇÃO')) {
+      if (currentSection) {
+        sections.push(currentSection);
+      }
+      currentSection = { section: task, tasks: [] };
+    } else if (currentSection) {
+      currentSection.tasks.push(task);
     }
   });
 
-  return result; 
+  if (currentSection) {
+    sections.push(currentSection);
+  }
+
+  return sections;
 };
 
 // Mapa de produtos com suas tarefas de migração
