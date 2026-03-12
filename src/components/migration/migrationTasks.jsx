@@ -1659,7 +1659,7 @@ export const getDefaultTasksForProduct = (productName) => {
   );
   
   //return key ? migrationTasksByProduct[key] : null;
-  const tasks = migrationTasksByProduct[key]
+  const tasks = migrationTasksByProduct["patrimonio"]
 console.log({tasks})
 return tasks ?? []
 };
