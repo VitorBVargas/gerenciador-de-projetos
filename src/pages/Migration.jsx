@@ -220,15 +220,16 @@ export default function Migration() {
     if (allEntities.length > 0 && !selectedEntity) {
       // Find first entity that has products with migration
       const entityWithProducts = allEntities.find(entity => {
-        const entityProds = products.filter(p => p.entity === entity && productHasMigration(p.name));
+        const entityProds = products.filter(p => p.entity === entity.code && productHasMigration(p.name));
         return entityProds.length > 0;
       });
       
       if (entityWithProducts) {
-        setSelectedEntity(entityWithProducts);
+        setSelectedEntity(entityWithProducts.code);
       } else {
         // Fallback to first entity if none have products
-        const firstEntity = allEntities.find(e => e === 'PM') || allEntities[0];
+        const pmEntity = allEntities.find(e => e.code === 'PM');
+        const firstEntity = pmEntity ? pmEntity.code : allEntities[0].code;
         setSelectedEntity(firstEntity);
       }
     }
