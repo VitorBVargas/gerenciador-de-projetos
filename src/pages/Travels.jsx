@@ -343,42 +343,46 @@ export default function Travels() {
         </div>
       </div>
 
-      {/* Legend + Filters */}
+      {/* Legend */}
       <Card className="bg-slate-800/50 border-slate-700/50">
         <CardContent className="p-4">
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-wrap items-center gap-4">
-              <span className="text-slate-400 font-medium text-sm">Legenda:</span>
-              {[{ type: 'carro', label: 'Carro' }, { type: 'aviao', label: 'Avião' }, { type: 'onibus', label: 'Ônibus' }].map(({ type, label }) => {
-                const Icon = travelTypeIcons[type];
-                return (
-                  <div key={type} className="flex items-center gap-2">
-                    <div className={cn("w-3 h-3 rounded-full", travelTypeColors[type])} />
-                    <Icon className="w-4 h-4 text-slate-400" />
-                    <span className="text-slate-300 text-sm">{label}</span>
-                  </div>
-                );
-              })}
-            </div>
-            <div className="flex items-center gap-2 justify-end">
-              <Input
-                placeholder="Filtrar por nome..."
-                value={calendarFilter.name}
-                onChange={(e) => setCalendarFilter(f => ({ ...f, name: e.target.value }))}
-                className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-500 h-8 text-sm w-44"
-              />
-              <Select value={calendarFilter.vertical || 'all'} onValueChange={(v) => setCalendarFilter(f => ({ ...f, vertical: v === 'all' ? '' : v }))}>
-                <SelectTrigger className="bg-slate-700 border-slate-600 text-white h-8 text-sm w-40">
-                  <SelectValue placeholder="Todas verticais" />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-700 border-slate-600">
-                  <SelectItem value="all">Todas verticais</SelectItem>
-                  {allVerticals.map(v => (
-                    <SelectItem key={v} value={v}>{verticalLabels[v] || v}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="flex flex-wrap items-center gap-4">
+            <span className="text-slate-400 font-medium text-sm">Legenda:</span>
+            {[{ type: 'carro', label: 'Carro' }, { type: 'aviao', label: 'Avião' }, { type: 'onibus', label: 'Ônibus' }].map(({ type, label }) => {
+              const Icon = travelTypeIcons[type];
+              return (
+                <div key={type} className="flex items-center gap-2">
+                  <div className={cn("w-3 h-3 rounded-full", travelTypeColors[type])} />
+                  <Icon className="w-4 h-4 text-slate-400" />
+                  <span className="text-slate-300 text-sm">{label}</span>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Filters */}
+      <Card className="bg-slate-800/50 border-slate-700/50 w-fit">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-2">
+            <Input
+              placeholder="Filtrar por nome..."
+              value={calendarFilter.name}
+              onChange={(e) => setCalendarFilter(f => ({ ...f, name: e.target.value }))}
+              className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-500 h-8 text-sm w-44"
+            />
+            <Select value={calendarFilter.vertical || 'all'} onValueChange={(v) => setCalendarFilter(f => ({ ...f, vertical: v === 'all' ? '' : v }))}>
+              <SelectTrigger className="bg-slate-700 border-slate-600 text-white h-8 text-sm w-40">
+                <SelectValue placeholder="Todas verticais" />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-700 border-slate-600">
+                <SelectItem value="all">Todas verticais</SelectItem>
+                {allVerticals.map(v => (
+                  <SelectItem key={v} value={v}>{verticalLabels[v] || v}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
