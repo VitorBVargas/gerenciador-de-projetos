@@ -23,7 +23,22 @@ Deno.serve(async (req) => {
         let cacheUpdates = 0;
         const summary = [];
 
-        // Atualizar Financial Timeline Cache primeiro
+        // Verificar e sincronizar datas vazias antes de atualizar cache
+        try {
+            const allEvents = await base44.asServiceRole.entities.TimelineEvent.list('-created_date', 5000);
+            const emptyEvents = allEvents.filter(e => 
+                (e.phase === 'go_live' || e.phase === 'operacao_assistida') && 
+                (!e.start_date && !e.end_date)
+            );
+
+            if (emptyEvents.length > 0) {
+                console.log(`⚠️ Encontrados ${emptyEvents.length} eventos críticos sem datas - será necessário preencher manualmente`);
+            }
+        } catch (error) {
+            console.error('Erro ao verificar eventos vazios:', error.message);
+        }
+
+        // Atualizar Financial Timeline Cache
         try {
             await base44.functions.invoke('updateFinancialTimelineCache', {});
         } catch (error) {
