@@ -294,6 +294,34 @@ export default function CrmImporter({ open, onOpenChange, portfolioFilter = 'gra
      console.log('DEBUG: eventos antes de salvar:', JSON.stringify(allEvents.slice(0, 2), null, 2));
      if (allEvents.length > 0) await base44.entities.TimelineEvent.bulkCreate(allEvents);
 
+    // 3.1. Popular ProductFinancialDates com as datas de go_live e operacao_assistida
+    const financialDates = [];
+    createdProducts.forEach((product) => {
+      const crondates = cronogramaByProduct[product.name] || cronogramaByVertical[product.vertical] || {};
+      const crmOperacaoEnd = operacaoAssistidaByProduct[product.name] || null;
+      
+      const goLiveStart = crondates['go_live_start'] ? fixDateTimezoneShift(crondates['go_live_start']) : null;
+      let operacaoEnd = crondates['operacao_assistida_end'] ? fixDateTimezoneShift(crondates['operacao_assistida_end']) : null;
+      if (!operacaoEnd && crmOperacaoEnd) {
+        operacaoEnd = crmOperacaoEnd;
+      }
+      
+      // Criar registro apenas se houver pelo menos uma data
+      if (goLiveStart || operacaoEnd) {
+        financialDates.push({
+          product_id: product.id,
+          project_id: project.id,
+          go_live_date: goLiveStart,
+          operacao_assistida_end_date: operacaoEnd,
+          last_updated: new Date().toISOString()
+        });
+      }
+    });
+    
+    if (financialDates.length > 0) {
+      await base44.entities.ProductFinancialDates.bulkCreate(financialDates);
+    }
+
     // Normalize vertical from PortfolioCollaborator (may have accents/capitals) to TeamMember enum
     const normalizeVertical = (v) => {
       if (!v) return 'gerenciamento';
@@ -358,12 +386,7 @@ export default function CrmImporter({ open, onOpenChange, portfolioFilter = 'gra
       );
     }
 
-    // 7. Atualizar cache financeiro
-    try {
-      await base44.functions.invoke('updateFinancialTimelineCache', {});
-    } catch (err) {
-      console.warn('Erro ao atualizar cache financeiro:', err);
-    }
+    // 7. Não precisa mais atualizar cache - ProductFinancialDates já foi populado
 
     // 8. Redirecionar
     window.location.href = `/dashboard?project_id=${project.id}`;
