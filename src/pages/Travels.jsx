@@ -426,19 +426,23 @@ export default function Travels() {
                   </Button>
                 </div>
               </div>
-              <Card className="bg-slate-800/50 border-slate-700/50 overflow-hidden flex flex-col">
+              <div className="rounded-xl border border-slate-700/50 bg-slate-800/50 overflow-hidden flex flex-col">
                 <div className="flex overflow-hidden flex-1">
                   {/* Sticky left column with names */}
                   <div className="sticky left-0 z-10 flex flex-col flex-shrink-0 w-[180px] border-r border-slate-700/50 bg-slate-800/50">
                     {verticals.map(vertical => (
                       <React.Fragment key={vertical}>
-                        {/* Vertical header */}
-                        <div className="px-4 py-2 text-sm font-semibold text-cyan-400 bg-slate-700/30 border-b border-slate-700/50 h-12 flex items-center">
+                        {/* Vertical header - align with table header height */}
+                        <div className="px-4 py-2 text-sm font-semibold text-cyan-400 bg-slate-700/30 border-b border-slate-700/50 h-10 flex items-center">
                           {verticalLabels[vertical] || vertical}
+                        </div>
+                        {/* Day/week header row - align with table day row */}
+                        <div className="px-4 py-2 text-center text-xs font-medium text-slate-400 border-b border-slate-700/50 h-10 flex items-center invisible">
+                          &nbsp;
                         </div>
                         {/* Members */}
                         {membersByVertical[vertical].map(member => (
-                          <div key={member.id} className="px-4 py-3 text-sm text-white border-b border-slate-700/30 hover:bg-slate-700/20 truncate">
+                          <div key={member.id} className="px-4 py-3 text-sm text-white border-b border-slate-700/30 hover:bg-slate-700/20 truncate h-10 flex items-center">
                             {member.name}
                           </div>
                         ))}
@@ -447,8 +451,8 @@ export default function Travels() {
                   </div>
 
                   {/* Scrollable table area */}
-                  <div className="flex-1 overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-700">
-                    <table className="border-collapse" style={{minWidth: 'max-content'}}>
+                  <div className="flex-1 overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
+                    <table className="border-collapse w-full">
                       <thead>
                         {/* Month headers row */}
                         <tr>
@@ -464,7 +468,7 @@ export default function Travels() {
                               }
                               
                               return (
-                                <th key={day.toString()} className="px-2 py-2 text-center text-xs font-semibold text-cyan-400 min-w-[40px] border-r border-slate-700/20">
+                                <th key={day.toString()} className="px-2 py-2 text-center text-xs font-semibold text-cyan-400 min-w-[40px] border-r border-slate-700/20 h-10">
                                   {shouldShowMonth ? dayMonth.toUpperCase() : ''}
                                 </th>
                               );
@@ -474,7 +478,7 @@ export default function Travels() {
                         {/* Day and weekday row */}
                         <tr className="border-b border-slate-700/50 bg-slate-700/30">
                           {daysInMonth.map(day => (
-                            <th key={day.toString()} className="px-2 py-2 text-center text-xs font-medium text-slate-400 min-w-[40px] border-r border-slate-700/20">
+                            <th key={day.toString()} className="px-2 py-2 text-center text-xs font-medium text-slate-400 min-w-[40px] border-r border-slate-700/20 h-10">
                               <div>{format(day, 'dd')}</div>
                               <div className="text-[10px] text-slate-500">{format(day, 'EEE', { locale: ptBR })}</div>
                             </th>
@@ -485,14 +489,14 @@ export default function Travels() {
                         {verticals.map(vertical => (
                           <React.Fragment key={vertical}>
                             {/* Vertical header row (empty, for alignment) */}
-                            <tr className="bg-slate-700/20 border-b border-slate-700/30">
+                            <tr className="bg-slate-700/20 border-b border-slate-700/30 h-10">
                               {daysInMonth.map(day => (
                                 <td key={day.toString()} className="min-w-[40px] border-r border-slate-700/20"></td>
                               ))}
                             </tr>
                             {/* Member rows */}
                             {membersByVertical[vertical].map(member => (
-                              <tr key={member.id} className="border-b border-slate-700/30 hover:bg-slate-700/20">
+                              <tr key={member.id} className="border-b border-slate-700/30 hover:bg-slate-700/20 h-10">
                                 {daysInMonth.map(day => {
                                   const dayTravels = getTravelsForDay(day).filter(t => 
                                     t.attendees?.includes(member.name)
@@ -520,7 +524,7 @@ export default function Travels() {
                                     <td 
                                       key={day.toString()} 
                                       className={cn(
-                                        "px-1 py-3 text-center border-r border-slate-700/20 cursor-pointer select-none min-w-[40px]",
+                                        "px-1 py-2 text-center border-r border-slate-700/20 cursor-pointer select-none min-w-[40px]",
                                         isInRange && "bg-blue-500/30"
                                       )}
                                       onMouseDown={() => handleMouseDown(day, member)}
@@ -538,7 +542,7 @@ export default function Travels() {
                     </table>
                   </div>
                 </div>
-              </Card>
+              </div>
             </div>
           )}
         </>
