@@ -274,31 +274,15 @@ export default function ExecutiveStatus() {
   };
 
   const calculateProjectProgress = (project) => {
-    // Buscar do cache primeiro (mais rápido e evita recálculos)
+    // Usar APENAS cache, sem fallback
     const cache = allProgressCache.find(c => c.project_id === project.id);
-    if (cache && typeof cache.overall_progress === 'number') {
-      return Math.round(cache.overall_progress);
-    }
-
-    // Fallback: calcular se cache não existir
-    const projectEvents = getProjectEvents(project);
-    if (projectEvents.length === 0) return 0;
-    const total = projectEvents.reduce((sum, e) => sum + calcEventProgress(e), 0);
-    return Math.round(total / projectEvents.length);
+    return cache?.overall_progress ? Math.round(cache.overall_progress) : 0;
   };
 
   const getProjectOverallProgress = (project) => {
-    // Buscar do cache de progresso geral (todas as entidades) - mais rápido
+    // Usar APENAS cache, sem fallback
     const cache = allOverallProgressCache.find(c => c.project_id === project.id);
-    if (cache && typeof cache.overall_progress === 'number') {
-      return Math.round(cache.overall_progress);
-    }
-
-    // Fallback: calcular com TODOS os eventos do projeto se cache não existir
-    const projectEvents = getProjectEvents(project);
-    if (projectEvents.length === 0) return 0;
-    const total = projectEvents.reduce((sum, e) => sum + calcEventProgress(e), 0);
-    return Math.round(total / projectEvents.length);
+    return cache?.overall_progress ? Math.round(cache.overall_progress) : 0;
   };
 
   // Classify project status based on health score only (igual aos cards)
