@@ -445,7 +445,7 @@ export default function ExecutiveStatus() {
     }
 
     // Usar cache financeiro para go-live
-    allProjectsData.filter(p => p.status !== 'concluido').forEach(project => {
+    projects.forEach(project => {
       const projectProducts = allProducts.filter(p => p.project_id === project.id);
       if (!projectProducts.length) return;
       
