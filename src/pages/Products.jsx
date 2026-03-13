@@ -242,6 +242,31 @@ export default function Products() {
     });
   }
 
+  // Función para ordenar entidades: Prefeitura, Câmara, CM, depois outras
+  const sortEntities = (entitiesArray) => {
+    return entitiesArray.sort((a, b) => {
+      const aFullName = a.fullName.toLowerCase();
+      const bFullName = b.fullName.toLowerCase();
+      const aCode = a.code.toLowerCase();
+      const bCode = b.code.toLowerCase();
+      
+      // Prefeitura primeiro
+      if (aFullName.includes('prefeitura') && !bFullName.includes('prefeitura')) return -1;
+      if (!aFullName.includes('prefeitura') && bFullName.includes('prefeitura')) return 1;
+      
+      // Câmara segundo
+      if (aFullName.includes('câmara') && !bFullName.includes('câmara')) return -1;
+      if (!aFullName.includes('câmara') && bFullName.includes('câmara')) return 1;
+      
+      // CM terceiro
+      if (aCode === 'cm' && bCode !== 'cm') return -1;
+      if (aCode !== 'cm' && bCode === 'cm') return 1;
+      
+      // Outras em ordem alfabética
+      return aFullName.localeCompare(bFullName);
+    });
+  };
+
   // Unique entities for filter - com nomes completos
   const entityMap = new Map();
   products.forEach(p => {
@@ -249,13 +274,12 @@ export default function Products() {
       entityMap.set(p.entity, p.entity_full_name || p.entity);
     }
   });
-  const entities = Array.from(entityMap.entries()).map(([code, fullName]) => ({ code, fullName }));
+  const entities = sortEntities(Array.from(entityMap.entries()).map(([code, fullName]) => ({ code, fullName })));
   
   // Auto-select first entity if none selected
   React.useEffect(() => {
     if (entities.length > 0 && !selectedEntity) {
-      const pmEntity = entities.find(e => e.code === 'PM');
-      const firstEntity = pmEntity ? pmEntity.code : entities[0].code;
+      const firstEntity = entities[0].code;
       setSelectedEntity(firstEntity);
     }
   }, [entities.length]);
