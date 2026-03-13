@@ -515,7 +515,7 @@ export default function Travels() {
                             {/* Vertical Header Row */}
                             <tr className="bg-slate-700/15 border-b border-slate-700/30">
                               {daysInMonth.map(day => (
-                                <td key={day.toString()} className="min-w-[48px] h-12 border-r border-slate-700/20"></td>
+                                <td key={day.toString()} className="w-12 h-12 border-r border-slate-700/20 p-0"></td>
                               ))}
                             </tr>
 
@@ -540,7 +540,7 @@ export default function Travels() {
                                       <td 
                                         key={day.toString()}
                                         className={cn(
-                                          "px-1 py-3 text-center border-r border-slate-700/20 cursor-pointer select-none min-w-[48px] h-12",
+                                          "border-r border-slate-700/20 cursor-pointer select-none w-12 h-12 p-0 flex items-center justify-center",
                                           isInRange && "bg-blue-500/30"
                                         )}
                                         onMouseDown={() => handleMouseDown(day, member)}
@@ -549,7 +549,7 @@ export default function Travels() {
                                         {travel && (
                                           <div
                                             className={cn(
-                                              "w-8 h-8 mx-auto rounded-full flex items-center justify-center cursor-pointer transition-transform hover:scale-110 font-bold text-xs text-white",
+                                              "w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-transform hover:scale-110 font-bold text-xs text-white",
                                               travelTypeColors[travel.travel_type]
                                             )}
                                             onClick={(e) => { e.stopPropagation(); handleEdit(travel); }}
