@@ -421,14 +421,35 @@ export default function Travels() {
                   </Button>
                 </div>
               </div>
-              <div style={{overflowX: 'auto'}} className="relative">
-                   <table className="border-collapse w-full" style={{minWidth: 'max-content'}}>
+              <div className="flex gap-4">
+                {/* Sticky left column */}
+                <div className="flex flex-col bg-slate-800 border border-slate-700/50 rounded-lg overflow-hidden">
+                  {/* Month header */}
+                  <div className="px-4 py-2 text-sm font-semibold text-slate-400 border-b border-slate-700/50 min-w-[180px] w-[180px]">
+                    Período
+                  </div>
+                  {/* Vertical headers and member names */}
+                  {verticals.map(vertical => (
+                    <React.Fragment key={vertical}>
+                      <div className="px-4 py-2 text-sm font-semibold text-cyan-400 bg-slate-700/30 border-b border-slate-700/50 min-w-[180px] w-[180px]">
+                        {verticalLabels[vertical] || vertical}
+                      </div>
+                      {membersByVertical[vertical].map(member => (
+                        <div key={member.id} className="px-4 py-3 text-sm text-white border-b border-slate-700/30 hover:bg-slate-700/20 min-w-[180px] w-[180px] truncate">
+                          {member.name}
+                        </div>
+                      ))}
+                    </React.Fragment>
+                  ))}
+                </div>
+
+                {/* Scrollable table */}
+                <div className="flex-1 flex flex-col">
+                  <div style={{overflowX: 'auto'}} className="relative flex-1">
+                    <table className="border-collapse w-full" style={{minWidth: 'max-content'}}>
                       <thead>
                         {/* Month headers row */}
                         <tr className="border-b border-slate-700/50">
-                          <th className="sticky left-0 z-30 bg-slate-800 px-4 py-2 text-left text-sm font-semibold text-slate-400 min-w-[180px] w-[180px] border-r border-slate-700/50">
-                            Período
-                          </th>
                           {(() => {
                             let currentDisplayMonth = null;
                             return daysInMonth.map(day => {
@@ -448,27 +469,20 @@ export default function Travels() {
                             });
                           })()}
                         </tr>
-
                       </thead>
                       <tbody>
                         {verticals.map(vertical => (
                           <React.Fragment key={vertical}>
                             <tr className="bg-slate-700/30">
-                               <td className="sticky left-0 z-30 px-4 py-2 text-sm font-semibold text-cyan-400 bg-slate-800 min-w-[180px] w-[180px]">
-                                 {verticalLabels[vertical] || vertical}
-                               </td>
-                               {daysInMonth.map(day => (
-                                 <td key={day.toString()} className="px-2 py-2 text-center text-xs font-medium text-slate-400 min-w-[40px] border-r border-slate-700/20 bg-slate-700/30">
-                                   <div>{format(day, 'dd')}</div>
-                                   <div className="text-[10px] text-slate-500">{format(day, 'EEE', { locale: ptBR })}</div>
-                                 </td>
-                               ))}
-                             </tr>
+                              {daysInMonth.map(day => (
+                                <td key={day.toString()} className="px-2 py-2 text-center text-xs font-medium text-slate-400 min-w-[40px] border-r border-slate-700/20 bg-slate-700/30">
+                                  <div>{format(day, 'dd')}</div>
+                                  <div className="text-[10px] text-slate-500">{format(day, 'EEE', { locale: ptBR })}</div>
+                                </td>
+                              ))}
+                            </tr>
                             {membersByVertical[vertical].map(member => (
                               <tr key={member.id} className="border-b border-slate-700/30 hover:bg-slate-700/20">
-                                <td className="sticky left-0 z-30 bg-slate-800 px-4 py-3 text-sm text-white border-r border-slate-700/50 min-w-[180px] w-[180px]">
-                                  {member.name}
-                                </td>
                                 {daysInMonth.map(day => {
                                   const dayTravels = getTravelsForDay(day).filter(t => 
                                     t.attendees?.includes(member.name)
@@ -530,6 +544,8 @@ export default function Travels() {
                         ))}
                       </tbody>
                     </table>
+                  </div>
+                </div>
               </div>
             </div>
           )}
