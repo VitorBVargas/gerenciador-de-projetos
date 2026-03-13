@@ -15,7 +15,8 @@ import {
   Car,
   Home,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Bus
 } from 'lucide-react';
 import { 
   format, 
@@ -57,19 +58,22 @@ import {
 const travelTypeIcons = {
   presencial: Car,
   carro: Car,
-  aviao: Plane
+  aviao: Plane,
+  onibus: Bus
 };
 
 const travelTypeColors = {
   presencial: 'bg-blue-500',
   carro: 'bg-blue-500',
-  aviao: 'bg-purple-500'
+  aviao: 'bg-purple-500',
+  onibus: 'bg-green-500'
 };
 
 const travelTypeLabels = {
   presencial: 'Carro',
   carro: 'Carro',
-  aviao: 'Avião'
+  aviao: 'Avião',
+  onibus: 'Ônibus'
 };
 
 const verticalLabels = {
@@ -332,7 +336,7 @@ export default function Travels() {
         <CardContent className="p-4">
           <div className="flex flex-wrap items-center gap-4">
             <span className="text-slate-400 font-medium text-sm">Legenda:</span>
-            {[{ type: 'carro', label: 'Carro' }, { type: 'aviao', label: 'Avião' }].map(({ type, label }) => {
+            {[{ type: 'carro', label: 'Carro' }, { type: 'aviao', label: 'Avião' }, { type: 'onibus', label: 'Ônibus' }].map(({ type, label }) => {
               const Icon = travelTypeIcons[type];
               return (
                 <div key={type} className="flex items-center gap-2">
@@ -701,6 +705,7 @@ export default function Travels() {
                   <SelectContent className="bg-slate-700 border-slate-600">
                     <SelectItem value="carro">Carro</SelectItem>
                     <SelectItem value="aviao">Avião</SelectItem>
+                    <SelectItem value="onibus">Ônibus</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
