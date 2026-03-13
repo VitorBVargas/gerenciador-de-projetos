@@ -59,8 +59,15 @@ Deno.serve(async (req) => {
 
                 // Calcular progresso: média dos progresses individuais
                 const calcEventProgress = (event) => {
+                    // 1. Concluído = 100%
                     if (event.status === 'concluido') return 100;
+                    
+                    // 2. Não Iniciado = 0% (não importa se tem data ou progresso manual)
+                    if (event.status === 'nao_iniciado') return 0;
+                    
+                    // 3. Em Andamento ou Atrasado: usa progresso manual OU cálculo por data
                     if (event.progress > 0) return event.progress;
+                    
                     if (event.start_date && event.end_date) {
                         const now = new Date();
                         const start = new Date(event.start_date);
@@ -69,6 +76,7 @@ Deno.serve(async (req) => {
                         if (now >= end) return 99;
                         return Math.round(((now - start) / (end - start)) * 100);
                     }
+                    
                     return 0;
                 };
 
