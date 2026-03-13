@@ -147,46 +147,18 @@ export default function ExecutiveStatus() {
       enabled: !loadingCronogramas
     });
 
-    // Fetch all tasks - necessário para calcular health score corretamente
-    const { data: allHomologationTasks = [], isLoading: loadingHomolog } = useQuery({
-      queryKey: ['allHomologationTasks', portfolioFilter],
-      queryFn: () => base44.entities.HomologationTask.list('-created_date', 500),
-      staleTime: 5 * 60 * 1000,
-      gcTime: 30 * 60 * 1000,
-      enabled: !loadingEvents
-    });
-
-    const { data: allMigrationTasks = [], isLoading: loadingMigration } = useQuery({
-      queryKey: ['allMigrationTasks', portfolioFilter],
-      queryFn: () => base44.entities.MigrationTask.list('-created_date', 500),
-      staleTime: 5 * 60 * 1000,
-      gcTime: 30 * 60 * 1000,
-      enabled: !loadingHomolog
-    });
-
-    // Fetch all risks
-    const { data: allRisks = [], isLoading: loadingRisks } = useQuery({
-      queryKey: ['allRisks', portfolioFilter],
-      queryFn: () => base44.entities.Risk.list('-created_date', 500),
-      staleTime: 5 * 60 * 1000,
-      gcTime: 30 * 60 * 1000,
-      enabled: !loadingMigration
-    });
-
-    const { data: allExpenses = [], isLoading: loadingExpenses } = useQuery({
-      queryKey: ['allExpenses', portfolioFilter],
-      queryFn: () => base44.entities.Expense.list('-created_date', 1000),
-      staleTime: 5 * 60 * 1000,
-      gcTime: 30 * 60 * 1000,
-      enabled: !loadingRisks
-    });
+    // Remover carregamentos desnecessários para ExecutiveStatus
+    const allHomologationTasks = [];
+    const allMigrationTasks = [];
+    const allRisks = [];
+    const allExpenses = [];
 
     const { data: allProducts = [], isLoading: loadingProducts } = useQuery({
       queryKey: ['allProducts', portfolioFilter],
       queryFn: () => base44.entities.Product.list('-created_date', 1000),
       staleTime: 5 * 60 * 1000,
       gcTime: 30 * 60 * 1000,
-      enabled: !loadingExpenses
+      enabled: !loadingEvents
     });
 
     const { data: allRecognizedRevenues = [], isLoading: loadingRevenues } = useQuery({
@@ -221,8 +193,8 @@ export default function ExecutiveStatus() {
       enabled: !loadingProgressCache
     });
 
-  // Loading global: aguarda TODOS os dados críticos carregarem + recalculo
-  const isLoading = isRecalculating || loadingProjects || loadingCronogramas || loadingEvents || loadingHomolog || loadingMigration || loadingRisks || loadingExpenses || loadingProducts || loadingRevenues || loadingProgressCache || loadingOverallProgressCache || loadingFinancialCache;
+  // Loading global: aguarda APENAS os dados essenciais + recalculo
+  const isLoading = isRecalculating || loadingProjects || loadingCronogramas || loadingEvents || loadingProducts || loadingRevenues || loadingProgressCache || loadingOverallProgressCache || loadingFinancialCache;
 
   const createRecognizedRevenueMutation = useMutation({
     mutationFn: (data) => base44.entities.RecognizedRevenue.create(data),
@@ -626,19 +598,15 @@ export default function ExecutiveStatus() {
     return 'bg-red-500/20 border-red-500/30';
   };
 
-  // Contagem de etapas carregadas para barra de progresso
+  // Contagem de etapas carregadas para barra de progresso (apenas essenciais)
   const loadingSteps = [
     { label: 'Projetos', done: !loadingProjects },
     { label: 'Cronogramas', done: !loadingCronogramas },
-    { label: 'Etapas do cronograma', done: !loadingEvents },
-    { label: 'Tarefas de homologação', done: !loadingHomolog },
-    { label: 'Tarefas de migração', done: !loadingMigration },
-    { label: 'Riscos', done: !loadingRisks },
-    { label: 'Despesas', done: !loadingExpenses },
+    { label: 'Timeline', done: !loadingEvents },
     { label: 'Produtos', done: !loadingProducts },
-    { label: 'Receitas reconhecidas', done: !loadingRevenues },
-    { label: 'Cache financeiro', done: !loadingFinancialCache },
-    { label: 'Sincronizando caches', done: !isRecalculating },
+    { label: 'Receitas', done: !loadingRevenues },
+    { label: 'Cache', done: !loadingFinancialCache },
+    { label: 'Sincronizando', done: !isRecalculating },
   ];
   const loadedCount = loadingSteps.filter(s => s.done).length;
   const loadingPercent = Math.round((loadedCount / loadingSteps.length) * 100);
