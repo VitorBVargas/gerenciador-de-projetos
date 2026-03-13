@@ -62,35 +62,7 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
     });
   }
 
-  // --- 2. MIGRATION & HOMOLOGATION (35 pts) ---
-  const allTasks = [...migrationTasks, ...homologationTasks];
-  if (allTasks.length > 0) {
-    const completedTasks = allTasks.filter(t => t.completed).length;
-    const rate = completedTasks / allTasks.length;
-    const progressDeduction = Math.round((1 - rate) * 35);
-    score -= progressDeduction;
 
-    // Find products with 0% completion
-    if (products && products.length > 0) {
-      const laggingProducts = products.filter(p => {
-        const pMig = migrationTasks.filter(t => t.product_id === p.id);
-        const pHom = homologationTasks.filter(t => t.product_id === p.id);
-        const pAll = [...pMig, ...pHom];
-        if (pAll.length === 0) return false;
-        const done = pAll.filter(t => t.completed).length;
-        return done === 0;
-      });
-
-      if (laggingProducts.length > 0) {
-        const names = laggingProducts.slice(0, 3).map(p => p.name).join(', ');
-        alerts.push({
-          severity: 'medium',
-          text: `${laggingProducts.length} produto${laggingProducts.length > 1 ? 's' : ''} sem progresso`,
-          detail: names + (laggingProducts.length > 3 ? ` e mais ${laggingProducts.length - 3}` : '')
-        });
-      }
-    }
-  }
 
   // --- 4. RISKS (20 pts) ---
   if (risks.length > 0) {
