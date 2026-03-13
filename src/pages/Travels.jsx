@@ -497,37 +497,10 @@ export default function Travels() {
                               }}
                             >
                               {daysInMonth.map((day, idx) => (
-                                <div key={`sep-${idx}`} className="border-r border-slate-700/20 flex items-center justify-center text-[9px] text-slate-400 h-full">
+                                <div key={`sep-${idx}`} className="border-r border-slate-700/20 flex items-center justify-center text-xs font-semibold text-blue-400 h-full">
                                   {format(day, 'dd/MM')}
                                 </div>
                               ))}
-
-                              {/* Timeline Events for this Vertical */}
-                              {verticalEvents.map((event) => {
-                                if (!event.start_date) return null;
-                                const startDate = parseISO(event.start_date);
-                                const endDate = event.end_date ? parseISO(event.end_date) : startDate;
-                                const firstDayOfMonth = startOfMonth(currentMonth);
-                                const startDayIdx = Math.max(0, differenceInDays(startDate, firstDayOfMonth));
-                                const endDayIdx = Math.min(daysInMonth.length - 1, differenceInDays(endDate, firstDayOfMonth));
-
-                                if (startDayIdx > daysInMonth.length - 1 || endDayIdx < 0) return null;
-
-                                const width = (endDayIdx - startDayIdx + 1) * 48 - 4;
-
-                                return (
-                                  <div
-                                    key={`timeline-${event.id}`}
-                                    className="absolute top-1/2 transform -translate-y-1/2 h-1 bg-red-500 rounded-full"
-                                    style={{
-                                      left: `${startDayIdx * 48 + 2}px`,
-                                      width: `${width}px`,
-                                      zIndex: 10
-                                    }}
-                                    title={event.title}
-                                  />
-                                );
-                              })}
                             </div>
                           )}
 
