@@ -560,7 +560,7 @@ export default function ExecutiveStatus() {
     { label: 'Timeline', done: !loadingEvents },
     { label: 'Produtos', done: !loadingProducts },
     { label: 'Receitas', done: !loadingRevenues },
-    { label: 'Cache', done: !loadingFinancialCache },
+    { label: 'Datas Financeiras', done: !loadingFinancialDates },
     { label: 'Sincronizando', done: !isRecalculating },
   ];
   const loadedCount = loadingSteps.filter(s => s.done).length;
