@@ -189,11 +189,25 @@ export default function Timeline() {
   const allEntities = Array.from(entityMap.entries())
     .map(([code, fullName]) => ({ code, fullName }))
     .sort((a, b) => {
-      if (a.code === 'PM') return -1;
-      if (b.code === 'PM') return 1;
-      if (a.code === 'CM') return -1;
-      if (b.code === 'CM') return 1;
-      return a.code.localeCompare(b.code);
+      const aFullName = a.fullName.toLowerCase();
+      const bFullName = b.fullName.toLowerCase();
+      const aCode = a.code.toLowerCase();
+      const bCode = b.code.toLowerCase();
+      
+      // Prefeitura primeiro
+      if (aFullName.includes('prefeitura') && !bFullName.includes('prefeitura')) return -1;
+      if (!aFullName.includes('prefeitura') && bFullName.includes('prefeitura')) return 1;
+      
+      // Câmara segundo
+      if (aFullName.includes('câmara') && !bFullName.includes('câmara')) return -1;
+      if (!aFullName.includes('câmara') && bFullName.includes('câmara')) return 1;
+      
+      // CM terceiro
+      if (aCode === 'cm' && bCode !== 'cm') return -1;
+      if (aCode !== 'cm' && bCode === 'cm') return 1;
+      
+      // Outras em ordem alfabética
+      return aFullName.localeCompare(bFullName);
     });
   
   const entityProducts = selectedEntity
