@@ -343,49 +343,54 @@ export default function Travels() {
         </div>
       </div>
 
-      {/* Legend */}
-      <Card className="bg-slate-800/50 border-slate-700/50">
-        <CardContent className="p-4">
-          <div className="flex flex-wrap items-center gap-4">
-            <span className="text-slate-400 font-medium text-sm">Legenda:</span>
-            {[{ type: 'carro', label: 'Carro' }, { type: 'aviao', label: 'Avião' }, { type: 'onibus', label: 'Ônibus' }].map(({ type, label }) => {
-              const Icon = travelTypeIcons[type];
-              return (
-                <div key={type} className="flex items-center gap-2">
-                  <div className={cn("w-3 h-3 rounded-full", travelTypeColors[type])} />
-                  <Icon className="w-4 h-4 text-slate-400" />
-                  <span className="text-slate-300 text-sm">{label}</span>
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex gap-4">
+        {/* Left section */}
+        <div className="flex flex-col gap-4">
+          {/* Legend */}
+          <Card className="bg-slate-800/50 border-slate-700/50">
+            <CardContent className="p-4">
+              <div className="flex flex-wrap items-center gap-4">
+                <span className="text-slate-400 font-medium text-sm">Legenda:</span>
+                {[{ type: 'carro', label: 'Carro' }, { type: 'aviao', label: 'Avião' }, { type: 'onibus', label: 'Ônibus' }].map(({ type, label }) => {
+                  const Icon = travelTypeIcons[type];
+                  return (
+                    <div key={type} className="flex items-center gap-2">
+                      <div className={cn("w-3 h-3 rounded-full", travelTypeColors[type])} />
+                      <Icon className="w-4 h-4 text-slate-400" />
+                      <span className="text-slate-300 text-sm">{label}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
 
-      {/* Filters */}
-      <Card className="bg-slate-800/50 border-slate-700/50 w-fit">
-        <CardContent className="p-4">
-          <div className="flex items-center gap-2">
-            <Input
-              placeholder="Filtrar por nome..."
-              value={calendarFilter.name}
-              onChange={(e) => setCalendarFilter(f => ({ ...f, name: e.target.value }))}
-              className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-500 h-8 text-sm w-44"
-            />
-            <Select value={calendarFilter.vertical || 'all'} onValueChange={(v) => setCalendarFilter(f => ({ ...f, vertical: v === 'all' ? '' : v }))}>
-              <SelectTrigger className="bg-slate-700 border-slate-600 text-white h-8 text-sm w-40">
-                <SelectValue placeholder="Todas verticais" />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-700 border-slate-600">
-                <SelectItem value="all">Todas verticais</SelectItem>
-                {allVerticals.map(v => (
-                  <SelectItem key={v} value={v}>{verticalLabels[v] || v}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+          {/* Filters */}
+          <Card className="bg-slate-800/50 border-slate-700/50 w-fit">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2">
+                <Input
+                  placeholder="Filtrar por nome..."
+                  value={calendarFilter.name}
+                  onChange={(e) => setCalendarFilter(f => ({ ...f, name: e.target.value }))}
+                  className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-500 h-8 text-sm w-44"
+                />
+                <Select value={calendarFilter.vertical || 'all'} onValueChange={(v) => setCalendarFilter(f => ({ ...f, vertical: v === 'all' ? '' : v }))}>
+                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white h-8 text-sm w-40">
+                    <SelectValue placeholder="Todas verticais" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-700 border-slate-600">
+                    <SelectItem value="all">Todas verticais</SelectItem>
+                    {allVerticals.map(v => (
+                      <SelectItem key={v} value={v}>{verticalLabels[v] || v}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
 
       {viewMode === 'calendar' ? (
         <>
@@ -422,29 +427,33 @@ export default function Travels() {
                 </div>
               </div>
               <div className="flex gap-4">
-                {/* Sticky left column */}
-                <div className="flex flex-col bg-slate-800 border border-slate-700/50 rounded-lg overflow-hidden">
-                  {/* Month header */}
-                  <div className="px-4 py-2 text-sm font-semibold text-slate-400 border-b border-slate-700/50 min-w-[180px] w-[180px]">
-                    Período
-                  </div>
-                  {/* Vertical headers and member names */}
-                  {verticals.map(vertical => (
-                    <React.Fragment key={vertical}>
-                      <div className="px-4 py-2 text-sm font-semibold text-cyan-400 bg-slate-700/30 border-b border-slate-700/50 min-w-[180px] w-[180px]">
-                        {verticalLabels[vertical] || vertical}
-                      </div>
-                      {membersByVertical[vertical].map(member => (
-                        <div key={member.id} className="px-4 py-3 text-sm text-white border-b border-slate-700/30 hover:bg-slate-700/20 min-w-[180px] w-[180px] truncate">
-                          {member.name}
+                {/* Left column container - card styling */}
+                <Card className="bg-slate-800/50 border-slate-700/50 overflow-hidden flex flex-col">
+                  {/* Sticky left column content */}
+                  <div className="flex flex-col">
+                    {/* Month header */}
+                    <div className="px-4 py-2 text-sm font-semibold text-slate-400 border-b border-slate-700/50 min-w-[180px] w-[180px]">
+                      Período
+                    </div>
+                    {/* Vertical headers and member names */}
+                    {verticals.map(vertical => (
+                      <React.Fragment key={vertical}>
+                        <div className="px-4 py-2 text-sm font-semibold text-cyan-400 bg-slate-700/30 border-b border-slate-700/50 min-w-[180px] w-[180px]">
+                          {verticalLabels[vertical] || vertical}
                         </div>
-                      ))}
-                    </React.Fragment>
-                  ))}
-                </div>
+                        {membersByVertical[vertical].map(member => (
+                          <div key={member.id} className="px-4 py-3 text-sm text-white border-b border-slate-700/30 hover:bg-slate-700/20 min-w-[180px] w-[180px] truncate">
+                            {member.name}
+                          </div>
+                        ))}
+                      </React.Fragment>
+                    ))}
+                  </div>
+                </Card>
 
-                {/* Scrollable table */}
-                <div className="flex-1 flex flex-col">
+                {/* Right column container - card styling */}
+                <Card className="bg-slate-800/50 border-slate-700/50 flex-1 overflow-hidden flex flex-col">
+                  {/* Scrollable table */}
                   <div style={{overflowX: 'auto'}} className="relative flex-1">
                     <table className="border-collapse w-full" style={{minWidth: 'max-content'}}>
                       <thead>
@@ -545,7 +554,7 @@ export default function Travels() {
                       </tbody>
                     </table>
                   </div>
-                </div>
+                </Card>
               </div>
             </div>
           )}
