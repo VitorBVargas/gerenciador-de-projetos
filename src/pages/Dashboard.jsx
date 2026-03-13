@@ -343,8 +343,13 @@ export default function Dashboard() {
     cronogramas
   });
 
-  // Cache é atualizado automaticamente pela função recalculateAllCaches
-  // Não atualizar manualmente aqui para evitar sobrescrever valores corretos
+  // Recalcular cache ao entrar no Dashboard
+  React.useEffect(() => {
+    if (projectId) {
+      base44.functions.invoke('recalculateAllCaches', {})
+        .catch(err => console.error('Erro ao recalcular caches:', err));
+    }
+  }, [projectId]);
 
   React.useEffect(() => {
     if (projectId && healthScore >= 0) {
