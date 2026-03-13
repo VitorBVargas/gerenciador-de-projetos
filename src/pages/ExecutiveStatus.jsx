@@ -390,8 +390,8 @@ export default function ExecutiveStatus() {
       map[key] = [];
     }
 
-    // Usar cache financeiro para go-live
-    projects.forEach(project => {
+    // Usar TODOS os projetos ativos (não concluídos) do portfólio
+    allProjectsData.filter(p => p.portfolio === portfolioFilter && p.status !== 'concluido').forEach(project => {
       const projectProducts = allProducts.filter(p => p.project_id === project.id);
       if (!projectProducts.length) return;
       
@@ -404,7 +404,7 @@ export default function ExecutiveStatus() {
       });
     });
     return map;
-  }, [allProducts, allFinancialCache, allRecognizedRevenues, allProjectsData]);
+  }, [allProducts, allFinancialCache, allRecognizedRevenues, allProjectsData, portfolioFilter]);
 
   // Financeiro chart data usando FinancialTimelineCache
   const financeiroChartContent = useMemo(() => {
@@ -446,7 +446,8 @@ export default function ExecutiveStatus() {
     }
 
     const implantacaoProductsMap = {};
-    projects.forEach(project => {
+    // Usar TODOS os projetos ativos do portfólio
+    allProjectsData.filter(p => p.portfolio === portfolioFilter && p.status !== 'concluido').forEach(project => {
       const projectProducts = allProducts.filter(p => p.project_id === project.id);
       if (!projectProducts.length) return;
 
@@ -489,8 +490,8 @@ export default function ExecutiveStatus() {
       monthlyData[monthKey].a_receber = Math.max(0, totalImplValue - totalRecognized);
     });
 
-    // Usar cache para recorrente (com fallback)
-    projects.forEach(project => {
+    // Usar cache para recorrente (com fallback) - TODOS os projetos ativos
+    allProjectsData.filter(p => p.portfolio === portfolioFilter && p.status !== 'concluido').forEach(project => {
       const projectProducts = allProducts.filter(p => p.project_id === project.id && (p.inclusion_value || 0) > 0);
       if (!projectProducts.length) return;
       
@@ -530,7 +531,7 @@ export default function ExecutiveStatus() {
       .map(([, value]) => value);
 
     return { monthlyData, chartData };
-  }, [projects, allProducts, allFinancialCache, allRecognizedRevenues, allProjectsData]);
+  }, [allProjectsData, allProducts, allFinancialCache, allRecognizedRevenues, portfolioFilter]);
 
   // Calculate project with health status
   const projectsWithMetrics = useMemo(() => {
