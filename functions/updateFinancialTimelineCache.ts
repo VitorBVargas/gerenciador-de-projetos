@@ -4,44 +4,52 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
+    // 1. Limpar cache existente
+    const existingCache = await base44.asServiceRole.entities.FinancialTimelineCache.list('', 10000);
+    const deletePromises = existingCache.map(c => base44.asServiceRole.entities.FinancialTimelineCache.delete(c.id));
+    await Promise.all(deletePromises);
+    
+    // 2. Buscar dados
     const allTimelineEvents = await base44.asServiceRole.entities.TimelineEvent.list('-created_date', 5000);
     const allProducts = await base44.asServiceRole.entities.Product.list('-created_date', 5000);
+    const allCronogramas = await base44.asServiceRole.entities.Cronograma.list('-created_date', 1000);
     
-    // Index events by product_id para acesso rápido
-    const eventsByProductId = {};
-    const eventsByProjectId = {};
-    
+    // 3. Index por project + vertical
+    const eventsByProjectVertical = {};
     allTimelineEvents.forEach(e => {
-      if (e.product_id) {
-        if (!eventsByProductId[e.product_id]) eventsByProductId[e.product_id] = [];
-        eventsByProductId[e.product_id].push(e);
-      }
-      if (e.project_id) {
-        if (!eventsByProjectId[e.project_id]) eventsByProjectId[e.project_id] = [];
-        eventsByProjectId[e.project_id].push(e);
-      }
+      const key = `${e.project_id}_${e.vertical || 'default'}`;
+      if (!eventsByProjectVertical[key]) eventsByProjectVertical[key] = [];
+      eventsByProjectVertical[key].push(e);
     });
     
-    const cachesToCreate = allProducts.map(product => {
-      // Busca events do produto
-      const productEvents = eventsByProductId[product.id] || [];
+    // 4. Criar cache apenas para produtos que pertencem a cronogramas existentes
+    const cachesToCreate = [];
+    allProducts.forEach(product => {
+      // Busca cronograma deste produto
+      const cronograma = allCronogramas.find(c => 
+        c.project_id === product.project_id && c.vertical === product.vertical
+      );
       
-      // Se não encontrar por product_id, usa events do projeto
-      const eventsToSearch = productEvents.length > 0 ? productEvents : (eventsByProjectId[product.project_id] || []);
+      if (!cronograma) return; // Pula produtos sem cronograma
       
-      const operacaoEvent = eventsToSearch.find(e => e.phase === 'operacao_assistida' && e.end_date);
-      const goLiveEvent = eventsToSearch.find(e => e.phase === 'go_live' && (e.start_date || e.end_date));
+      // Busca events por project + vertical
+      const key = `${product.project_id}_${product.vertical}`;
+      const events = eventsByProjectVertical[key] || [];
       
-      return {
+      const operacaoEvent = events.find(e => e.phase === 'operacao_assistida' && e.end_date);
+      const goLiveEvent = events.find(e => e.phase === 'go_live' && (e.start_date || e.end_date));
+      
+      cachesToCreate.push({
         project_id: product.project_id,
         product_id: product.id,
         implantacao_end_date: operacaoEvent?.end_date || null,
         go_live_start_date: goLiveEvent?.start_date || null,
         go_live_end_date: goLiveEvent?.end_date || null,
         last_updated: new Date().toISOString()
-      };
+      });
     });
     
+    // 5. Bulk create
     if (cachesToCreate.length > 0) {
       await base44.asServiceRole.entities.FinancialTimelineCache.bulkCreate(cachesToCreate);
     }
