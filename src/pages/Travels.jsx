@@ -490,7 +490,7 @@ export default function Travels() {
                               }
                               
                               return (
-                                <th key={day.toString()} className="px-2 py-2 text-center text-xs font-semibold text-cyan-400/70 min-w-[48px] h-6 border-r border-slate-700/20 bg-slate-700/30">
+                                <th key={day.toString()} className="px-0 py-0 text-center text-xs font-semibold text-cyan-400/70 w-12 h-6 border-r border-slate-700/20 bg-slate-700/30 flex items-center justify-center">
                                   {shouldShowMonth ? dayMonth.toUpperCase() : ''}
                                 </th>
                               );
@@ -501,7 +501,7 @@ export default function Travels() {
                         {/* Day Header Row */}
                         <tr className="bg-slate-700/20 border-b border-slate-700/50">
                           {daysInMonth.map(day => (
-                            <th key={day.toString()} className="px-2 py-2 text-center text-xs font-medium text-slate-400 min-w-[48px] h-12 border-r border-slate-700/20">
+                            <th key={day.toString()} className="px-0 py-0 text-center text-xs font-medium text-slate-400 w-12 h-12 border-r border-slate-700/20 flex flex-col items-center justify-center">
                               <div className="font-bold">{format(day, 'dd')}</div>
                               <div className="text-[10px] text-slate-500">{format(day, 'EEE', { locale: ptBR })}</div>
                             </th>
