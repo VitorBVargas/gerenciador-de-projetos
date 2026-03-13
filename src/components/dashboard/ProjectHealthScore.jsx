@@ -22,12 +22,12 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
   const alerts = []; // { severity: 'high'|'medium'|'good', text, detail }
 
   // --- 1. TIMELINE (40 pts) ---
-  // Etapas que já passaram da data fim (não apenas com status === 'atrasado')
+  // Etapas que já passaram da data fim E não foram concluídas
   const now = new Date();
   const overdueEvents = timeline.filter(e => {
     if (!e.end_date) return false;
     const endDate = new Date(e.end_date);
-    return endDate < now;
+    return endDate < now && e.status !== 'concluido';
   });
 
   const delayCost = overdueEvents.length * 3;
