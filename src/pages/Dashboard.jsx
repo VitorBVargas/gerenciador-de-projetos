@@ -299,23 +299,30 @@ export default function Dashboard() {
     return 0;
   };
 
-  // Progresso Geral: todas as entidades
-  const allEntitiesProgress = timelineEvents.length > 0
-    ? Math.round(timelineEvents.reduce((sum, e) => sum + calcEventProgressDash(e), 0) / timelineEvents.length)
-    : 0;
-
-  // Progresso Entidade: apenas a entidade selecionada
-  const projectProgress = filteredTimelineEvents.length > 0
-    ? Math.round(filteredTimelineEvents.reduce((sum, e) => sum + calcEventProgressDash(e), 0) / filteredTimelineEvents.length)
-    : 0;
-
-  // Fetch cached data
+  // Fetch cached data PRIMEIRO
   const { data: progressCache = null } = useQuery({
     queryKey: ['progressCache', projectId],
     queryFn: () => projectId ? base44.entities.ProjectProgressCache.filter({ project_id: projectId }).then(r => r[0] || null) : null,
     enabled: !!projectId,
     staleTime: 5 * 60 * 1000
   });
+
+  const { data: overallProgressCache = null } = useQuery({
+    queryKey: ['overallProgressCache', projectId],
+    queryFn: () => projectId ? base44.entities.ProjectOverallProgressCache.filter({ project_id: projectId }).then(r => r[0] || null) : null,
+    enabled: !!projectId,
+    staleTime: 5 * 60 * 1000
+  });
+
+  // Usar APENAS cache, sem cálculo manual
+  const allEntitiesProgress = overallProgressCache?.overall_progress 
+    ? Math.round(overallProgressCache.overall_progress) 
+    : 0;
+
+  // Progresso Entidade: apenas a entidade selecionada (manter cálculo pois é filtrado)
+  const projectProgress = filteredTimelineEvents.length > 0
+    ? Math.round(filteredTimelineEvents.reduce((sum, e) => sum + calcEventProgressDash(e), 0) / filteredTimelineEvents.length)
+    : 0;
 
   const { data: healthCache = null } = useQuery({
     queryKey: ['healthCache', projectId],
