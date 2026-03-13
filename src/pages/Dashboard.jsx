@@ -343,16 +343,8 @@ export default function Dashboard() {
     cronogramas
   });
 
-  // Update caches whenever data changes
-  React.useEffect(() => {
-    if (projectId && projectProgress >= 0) {
-      base44.functions.invoke('updateProjectProgressCache', {
-        project_id: projectId,
-        overall_progress: projectProgress,
-        overall_progress_all_entities: allEntitiesProgress
-      }).catch(err => console.error('Failed to update progress cache:', err));
-    }
-  }, [projectId, projectProgress, allEntitiesProgress]);
+  // Cache é atualizado automaticamente pela função recalculateAllCaches
+  // Não atualizar manualmente aqui para evitar sobrescrever valores corretos
 
   React.useEffect(() => {
     if (projectId && healthScore >= 0) {
