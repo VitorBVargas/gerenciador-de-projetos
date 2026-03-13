@@ -661,10 +661,10 @@ export default function Homologation() {
                                             className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
                                           />
                                           <span className={cn(
-                                            "flex-1 text-sm",
-                                            task.completed ? "text-slate-500 line-through" : "text-white"
+                                           "flex-1 text-sm",
+                                           task.completed ? "text-slate-500" : "text-white"
                                           )}>
-                                            {task.displayTitle}
+                                           {task.displayTitle}
                                             {task.completed && task.completed_date && (
                                               <span className="text-slate-400 text-xs ml-2 no-underline">
                                                 ({new Date(task.completed_date).toLocaleDateString('pt-BR')})
@@ -795,7 +795,7 @@ export default function Homologation() {
                                            />
                                            <span className={cn(
                                              "flex-1 text-sm",
-                                             task.completed ? "text-slate-500 line-through" : "text-white"
+                                             task.completed ? "text-slate-500" : "text-white"
                                            )}>
                                              {task.title}
                                              {task.completed && task.completed_date && (
@@ -843,7 +843,7 @@ export default function Homologation() {
                                               />
                                               <span className={cn(
                                                "flex-1 text-sm",
-                                               task.completed ? "text-slate-500 line-through" : "text-white"
+                                               task.completed ? "text-slate-500" : "text-white"
                                               )}>
                                                {task.title}
                                                {task.completed && task.completed_date && (
