@@ -490,14 +490,16 @@ export default function Travels() {
                           {/* Vertical Cronograma Row */}
                           {verticalMembers.length > 0 && (
                             <div 
-                              className="h-12 bg-slate-700/15 border-b border-slate-700/30 relative"
+                              className="h-12 bg-slate-700/15 border-b border-slate-700/30 relative flex items-center"
                               style={{
                                 display: 'grid',
                                 gridTemplateColumns: `repeat(${daysInMonth.length}, 48px)`,
                               }}
                             >
-                              {daysInMonth.map((_, idx) => (
-                                <div key={`sep-${idx}`} className="border-r border-slate-700/20" />
+                              {daysInMonth.map((day, idx) => (
+                                <div key={`sep-${idx}`} className="border-r border-slate-700/20 flex items-center justify-center text-[9px] text-slate-400 h-full">
+                                  {format(day, 'dd/MM')}
+                                </div>
                               ))}
 
                               {/* Timeline Events for this Vertical */}
