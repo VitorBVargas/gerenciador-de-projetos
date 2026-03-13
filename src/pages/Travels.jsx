@@ -620,7 +620,8 @@ export default function Travels() {
                             );
                           })}
                         </React.Fragment>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
