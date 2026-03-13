@@ -92,10 +92,13 @@ export default function ExecutiveStatus() {
     base44.functions.invoke('recalculateAllCaches', {}).then(() => {
       // Aguardar 2 segundos para respeitar o tempo de processamento
       setTimeout(() => {
-        // Invalidar queries para forçar recarregamento
+        // Invalidar TODAS as queries para forçar recarregamento
         queryClient.invalidateQueries({ queryKey: ['allProgressCache'] });
         queryClient.invalidateQueries({ queryKey: ['allOverallProgressCache'] });
         queryClient.invalidateQueries({ queryKey: ['allTimelineEvents'] });
+        queryClient.invalidateQueries({ queryKey: ['allFinancialCache'] });
+        queryClient.invalidateQueries({ queryKey: ['allProducts'] });
+        queryClient.invalidateQueries({ queryKey: ['allRecognizedRevenues'] });
         setIsRecalculating(false);
       }, 2000);
     }).catch(err => {
