@@ -528,7 +528,6 @@ export default function Travels() {
                       <div className="flex flex-col">
                         {verticals.map(vertical => {
                           const verticalEvents = timelineEvents.filter(e => e.vertical === vertical);
-                          
                           return (
                             <React.Fragment key={`vertical-${vertical}`}>
                             {/* Vertical Timeline Row */}
