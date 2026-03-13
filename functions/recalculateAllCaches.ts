@@ -38,11 +38,11 @@ Deno.serve(async (req) => {
             console.error('Erro ao verificar eventos vazios:', error.message);
         }
 
-        // Atualizar Financial Timeline Cache
+        // Atualizar ProductFinancialDates (substitui FinancialTimelineCache)
         try {
-            await base44.functions.invoke('updateFinancialTimelineCache', {});
+            await base44.functions.invoke('populateProductFinancialDates', {});
         } catch (error) {
-            console.error('Erro ao atualizar FinancialTimelineCache:', error.message);
+            console.error('Erro ao atualizar ProductFinancialDates:', error.message);
         }
 
         // Para cada projeto, recalcular cache geral
