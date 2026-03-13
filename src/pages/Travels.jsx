@@ -493,17 +493,6 @@ export default function Travels() {
 
                         return (
                         <React.Fragment key={`vertical-${vertical}`}>
-                          {/* Vertical Group Header (sticky below dates) */}
-                          {verticalMembers.length > 0 && (
-                            <div 
-                              className="h-12 px-4 py-2 bg-slate-700/25 border-b border-slate-700/30 flex items-center sticky top-12 z-10"
-                            >
-                              <span className="text-sm font-semibold text-cyan-400 truncate">
-                                {verticalLabels[vertical] || vertical}
-                              </span>
-                            </div>
-                          )}
-
                           {/* Member Rows for this Vertical */}
                           {verticalMembers.map(member => {
                             const memberTravels = travels.filter(t => t.attendees?.includes(member.name));
