@@ -526,60 +526,12 @@ export default function Travels() {
 
                       {/* TIMELINE BODY */}
                       <div className="flex flex-col">
-                        {verticals.map(vertical => {
-                          const verticalEvents = timelineEvents.filter(e => e.vertical === vertical);
-                          return (
-                            <React.Fragment key={`vertical-${vertical}`}>
-                            {/* Vertical Timeline Row */}
-                            <div 
-                              className="h-12 bg-slate-700/15 border-b border-slate-700/30 relative"
-                              style={{
-                                display: 'grid',
-                                gridTemplateColumns: `repeat(${daysInMonth.length}, 48px)`,
-                                gridAutoRows: '100%'
-                              }}
-                            >
-                              {daysInMonth.map((_, idx) => (
-                                <div key={`spacer-${idx}`} className="border-r border-slate-700/20"></div>
-                              ))}
-
-                              {/* Timeline Events */}
-                              {verticalEvents.map((event) => {
-                                if (!event.start_date) return null;
-
-                                const startDate = parseISO(event.start_date);
-                                const endDate = event.end_date ? parseISO(event.end_date) : startDate;
-                                
-                                const firstDayOfMonth = startOfMonth(currentMonth);
-                                const startDayIdx = Math.max(0, differenceInDays(startDate, firstDayOfMonth));
-                                const endDayIdx = Math.min(daysInMonth.length - 1, differenceInDays(endDate, firstDayOfMonth));
-                                
-                                if (startDayIdx > daysInMonth.length - 1 || endDayIdx < 0) return null;
-
-                                const duration = endDayIdx - startDayIdx + 1;
-
-                                return (
-                                  <div
-                                    key={`timeline-${event.id}`}
-                                    className="absolute top-1/2 transform -translate-y-1/2 h-6 bg-cyan-500/60 rounded flex items-center justify-center cursor-pointer transition-all hover:bg-cyan-500 hover:shadow-lg text-xs font-semibold text-white px-2 truncate"
-                                    style={{
-                                      left: `${startDayIdx * 48}px`,
-                                      width: `${duration * 48}px`,
-                                      zIndex: 10
-                                    }}
-                                    onClick={() => {}}
-                                    title={event.title}
-                                  >
-                                    {event.title}
-                                  </div>
-                                );
-                              })}
-                            </div>
-
+                        {verticals.map(vertical => (
+                          <React.Fragment key={`vertical-${vertical}`}>
                             {/* Member Rows with Events */}
                             {membersByVertical[vertical].map(member => {
                               const memberTravels = travels.filter(t => t.attendees?.includes(member.name));
-                              
+
                               return (
                                 <div 
                                   key={`member-${member.id}`}
@@ -626,11 +578,11 @@ export default function Travels() {
 
                                     const startDate = parseISO(travel.start_date);
                                     const endDate = travel.end_date ? parseISO(travel.end_date) : startDate;
-                                    
+
                                     const firstDayOfMonth = startOfMonth(currentMonth);
                                     const startDayIdx = Math.max(0, differenceInDays(startDate, firstDayOfMonth));
                                     const endDayIdx = Math.min(daysInMonth.length - 1, differenceInDays(endDate, firstDayOfMonth));
-                                    
+
                                     if (startDayIdx > daysInMonth.length - 1 || endDayIdx < 0) return null;
 
                                     return (
@@ -662,8 +614,7 @@ export default function Travels() {
                               );
                             })}
                           </React.Fragment>
-                          );
-                        })}
+                        ))}
                       </div>
                     </div>
                   </div>
