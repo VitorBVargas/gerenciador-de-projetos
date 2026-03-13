@@ -86,26 +86,13 @@ export default function ExecutiveStatus() {
   const urlParams = new URLSearchParams(window.location.search);
   const portfolioFilter = urlParams.get('portfolio') || 'grandes_contas_sc_mg';
 
-  // Forçar recalculo de caches ao entrar em ExecutiveStatus
+  // Não recalcular automaticamente - apenas invalidar cache local para garantir dados frescos
   React.useEffect(() => {
     setIsRecalculating(true);
-    base44.functions.invoke('recalculateAllCaches', {}).then(() => {
-      // Aguardar 2 segundos para respeitar o tempo de processamento
-      setTimeout(() => {
-        // Invalidar TODAS as queries para forçar recarregamento
-        queryClient.invalidateQueries({ queryKey: ['allProgressCache'] });
-        queryClient.invalidateQueries({ queryKey: ['allOverallProgressCache'] });
-        queryClient.invalidateQueries({ queryKey: ['allTimelineEvents'] });
-        queryClient.invalidateQueries({ queryKey: ['allProductFinancialDates'] });
-        queryClient.invalidateQueries({ queryKey: ['allProducts'] });
-        queryClient.invalidateQueries({ queryKey: ['allRecognizedRevenues'] });
-        queryClient.invalidateQueries({ queryKey: ['allHealthCaches'] });
-        setIsRecalculating(false);
-      }, 2000);
-    }).catch(err => {
-      console.error('Erro ao recalcular caches:', err);
+    // Aguardar 500ms antes de marcar como pronto (tempo suficiente para invalidar queries)
+    setTimeout(() => {
       setIsRecalculating(false);
-    });
+    }, 500);
   }, [queryClient]);
 
   const portfolioLabels = {
@@ -428,10 +415,11 @@ export default function ExecutiveStatus() {
     const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
     const currentYearMonth = `${currentYear}-${currentMonth}`;
     
-    const defaultStart = `${currentYear}-01`;
+    // Usar janela fixa de tempo: mês atual até fim do próximo ano
+    const defaultStart = currentYearMonth;
     const defaultEnd = `${currentYear + 1}-12`;
 
-    const minMonth = relevantMonths.size > 0 ? [...relevantMonths].sort()[0] : defaultStart;
+    const minMonth = currentYearMonth; // Sempre começar do mês atual
     const maxMonth = relevantMonths.size > 0 ? [...relevantMonths].sort().reverse()[0] : defaultEnd;
     const minDate = new Date(minMonth + '-01');
     const maxDate = new Date(maxMonth + '-01');
