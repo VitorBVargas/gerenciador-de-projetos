@@ -52,7 +52,8 @@ Deno.serve(async (req) => {
     
     return Response.json({ 
       success: true, 
-      populated: records.length,
+      created,
+      updated,
       total_products: allProducts.length
     });
     
