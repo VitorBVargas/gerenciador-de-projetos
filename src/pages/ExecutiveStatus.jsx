@@ -96,7 +96,7 @@ export default function ExecutiveStatus() {
         queryClient.invalidateQueries({ queryKey: ['allProgressCache'] });
         queryClient.invalidateQueries({ queryKey: ['allOverallProgressCache'] });
         queryClient.invalidateQueries({ queryKey: ['allTimelineEvents'] });
-        queryClient.invalidateQueries({ queryKey: ['allFinancialCache'] });
+        queryClient.invalidateQueries({ queryKey: ['allProductFinancialDates'] });
         queryClient.invalidateQueries({ queryKey: ['allProducts'] });
         queryClient.invalidateQueries({ queryKey: ['allRecognizedRevenues'] });
         setIsRecalculating(false);
@@ -172,9 +172,9 @@ export default function ExecutiveStatus() {
       enabled: !loadingProducts
     });
 
-    const { data: allFinancialCache = [], isLoading: loadingFinancialCache } = useQuery({
-      queryKey: ['allFinancialCache', portfolioFilter],
-      queryFn: () => base44.entities.FinancialTimelineCache.list('-last_updated', 2000),
+    const { data: allProductFinancialDates = [], isLoading: loadingFinancialDates } = useQuery({
+      queryKey: ['allProductFinancialDates', portfolioFilter],
+      queryFn: () => base44.entities.ProductFinancialDates.list('-last_updated', 5000),
       staleTime: 5 * 60 * 1000,
       gcTime: 30 * 60 * 1000,
       enabled: !loadingRevenues
@@ -197,7 +197,7 @@ export default function ExecutiveStatus() {
     });
 
   // Loading global: aguarda APENAS os dados essenciais + recalculo
-  const isLoading = isRecalculating || loadingProjects || loadingCronogramas || loadingEvents || loadingProducts || loadingRevenues || loadingProgressCache || loadingOverallProgressCache || loadingFinancialCache;
+  const isLoading = isRecalculating || loadingProjects || loadingCronogramas || loadingEvents || loadingProducts || loadingRevenues || loadingProgressCache || loadingOverallProgressCache || loadingFinancialDates;
 
   const createRecognizedRevenueMutation = useMutation({
     mutationFn: (data) => base44.entities.RecognizedRevenue.create(data),
@@ -365,16 +365,15 @@ export default function ExecutiveStatus() {
     return { counts, cronogramasByStatus };
   }, [allCronogramas, allTimelineEvents, allProjectsData]);
 
-  // Mapa de produtos recorrentes calculado via useMemo usando FinancialTimelineCache
+  // Mapa de produtos recorrentes usando ProductFinancialDates
   const recorrenteProductsMap = useMemo(() => {
     const map = {};
     const relevantMonths = new Set();
     
-    // Usar cache ao invés de TimelineEvents
-    allFinancialCache.forEach(c => {
-      if (c.implantacao_end_date) relevantMonths.add(c.implantacao_end_date.substring(0, 7));
-      if (c.go_live_start_date) relevantMonths.add(c.go_live_start_date.substring(0, 7));
-      if (c.go_live_end_date) relevantMonths.add(c.go_live_end_date.substring(0, 7));
+    // Coletar meses relevantes
+    allProductFinancialDates.forEach(d => {
+      if (d.operacao_assistida_end_date) relevantMonths.add(d.operacao_assistida_end_date.substring(0, 7));
+      if (d.go_live_date) relevantMonths.add(d.go_live_date.substring(0, 7));
     });
     allRecognizedRevenues.forEach(r => {
       if (r.recognition_month) relevantMonths.add(r.recognition_month.substring(0, 7));
@@ -399,28 +398,27 @@ export default function ExecutiveStatus() {
       if (!projectProducts.length) return;
       
       projectProducts.forEach(prod => {
-        const cache = allFinancialCache.find(c => c.product_id === prod.id);
-        if (!cache || !cache.go_live_start_date) return;
-        const goLiveMonth = cache.go_live_start_date.substring(0, 7);
+        const dates = allProductFinancialDates.find(d => d.product_id === prod.id);
+        if (!dates || !dates.go_live_date) return;
+        const goLiveMonth = dates.go_live_date.substring(0, 7);
         if (!map[goLiveMonth]) return;
-        map[goLiveMonth].push({ product: prod, project, startDate: cache.go_live_start_date, inclusionValue: prod.inclusion_value || 0 });
+        map[goLiveMonth].push({ product: prod, project, startDate: dates.go_live_date, inclusionValue: prod.inclusion_value || 0 });
       });
     });
     return map;
-  }, [allProducts, allFinancialCache, allRecognizedRevenues, allProjectsData, portfolioFilter]);
+  }, [allProducts, allProductFinancialDates, allRecognizedRevenues, allProjectsData, portfolioFilter]);
 
-  // Financeiro chart data usando FinancialTimelineCache
+  // Financeiro chart data usando ProductFinancialDates
   const financeiroChartContent = useMemo(() => {
     const monthlyData = {};
     const monthlyRecorrenteProducts = {};
 
     const relevantMonths = new Set();
     
-    // Usar cache ao invés de TimelineEvents
-    allFinancialCache.forEach(c => {
-      if (c.implantacao_end_date) relevantMonths.add(c.implantacao_end_date.substring(0, 7));
-      if (c.go_live_start_date) relevantMonths.add(c.go_live_start_date.substring(0, 7));
-      if (c.go_live_end_date) relevantMonths.add(c.go_live_end_date.substring(0, 7));
+    // Coletar meses relevantes
+    allProductFinancialDates.forEach(d => {
+      if (d.operacao_assistida_end_date) relevantMonths.add(d.operacao_assistida_end_date.substring(0, 7));
+      if (d.go_live_date) relevantMonths.add(d.go_live_date.substring(0, 7));
     });
     allRecognizedRevenues.forEach(r => {
       if (r.recognition_month) relevantMonths.add(r.recognition_month.substring(0, 7));
@@ -454,20 +452,9 @@ export default function ExecutiveStatus() {
       const projectProducts = allProducts.filter(p => p.project_id === project.id);
       if (!projectProducts.length) return;
 
-      // Usar cache ao invés de buscar TimelineEvents (com fallback)
       projectProducts.forEach(prod => {
-        let cache = allFinancialCache.find(c => c.product_id === prod.id);
-        let implEndDate = cache?.implantacao_end_date;
-        
-        // FALLBACK: se cache não existe ou não tem data, buscar em TimelineEvents
-        if (!implEndDate) {
-          const opAssistidaEvent = allTimelineEvents.find(e => 
-            e.product_id === prod.id && 
-            e.phase === 'operacao_assistida' && 
-            e.end_date
-          );
-          implEndDate = opAssistidaEvent?.end_date;
-        }
+        const dates = allProductFinancialDates.find(d => d.product_id === prod.id);
+        const implEndDate = dates?.operacao_assistida_end_date;
         
         if (!implEndDate) return;
         const implMonth = implEndDate.substring(0, 7);
@@ -493,24 +480,14 @@ export default function ExecutiveStatus() {
       monthlyData[monthKey].a_receber = Math.max(0, totalImplValue - totalRecognized);
     });
 
-    // Usar cache para recorrente (com fallback) - TODOS os projetos ativos
+    // Usar ProductFinancialDates para recorrente - TODOS os projetos ativos
     allProjectsData.filter(p => p.portfolio === portfolioFilter && p.status !== 'concluido').forEach(project => {
       const projectProducts = allProducts.filter(p => p.project_id === project.id && (p.inclusion_value || 0) > 0);
       if (!projectProducts.length) return;
       
       projectProducts.forEach(prod => {
-        let cache = allFinancialCache.find(c => c.product_id === prod.id);
-        let goLiveStart = cache?.go_live_start_date;
-        
-        // FALLBACK: se cache não existe ou não tem data, buscar em TimelineEvents
-        if (!goLiveStart) {
-          const goLiveEvent = allTimelineEvents.find(e => 
-            e.product_id === prod.id && 
-            e.phase === 'go_live' && 
-            e.start_date
-          );
-          goLiveStart = goLiveEvent?.start_date;
-        }
+        const dates = allProductFinancialDates.find(d => d.product_id === prod.id);
+        const goLiveStart = dates?.go_live_date;
         
         if (!goLiveStart) return;
         const goLiveMonth = goLiveStart.substring(0, 7);
@@ -534,7 +511,7 @@ export default function ExecutiveStatus() {
       .map(([, value]) => value);
 
     return { monthlyData, chartData };
-  }, [allProjectsData, allProducts, allFinancialCache, allRecognizedRevenues, portfolioFilter]);
+  }, [allProjectsData, allProducts, allProductFinancialDates, allRecognizedRevenues, portfolioFilter]);
 
   // Calculate project with health status
   const projectsWithMetrics = useMemo(() => {
@@ -616,7 +593,15 @@ export default function ExecutiveStatus() {
           </div>
           {/* Lista de etapas */}
           <div className="w-full space-y-1.5">
-            {loadingSteps.map((step) => (
+            {[
+              { label: 'Projetos', done: !loadingProjects },
+              { label: 'Cronogramas', done: !loadingCronogramas },
+              { label: 'Timeline', done: !loadingEvents },
+              { label: 'Produtos', done: !loadingProducts },
+              { label: 'Receitas', done: !loadingRevenues },
+              { label: 'Datas Financeiras', done: !loadingFinancialDates },
+              { label: 'Sincronizando', done: !isRecalculating }
+            ].map((step) => (
               <div key={step.label} className="flex items-center gap-2 text-sm">
                 {step.done
                   ? <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
