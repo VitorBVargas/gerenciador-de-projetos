@@ -197,6 +197,14 @@ export default function ExecutiveStatus() {
       enabled: !loadingProducts
     });
 
+    const { data: allFinancialCache = [], isLoading: loadingFinancialCache } = useQuery({
+      queryKey: ['allFinancialCache', portfolioFilter],
+      queryFn: () => base44.entities.FinancialTimelineCache.list('-last_updated', 2000),
+      staleTime: 5 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
+      enabled: !loadingRevenues
+    });
+
     const { data: allProgressCache = [], isLoading: loadingProgressCache } = useQuery({
       queryKey: ['allProgressCache', portfolioFilter],
       queryFn: () => base44.entities.ProjectProgressCache.list('-updated_date', 500),
@@ -214,7 +222,7 @@ export default function ExecutiveStatus() {
     });
 
   // Loading global: aguarda TODOS os dados críticos carregarem + recalculo
-  const isLoading = isRecalculating || loadingProjects || loadingCronogramas || loadingEvents || loadingHomolog || loadingMigration || loadingRisks || loadingExpenses || loadingProducts || loadingRevenues || loadingProgressCache || loadingOverallProgressCache;
+  const isLoading = isRecalculating || loadingProjects || loadingCronogramas || loadingEvents || loadingHomolog || loadingMigration || loadingRisks || loadingExpenses || loadingProducts || loadingRevenues || loadingProgressCache || loadingOverallProgressCache || loadingFinancialCache;
 
   const createRecognizedRevenueMutation = useMutation({
     mutationFn: (data) => base44.entities.RecognizedRevenue.create(data),
@@ -408,18 +416,21 @@ export default function ExecutiveStatus() {
     return { counts, cronogramasByStatus };
   }, [allCronogramas, allTimelineEvents, allProjectsData]);
 
-  // Mapa de produtos recorrentes calculado via useMemo (evita loop infinito)
+  // Mapa de produtos recorrentes calculado via useMemo usando FinancialTimelineCache
   const recorrenteProductsMap = useMemo(() => {
     const map = {};
     const relevantMonths = new Set();
-    allTimelineEvents.forEach(e => {
-      if (e.phase === 'operacao_assistida' && e.end_date) relevantMonths.add(e.end_date.substring(0, 7));
-      if (e.phase === 'go_live' && e.start_date) relevantMonths.add(e.start_date.substring(0, 7));
-      if (e.phase === 'go_live' && e.end_date) relevantMonths.add(e.end_date.substring(0, 7));
+    
+    // Usar cache ao invés de TimelineEvents
+    allFinancialCache.forEach(c => {
+      if (c.implantacao_end_date) relevantMonths.add(c.implantacao_end_date.substring(0, 7));
+      if (c.go_live_start_date) relevantMonths.add(c.go_live_start_date.substring(0, 7));
+      if (c.go_live_end_date) relevantMonths.add(c.go_live_end_date.substring(0, 7));
     });
     allRecognizedRevenues.forEach(r => {
       if (r.recognition_month) relevantMonths.add(r.recognition_month.substring(0, 7));
     });
+    
     const currentYear = new Date().getFullYear();
     const defaultStart = `${currentYear}-01`;
     const minMonth = relevantMonths.size > 0 ? [...relevantMonths].sort()[0] : defaultStart;
@@ -433,36 +444,34 @@ export default function ExecutiveStatus() {
       map[key] = [];
     }
 
-    // Helper: pegar a data go_live de um evento (start_date ou end_date)
-    const getGoLiveDate = (event) => event.start_date || event.end_date;
-
-    // Sempre por produto: cada produto tem seu próprio evento go_live via product_id
+    // Usar cache financeiro para go-live
     allProjectsData.filter(p => p.status !== 'concluido').forEach(project => {
       const projectProducts = allProducts.filter(p => p.project_id === project.id);
       if (!projectProducts.length) return;
       
       projectProducts.forEach(prod => {
-        const goLiveEvent = allTimelineEvents.find(e => e.product_id === prod.id && e.phase === 'go_live' && getGoLiveDate(e));
-        if (!goLiveEvent) return;
-        const goLiveDate = getGoLiveDate(goLiveEvent);
-        const goLiveMonth = goLiveDate.substring(0, 7);
+        const cache = allFinancialCache.find(c => c.product_id === prod.id);
+        if (!cache || !cache.go_live_start_date) return;
+        const goLiveMonth = cache.go_live_start_date.substring(0, 7);
         if (!map[goLiveMonth]) return;
-        map[goLiveMonth].push({ product: prod, project, startDate: goLiveDate, inclusionValue: prod.inclusion_value || 0 });
+        map[goLiveMonth].push({ product: prod, project, startDate: cache.go_live_start_date, inclusionValue: prod.inclusion_value || 0 });
       });
     });
     return map;
-  }, [allProducts, allTimelineEvents, allCronogramas, allRecognizedRevenues, allProjectsData]);
+  }, [allProducts, allFinancialCache, allRecognizedRevenues, allProjectsData]);
 
-  // Financeiro chart data (must be a hook at top level, not inside JSX)
+  // Financeiro chart data usando FinancialTimelineCache
   const financeiroChartContent = useMemo(() => {
     const monthlyData = {};
     const monthlyRecorrenteProducts = {};
 
     const relevantMonths = new Set();
-    allTimelineEvents.forEach(e => {
-      if (e.phase === 'operacao_assistida' && e.end_date) relevantMonths.add(e.end_date.substring(0, 7));
-      if (e.phase === 'go_live' && e.start_date) relevantMonths.add(e.start_date.substring(0, 7));
-      if (e.phase === 'go_live' && e.end_date) relevantMonths.add(e.end_date.substring(0, 7));
+    
+    // Usar cache ao invés de TimelineEvents
+    allFinancialCache.forEach(c => {
+      if (c.implantacao_end_date) relevantMonths.add(c.implantacao_end_date.substring(0, 7));
+      if (c.go_live_start_date) relevantMonths.add(c.go_live_start_date.substring(0, 7));
+      if (c.go_live_end_date) relevantMonths.add(c.go_live_end_date.substring(0, 7));
     });
     allRecognizedRevenues.forEach(r => {
       if (r.recognition_month) relevantMonths.add(r.recognition_month.substring(0, 7));
@@ -495,17 +504,17 @@ export default function ExecutiveStatus() {
       const projectProducts = allProducts.filter(p => p.project_id === project.id);
       if (!projectProducts.length) return;
 
-      // Sempre por produto
+      // Usar cache ao invés de buscar TimelineEvents
       projectProducts.forEach(prod => {
-        const operacaoEvent = allTimelineEvents.find(e => e.product_id === prod.id && e.phase === 'operacao_assistida' && e.end_date);
-        if (!operacaoEvent || !operacaoEvent.end_date) return;
-        const implMonth = operacaoEvent.end_date.substring(0, 7);
+        const cache = allFinancialCache.find(c => c.product_id === prod.id);
+        if (!cache || !cache.implantacao_end_date) return;
+        const implMonth = cache.implantacao_end_date.substring(0, 7);
         if (!monthlyData[implMonth]) return;
         const totalImplValue = prod.implementation_value || 0;
         if (totalImplValue > 0) {
           monthlyData[implMonth].implantacao += totalImplValue;
           if (!implantacaoProductsMap[implMonth]) implantacaoProductsMap[implMonth] = [];
-          implantacaoProductsMap[implMonth].push({ product: prod, project, end_date: operacaoEvent.end_date, amount: totalImplValue });
+          implantacaoProductsMap[implMonth].push({ product: prod, project, end_date: cache.implantacao_end_date, amount: totalImplValue });
         }
       });
     });
@@ -522,21 +531,18 @@ export default function ExecutiveStatus() {
       monthlyData[monthKey].a_receber = Math.max(0, totalImplValue - totalRecognized);
     });
 
-    const getGoLiveDate2 = (e) => e.start_date || e.end_date;
-
-    // Sempre por produto
+    // Usar cache para recorrente
     projects.forEach(project => {
       const projectProducts = allProducts.filter(p => p.project_id === project.id && (p.inclusion_value || 0) > 0);
       if (!projectProducts.length) return;
       
       projectProducts.forEach(prod => {
-        const goLiveEvent = allTimelineEvents.find(e => e.product_id === prod.id && e.phase === 'go_live' && getGoLiveDate2(e));
-        if (!goLiveEvent) return;
-        const goLiveDate = getGoLiveDate2(goLiveEvent);
-        const goLiveMonth = goLiveDate.substring(0, 7);
+        const cache = allFinancialCache.find(c => c.product_id === prod.id);
+        if (!cache || !cache.go_live_start_date) return;
+        const goLiveMonth = cache.go_live_start_date.substring(0, 7);
         if (!monthlyData[goLiveMonth]) return;
         monthlyData[goLiveMonth].recorrente += (prod.inclusion_value || 0);
-        monthlyRecorrenteProducts[goLiveMonth].push({ product: prod, project, startDate: goLiveDate, inclusionValue: prod.inclusion_value || 0 });
+        monthlyRecorrenteProducts[goLiveMonth].push({ product: prod, project, startDate: cache.go_live_start_date, inclusionValue: prod.inclusion_value || 0 });
       });
     });
 
@@ -554,7 +560,7 @@ export default function ExecutiveStatus() {
       .map(([, value]) => value);
 
     return { monthlyData, chartData };
-  }, [projects, allProducts, allTimelineEvents, allCronogramas, allRecognizedRevenues, allProjectsData, allProgressCache]);
+  }, [projects, allProducts, allFinancialCache, allRecognizedRevenues, allProjectsData]);
 
   // Calculate project with health status
   const projectsWithMetrics = useMemo(() => {
@@ -607,6 +613,7 @@ export default function ExecutiveStatus() {
     { label: 'Despesas', done: !loadingExpenses },
     { label: 'Produtos', done: !loadingProducts },
     { label: 'Receitas reconhecidas', done: !loadingRevenues },
+    { label: 'Cache financeiro', done: !loadingFinancialCache },
     { label: 'Sincronizando caches', done: !isRecalculating },
   ];
   const loadedCount = loadingSteps.filter(s => s.done).length;
@@ -1377,38 +1384,34 @@ export default function ExecutiveStatus() {
                     const [year, month] = selectedMonth.split('-');
                     const monthLabel = format(new Date(year, parseInt(month) - 1, 1), 'MMMM/yyyy', { locale: ptBR });
 
-                    // Produtos a receber (verde) - operação assistida cai neste mês
+                    // Produtos a receber (verde) - usar cache
                     const aReceberProds = [];
                     projects.forEach(project => {
-                      const projectProducts = allProducts.filter(p => p.project_id === project.id && (p.implementation_value || 0) > 0);
-                      if (!projectProducts.length) return;
+                     const projectProducts = allProducts.filter(p => p.project_id === project.id && (p.implementation_value || 0) > 0);
+                     if (!projectProducts.length) return;
 
-                      // Sempre por produto
-                      projectProducts.forEach(product => {
-                        const operacaoEvent = allTimelineEvents.find(e => 
-                          e.product_id === product.id && e.phase === 'operacao_assistida' && e.end_date
-                        );
+                     projectProducts.forEach(product => {
+                       const cache = allFinancialCache.find(c => c.product_id === product.id);
+                       if (!cache || !cache.implantacao_end_date) return;
+                       const implMonth = cache.implantacao_end_date.substring(0, 7);
+                       if (implMonth !== selectedMonth) return;
 
-                        if (!operacaoEvent || !operacaoEvent.end_date) return;
-                        const implMonth = operacaoEvent.end_date.substring(0, 7);
-                        if (implMonth !== selectedMonth) return;
+                       // Calcular quanto falta reconhecer
+                       const totalRecognized = allRecognizedRevenues
+                         .filter(r => r.product_id === product.id && r.type === 'implantacao')
+                         .reduce((sum, r) => sum + r.amount, 0);
+                       const implValue = product.implementation_value || 0;
+                       const pendente = Math.max(0, implValue - totalRecognized);
 
-                        // Calcular quanto falta reconhecer (descontar de QUALQUER mês)
-                        const totalRecognized = allRecognizedRevenues
-                          .filter(r => r.product_id === product.id && r.type === 'implantacao')
-                          .reduce((sum, r) => sum + r.amount, 0);
-                        const implValue = product.implementation_value || 0;
-                        const pendente = Math.max(0, implValue - totalRecognized);
-
-                        if (pendente > 0) {
-                          aReceberProds.push({
-                            product,
-                            project,
-                            deadline: operacaoEvent?.end_date,
-                            amount: pendente
-                          });
-                        }
-                      });
+                       if (pendente > 0) {
+                         aReceberProds.push({
+                           product,
+                           project,
+                           deadline: cache.implantacao_end_date,
+                           amount: pendente
+                         });
+                       }
+                     });
                     });
 
                     // Produtos reconhecidos (roxo) - reconhecimento neste mês
