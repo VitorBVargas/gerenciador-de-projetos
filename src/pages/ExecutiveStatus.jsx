@@ -193,8 +193,8 @@ export default function ExecutiveStatus() {
       enabled: !loadingProgressCache
     });
 
-  // Loading global: aguarda APENAS os dados essenciais + recalculo
-  const isLoading = isRecalculating || loadingProjects || loadingCronogramas || loadingEvents || loadingProducts || loadingRevenues || loadingProgressCache || loadingOverallProgressCache || loadingFinancialDates || loadingHealthCaches;
+  // Loading global: aguarda APENAS os dados essenciais + recalculo (healthCaches é opcional)
+  const isLoading = isRecalculating || loadingProjects || loadingCronogramas || loadingEvents || loadingProducts || loadingRevenues || loadingProgressCache || loadingOverallProgressCache || loadingFinancialDates;
 
   const createRecognizedRevenueMutation = useMutation({
     mutationFn: (data) => base44.entities.RecognizedRevenue.create(data),
@@ -244,7 +244,7 @@ export default function ExecutiveStatus() {
     queryFn: () => base44.entities.ProjectHealthCache.list('-updated_date', 500),
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
-    enabled: !loadingRevenues
+    enabled: !loadingFinancialDates
   });
 
   // Usar cache para obter health score
