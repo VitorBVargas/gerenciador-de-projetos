@@ -346,10 +346,13 @@ export default function Dashboard() {
   // Recalcular cache ao entrar no Dashboard
   React.useEffect(() => {
     if (projectId) {
-      base44.functions.invoke('recalculateAllCaches', {})
-        .catch(err => console.error('Erro ao recalcular caches:', err));
+      base44.functions.invoke('recalculateAllCaches', {}).then(() => {
+        // Invalidar queries para forçar reload do cache atualizado
+        queryClient.invalidateQueries({ queryKey: ['overallProgressCache', projectId] });
+        queryClient.invalidateQueries({ queryKey: ['progressCache', projectId] });
+      }).catch(err => console.error('Erro ao recalcular caches:', err));
     }
-  }, [projectId]);
+  }, [projectId, queryClient]);
 
   React.useEffect(() => {
     if (projectId && healthScore >= 0) {
