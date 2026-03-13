@@ -436,7 +436,7 @@ export default function Travels() {
                   style={{ width: '220px' }}
                 >
                   {/* Header Label */}
-                  <div className="h-12 px-4 py-2 bg-slate-700/30 border-b border-slate-700/50 flex items-center">
+                  <div className="h-16 px-4 py-2 bg-slate-700/30 border-b border-slate-700/50 flex items-center">
                     <span className="text-xs font-semibold text-cyan-400 uppercase tracking-wider">Vertical/Membro</span>
                   </div>
 
@@ -470,17 +470,21 @@ export default function Travels() {
                   className="flex-1 overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800/50"
                 >
                   <div style={{ width: `${daysInMonth.length * 48}px`, minWidth: '100%' }}>
-                    {/* STICKY HEADER WITH DATES - APPEARS ONCE AT TOP */}
+                    {/* HEADER ROW - Days */}
                     <div 
-                      className="sticky top-0 z-30 h-12 bg-slate-700/15 border-b border-slate-700/30 flex items-center text-[10px] font-semibold text-cyan-400"
+                      className="h-16 bg-slate-700/20 border-b border-slate-700/50"
                       style={{
                         display: 'grid',
                         gridTemplateColumns: `repeat(${daysInMonth.length}, 48px)`,
                       }}
                     >
                       {daysInMonth.map((day, idx) => (
-                        <div key={`date-${idx}`} className="border-r border-slate-700/20 flex items-center justify-center">
-                          {format(day, 'dd/MM')}
+                        <div 
+                          key={`day-${idx}`}
+                          className="text-center text-xs font-semibold text-slate-300 border-r border-slate-700/20 flex flex-col items-center justify-center gap-0.5 px-1"
+                        >
+                          <div className="font-bold text-sm">{format(day, 'dd')}</div>
+                          <div className="text-[9px] text-slate-500">{format(day, 'EEE', { locale: ptBR }).slice(0, 3).toUpperCase()}</div>
                         </div>
                       ))}
                     </div>
@@ -493,6 +497,48 @@ export default function Travels() {
 
                         return (
                         <React.Fragment key={`vertical-${vertical}`}>
+                          {/* Vertical Cronograma Row */}
+                          {verticalMembers.length > 0 && (
+                            <div 
+                              className="h-12 bg-slate-700/15 border-b border-slate-700/30 relative"
+                              style={{
+                                display: 'grid',
+                                gridTemplateColumns: `repeat(${daysInMonth.length}, 48px)`,
+                              }}
+                            >
+                              {daysInMonth.map((_, idx) => (
+                                <div key={`sep-${idx}`} className="border-r border-slate-700/20" />
+                              ))}
+
+                              {/* Timeline Events for this Vertical */}
+                              {verticalEvents.map((event) => {
+                                if (!event.start_date) return null;
+                                const startDate = parseISO(event.start_date);
+                                const endDate = event.end_date ? parseISO(event.end_date) : startDate;
+                                const firstDayOfMonth = startOfMonth(currentMonth);
+                                const startDayIdx = Math.max(0, differenceInDays(startDate, firstDayOfMonth));
+                                const endDayIdx = Math.min(daysInMonth.length - 1, differenceInDays(endDate, firstDayOfMonth));
+
+                                if (startDayIdx > daysInMonth.length - 1 || endDayIdx < 0) return null;
+
+                                const width = (endDayIdx - startDayIdx + 1) * 48 - 4;
+
+                                return (
+                                  <div
+                                    key={`timeline-${event.id}`}
+                                    className="absolute top-1/2 transform -translate-y-1/2 h-1 bg-red-500 rounded-full"
+                                    style={{
+                                      left: `${startDayIdx * 48 + 2}px`,
+                                      width: `${width}px`,
+                                      zIndex: 10
+                                    }}
+                                    title={event.title}
+                                  />
+                                );
+                              })}
+                            </div>
+                          )}
+
                           {/* Member Rows for this Vertical */}
                           {verticalMembers.map(member => {
                             const memberTravels = travels.filter(t => t.attendees?.includes(member.name));
