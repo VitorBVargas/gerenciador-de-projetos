@@ -504,17 +504,29 @@ export default function ExecutiveStatus() {
       const projectProducts = allProducts.filter(p => p.project_id === project.id);
       if (!projectProducts.length) return;
 
-      // Usar cache ao invés de buscar TimelineEvents
+      // Usar cache ao invés de buscar TimelineEvents (com fallback)
       projectProducts.forEach(prod => {
-        const cache = allFinancialCache.find(c => c.product_id === prod.id);
-        if (!cache || !cache.implantacao_end_date) return;
-        const implMonth = cache.implantacao_end_date.substring(0, 7);
+        let cache = allFinancialCache.find(c => c.product_id === prod.id);
+        let implEndDate = cache?.implantacao_end_date;
+        
+        // FALLBACK: se cache não existe ou não tem data, buscar em TimelineEvents
+        if (!implEndDate) {
+          const opAssistidaEvent = allTimelineEvents.find(e => 
+            e.product_id === prod.id && 
+            e.phase === 'operacao_assistida' && 
+            e.end_date
+          );
+          implEndDate = opAssistidaEvent?.end_date;
+        }
+        
+        if (!implEndDate) return;
+        const implMonth = implEndDate.substring(0, 7);
         if (!monthlyData[implMonth]) return;
         const totalImplValue = prod.implementation_value || 0;
         if (totalImplValue > 0) {
           monthlyData[implMonth].implantacao += totalImplValue;
           if (!implantacaoProductsMap[implMonth]) implantacaoProductsMap[implMonth] = [];
-          implantacaoProductsMap[implMonth].push({ product: prod, project, end_date: cache.implantacao_end_date, amount: totalImplValue });
+          implantacaoProductsMap[implMonth].push({ product: prod, project, end_date: implEndDate, amount: totalImplValue });
         }
       });
     });
@@ -531,18 +543,30 @@ export default function ExecutiveStatus() {
       monthlyData[monthKey].a_receber = Math.max(0, totalImplValue - totalRecognized);
     });
 
-    // Usar cache para recorrente
+    // Usar cache para recorrente (com fallback)
     projects.forEach(project => {
       const projectProducts = allProducts.filter(p => p.project_id === project.id && (p.inclusion_value || 0) > 0);
       if (!projectProducts.length) return;
       
       projectProducts.forEach(prod => {
-        const cache = allFinancialCache.find(c => c.product_id === prod.id);
-        if (!cache || !cache.go_live_start_date) return;
-        const goLiveMonth = cache.go_live_start_date.substring(0, 7);
+        let cache = allFinancialCache.find(c => c.product_id === prod.id);
+        let goLiveStart = cache?.go_live_start_date;
+        
+        // FALLBACK: se cache não existe ou não tem data, buscar em TimelineEvents
+        if (!goLiveStart) {
+          const goLiveEvent = allTimelineEvents.find(e => 
+            e.product_id === prod.id && 
+            e.phase === 'go_live' && 
+            e.start_date
+          );
+          goLiveStart = goLiveEvent?.start_date;
+        }
+        
+        if (!goLiveStart) return;
+        const goLiveMonth = goLiveStart.substring(0, 7);
         if (!monthlyData[goLiveMonth]) return;
         monthlyData[goLiveMonth].recorrente += (prod.inclusion_value || 0);
-        monthlyRecorrenteProducts[goLiveMonth].push({ product: prod, project, startDate: cache.go_live_start_date, inclusionValue: prod.inclusion_value || 0 });
+        monthlyRecorrenteProducts[goLiveMonth].push({ product: prod, project, startDate: goLiveStart, inclusionValue: prod.inclusion_value || 0 });
       });
     });
 
