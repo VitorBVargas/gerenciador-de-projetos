@@ -555,9 +555,9 @@ export default function Travels() {
                     </h2>
                     <div className="space-y-3">
                       {sortedTravels.map(travel => {
-                      const Icon = travelTypeIcons[travel.travel_type];
-                      return (
-                        <Card key={travel.id} className="bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 transition-all group">
+                        const Icon = travelTypeIcons[travel.travel_type];
+                        return (
+                          <Card key={travel.id} className="bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 transition-all group">
                           <CardContent className="p-5">
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
@@ -618,11 +618,12 @@ export default function Travels() {
                             </div>
                           </CardContent>
                         </Card>
-                      );
-                    })}
-                  </div>
-                </div>
-              ));
+                        );
+                        })}
+                        </div>
+                        </div>
+                        );
+                        });
             })()
           ) : (
             <EmptyState
