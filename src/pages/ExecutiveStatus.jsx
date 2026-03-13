@@ -631,14 +631,38 @@ export default function ExecutiveStatus() {
                 <span className="text-sm">Voltar para Projetos</span>
               </button>
             </Link>
-            <a
-              href="https://betha-road-map.base44.app/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-700 border border-slate-600 text-slate-300 hover:bg-slate-600 hover:text-white transition-colors text-xs font-medium"
-            >
-              🗺️ Reportar Bug / Melhoria
-            </a>
+            <div className="flex items-center gap-2">
+              <a
+                href="https://betha-road-map.base44.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-700 border border-slate-600 text-slate-300 hover:bg-slate-600 hover:text-white transition-colors text-xs font-medium"
+              >
+                🗺️ Reportar Bug / Melhoria
+              </a>
+              <Button
+                onClick={async () => {
+                  setIsRecalculating(true);
+                  try {
+                    await base44.functions.invoke('populateProductFinancialDates', {});
+                    await base44.functions.invoke('recalculateAllCaches', {});
+                    setTimeout(() => {
+                      queryClient.invalidateQueries();
+                      setIsRecalculating(false);
+                      toast.success('Dados sincronizados com sucesso!');
+                    }, 2000);
+                  } catch (err) {
+                    console.error(err);
+                    setIsRecalculating(false);
+                    toast.error('Erro ao sincronizar dados');
+                  }
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-xs"
+                disabled={isRecalculating}
+              >
+                {isRecalculating ? <Loader2 className="w-3 h-3 animate-spin" /> : '🔄'} Sincronizar Dados
+              </Button>
+            </div>
           </div>
 
         </div>
