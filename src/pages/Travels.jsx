@@ -472,7 +472,7 @@ export default function Travels() {
                   <div style={{ width: `${daysInMonth.length * 48}px`, minWidth: '100%' }}>
                     {/* HEADER ROW - Month only */}
                     <div 
-                      className="h-12 bg-slate-700/20 border-b border-slate-700/50 flex items-center justify-start px-4"
+                      className="h-16 bg-slate-700/20 border-b border-slate-700/50 flex items-center justify-start px-4"
                     >
                       <span className="text-sm font-semibold text-slate-300 capitalize">
                         {format(currentMonth, "MMMM 'de' yyyy", { locale: ptBR })}
