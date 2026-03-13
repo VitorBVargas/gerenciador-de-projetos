@@ -435,8 +435,8 @@ export default function Travels() {
                   className="sticky left-0 z-20 flex flex-col flex-shrink-0 bg-slate-800/95 border-r border-slate-700/50"
                   style={{ width: '220px' }}
                 >
-                  {/* Header Label - Hidden but kept for layout alignment */}
-                  <div className="h-0 px-4 py-2 bg-slate-700/30 border-b border-slate-700/50 flex items-center overflow-hidden">
+                  {/* Header Label */}
+                  <div className="h-12 px-4 py-2 bg-slate-700/30 border-b border-slate-700/50 flex items-center">
                     <span className="text-xs font-semibold text-cyan-400 uppercase tracking-wider">Vertical/Membro</span>
                   </div>
 
