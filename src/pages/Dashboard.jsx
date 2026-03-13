@@ -300,13 +300,6 @@ export default function Dashboard() {
   };
 
   // Fetch cached data PRIMEIRO
-  const { data: progressCache = null } = useQuery({
-    queryKey: ['progressCache', projectId],
-    queryFn: () => projectId ? base44.entities.ProjectProgressCache.filter({ project_id: projectId }).then(r => r[0] || null) : null,
-    enabled: !!projectId,
-    staleTime: 5 * 60 * 1000
-  });
-
   const { data: overallProgressCache = null } = useQuery({
     queryKey: ['overallProgressCache', projectId],
     queryFn: () => projectId ? base44.entities.ProjectOverallProgressCache.filter({ project_id: projectId }).then(r => r[0] || null) : null,
@@ -319,10 +312,17 @@ export default function Dashboard() {
     ? Math.round(overallProgressCache.overall_progress) 
     : 0;
 
-  // Progresso Entidade: apenas a entidade selecionada (manter cálculo pois é filtrado)
-  const projectProgress = filteredTimelineEvents.length > 0
-    ? Math.round(filteredTimelineEvents.reduce((sum, e) => sum + calcEventProgressDash(e), 0) / filteredTimelineEvents.length)
+  // Progresso por entidade também vem do cache (filtrado no frontend)
+  const projectProgress = selectedEntity && overallProgressCache?.overall_progress
+    ? Math.round(overallProgressCache.overall_progress)
     : 0;
+
+  const { data: progressCache = null } = useQuery({
+    queryKey: ['progressCache', projectId],
+    queryFn: () => projectId ? base44.entities.ProjectProgressCache.filter({ project_id: projectId }).then(r => r[0] || null) : null,
+    enabled: !!projectId,
+    staleTime: 5 * 60 * 1000
+  });
 
   const { data: healthCache = null } = useQuery({
     queryKey: ['healthCache', projectId],
