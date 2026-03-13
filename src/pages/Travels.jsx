@@ -426,20 +426,14 @@ export default function Travels() {
                   </Button>
                 </div>
               </div>
-              <div className="flex gap-4 overflow-hidden">
-                {/* Left column - fixed width */}
-                <div className="flex flex-col flex-shrink-0 w-[180px]">
-                  {/* Month header */}
-                  <Card className="bg-slate-800/50 border-slate-700/50 rounded-b-none px-4 py-2 text-sm font-semibold text-slate-400 border-b border-slate-700/50">
-                    Período
-                  </Card>
-                  
-                  {/* Scrollable left content - sync with right */}
-                  <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent">
+              <Card className="bg-slate-800/50 border-slate-700/50 overflow-hidden flex flex-col">
+                <div className="flex overflow-hidden flex-1">
+                  {/* Sticky left column with names */}
+                  <div className="sticky left-0 z-10 flex flex-col flex-shrink-0 w-[180px] border-r border-slate-700/50 bg-slate-800/50">
                     {verticals.map(vertical => (
                       <React.Fragment key={vertical}>
                         {/* Vertical header */}
-                        <div className="px-4 py-2 text-sm font-semibold text-cyan-400 bg-slate-700/30 border-b border-slate-700/50">
+                        <div className="px-4 py-2 text-sm font-semibold text-cyan-400 bg-slate-700/30 border-b border-slate-700/50 h-12 flex items-center">
                           {verticalLabels[vertical] || vertical}
                         </div>
                         {/* Members */}
@@ -451,15 +445,13 @@ export default function Travels() {
                       </React.Fragment>
                     ))}
                   </div>
-                </div>
 
-                {/* Right column - scrollable table */}
-                <Card className="bg-slate-800/50 border-slate-700/50 flex-1 overflow-hidden flex flex-col">
+                  {/* Scrollable table area */}
                   <div className="flex-1 overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-700">
                     <table className="border-collapse" style={{minWidth: 'max-content'}}>
                       <thead>
-                        {/* Month row */}
-                        <tr className="border-b border-slate-700/50">
+                        {/* Month headers row */}
+                        <tr>
                           {(() => {
                             let currentDisplayMonth = null;
                             return daysInMonth.map(day => {
@@ -479,17 +471,23 @@ export default function Travels() {
                             });
                           })()}
                         </tr>
+                        {/* Day and weekday row */}
+                        <tr className="border-b border-slate-700/50 bg-slate-700/30">
+                          {daysInMonth.map(day => (
+                            <th key={day.toString()} className="px-2 py-2 text-center text-xs font-medium text-slate-400 min-w-[40px] border-r border-slate-700/20">
+                              <div>{format(day, 'dd')}</div>
+                              <div className="text-[10px] text-slate-500">{format(day, 'EEE', { locale: ptBR })}</div>
+                            </th>
+                          ))}
+                        </tr>
                       </thead>
                       <tbody>
                         {verticals.map(vertical => (
                           <React.Fragment key={vertical}>
-                            {/* Vertical header row */}
-                            <tr className="bg-slate-700/30">
+                            {/* Vertical header row (empty, for alignment) */}
+                            <tr className="bg-slate-700/20 border-b border-slate-700/30">
                               {daysInMonth.map(day => (
-                                <td key={day.toString()} className="px-2 py-2 text-center text-xs font-medium text-slate-400 min-w-[40px] border-r border-slate-700/20 bg-slate-700/30">
-                                  <div>{format(day, 'dd')}</div>
-                                  <div className="text-[10px] text-slate-500">{format(day, 'EEE', { locale: ptBR })}</div>
-                                </td>
+                                <td key={day.toString()} className="min-w-[40px] border-r border-slate-700/20"></td>
                               ))}
                             </tr>
                             {/* Member rows */}
@@ -539,8 +537,8 @@ export default function Travels() {
                       </tbody>
                     </table>
                   </div>
-                </Card>
-              </div>
+                </div>
+              </Card>
             </div>
           )}
         </>
