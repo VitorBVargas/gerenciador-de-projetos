@@ -96,7 +96,6 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
   // Verifica se Migração de PRD e Configuração de PRD foram marcadas correspondentemente
   const migracao_prd_blackout = timeline.find(e => e.title === 'Migração de PRD (Blackout)');
   const configuracao_prd = timeline.find(e => e.title === 'Configuração de PRD');
-  const now = new Date();
   
   const issues = [];
   
