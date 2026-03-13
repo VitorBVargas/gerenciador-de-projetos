@@ -88,6 +88,18 @@ const verticalLabels = {
   atendimento: 'Atendimento'
 };
 
+const statusLabels = {
+  planejada: 'Planejada',
+  comprada: 'Comprada',
+  efetuada: 'Efetuada'
+};
+
+const statusAbbreviation = {
+  planejada: 'P',
+  comprada: 'C',
+  efetuada: 'E'
+};
+
 export default function Travels() {
   const queryClient = useQueryClient();
   const [modalOpen, setModalOpen] = useState(false);
@@ -475,27 +487,28 @@ export default function Travels() {
                                     const Icon = travelTypeIcons[travel.travel_type];
                                     const color = travelTypeColors[travel.travel_type];
 
+                                    const abbrev = statusAbbreviation[travel.status] || 'P';
                                     if (isFirst || isLast) {
-                                      cellContent = (
-                                        <div
-                                          className={cn("w-8 h-8 mx-auto rounded-full flex items-center justify-center cursor-pointer transition-transform hover:scale-110", color)}
-                                          onClick={(e) => { e.stopPropagation(); handleEdit(travel); }}
-                                          title={`${travel.title}`}
-                                        >
-                                          <Icon className="w-4 h-4 text-white" />
-                                        </div>
-                                      );
-                                    } else {
-                                      cellContent = (
-                                        <div
-                                          className={cn("w-8 h-8 mx-auto rounded-full flex items-center justify-center cursor-pointer transition-transform hover:scale-110 font-bold text-sm text-white", color, "opacity-70")}
-                                          onClick={(e) => { e.stopPropagation(); handleEdit(travel); }}
-                                          title={`${travel.title}`}
-                                        >
-                                          {initial}
-                                        </div>
-                                      );
-                                    }
+                                       cellContent = (
+                                         <div
+                                           className={cn("w-8 h-8 mx-auto rounded-full flex items-center justify-center cursor-pointer transition-transform hover:scale-110 font-bold text-sm text-white", color)}
+                                           onClick={(e) => { e.stopPropagation(); handleEdit(travel); }}
+                                           title={`${travel.title}`}
+                                         >
+                                           {abbrev}
+                                         </div>
+                                       );
+                                     } else {
+                                       cellContent = (
+                                         <div
+                                           className={cn("w-8 h-8 mx-auto rounded-full flex items-center justify-center cursor-pointer transition-transform hover:scale-110 font-bold text-sm text-white", color, "opacity-70")}
+                                           onClick={(e) => { e.stopPropagation(); handleEdit(travel); }}
+                                           title={`${travel.title}`}
+                                         >
+                                           {abbrev}
+                                         </div>
+                                       );
+                                     }
                                   }
 
                                   return (
@@ -733,7 +746,8 @@ export default function Travels() {
                   </SelectTrigger>
                   <SelectContent className="bg-slate-700 border-slate-600">
                     <SelectItem value="planejada">Planejada</SelectItem>
-                    <SelectItem value="confirmada">Confirmada</SelectItem>
+                    <SelectItem value="comprada">Comprada</SelectItem>
+                    <SelectItem value="efetuada">Efetuada</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
