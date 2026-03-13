@@ -358,7 +358,14 @@ export default function CrmImporter({ open, onOpenChange, portfolioFilter = 'gra
       );
     }
 
-    // 7. Redirecionar
+    // 7. Atualizar cache financeiro
+    try {
+      await base44.functions.invoke('updateFinancialTimelineCache', {});
+    } catch (err) {
+      console.warn('Erro ao atualizar cache financeiro:', err);
+    }
+
+    // 8. Redirecionar
     window.location.href = `/dashboard?project_id=${project.id}`;
   };
 
