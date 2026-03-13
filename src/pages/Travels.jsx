@@ -470,25 +470,6 @@ export default function Travels() {
                   className="flex-1 overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800/50"
                 >
                   <div style={{ width: `${daysInMonth.length * 48}px`, minWidth: '100%' }}>
-                    {/* HEADER ROW - Days */}
-                    <div 
-                      className="h-16 bg-slate-700/20 border-b border-slate-700/50"
-                      style={{
-                        display: 'grid',
-                        gridTemplateColumns: `repeat(${daysInMonth.length}, 48px)`,
-                      }}
-                    >
-                      {daysInMonth.map((day, idx) => (
-                        <div 
-                          key={`day-${idx}`}
-                          className="text-center text-xs font-semibold text-slate-300 border-r border-slate-700/20 flex flex-col items-center justify-center gap-0.5 px-1"
-                        >
-                          <div className="font-bold text-sm">{format(day, 'dd')}</div>
-                          <div className="text-[9px] text-slate-500">{format(day, 'EEE', { locale: ptBR }).slice(0, 3).toUpperCase()}</div>
-                        </div>
-                      ))}
-                    </div>
-
                     {/* TIMELINE BODY ROWS */}
                     <div>
                       {verticals.map(vertical => {
