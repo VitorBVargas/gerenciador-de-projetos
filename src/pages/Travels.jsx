@@ -427,18 +427,47 @@ export default function Travels() {
                   </Button>
                 </div>
               </div>
-              <div className="rounded-xl border border-slate-700/50 bg-slate-800/50 overflow-hidden">
+              <div className="w-full overflow-hidden rounded-xl border border-slate-700/50 bg-slate-800/50">
+                {/* HEADER - Navegação do Mês */}
+                <div className="flex h-12 border-b border-slate-700/50">
+                  {/* Coluna Vazia (para alinhar com a coluna sticky) */}
+                  <div className="flex-shrink-0" style={{ width: '220px' }} />
+                  
+                  {/* Header Mês */}
+                  <div 
+                    className="flex-1 overflow-x-auto overflow-y-hidden"
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: `repeat(${daysInMonth.length}, 48px)`,
+                    }}
+                  >
+                    {(() => {
+                      let lastMonth = null;
+                      return daysInMonth.map((day, idx) => {
+                        const monthStr = format(day, 'MMM/yy', { locale: ptBR });
+                        const isNewMonth = monthStr !== lastMonth;
+                        if (isNewMonth) lastMonth = monthStr;
+                        
+                        return (
+                          <div 
+                            key={`month-${idx}`}
+                            className="text-center text-[10px] font-semibold text-cyan-400/60 border-r border-slate-700/20 flex items-center justify-center bg-slate-700/30"
+                          >
+                            {isNewMonth ? monthStr.toUpperCase() : ''}
+                          </div>
+                        );
+                      });
+                    })()}
+                  </div>
+                </div>
+
+                {/* MAIN CONTAINER */}
                 <div className="flex h-full w-full">
                   {/* COLUNA ESQUERDA - STICKY */}
                   <div 
-                    className="sticky left-0 z-20 flex flex-col bg-slate-800/80 border-r border-slate-700/50 flex-shrink-0"
+                    className="sticky left-0 z-20 flex flex-col bg-slate-800/90 border-r border-slate-700/50 flex-shrink-0"
                     style={{ width: '220px' }}
                   >
-                    {/* Header Mês */}
-                    <div className="h-6 px-4 py-1 bg-slate-700/30 border-b border-slate-700/50 flex items-center">
-                      <span className="text-xs font-semibold text-cyan-400">&nbsp;</span>
-                    </div>
-
                     {/* Header Dias */}
                     <div className="h-12 px-4 py-2 bg-slate-700/20 border-b border-slate-700/50 flex items-center">
                       <span className="text-xs font-semibold text-cyan-400">VERTICAL / MEMBRO</span>
@@ -475,147 +504,115 @@ export default function Travels() {
                     onMouseUp={handleMouseUp}
                     onMouseLeave={handleMouseUp}
                   >
-                    <div style={{ width: `${daysInMonth.length * 48}px` }}>
-                      {/* HEADER MÊS */}
-                      <div 
-                        className="h-6 bg-slate-700/30 border-b border-slate-700/50"
-                        style={{
-                          display: 'grid',
-                          gridTemplateColumns: `repeat(${daysInMonth.length}, 48px)`,
-                          gridAutoRows: '100%'
-                        }}
-                      >
-                        {(() => {
-                          let lastMonth = null;
-                          return daysInMonth.map((day, idx) => {
-                            const monthStr = format(day, 'MMM/yy', { locale: ptBR });
-                            const isNewMonth = monthStr !== lastMonth;
-                            if (isNewMonth) lastMonth = monthStr;
-                            
+                    {/* HEADER DIAS */}
+                    <div 
+                      className="h-12 bg-slate-700/20 border-b border-slate-700/50"
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: `repeat(${daysInMonth.length}, 48px)`,
+                      }}
+                    >
+                      {daysInMonth.map((day, idx) => (
+                        <div 
+                          key={`day-${idx}`}
+                          className="text-center text-xs font-semibold text-slate-300 border-r border-slate-700/20 flex flex-col items-center justify-center"
+                        >
+                          <div className="font-bold">{format(day, 'dd')}</div>
+                          <div className="text-[9px] text-slate-500">{format(day, 'EEE', { locale: ptBR })}</div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* TIMELINE BODY */}
+                    <div className="flex flex-col">
+                      {verticals.map(vertical => (
+                        <React.Fragment key={`vertical-${vertical}`}>
+                          {/* Member Rows with Events */}
+                          {membersByVertical[vertical].map(member => {
+                            const memberTravels = travels.filter(t => t.attendees?.includes(member.name));
+
                             return (
                               <div 
-                                key={`month-${idx}`}
-                                className="text-center text-[10px] font-semibold text-cyan-400/60 border-r border-slate-700/20 flex items-center justify-center"
-                              >
-                                {isNewMonth ? monthStr.toUpperCase() : ''}
-                              </div>
-                            );
-                          });
-                        })()}
-                      </div>
-
-                      {/* HEADER DIAS */}
-                      <div 
-                        className="h-12 bg-slate-700/20 border-b border-slate-700/50"
-                        style={{
-                          display: 'grid',
-                          gridTemplateColumns: `repeat(${daysInMonth.length}, 48px)`,
-                          gridAutoRows: '100%'
-                        }}
-                      >
-                        {daysInMonth.map((day, idx) => (
-                          <div 
-                            key={`day-${idx}`}
-                            className="text-center text-xs font-semibold text-slate-300 border-r border-slate-700/20 flex flex-col items-center justify-center"
-                          >
-                            <div className="font-bold">{format(day, 'dd')}</div>
-                            <div className="text-[9px] text-slate-500">{format(day, 'EEE', { locale: ptBR })}</div>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* TIMELINE BODY */}
-                      <div className="flex flex-col">
-                        {verticals.map(vertical => (
-                          <React.Fragment key={`vertical-${vertical}`}>
-                            {/* Member Rows with Events */}
-                            {membersByVertical[vertical].map(member => {
-                              const memberTravels = travels.filter(t => t.attendees?.includes(member.name));
-
-                              return (
-                                <div 
-                                  key={`member-${member.id}`}
-                                  className="h-12 border-b border-slate-700/20 hover:bg-slate-700/10 relative"
-                                  style={{
-                                    display: 'grid',
-                                    gridTemplateColumns: `repeat(${daysInMonth.length}, 48px)`,
-                                    gridAutoRows: '100%'
-                                  }}
-                                  onMouseDown={(e) => {
+                                key={`member-${member.id}`}
+                                className="h-12 border-b border-slate-700/20 hover:bg-slate-700/10 relative"
+                                style={{
+                                  display: 'grid',
+                                  gridTemplateColumns: `repeat(${daysInMonth.length}, 48px)`,
+                                }}
+                                onMouseDown={(e) => {
+                                  const rect = e.currentTarget.getBoundingClientRect();
+                                  const dayIdx = Math.floor((e.clientX - rect.left) / 48);
+                                  if (dayIdx >= 0 && dayIdx < daysInMonth.length) {
+                                    handleMouseDown(daysInMonth[dayIdx], member);
+                                  }
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (isDragging && e.buttons === 1) {
                                     const rect = e.currentTarget.getBoundingClientRect();
                                     const dayIdx = Math.floor((e.clientX - rect.left) / 48);
                                     if (dayIdx >= 0 && dayIdx < daysInMonth.length) {
-                                      handleMouseDown(daysInMonth[dayIdx], member);
+                                      handleMouseEnter(daysInMonth[dayIdx]);
                                     }
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    if (isDragging && e.buttons === 1) {
-                                      const rect = e.currentTarget.getBoundingClientRect();
-                                      const dayIdx = Math.floor((e.clientX - rect.left) / 48);
-                                      if (dayIdx >= 0 && dayIdx < daysInMonth.length) {
-                                        handleMouseEnter(daysInMonth[dayIdx]);
-                                      }
-                                    }
-                                  }}
-                                >
-                                  {/* Grid Background */}
-                                  {daysInMonth.map((day, idx) => {
-                                    const isInRange = isInDragRange(day) && dragMember?.id === member.id;
-                                    return (
-                                      <div 
-                                        key={`grid-${idx}`} 
-                                        className={cn(
-                                          "border-r border-slate-700/20",
-                                          isInRange && "bg-blue-500/30"
-                                        )}
-                                      ></div>
-                                    );
-                                  })}
+                                  }
+                                }}
+                              >
+                                {/* Grid Background */}
+                                {daysInMonth.map((day, idx) => {
+                                  const isInRange = isInDragRange(day) && dragMember?.id === member.id;
+                                  return (
+                                    <div 
+                                      key={`grid-${idx}`} 
+                                      className={cn(
+                                        "border-r border-slate-700/20",
+                                        isInRange && "bg-blue-500/30"
+                                      )}
+                                    ></div>
+                                  );
+                                })}
 
-                                  {/* Events as Circles */}
-                                  {memberTravels.map((travel) => {
-                                    if (!travel.start_date) return null;
+                                {/* Events as Circles */}
+                                {memberTravels.map((travel) => {
+                                  if (!travel.start_date) return null;
 
-                                    const startDate = parseISO(travel.start_date);
-                                    const endDate = travel.end_date ? parseISO(travel.end_date) : startDate;
+                                  const startDate = parseISO(travel.start_date);
+                                  const endDate = travel.end_date ? parseISO(travel.end_date) : startDate;
 
-                                    const firstDayOfMonth = startOfMonth(currentMonth);
-                                    const startDayIdx = Math.max(0, differenceInDays(startDate, firstDayOfMonth));
-                                    const endDayIdx = Math.min(daysInMonth.length - 1, differenceInDays(endDate, firstDayOfMonth));
+                                  const firstDayOfMonth = startOfMonth(currentMonth);
+                                  const startDayIdx = Math.max(0, differenceInDays(startDate, firstDayOfMonth));
+                                  const endDayIdx = Math.min(daysInMonth.length - 1, differenceInDays(endDate, firstDayOfMonth));
 
-                                    if (startDayIdx > daysInMonth.length - 1 || endDayIdx < 0) return null;
+                                  if (startDayIdx > daysInMonth.length - 1 || endDayIdx < 0) return null;
 
-                                    return (
-                                      <div
-                                        key={`event-${travel.id}`}
-                                        className="absolute top-1/2 transform -translate-y-1/2 flex gap-1"
-                                        style={{
-                                          left: `${startDayIdx * 48 + 12}px`,
-                                          zIndex: 10
-                                        }}
-                                      >
-                                        {Array.from({ length: endDayIdx - startDayIdx + 1 }).map((_, i) => (
-                                          <div
-                                            key={`circle-${i}`}
-                                            className={cn(
-                                              "w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-transform hover:scale-110 font-bold text-xs text-white",
-                                              travelTypeColors[travel.travel_type]
-                                            )}
-                                            onClick={() => handleEdit(travel)}
-                                            title={`${travel.title}`}
-                                          >
-                                            {statusAbbreviation[travel.status] || 'P'}
-                                          </div>
-                                        ))}
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              );
-                            })}
-                          </React.Fragment>
-                        ))}
-                      </div>
+                                  return (
+                                    <div
+                                      key={`event-${travel.id}`}
+                                      className="absolute top-1/2 transform -translate-y-1/2 flex gap-1"
+                                      style={{
+                                        left: `${startDayIdx * 48 + 12}px`,
+                                        zIndex: 10
+                                      }}
+                                    >
+                                      {Array.from({ length: endDayIdx - startDayIdx + 1 }).map((_, i) => (
+                                        <div
+                                          key={`circle-${i}`}
+                                          className={cn(
+                                            "w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-transform hover:scale-110 font-bold text-xs text-white",
+                                            travelTypeColors[travel.travel_type]
+                                          )}
+                                          onClick={() => handleEdit(travel)}
+                                          title={`${travel.title}`}
+                                        >
+                                          {statusAbbreviation[travel.status] || 'P'}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            );
+                          })}
+                        </React.Fragment>
+                      ))}
                     </div>
                   </div>
                 </div>
