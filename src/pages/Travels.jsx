@@ -658,7 +658,11 @@ export default function Travels() {
                 </SelectTrigger>
                 <SelectContent className="bg-slate-700 border-slate-600 max-h-64">
                    {timelineEvents.length > 0 ? (
-                     [...new Set(timelineEvents.map(e => e.title))].map(title => (
+                     [...new Set(
+                       timelineEvents
+                         .sort((a, b) => (a.order || 0) - (b.order || 0))
+                         .map(e => e.title)
+                     )].map(title => (
                        <SelectItem key={title} value={title}>{title}</SelectItem>
                      ))
                    ) : (
