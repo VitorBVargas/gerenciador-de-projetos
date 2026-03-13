@@ -219,7 +219,25 @@ export default function Migration() {
       entityMap.set(p.entity, p.entity_full_name || p.entity);
     }
   });
-  const allEntities = Array.from(entityMap.entries()).map(([code, fullName]) => ({ code, fullName }));
+  const allEntities = Array.from(entityMap.entries())
+    .map(([code, fullName]) => ({ code, fullName }))
+    .sort((a, b) => {
+      const aFullName = a.fullName.toLowerCase();
+      const bFullName = b.fullName.toLowerCase();
+      const aCode = a.code.toLowerCase();
+      const bCode = b.code.toLowerCase();
+      
+      // Prefeitura primeiro
+      if (aFullName.includes('prefeitura') && !bFullName.includes('prefeitura')) return -1;
+      if (!aFullName.includes('prefeitura') && bFullName.includes('prefeitura')) return 1;
+      
+      // Câmara segundo (inclui CM que é sinônimo)
+      if ((aFullName.includes('câmara') || aCode === 'cm') && !((bFullName.includes('câmara') || bCode === 'cm'))) return -1;
+      if (!((aFullName.includes('câmara') || aCode === 'cm')) && (bFullName.includes('câmara') || bCode === 'cm')) return 1;
+      
+      // Outras em ordem alfabética
+      return aFullName.localeCompare(bFullName);
+    });
   
   // Auto-select first entity that has products with migration
   React.useEffect(() => {
