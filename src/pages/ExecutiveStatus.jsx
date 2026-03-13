@@ -1169,6 +1169,10 @@ export default function ExecutiveStatus() {
                          dataKey="month" 
                          stroke="#94a3b8"
                          style={{ fontSize: '12px' }}
+                         interval={0}
+                         angle={-45}
+                         textAnchor="end"
+                         height={80}
                        />
                        <YAxis 
                          stroke="#94a3b8"
@@ -1280,6 +1284,10 @@ export default function ExecutiveStatus() {
                           dataKey="month" 
                           stroke="#94a3b8"
                           style={{ fontSize: '12px' }}
+                          interval={0}
+                          angle={-45}
+                          textAnchor="end"
+                          height={80}
                         />
                         <YAxis 
                           stroke="#94a3b8"
