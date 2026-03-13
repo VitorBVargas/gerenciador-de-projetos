@@ -619,10 +619,10 @@ export default function Travels() {
                               </div>
                             );
                           })}
-                        </React.Fragment>
-                        );
-                      })}
-                    </div>
+                          </React.Fragment>
+                          );
+                          })}
+                          </div>
                   </div>
                 </div>
               </div>
