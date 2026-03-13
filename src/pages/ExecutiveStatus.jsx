@@ -252,20 +252,10 @@ export default function ExecutiveStatus() {
   };
 
   // Calculate overall progress for a project
-  // Para projetos por_vertical: usa apenas os eventos do produto representativo de cada vertical
-  // Para projetos por_produto: usa todos os eventos
+  // Usar apenas status e progress explícitos, SEM cálculo por data
   const calcEventProgress = (event) => {
     if (event.status === 'concluido') return 100;
-    if (event.progress > 0) return event.progress;
-    if (event.start_date && event.end_date) {
-      const now = new Date();
-      const start = new Date(event.start_date);
-      const end = new Date(event.end_date);
-      if (now <= start) return 0;
-      if (now >= end) return 99;
-      return Math.round(((now - start) / (end - start)) * 100);
-    }
-    return 0;
+    return event.progress || 0;
   };
 
   // Busca eventos do projeto: tenta project_id primeiro, fallback via product_ids e cronograma_ids
