@@ -831,13 +831,8 @@ const processProductsSheet = (workbook) => {
       }
       setProgress(95);
 
-      // 10. Sync Cronogramas e Datas Financeiras
-      setStatus('Sincronizando datas financeiras...');
-      try {
-        await base44.functions.invoke('populateProductFinancialDates', {});
-      } catch (err) {
-        console.warn('Erro ao popular datas financeiras:', err);
-      }
+      // 10. Finalize
+      setStatus('Finalizando...');
       setProgress(100);
 
       setStatus('Importação concluída com sucesso!');
