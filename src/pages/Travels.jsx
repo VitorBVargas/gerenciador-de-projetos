@@ -426,132 +426,118 @@ export default function Travels() {
                   </Button>
                 </div>
               </div>
-              <div className="flex gap-4 h-fit">
-                {/* Left column container - card styling */}
-                <Card className="bg-slate-800/50 border-slate-700/50 overflow-hidden flex flex-col flex-shrink-0">
+              <div className="flex gap-4 overflow-hidden">
+                {/* Left column - fixed width */}
+                <div className="flex flex-col flex-shrink-0 w-[180px]">
                   {/* Month header */}
-                  <div className="px-4 py-2 text-sm font-semibold text-slate-400 border-b border-slate-700/50 min-w-[180px] w-[180px]">
+                  <Card className="bg-slate-800/50 border-slate-700/50 rounded-b-none px-4 py-2 text-sm font-semibold text-slate-400 border-b border-slate-700/50">
                     Período
-                  </div>
-                  {/* Vertical headers and member names */}
-                  {verticals.map(vertical => (
-                    <React.Fragment key={vertical}>
-                      <div className="px-4 py-2 text-sm font-semibold text-cyan-400 bg-slate-700/30 border-b border-slate-700/50 min-w-[180px] w-[180px]">
-                        {verticalLabels[vertical] || vertical}
-                      </div>
-                      {membersByVertical[vertical].map(member => (
-                        <div key={member.id} className="px-4 py-3 text-sm text-white border-b border-slate-700/30 hover:bg-slate-700/20 min-w-[180px] w-[180px] truncate">
-                          {member.name}
+                  </Card>
+                  
+                  {/* Scrollable left content - sync with right */}
+                  <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent">
+                    {verticals.map(vertical => (
+                      <React.Fragment key={vertical}>
+                        {/* Vertical header */}
+                        <div className="px-4 py-2 text-sm font-semibold text-cyan-400 bg-slate-700/30 border-b border-slate-700/50">
+                          {verticalLabels[vertical] || vertical}
                         </div>
-                      ))}
-                    </React.Fragment>
-                  ))}
-                </Card>
+                        {/* Members */}
+                        {membersByVertical[vertical].map(member => (
+                          <div key={member.id} className="px-4 py-3 text-sm text-white border-b border-slate-700/30 hover:bg-slate-700/20 truncate">
+                            {member.name}
+                          </div>
+                        ))}
+                      </React.Fragment>
+                    ))}
+                  </div>
+                </div>
 
-                {/* Right column container - card styling with scroll */}
+                {/* Right column - scrollable table */}
                 <Card className="bg-slate-800/50 border-slate-700/50 flex-1 overflow-hidden flex flex-col">
-                  <div className="flex flex-col flex-1 overflow-hidden">
-                    {/* Scrollable table wrapper */}
-                    <div className="flex-1 overflow-x-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-700">
-                      <table className="border-collapse w-full" style={{minWidth: 'max-content'}}>
-                        <thead>
-                          {/* Month headers row */}
-                          <tr className="border-b border-slate-700/50">
-                            {(() => {
-                              let currentDisplayMonth = null;
-                              return daysInMonth.map(day => {
-                                const dayMonth = format(day, 'MMM/yy', { locale: ptBR });
-                                const isFirstOfMonth = day.getDate() === 1;
-                                const shouldShowMonth = currentDisplayMonth !== dayMonth && isFirstOfMonth;
-                                
-                                if (shouldShowMonth) {
-                                  currentDisplayMonth = dayMonth;
-                                }
-                                
-                                return (
-                                  <th key={day.toString()} className="px-2 py-2 text-center text-xs font-semibold text-cyan-400 min-w-[40px] border-r border-slate-700/20">
-                                    {shouldShowMonth ? dayMonth.toUpperCase() : ''}
-                                  </th>
-                                );
-                              });
-                            })()}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {verticals.map(vertical => (
-                            <React.Fragment key={vertical}>
-                              <tr className="bg-slate-700/30">
-                                {daysInMonth.map(day => (
-                                  <td key={day.toString()} className="px-2 py-2 text-center text-xs font-medium text-slate-400 min-w-[40px] border-r border-slate-700/20 bg-slate-700/30">
-                                    <div>{format(day, 'dd')}</div>
-                                    <div className="text-[10px] text-slate-500">{format(day, 'EEE', { locale: ptBR })}</div>
-                                  </td>
-                                ))}
-                              </tr>
-                              {membersByVertical[vertical].map(member => (
-                                <tr key={member.id} className="border-b border-slate-700/30 hover:bg-slate-700/20">
-                                  {daysInMonth.map(day => {
-                                    const dayTravels = getTravelsForDay(day).filter(t => 
-                                      t.attendees?.includes(member.name)
-                                    );
-                                    const travel = dayTravels[0];
-                                    const isInRange = isInDragRange(day) && dragMember?.id === member.id;
-
-                                    let cellContent = null;
-                                    if (travel) {
-                                      const start = parseISO(travel.start_date);
-                                      const end = travel.end_date ? parseISO(travel.end_date) : start;
-                                      const isFirst = isSameDay(day, start);
-                                      const isLast = isSameDay(day, end);
-                                      const initial = member.name.trim().charAt(0).toUpperCase();
-                                      const Icon = travelTypeIcons[travel.travel_type];
-                                      const color = travelTypeColors[travel.travel_type];
-
-                                      const abbrev = statusAbbreviation[travel.status] || 'P';
-                                      if (isFirst || isLast) {
-                                         cellContent = (
-                                           <div
-                                             className={cn("w-8 h-8 mx-auto rounded-full flex items-center justify-center cursor-pointer transition-transform hover:scale-110 font-bold text-sm text-white", color)}
-                                             onClick={(e) => { e.stopPropagation(); handleEdit(travel); }}
-                                             title={`${travel.title}`}
-                                           >
-                                             {abbrev}
-                                           </div>
-                                         );
-                                       } else {
-                                         cellContent = (
-                                           <div
-                                             className={cn("w-8 h-8 mx-auto rounded-full flex items-center justify-center cursor-pointer transition-transform hover:scale-110 font-bold text-sm text-white", color, "opacity-70")}
-                                             onClick={(e) => { e.stopPropagation(); handleEdit(travel); }}
-                                             title={`${travel.title}`}
-                                           >
-                                             {abbrev}
-                                           </div>
-                                         );
-                                       }
-                                    }
-
-                                    return (
-                                      <td 
-                                        key={day.toString()} 
-                                        className={cn(
-                                          "px-1 py-2 text-center border-r border-slate-700/20 cursor-pointer select-none",
-                                          isInRange && "bg-blue-500/30"
-                                        )}
-                                        onMouseDown={() => handleMouseDown(day, member)}
-                                        onMouseEnter={() => handleMouseEnter(day)}
-                                      >
-                                        {cellContent}
-                                      </td>
-                                    );
-                                  })}
-                                </tr>
+                  <div className="flex-1 overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-700">
+                    <table className="border-collapse" style={{minWidth: 'max-content'}}>
+                      <thead>
+                        {/* Month row */}
+                        <tr className="border-b border-slate-700/50">
+                          {(() => {
+                            let currentDisplayMonth = null;
+                            return daysInMonth.map(day => {
+                              const dayMonth = format(day, 'MMM/yy', { locale: ptBR });
+                              const isFirstOfMonth = day.getDate() === 1;
+                              const shouldShowMonth = currentDisplayMonth !== dayMonth && isFirstOfMonth;
+                              
+                              if (shouldShowMonth) {
+                                currentDisplayMonth = dayMonth;
+                              }
+                              
+                              return (
+                                <th key={day.toString()} className="px-2 py-2 text-center text-xs font-semibold text-cyan-400 min-w-[40px] border-r border-slate-700/20">
+                                  {shouldShowMonth ? dayMonth.toUpperCase() : ''}
+                                </th>
+                              );
+                            });
+                          })()}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {verticals.map(vertical => (
+                          <React.Fragment key={vertical}>
+                            {/* Vertical header row */}
+                            <tr className="bg-slate-700/30">
+                              {daysInMonth.map(day => (
+                                <td key={day.toString()} className="px-2 py-2 text-center text-xs font-medium text-slate-400 min-w-[40px] border-r border-slate-700/20 bg-slate-700/30">
+                                  <div>{format(day, 'dd')}</div>
+                                  <div className="text-[10px] text-slate-500">{format(day, 'EEE', { locale: ptBR })}</div>
+                                </td>
                               ))}
-                            </React.Fragment>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                            </tr>
+                            {/* Member rows */}
+                            {membersByVertical[vertical].map(member => (
+                              <tr key={member.id} className="border-b border-slate-700/30 hover:bg-slate-700/20">
+                                {daysInMonth.map(day => {
+                                  const dayTravels = getTravelsForDay(day).filter(t => 
+                                    t.attendees?.includes(member.name)
+                                  );
+                                  const travel = dayTravels[0];
+                                  const isInRange = isInDragRange(day) && dragMember?.id === member.id;
+
+                                  let cellContent = null;
+                                  if (travel) {
+                                    const abbrev = statusAbbreviation[travel.status] || 'P';
+                                    const color = travelTypeColors[travel.travel_type];
+                                    
+                                    cellContent = (
+                                      <div
+                                        className={cn("w-8 h-8 mx-auto rounded-full flex items-center justify-center cursor-pointer transition-transform hover:scale-110 font-bold text-sm text-white", color)}
+                                        onClick={(e) => { e.stopPropagation(); handleEdit(travel); }}
+                                        title={`${travel.title}`}
+                                      >
+                                        {abbrev}
+                                      </div>
+                                    );
+                                  }
+
+                                  return (
+                                    <td 
+                                      key={day.toString()} 
+                                      className={cn(
+                                        "px-1 py-3 text-center border-r border-slate-700/20 cursor-pointer select-none min-w-[40px]",
+                                        isInRange && "bg-blue-500/30"
+                                      )}
+                                      onMouseDown={() => handleMouseDown(day, member)}
+                                      onMouseEnter={() => handleMouseEnter(day)}
+                                    >
+                                      {cellContent}
+                                    </td>
+                                  );
+                                })}
+                              </tr>
+                            ))}
+                          </React.Fragment>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </Card>
               </div>
