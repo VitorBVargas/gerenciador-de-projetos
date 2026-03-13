@@ -540,13 +540,21 @@ export default function Travels() {
               // Sort months in ascending order
               const sortedMonths = Object.entries(travelsByMonth).sort((a, b) => a[0].localeCompare(b[0]));
 
-              return sortedMonths.map(([monthKey, { label, travels: monthTravels }]) => (
-                <div key={monthKey}>
-                  <h2 className="text-lg font-semibold text-cyan-400 mb-4 capitalize">
-                    {label}
-                  </h2>
-                  <div className="space-y-3">
-                    {monthTravels.map(travel => {
+              return sortedMonths.map(([monthKey, { label, travels: monthTravels }]) => {
+                // Sort travels within month by start_date
+                const sortedTravels = monthTravels.sort((a, b) => {
+                  const dateA = a.start_date ? new Date(a.start_date) : new Date(0);
+                  const dateB = b.start_date ? new Date(b.start_date) : new Date(0);
+                  return dateA - dateB;
+                });
+
+                return (
+                  <div key={monthKey}>
+                    <h2 className="text-lg font-semibold text-cyan-400 mb-4 capitalize">
+                      {label}
+                    </h2>
+                    <div className="space-y-3">
+                      {sortedTravels.map(travel => {
                       const Icon = travelTypeIcons[travel.travel_type];
                       return (
                         <Card key={travel.id} className="bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 transition-all group">
