@@ -426,77 +426,132 @@ export default function Travels() {
                   </Button>
                 </div>
               </div>
-              <div className="rounded-xl border border-slate-700/50 bg-slate-800/50 overflow-hidden flex flex-col">
-                <div className="flex overflow-hidden flex-1">
-                  {/* Sticky left column with names */}
-                  <div className="sticky left-0 z-10 flex flex-col flex-shrink-0 w-[180px] border-r border-slate-700/50 bg-slate-800/50">
-                    {verticals.map(vertical => (
-                      <React.Fragment key={vertical}>
-                        {/* Vertical header - align with table header height */}
-                        <div className="px-4 py-2 text-sm font-semibold text-cyan-400 bg-slate-700/30 border-b border-slate-700/50 h-10 flex items-center">
-                          {verticalLabels[vertical] || vertical}
-                        </div>
-                        {/* Day/week header row - align with table day row */}
-                        <div className="px-4 py-2 text-center text-xs font-medium text-slate-400 border-b border-slate-700/50 h-10 flex items-center invisible">
-                          &nbsp;
-                        </div>
-                        {/* Members */}
-                        {membersByVertical[vertical].map(member => (
-                          <div key={member.id} className="px-4 py-3 text-sm text-white border-b border-slate-700/30 hover:bg-slate-700/20 truncate h-10 flex items-center">
-                            {member.name}
+              <div className="rounded-xl border border-slate-700/50 bg-slate-800/50 overflow-hidden">
+                {/* Timeline Container */}
+                <div className="flex h-fit" onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}>
+                  {/* Fixed Left Column - Sticky */}
+                  <div 
+                    className="sticky left-0 z-20 flex flex-col flex-shrink-0 bg-slate-800/50 border-r border-slate-700/50"
+                    style={{ width: '220px' }}
+                  >
+                    {/* Header - Month */}
+                    <div className="h-12 px-4 py-2 bg-slate-700/30 border-b border-slate-700/50 flex items-center">
+                      <span className="text-xs font-semibold text-cyan-400">Período</span>
+                    </div>
+
+                    {/* Header - Days */}
+                    <div className="h-12 px-4 py-2 bg-slate-700/20 border-b border-slate-700/50 flex items-center">
+                      <span className="text-xs font-medium text-slate-400">Projeto / Membro</span>
+                    </div>
+
+                    {/* Rows - Verticals and Members */}
+                    <div className="flex flex-col flex-1">
+                      {verticals.map(vertical => (
+                        <React.Fragment key={vertical}>
+                          {/* Vertical header row */}
+                          <div className="h-12 px-4 py-2 bg-slate-700/30 border-b border-slate-700/50 flex items-center">
+                            <span className="text-sm font-semibold text-cyan-400 truncate">
+                              {verticalLabels[vertical] || vertical}
+                            </span>
                           </div>
-                        ))}
-                      </React.Fragment>
-                    ))}
+
+                          {/* Member rows */}
+                          {membersByVertical[vertical].map(member => (
+                            <div 
+                              key={member.id}
+                              className="h-12 px-4 py-2 border-b border-slate-700/30 hover:bg-slate-700/20 flex items-center"
+                            >
+                              <span className="text-sm text-white truncate">{member.name}</span>
+                            </div>
+                          ))}
+                        </React.Fragment>
+                      ))}
+                    </div>
                   </div>
 
-                  {/* Scrollable table area */}
-                  <div className="flex-1 overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
-                    <table className="border-collapse w-full">
-                      <thead>
-                        {/* Month headers row */}
-                        <tr>
-                          {(() => {
-                            let currentDisplayMonth = null;
-                            return daysInMonth.map(day => {
-                              const dayMonth = format(day, 'MMM/yy', { locale: ptBR });
-                              const isFirstOfMonth = day.getDate() === 1;
-                              const shouldShowMonth = currentDisplayMonth !== dayMonth && isFirstOfMonth;
-                              
-                              if (shouldShowMonth) {
-                                currentDisplayMonth = dayMonth;
-                              }
-                              
-                              return (
-                                <th key={day.toString()} className="px-2 py-2 text-center text-xs font-semibold text-cyan-400 min-w-[40px] border-r border-slate-700/20 h-10">
-                                  {shouldShowMonth ? dayMonth.toUpperCase() : ''}
-                                </th>
-                              );
-                            });
-                          })()}
-                        </tr>
-                        {/* Day and weekday row */}
-                        <tr className="border-b border-slate-700/50 bg-slate-700/30">
-                          {daysInMonth.map(day => (
-                            <th key={day.toString()} className="px-2 py-2 text-center text-xs font-medium text-slate-400 min-w-[40px] border-r border-slate-700/20 h-10">
-                              <div>{format(day, 'dd')}</div>
-                              <div className="text-[10px] text-slate-500">{format(day, 'EEE', { locale: ptBR })}</div>
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
+                  {/* Scrollable Timeline Area */}
+                  <div 
+                    className="flex-1 overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800"
+                    style={{ minHeight: 'max-content' }}
+                  >
+                    <div className="flex flex-col" style={{ width: `${daysInMonth.length * 48}px` }}>
+                      {/* Header - Month Row */}
+                      <div 
+                        className="flex h-12 bg-slate-700/30 border-b border-slate-700/50"
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns: `repeat(${daysInMonth.length}, 48px)`
+                        }}
+                      >
+                        {(() => {
+                          let currentDisplayMonth = null;
+                          return daysInMonth.map(day => {
+                            const dayMonth = format(day, 'MMM/yy', { locale: ptBR });
+                            const isFirstOfMonth = day.getDate() === 1;
+                            const shouldShowMonth = currentDisplayMonth !== dayMonth && isFirstOfMonth;
+                            
+                            if (shouldShowMonth) {
+                              currentDisplayMonth = dayMonth;
+                            }
+                            
+                            return (
+                              <div 
+                                key={day.toString()} 
+                                className="text-center text-xs font-semibold text-cyan-400 border-r border-slate-700/20 flex items-center justify-center"
+                              >
+                                {shouldShowMonth ? dayMonth.toUpperCase() : ''}
+                              </div>
+                            );
+                          });
+                        })()}
+                      </div>
+
+                      {/* Header - Day/Weekday Row */}
+                      <div 
+                        className="flex h-12 bg-slate-700/20 border-b border-slate-700/50"
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns: `repeat(${daysInMonth.length}, 48px)`
+                        }}
+                      >
+                        {daysInMonth.map(day => (
+                          <div 
+                            key={day.toString()} 
+                            className="text-center text-xs font-medium text-slate-400 border-r border-slate-700/20 flex flex-col items-center justify-center"
+                          >
+                            <div>{format(day, 'dd')}</div>
+                            <div className="text-[10px] text-slate-500">{format(day, 'EEE', { locale: ptBR })}</div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Timeline Body */}
+                      <div className="flex flex-col flex-1">
                         {verticals.map(vertical => (
                           <React.Fragment key={vertical}>
-                            {/* Vertical header row (empty, for alignment) */}
-                            <tr className="bg-slate-700/20 border-b border-slate-700/30 h-10">
+                            {/* Vertical header row - empty spacer */}
+                            <div 
+                              className="flex h-12 bg-slate-700/20 border-b border-slate-700/30"
+                              style={{
+                                display: 'grid',
+                                gridTemplateColumns: `repeat(${daysInMonth.length}, 48px)`
+                              }}
+                            >
                               {daysInMonth.map(day => (
-                                <td key={day.toString()} className="min-w-[40px] border-r border-slate-700/20"></td>
+                                <div key={day.toString()} className="border-r border-slate-700/20"></div>
                               ))}
-                            </tr>
+                            </div>
+
                             {/* Member rows */}
                             {membersByVertical[vertical].map(member => (
-                              <tr key={member.id} className="border-b border-slate-700/30 hover:bg-slate-700/20 h-10">
+                              <div 
+                                key={member.id}
+                                className="flex h-12 border-b border-slate-700/30 hover:bg-slate-700/20"
+                                style={{
+                                  display: 'grid',
+                                  gridTemplateColumns: `repeat(${daysInMonth.length}, 48px)`
+                                }}
+                              >
                                 {daysInMonth.map(day => {
                                   const dayTravels = getTravelsForDay(day).filter(t => 
                                     t.attendees?.includes(member.name)
@@ -504,42 +559,37 @@ export default function Travels() {
                                   const travel = dayTravels[0];
                                   const isInRange = isInDragRange(day) && dragMember?.id === member.id;
 
-                                  let cellContent = null;
-                                  if (travel) {
-                                    const abbrev = statusAbbreviation[travel.status] || 'P';
-                                    const color = travelTypeColors[travel.travel_type];
-                                    
-                                    cellContent = (
-                                      <div
-                                        className={cn("w-8 h-8 mx-auto rounded-full flex items-center justify-center cursor-pointer transition-transform hover:scale-110 font-bold text-sm text-white", color)}
-                                        onClick={(e) => { e.stopPropagation(); handleEdit(travel); }}
-                                        title={`${travel.title}`}
-                                      >
-                                        {abbrev}
-                                      </div>
-                                    );
-                                  }
-
                                   return (
-                                    <td 
-                                      key={day.toString()} 
+                                    <div 
+                                      key={day.toString()}
                                       className={cn(
-                                        "px-1 py-2 text-center border-r border-slate-700/20 cursor-pointer select-none min-w-[40px]",
+                                        "border-r border-slate-700/20 flex items-center justify-center cursor-pointer select-none",
                                         isInRange && "bg-blue-500/30"
                                       )}
                                       onMouseDown={() => handleMouseDown(day, member)}
                                       onMouseEnter={() => handleMouseEnter(day)}
                                     >
-                                      {cellContent}
-                                    </td>
+                                      {travel && (
+                                        <div
+                                          className={cn(
+                                            "w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white transition-transform hover:scale-110 cursor-pointer",
+                                            travelTypeColors[travel.travel_type]
+                                          )}
+                                          onClick={(e) => { e.stopPropagation(); handleEdit(travel); }}
+                                          title={`${travel.title}`}
+                                        >
+                                          {statusAbbreviation[travel.status] || 'P'}
+                                        </div>
+                                      )}
+                                    </div>
                                   );
                                 })}
-                              </tr>
+                              </div>
                             ))}
                           </React.Fragment>
                         ))}
-                      </tbody>
-                    </table>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
