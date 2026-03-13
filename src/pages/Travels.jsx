@@ -657,14 +657,14 @@ export default function Travels() {
                   <SelectValue placeholder="Selecione a etapa..." />
                 </SelectTrigger>
                 <SelectContent className="bg-slate-700 border-slate-600 max-h-64">
-                  {timelineEvents.length > 0 ? (
-                    timelineEvents.map(e => (
-                      <SelectItem key={e.id} value={e.title}>{e.title}</SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="Visita ao cliente">Visita ao cliente</SelectItem>
-                  )}
-                </SelectContent>
+                   {timelineEvents.length > 0 ? (
+                     [...new Set(timelineEvents.map(e => e.title))].map(title => (
+                       <SelectItem key={title} value={title}>{title}</SelectItem>
+                     ))
+                   ) : (
+                     <SelectItem value="Visita ao cliente">Visita ao cliente</SelectItem>
+                   )}
+                 </SelectContent>
               </Select>
             </div>
 
