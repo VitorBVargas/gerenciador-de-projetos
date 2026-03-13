@@ -31,7 +31,7 @@ import RecognizeAllVerticalModal from '../components/modals/RecognizeAllVertical
 import ProjectRecognitionsModal from '../components/modals/ProjectRecognitionsModal';
 import EditProjectRecurringModal from '../components/modals/EditProjectRecurringModal';
 import { toast } from 'sonner';
-import { calculateHealthScore } from '../components/dashboard/ProjectHealthScore';
+
 
 const statusLabels = {
   nao_iniciado: 'Não Iniciado',
@@ -99,6 +99,7 @@ export default function ExecutiveStatus() {
         queryClient.invalidateQueries({ queryKey: ['allProductFinancialDates'] });
         queryClient.invalidateQueries({ queryKey: ['allProducts'] });
         queryClient.invalidateQueries({ queryKey: ['allRecognizedRevenues'] });
+        queryClient.invalidateQueries({ queryKey: ['allHealthCaches'] });
         setIsRecalculating(false);
       }, 2000);
     }).catch(err => {
@@ -150,11 +151,7 @@ export default function ExecutiveStatus() {
       enabled: !loadingCronogramas
     });
 
-    // Remover carregamentos desnecessários para ExecutiveStatus
-    const allHomologationTasks = [];
-    const allMigrationTasks = [];
-    const allRisks = [];
-    const allExpenses = [];
+
 
     const { data: allProducts = [], isLoading: loadingProducts } = useQuery({
       queryKey: ['allProducts', portfolioFilter],
@@ -197,7 +194,7 @@ export default function ExecutiveStatus() {
     });
 
   // Loading global: aguarda APENAS os dados essenciais + recalculo
-  const isLoading = isRecalculating || loadingProjects || loadingCronogramas || loadingEvents || loadingProducts || loadingRevenues || loadingProgressCache || loadingOverallProgressCache || loadingFinancialDates;
+  const isLoading = isRecalculating || loadingProjects || loadingCronogramas || loadingEvents || loadingProducts || loadingRevenues || loadingProgressCache || loadingOverallProgressCache || loadingFinancialDates || loadingHealthCaches;
 
   const createRecognizedRevenueMutation = useMutation({
     mutationFn: (data) => base44.entities.RecognizedRevenue.create(data),
@@ -241,17 +238,19 @@ export default function ExecutiveStatus() {
     }
   });
 
-  // Wrapper que chama a mesma lógica do componente ProjectHealthScore
+  // Buscar health scores do cache
+  const { data: allHealthCaches = [], isLoading: loadingHealthCaches } = useQuery({
+    queryKey: ['allHealthCaches', portfolioFilter],
+    queryFn: () => base44.entities.ProjectHealthCache.list('-updated_date', 500),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    enabled: !loadingRevenues
+  });
+
+  // Usar cache para obter health score
   const getProjectHealthScore = (project) => {
-    const timeline = allTimelineEvents.filter(e => e.project_id === project.id);
-    const risks = allRisks.filter(r => r.project_id === project.id);
-    const expenses = allExpenses.filter(e => e.project_id === project.id);
-    const spent = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
-    const migrationTasks = allMigrationTasks.filter(t => t.project_id === project.id);
-    const homologationTasks = allHomologationTasks.filter(t => t.project_id === project.id);
-    const products = allProducts.filter(p => p.project_id === project.id);
-    const { score } = calculateHealthScore({ timeline, budget: project.budget || 0, spent, migrationTasks, homologationTasks, risks, products });
-    return score;
+    const cache = allHealthCaches.find(c => c.project_id === project.id);
+    return cache?.health_score ?? 0;
   };
 
   // Calculate overall progress for a project
@@ -537,7 +536,7 @@ export default function ExecutiveStatus() {
       }
       return a.healthScore - b.healthScore;
     });
-  }, [projects, allTimelineEvents, allHomologationTasks, allMigrationTasks, allRisks, allExpenses, allRecognizedRevenues, allProgressCache, allOverallProgressCache]);
+  }, [projects, allRecognizedRevenues, allProgressCache, allOverallProgressCache, allHealthCaches]);
 
   const getHealthColor = (score) => {
     if (score >= 80) return 'text-green-400';
@@ -561,6 +560,7 @@ export default function ExecutiveStatus() {
     { label: 'Produtos', done: !loadingProducts },
     { label: 'Receitas', done: !loadingRevenues },
     { label: 'Datas Financeiras', done: !loadingFinancialDates },
+    { label: 'Health Scores', done: !loadingHealthCaches },
     { label: 'Sincronizando', done: !isRecalculating },
   ];
   const loadedCount = loadingSteps.filter(s => s.done).length;
@@ -600,6 +600,7 @@ export default function ExecutiveStatus() {
               { label: 'Produtos', done: !loadingProducts },
               { label: 'Receitas', done: !loadingRevenues },
               { label: 'Datas Financeiras', done: !loadingFinancialDates },
+              { label: 'Health Scores', done: !loadingHealthCaches },
               { label: 'Sincronizando', done: !isRecalculating }
             ].map((step) => (
               <div key={step.label} className="flex items-center gap-2 text-sm">
