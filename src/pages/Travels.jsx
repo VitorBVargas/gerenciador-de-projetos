@@ -454,7 +454,7 @@ export default function Travels() {
                 {/* Right column container - card styling */}
                 <Card className="bg-slate-800/50 border-slate-700/50 flex-1 overflow-hidden flex flex-col">
                   {/* Scrollable table */}
-                  <div style={{overflowX: 'auto'}} className="relative flex-1">
+                  <div style={{overflowX: 'auto'}} className="relative flex-1 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-700">
                     <table className="border-collapse w-full" style={{minWidth: 'max-content'}}>
                       <thead>
                         {/* Month headers row */}
