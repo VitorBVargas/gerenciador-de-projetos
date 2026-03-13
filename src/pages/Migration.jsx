@@ -234,8 +234,7 @@ export default function Migration() {
         setSelectedEntity(entityWithProducts.code);
       } else {
         // Fallback to first entity if none have products
-        const pmEntity = allEntities.find(e => e.code === 'PM');
-        const firstEntity = pmEntity ? pmEntity.code : allEntities[0].code;
+        const firstEntity = allEntities[0]?.code;
         setSelectedEntity(firstEntity);
       }
     }
