@@ -1339,16 +1339,16 @@ export default function ExecutiveStatus() {
                     const [year, month] = selectedMonth.split('-');
                     const monthLabel = format(new Date(year, parseInt(month) - 1, 1), 'MMMM/yyyy', { locale: ptBR });
 
-                    // Produtos a receber (verde) - usar cache
+                    // Produtos a receber (verde) - usar ProductFinancialDates
                     const aReceberProds = [];
                     projects.forEach(project => {
                      const projectProducts = allProducts.filter(p => p.project_id === project.id && (p.implementation_value || 0) > 0);
                      if (!projectProducts.length) return;
 
                      projectProducts.forEach(product => {
-                       const cache = allFinancialCache.find(c => c.product_id === product.id);
-                       if (!cache || !cache.implantacao_end_date) return;
-                       const implMonth = cache.implantacao_end_date.substring(0, 7);
+                       const dates = allProductFinancialDates.find(d => d.product_id === product.id);
+                       if (!dates || !dates.operacao_assistida_end_date) return;
+                       const implMonth = dates.operacao_assistida_end_date.substring(0, 7);
                        if (implMonth !== selectedMonth) return;
 
                        // Calcular quanto falta reconhecer
@@ -1362,7 +1362,7 @@ export default function ExecutiveStatus() {
                          aReceberProds.push({
                            product,
                            project,
-                           deadline: cache.implantacao_end_date,
+                           deadline: dates.operacao_assistida_end_date,
                            amount: pendente
                          });
                        }
