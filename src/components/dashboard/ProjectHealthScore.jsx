@@ -64,26 +64,30 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
 
 
 
-  // --- 4. RISKS (20 pts) ---
+  // --- 2. RISKS (35 pts) ---
   if (risks.length > 0) {
-    const criticalRisks = risks.filter(r => r.probability >= 5 && (r.status === 'em_monitoramento' || r.status === 'em_andamento'));
-    const highRisks = risks.filter(r => r.probability === 4 && !criticalRisks.includes(r) && (r.status === 'em_monitoramento' || r.status === 'em_andamento'));
-    const riskDeduction = Math.min(20, criticalRisks.length * 6 + highRisks.length * 2);
+    // Riscos críticos: probability >= 4 em atividade
+    const criticalRisks = risks.filter(r => r.probability >= 4 && (r.status === 'em_monitoramento' || r.status === 'em_andamento'));
+    // Riscos altos: probability === 3 em atividade
+    const highRisks = risks.filter(r => r.probability === 3 && (r.status === 'em_monitoramento' || r.status === 'em_andamento'));
+    
+    const riskDeduction = Math.min(35, criticalRisks.length * 8 + highRisks.length * 3);
     score -= riskDeduction;
 
     if (criticalRisks.length > 0) {
       const names = criticalRisks.slice(0, 2).map(r => r.title).join(', ');
       alerts.push({
         severity: 'high',
-        text: `${criticalRisks.length} risco${criticalRisks.length > 1 ? 's' : ''} crítico${criticalRisks.length > 1 ? 's' : ''}`,
+        text: `${criticalRisks.length} risco${criticalRisks.length > 1 ? 's' : ''} crítico${criticalRisks.length > 1 ? 's' : ''} em atividade`,
         detail: names + (criticalRisks.length > 2 ? ` e mais ${criticalRisks.length - 2}` : '')
       });
     }
     if (highRisks.length > 0) {
+      const names = highRisks.slice(0, 2).map(r => r.title).join(', ');
       alerts.push({
         severity: 'medium',
-        text: `${highRisks.length} risco${highRisks.length > 1 ? 's' : ''} em Alto`,
-        detail: highRisks.slice(0, 2).map(r => r.title).join(', ')
+        text: `${highRisks.length} risco${highRisks.length > 1 ? 's' : ''} alto${highRisks.length > 1 ? 's' : ''} em atividade`,
+        detail: names + (highRisks.length > 2 ? ` e mais ${highRisks.length - 2}` : '')
       });
     }
   }
