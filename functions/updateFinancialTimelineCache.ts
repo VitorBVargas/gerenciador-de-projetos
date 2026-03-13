@@ -4,10 +4,14 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
-    // 1. Limpar cache existente
+    // 1. Limpar cache existente (em lotes para evitar rate limit)
     const existingCache = await base44.asServiceRole.entities.FinancialTimelineCache.list('', 10000);
-    const deletePromises = existingCache.map(c => base44.asServiceRole.entities.FinancialTimelineCache.delete(c.id));
-    await Promise.all(deletePromises);
+    const batchSize = 50;
+    for (let i = 0; i < existingCache.length; i += batchSize) {
+      const batch = existingCache.slice(i, i + batchSize);
+      await Promise.all(batch.map(c => base44.asServiceRole.entities.FinancialTimelineCache.delete(c.id)));
+      await new Promise(resolve => setTimeout(resolve, 100)); // Delay entre lotes
+    }
     
     // 2. Buscar todos os dados
     const allTimelineEvents = await base44.asServiceRole.entities.TimelineEvent.list('-created_date', 5000);
