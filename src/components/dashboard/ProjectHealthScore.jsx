@@ -22,10 +22,15 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
   const alerts = []; // { severity: 'high'|'medium'|'good', text, detail }
 
   // --- 1. TIMELINE (40 pts) ---
-  // IMPORTANTE: Conta APENAS etapas com status === 'atrasado' explícito
-  const delayedEvents = timeline.filter(e => e.status === 'atrasado');
+  // Etapas que já passaram da data fim (não apenas com status === 'atrasado')
+  const now = new Date();
+  const overdueEvents = timeline.filter(e => {
+    if (!e.end_date) return false;
+    const endDate = new Date(e.end_date);
+    return endDate < now;
+  });
 
-  const delayCost = delayedEvents.length * 3;
+  const delayCost = overdueEvents.length * 3;
   const timelineDeduction = Math.min(40, delayCost);
   score -= timelineDeduction;
 
@@ -38,10 +43,10 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
     return verticalLabels[event.vertical] || event.vertical || 'Geral';
   };
 
-  // Group delayed by vertical + cronograma name
-  if (delayedEvents.length > 0) {
+  // Group overdue by vertical + cronograma name
+  if (overdueEvents.length > 0) {
     const byVertical = {};
-    delayedEvents.forEach(e => {
+    overdueEvents.forEach(e => {
       const v = getCronogramaLabel(e);
       if (!byVertical[v]) byVertical[v] = { count: 0, titles: [] };
       byVertical[v].count++;
@@ -50,8 +55,8 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
     const summary = Object.entries(byVertical).map(([v, d]) => `${v} (${d.count})`).join(', ');
     const details = Object.entries(byVertical).map(([v, d]) => `• ${v}: ${d.titles.slice(0, 3).join(', ')}${d.titles.length > 3 ? ` +${d.titles.length - 3}` : ''}`).join('\n');
     alerts.push({
-      severity: delayedEvents.length >= 3 ? 'high' : 'medium',
-      text: `${delayedEvents.length} etapa${delayedEvents.length > 1 ? 's' : ''} atrasada${delayedEvents.length > 1 ? 's' : ''}`,
+      severity: overdueEvents.length >= 3 ? 'high' : 'medium',
+      text: `${overdueEvents.length} etapa${overdueEvents.length > 1 ? 's' : ''} atrasada${overdueEvents.length > 1 ? 's' : ''}`,
       detail: `Verticais: ${summary}`,
       lines: details
     });
