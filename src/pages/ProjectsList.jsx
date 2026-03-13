@@ -282,18 +282,18 @@ export default function ProjectsList() {
                 </Droppable>
               </DragDropContext>
             ) : (
-              <Card className="bg-slate-800/50 border-slate-700">
-                <CardContent className="py-16 text-center">
-                  <Upload className="w-16 h-16 mx-auto mb-4 text-slate-600" />
-                  <h3 className="text-xl font-semibold text-white mb-2">Nenhum projeto ativo</h3>
-                  <p className="text-slate-400 mb-6">Importe um projeto do Excel para começar</p>
-                  <Button onClick={() => setImportModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
-                    <Upload className="w-4 h-4 mr-2" />
-                    Importar Primeiro Projeto
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
+               <Card className="bg-slate-800/50 border-slate-700">
+                 <CardContent className="py-16 text-center">
+                   <Upload className="w-16 h-16 mx-auto mb-4 text-slate-600" />
+                   <h3 className="text-xl font-semibold text-white mb-2">Nenhum projeto ativo</h3>
+                   <p className="text-slate-400 mb-6">Importe um projeto do Excel para começar</p>
+                   <Button onClick={() => setCrmImportModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+                     <Upload className="w-4 h-4 mr-2" />
+                     Importar Primeiro Projeto
+                   </Button>
+                 </CardContent>
+               </Card>
+             )}
           </TabsContent>
 
           <TabsContent value="completed" className="mt-6">
