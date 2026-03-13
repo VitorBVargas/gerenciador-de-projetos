@@ -491,11 +491,14 @@ export default function Travels() {
 
                     {/* TIMELINE BODY ROWS */}
                     <div>
-                      {verticals.map(vertical => (
+                      {verticals.map(vertical => {
+                        const verticalEvents = timelineEvents.filter(e => e.vertical === vertical);
+
+                        return (
                         <React.Fragment key={`vertical-${vertical}`}>
-                          {/* Vertical Separator Row */}
+                          {/* Vertical Timeline Row */}
                           <div 
-                            className="h-12 bg-slate-700/15 border-b border-slate-700/30"
+                            className="h-12 bg-slate-700/15 border-b border-slate-700/30 relative"
                             style={{
                               display: 'grid',
                               gridTemplateColumns: `repeat(${daysInMonth.length}, 48px)`,
@@ -504,6 +507,33 @@ export default function Travels() {
                             {daysInMonth.map((_, idx) => (
                               <div key={`sep-${idx}`} className="border-r border-slate-700/20" />
                             ))}
+                            
+                            {/* Timeline Events Rendered Here */}
+                            {verticalEvents.map((event) => {
+                              if (!event.start_date) return null;
+                              const startDate = parseISO(event.start_date);
+                              const endDate = event.end_date ? parseISO(event.end_date) : startDate;
+                              const firstDayOfMonth = startOfMonth(currentMonth);
+                              const startDayIdx = Math.max(0, differenceInDays(startDate, firstDayOfMonth));
+                              const endDayIdx = Math.min(daysInMonth.length - 1, differenceInDays(endDate, firstDayOfMonth));
+
+                              if (startDayIdx > daysInMonth.length - 1 || endDayIdx < 0) return null;
+
+                              const width = (endDayIdx - startDayIdx + 1) * 48 - 4;
+
+                              return (
+                                <div
+                                  key={`timeline-${event.id}`}
+                                  className="absolute top-1/2 transform -translate-y-1/2 h-1 bg-red-500 rounded-full"
+                                  style={{
+                                    left: `${startDayIdx * 48 + 2}px`,
+                                    width: `${width}px`,
+                                    zIndex: 10
+                                  }}
+                                  title={event.title}
+                                />
+                              );
+                            })}
                           </div>
 
                           {/* Member Rows */}
