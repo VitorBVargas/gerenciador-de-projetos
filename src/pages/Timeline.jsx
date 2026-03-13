@@ -317,11 +317,11 @@ export default function Timeline() {
 
         {/* Timeline Tab */}
         <TabsContent value="timeline" className="space-y-6">
-          {timelineEvents.length === 0 ? (
+          {entityProducts.length === 0 ? (
             <EmptyState
               icon={Calendar}
-              title="Nenhuma etapa cadastrada"
-              description="Adicione os produtos e as etapas serão criadas automaticamente"
+              title="Nenhuma entidade com produtos"
+              description="Adicione produtos para visualizar o cronograma"
               action={
                 <Button onClick={() => window.location.href = 'Dashboard?project_id=' + projectId} className="bg-blue-600 hover:bg-blue-700">
                   Ir para Produtos
