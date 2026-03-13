@@ -13,36 +13,41 @@ Deno.serve(async (req) => {
     const allProducts = await base44.asServiceRole.entities.Product.list('-created_date', 5000);
     const allTimelineEvents = await base44.asServiceRole.entities.TimelineEvent.list('-created_date', 5000);
     
-    // Limpar registros existentes
-    const existing = await base44.asServiceRole.entities.ProductFinancialDates.list('', 5000);
-    for (const record of existing) {
-      await base44.asServiceRole.entities.ProductFinancialDates.delete(record.id);
-    }
+    let updated = 0;
+    let created = 0;
     
-    const records = [];
-    
-    // Para cada produto, buscar as datas relevantes
+    // Para cada produto, buscar as datas relevantes e fazer upsert
     for (const product of allProducts) {
       const productEvents = allTimelineEvents.filter(e => e.product_id === product.id);
       
       const goLiveEvent = productEvents.find(e => e.phase === 'go_live' && e.start_date);
       const operacaoEvent = productEvents.find(e => e.phase === 'operacao_assistida' && e.end_date);
       
-      // Criar registro apenas se houver pelo menos uma data
+      // Processar apenas se houver pelo menos uma data
       if (goLiveEvent || operacaoEvent) {
-        records.push({
+        const dateData = {
           product_id: product.id,
           project_id: product.project_id,
           go_live_date: goLiveEvent?.start_date || null,
           operacao_assistida_end_date: operacaoEvent?.end_date || null,
           last_updated: new Date().toISOString()
-        });
+        };
+        
+        // Buscar registro existente
+        const existing = await base44.asServiceRole.entities.ProductFinancialDates.filter(
+          { product_id: product.id }
+        );
+        
+        if (existing && existing.length > 0) {
+          // Atualizar
+          await base44.asServiceRole.entities.ProductFinancialDates.update(existing[0].id, dateData);
+          updated++;
+        } else {
+          // Criar
+          await base44.asServiceRole.entities.ProductFinancialDates.create(dateData);
+          created++;
+        }
       }
-    }
-    
-    // Criar em lote
-    if (records.length > 0) {
-      await base44.asServiceRole.entities.ProductFinancialDates.bulkCreate(records);
     }
     
     return Response.json({ 
