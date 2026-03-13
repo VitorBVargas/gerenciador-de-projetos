@@ -470,6 +470,21 @@ export default function Travels() {
                   className="flex-1 overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800/50"
                 >
                   <div style={{ width: `${daysInMonth.length * 48}px`, minWidth: '100%' }}>
+                    {/* STICKY HEADER WITH DATES - APPEARS ONCE AT TOP */}
+                    <div 
+                      className="sticky top-0 z-30 h-12 bg-slate-700/15 border-b border-slate-700/30 flex items-center text-[10px] font-semibold text-cyan-400"
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: `repeat(${daysInMonth.length}, 48px)`,
+                      }}
+                    >
+                      {daysInMonth.map((day, idx) => (
+                        <div key={`date-${idx}`} className="border-r border-slate-700/20 flex items-center justify-center">
+                          {format(day, 'dd/MM')}
+                        </div>
+                      ))}
+                    </div>
+
                     {/* TIMELINE BODY ROWS */}
                     <div>
                       {verticals.map(vertical => {
@@ -478,10 +493,10 @@ export default function Travels() {
 
                         return (
                         <React.Fragment key={`vertical-${vertical}`}>
-                          {/* Vertical Datas Row */}
+                          {/* Vertical Header (no dates here) */}
                           {verticalMembers.length > 0 && (
                             <div 
-                              className="h-12 bg-slate-700/15 border-b border-slate-700/30 flex items-center text-[10px] font-semibold text-cyan-400"
+                              className="h-12 bg-slate-700/25 border-b border-slate-700/30 flex items-center px-4 sticky top-12 z-10"
                               style={{
                                 display: 'grid',
                                 gridTemplateColumns: `repeat(${daysInMonth.length}, 48px)`,
