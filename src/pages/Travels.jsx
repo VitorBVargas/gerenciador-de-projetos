@@ -402,8 +402,8 @@ export default function Travels() {
               description="Adicione membros à equipe para visualizar o calendário de viagens"
             />
           ) : (
-            <div onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp} className="rounded-xl border border-slate-700/50 bg-slate-800/50">
-              {/* Month Navigation */}
+            <div className="w-full overflow-hidden rounded-xl border border-slate-700/50 bg-slate-800/50">
+              {/* MONTH NAVIGATION */}
               <div className="border-b border-slate-700/50 p-4">
                 <div className="flex items-center justify-between">
                   <Button
@@ -427,86 +427,52 @@ export default function Travels() {
                   </Button>
                 </div>
               </div>
-              <div className="w-full overflow-hidden rounded-xl border border-slate-700/50 bg-slate-800/50">
-                {/* HEADER - Navegação do Mês */}
-                <div className="flex h-12 border-b border-slate-700/50">
-                  {/* Coluna Vazia (para alinhar com a coluna sticky) */}
-                  <div className="flex-shrink-0" style={{ width: '220px' }} />
-                  
-                  {/* Header Mês */}
-                  <div 
-                    className="flex-1 overflow-x-auto overflow-y-hidden"
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: `repeat(${daysInMonth.length}, 48px)`,
-                    }}
-                  >
-                    {(() => {
-                      let lastMonth = null;
-                      return daysInMonth.map((day, idx) => {
-                        const monthStr = format(day, 'MMM/yy', { locale: ptBR });
-                        const isNewMonth = monthStr !== lastMonth;
-                        if (isNewMonth) lastMonth = monthStr;
-                        
-                        return (
+
+              {/* TIMELINE CONTAINER - Dois painéis (sticky left + scroll right) */}
+              <div className="flex w-full overflow-hidden bg-slate-800/50" onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}>
+                {/* LEFT COLUMN - STICKY */}
+                <div 
+                  className="sticky left-0 z-20 flex flex-col flex-shrink-0 bg-slate-800/95 border-r border-slate-700/50"
+                  style={{ width: '220px' }}
+                >
+                  {/* Header Label */}
+                  <div className="h-16 px-4 py-2 bg-slate-700/30 border-b border-slate-700/50 flex items-center">
+                    <span className="text-xs font-semibold text-cyan-400 uppercase tracking-wider">Vertical/Membro</span>
+                  </div>
+
+                  {/* Members List */}
+                  <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent">
+                    {verticals.map(vertical => (
+                      <React.Fragment key={vertical}>
+                        {/* Vertical Group Header */}
+                        <div className="h-12 px-4 py-2 bg-slate-700/25 border-b border-slate-700/30 flex items-center sticky top-0 z-10">
+                          <span className="text-sm font-semibold text-cyan-400 truncate">
+                            {verticalLabels[vertical] || vertical}
+                          </span>
+                        </div>
+
+                        {/* Member Items */}
+                        {membersByVertical[vertical].map(member => (
                           <div 
-                            key={`month-${idx}`}
-                            className="text-center text-[10px] font-semibold text-cyan-400/60 border-r border-slate-700/20 flex items-center justify-center bg-slate-700/30"
+                            key={member.id}
+                            className="h-12 px-4 py-2 border-b border-slate-700/20 hover:bg-slate-700/20 flex items-center transition-colors"
                           >
-                            {isNewMonth ? monthStr.toUpperCase() : ''}
+                            <span className="text-sm text-white truncate">{member.name}</span>
                           </div>
-                        );
-                      });
-                    })()}
+                        ))}
+                      </React.Fragment>
+                    ))}
                   </div>
                 </div>
 
-                {/* MAIN CONTAINER */}
-                <div className="flex h-full w-full">
-                  {/* COLUNA ESQUERDA - STICKY */}
-                  <div 
-                    className="sticky left-0 z-20 flex flex-col bg-slate-800/90 border-r border-slate-700/50 flex-shrink-0"
-                    style={{ width: '220px' }}
-                  >
-                    {/* Header Dias */}
-                    <div className="h-12 px-4 py-2 bg-slate-700/20 border-b border-slate-700/50 flex items-center">
-                      <span className="text-xs font-semibold text-cyan-400">VERTICAL / MEMBRO</span>
-                    </div>
-
-                    {/* Vertical & Member List */}
-                    <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent">
-                      {verticals.map(vertical => (
-                        <React.Fragment key={vertical}>
-                          {/* Vertical Header */}
-                          <div className="h-12 px-4 py-2 bg-slate-700/25 border-b border-slate-700/30 flex items-center">
-                            <span className="text-sm font-semibold text-cyan-400 truncate">
-                              {verticalLabels[vertical] || vertical}
-                            </span>
-                          </div>
-
-                          {/* Member Rows */}
-                          {membersByVertical[vertical].map(member => (
-                            <div 
-                              key={member.id}
-                              className="h-12 px-4 py-2 border-b border-slate-700/20 hover:bg-slate-700/20 flex items-center"
-                            >
-                              <span className="text-sm text-white truncate">{member.name}</span>
-                            </div>
-                          ))}
-                        </React.Fragment>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* AREA TIMELINE - SCROLL HORIZONTAL */}
-                  <div 
-                    className="flex-1 overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800"
-                    onMouseUp={handleMouseUp}
-                    onMouseLeave={handleMouseUp}
-                  >
-                    {/* HEADER DIAS */}
+                {/* RIGHT COLUMN - HORIZONTAL SCROLL */}
+                <div 
+                  className="flex-1 overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800/50"
+                >
+                  <div style={{ width: `${daysInMonth.length * 48}px`, minWidth: '100%' }}>
+                    {/* HEADER ROW - Days */}
                     <div 
-                      className="h-12 bg-slate-700/20 border-b border-slate-700/50"
+                      className="h-16 bg-slate-700/20 border-b border-slate-700/50"
                       style={{
                         display: 'grid',
                         gridTemplateColumns: `repeat(${daysInMonth.length}, 48px)`,
@@ -515,26 +481,39 @@ export default function Travels() {
                       {daysInMonth.map((day, idx) => (
                         <div 
                           key={`day-${idx}`}
-                          className="text-center text-xs font-semibold text-slate-300 border-r border-slate-700/20 flex flex-col items-center justify-center"
+                          className="text-center text-xs font-semibold text-slate-300 border-r border-slate-700/20 flex flex-col items-center justify-center gap-0.5 px-1"
                         >
-                          <div className="font-bold">{format(day, 'dd')}</div>
-                          <div className="text-[9px] text-slate-500">{format(day, 'EEE', { locale: ptBR })}</div>
+                          <div className="font-bold text-sm">{format(day, 'dd')}</div>
+                          <div className="text-[9px] text-slate-500">{format(day, 'EEE', { locale: ptBR }).slice(0, 3).toUpperCase()}</div>
                         </div>
                       ))}
                     </div>
 
-                    {/* TIMELINE BODY */}
-                    <div className="flex flex-col">
+                    {/* TIMELINE BODY ROWS */}
+                    <div>
                       {verticals.map(vertical => (
                         <React.Fragment key={`vertical-${vertical}`}>
-                          {/* Member Rows with Events */}
+                          {/* Vertical Separator Row */}
+                          <div 
+                            className="h-12 bg-slate-700/15 border-b border-slate-700/30"
+                            style={{
+                              display: 'grid',
+                              gridTemplateColumns: `repeat(${daysInMonth.length}, 48px)`,
+                            }}
+                          >
+                            {daysInMonth.map((_, idx) => (
+                              <div key={`sep-${idx}`} className="border-r border-slate-700/20" />
+                            ))}
+                          </div>
+
+                          {/* Member Rows */}
                           {membersByVertical[vertical].map(member => {
                             const memberTravels = travels.filter(t => t.attendees?.includes(member.name));
 
                             return (
                               <div 
                                 key={`member-${member.id}`}
-                                className="h-12 border-b border-slate-700/20 hover:bg-slate-700/10 relative"
+                                className="h-12 border-b border-slate-700/20 hover:bg-slate-700/10 relative transition-colors"
                                 style={{
                                   display: 'grid',
                                   gridTemplateColumns: `repeat(${daysInMonth.length}, 48px)`,
@@ -556,27 +535,26 @@ export default function Travels() {
                                   }
                                 }}
                               >
-                                {/* Grid Background */}
+                                {/* Grid Cells Background */}
                                 {daysInMonth.map((day, idx) => {
                                   const isInRange = isInDragRange(day) && dragMember?.id === member.id;
                                   return (
                                     <div 
-                                      key={`grid-${idx}`} 
+                                      key={`cell-${idx}`} 
                                       className={cn(
                                         "border-r border-slate-700/20",
                                         isInRange && "bg-blue-500/30"
                                       )}
-                                    ></div>
+                                    />
                                   );
                                 })}
 
-                                {/* Events as Circles */}
+                                {/* Travel Events */}
                                 {memberTravels.map((travel) => {
                                   if (!travel.start_date) return null;
 
                                   const startDate = parseISO(travel.start_date);
                                   const endDate = travel.end_date ? parseISO(travel.end_date) : startDate;
-
                                   const firstDayOfMonth = startOfMonth(currentMonth);
                                   const startDayIdx = Math.max(0, differenceInDays(startDate, firstDayOfMonth));
                                   const endDayIdx = Math.min(daysInMonth.length - 1, differenceInDays(endDate, firstDayOfMonth));
@@ -588,19 +566,19 @@ export default function Travels() {
                                       key={`event-${travel.id}`}
                                       className="absolute top-1/2 transform -translate-y-1/2 flex gap-1"
                                       style={{
-                                        left: `${startDayIdx * 48 + 12}px`,
+                                        left: `${startDayIdx * 48 + 8}px`,
                                         zIndex: 10
                                       }}
                                     >
                                       {Array.from({ length: endDayIdx - startDayIdx + 1 }).map((_, i) => (
                                         <div
-                                          key={`circle-${i}`}
+                                          key={`badge-${i}`}
                                           className={cn(
-                                            "w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-transform hover:scale-110 font-bold text-xs text-white",
+                                            "w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-all hover:scale-125 hover:shadow-lg font-bold text-xs text-white flex-shrink-0",
                                             travelTypeColors[travel.travel_type]
                                           )}
                                           onClick={() => handleEdit(travel)}
-                                          title={`${travel.title}`}
+                                          title={travel.title}
                                         >
                                           {statusAbbreviation[travel.status] || 'P'}
                                         </div>
