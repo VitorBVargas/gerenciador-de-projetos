@@ -448,18 +448,7 @@ export default function Travels() {
                             });
                           })()}
                         </tr>
-                        {/* Days row */}
-                        <tr className="border-b border-slate-700/50">
-                          <th className="sticky left-0 z-30 bg-slate-800 px-4 py-3 text-left text-sm font-semibold text-slate-400 min-w-[180px] w-[180px] border-r border-slate-700/50">
-                            Implantador
-                          </th>
-                          {daysInMonth.map(day => (
-                            <th key={day.toString()} className="px-2 py-3 text-center text-xs font-medium text-slate-400 min-w-[40px] border-r border-slate-700/20">
-                              <div>{format(day, 'dd')}</div>
-                              <div className="text-[10px] text-slate-500">{format(day, 'EEE', { locale: ptBR })}</div>
-                            </th>
-                          ))}
-                        </tr>
+
                       </thead>
                       <tbody>
                         {verticals.map(vertical => (
@@ -468,7 +457,12 @@ export default function Travels() {
                                <td className="sticky left-0 z-30 px-4 py-2 text-sm font-semibold text-cyan-400 bg-slate-800 min-w-[180px] w-[180px]">
                                  {verticalLabels[vertical] || vertical}
                                </td>
-                               <td colSpan={daysInMonth.length} className="bg-slate-700/30" />
+                               {daysInMonth.map(day => (
+                                 <td key={day.toString()} className="px-2 py-2 text-center text-xs font-medium text-slate-400 min-w-[40px] border-r border-slate-700/20 bg-slate-700/30">
+                                   <div>{format(day, 'dd')}</div>
+                                   <div className="text-[10px] text-slate-500">{format(day, 'EEE', { locale: ptBR })}</div>
+                                 </td>
+                               ))}
                              </tr>
                             {membersByVertical[vertical].map(member => (
                               <tr key={member.id} className="border-b border-slate-700/30 hover:bg-slate-700/20">
