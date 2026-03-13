@@ -92,41 +92,7 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
     }
   }
 
-  // --- 3. MIGRATION/HOMOLOGATION SYNC (15 pts) ---
-  // Verifica se Migração de PRD e Configuração de PRD foram marcadas correspondentemente
-  const migracao_prd_blackout = timeline.find(e => e.title === 'Migração de PRD (Blackout)');
-  const configuracao_prd = timeline.find(e => e.title === 'Configuração de PRD');
-  
-  const issues = [];
-  
-  // Verifica Migração de PRD (Blackout) → deve ter MigrationTask completa
-  if (migracao_prd_blackout) {
-    const isOverdue = migracao_prd_blackout.end_date && new Date(migracao_prd_blackout.end_date) < now;
-    const isCompleted = migracao_prd_blackout.status === 'concluido';
-    
-    if ((isOverdue || isCompleted) && (!migrationTasks || migrationTasks.length === 0 || !migrationTasks.some(t => t.completed))) {
-      issues.push('Migração de PRD (Blackout)');
-    }
-  }
-  
-  // Verifica Configuração de PRD → deve ter HomologationTask completa
-  if (configuracao_prd) {
-    const isOverdue = configuracao_prd.end_date && new Date(configuracao_prd.end_date) < now;
-    const isCompleted = configuracao_prd.status === 'concluido';
-    
-    if ((isOverdue || isCompleted) && (!homologationTasks || homologationTasks.length === 0 || !homologationTasks.some(t => t.completed))) {
-      issues.push('Configuração de PRD');
-    }
-  }
-  
-  if (issues.length > 0) {
-    score -= 15;
-    alerts.push({
-      severity: 'high',
-      text: `Etapa${issues.length > 1 ? 's' : ''} sem marcação na homologação/migração`,
-      detail: issues.join(', ')
-    });
-  }
+
 
   const finalScore = Math.max(0, Math.round(score));
 
