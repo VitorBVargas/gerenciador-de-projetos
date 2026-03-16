@@ -125,7 +125,7 @@ export default function Timeline() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timelineEvents', projectId] });
-      setEditDatesOpen(false);
+      // NÃO fechar o modal aqui - deixar o BulkEditDatesModal controlar
     }
   });
 
