@@ -171,10 +171,10 @@ export default function BulkEditDatesModal({
       setCurrentBatch(i + 1);
       setProgress(((i + 1) / eventsToUpdate.length) * 100);
       
-      console.log(`Concluído ${i + 1}/${eventsToUpdate.length}, aguardando 3s...`);
+      console.log(`Concluído ${i + 1}/${eventsToUpdate.length}, aguardando 1s...`);
       
-      // Aguardar 3 segundos antes do próximo
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // Aguardar 1 segundo antes do próximo
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
     console.log('Processo completo, marcando como concluído');
