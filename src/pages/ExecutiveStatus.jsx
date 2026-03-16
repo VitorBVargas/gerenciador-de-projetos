@@ -411,16 +411,13 @@ export default function ExecutiveStatus() {
     });
 
     const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
+    const currentYearMonth = `${currentYear}-${currentMonth}`;
     
-    // Calcular range baseado nos dados reais para incluir TUDO
-    const allMonths = [...relevantMonths].sort();
-    const earliestMonth = allMonths.length > 0 ? allMonths[0] : format(now, 'yyyy-MM');
-    const latestMonth = allMonths.length > 0 ? allMonths[allMonths.length - 1] : format(addMonths(now, 10), 'yyyy-MM');
-    
-    // Criar range do primeiro ao último mês com dados
-    const startDate = new Date(earliestMonth + '-01');
-    const endDate = new Date(latestMonth + '-01');
-    const totalMonths = ((endDate.getFullYear() - startDate.getFullYear()) * 12) + (endDate.getMonth() - startDate.getMonth()) + 1;
+    // Criar janela maior: 3 meses para trás + mês atual + 18 meses futuros = 22 meses total
+    const startDate = addMonths(now, -3);
+    const totalMonths = 22;
 
     for (let i = 0; i < totalMonths; i++) {
       const month = addMonths(startDate, i);
