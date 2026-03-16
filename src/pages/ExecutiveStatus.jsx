@@ -111,7 +111,7 @@ export default function ExecutiveStatus() {
   // Fetch all projects
   const { data: allProjectsData = [], isLoading: loadingProjects, isError } = useQuery({
     queryKey: ['projects', portfolioFilter],
-    queryFn: () => base44.entities.Project.filter({ portfolio: portfolioFilter }, '-created_date', 2000),
+    queryFn: () => base44.entities.Project.filter({ portfolio: portfolioFilter }, '-created_date', 10000),
     staleTime: 1 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     retry: 2,
@@ -123,8 +123,8 @@ export default function ExecutiveStatus() {
    // Fetch all cronogramas
     const { data: allCronogramas = [], isLoading: loadingCronogramas } = useQuery({
       queryKey: ['allCronogramas', portfolioFilter],
-      queryFn: () => base44.entities.Cronograma.list('-created_date', 500),
-      staleTime: 5 * 60 * 1000,
+      queryFn: () => base44.entities.Cronograma.list('-created_date', 10000),
+      staleTime: 1 * 60 * 1000,
       gcTime: 30 * 60 * 1000,
       enabled: !loadingProjects
     });
@@ -132,8 +132,8 @@ export default function ExecutiveStatus() {
     // Fetch all timeline events
     const { data: allTimelineEvents = [], isLoading: loadingEvents } = useQuery({
       queryKey: ['allTimelineEvents', portfolioFilter],
-      queryFn: () => base44.entities.TimelineEvent.list('-created_date', 1000),
-      staleTime: 5 * 60 * 1000,
+      queryFn: () => base44.entities.TimelineEvent.list('-created_date', 10000),
+      staleTime: 1 * 60 * 1000,
       gcTime: 30 * 60 * 1000,
       enabled: !loadingCronogramas
     });
@@ -142,40 +142,40 @@ export default function ExecutiveStatus() {
 
     const { data: allProducts = [], isLoading: loadingProducts } = useQuery({
       queryKey: ['allProducts', portfolioFilter],
-      queryFn: () => base44.entities.Product.list('-created_date', 1000),
-      staleTime: 5 * 60 * 1000,
+      queryFn: () => base44.entities.Product.list('-created_date', 10000),
+      staleTime: 1 * 60 * 1000,
       gcTime: 30 * 60 * 1000,
       enabled: !loadingEvents
     });
 
     const { data: allRecognizedRevenues = [], isLoading: loadingRevenues } = useQuery({
       queryKey: ['allRecognizedRevenues', portfolioFilter],
-      queryFn: () => base44.entities.RecognizedRevenue.list('-created_date', 1000),
-      staleTime: 5 * 60 * 1000,
+      queryFn: () => base44.entities.RecognizedRevenue.list('-created_date', 10000),
+      staleTime: 1 * 60 * 1000,
       gcTime: 30 * 60 * 1000,
       enabled: !loadingProducts
     });
 
     const { data: allProductFinancialDates = [], isLoading: loadingFinancialDates } = useQuery({
       queryKey: ['allProductFinancialDates', portfolioFilter],
-      queryFn: () => base44.entities.ProductFinancialDates.list('-last_updated', 5000),
-      staleTime: 5 * 60 * 1000,
+      queryFn: () => base44.entities.ProductFinancialDates.list('-last_updated', 10000),
+      staleTime: 1 * 60 * 1000,
       gcTime: 30 * 60 * 1000,
       enabled: !loadingRevenues
     });
 
     const { data: allProgressCache = [], isLoading: loadingProgressCache } = useQuery({
       queryKey: ['allProgressCache', portfolioFilter],
-      queryFn: () => base44.entities.ProjectProgressCache.list('-updated_date', 500),
-      staleTime: 5 * 60 * 1000,
+      queryFn: () => base44.entities.ProjectProgressCache.list('-updated_date', 10000),
+      staleTime: 1 * 60 * 1000,
       gcTime: 30 * 60 * 1000,
       enabled: !loadingRevenues
     });
 
     const { data: allOverallProgressCache = [], isLoading: loadingOverallProgressCache } = useQuery({
       queryKey: ['allOverallProgressCache', portfolioFilter],
-      queryFn: () => base44.entities.ProjectOverallProgressCache.list('-updated_date', 500),
-      staleTime: 5 * 60 * 1000,
+      queryFn: () => base44.entities.ProjectOverallProgressCache.list('-updated_date', 10000),
+      staleTime: 1 * 60 * 1000,
       gcTime: 30 * 60 * 1000,
       enabled: !loadingProgressCache
     });
@@ -228,8 +228,8 @@ export default function ExecutiveStatus() {
   // Buscar health scores do cache
   const { data: allHealthCaches = [], isLoading: loadingHealthCaches } = useQuery({
     queryKey: ['allHealthCaches', portfolioFilter],
-    queryFn: () => base44.entities.ProjectHealthCache.list('-updated_date', 500),
-    staleTime: 5 * 60 * 1000,
+    queryFn: () => base44.entities.ProjectHealthCache.list('-updated_date', 10000),
+    staleTime: 1 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     enabled: !loadingFinancialDates
   });
