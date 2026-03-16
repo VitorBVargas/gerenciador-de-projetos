@@ -415,18 +415,12 @@ export default function ExecutiveStatus() {
     const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
     const currentYearMonth = `${currentYear}-${currentMonth}`;
     
-    // Calcular range dinâmico baseado nos dados reais
-    const allMonths = [...relevantMonths].sort();
-    const minMonth = allMonths.length > 0 ? allMonths[0] : currentYearMonth;
-    const maxMonth = allMonths.length > 0 ? allMonths[allMonths.length - 1] : `${currentYear + 1}-12`;
-    
-    const minDate = new Date(minMonth + '-01');
-    const maxDate = new Date(maxMonth + '-01');
-    const diffMonths = (maxDate.getFullYear() - minDate.getFullYear()) * 12 + (maxDate.getMonth() - minDate.getMonth());
-    const totalMonths = Math.max(diffMonths + 1, 24); // Aumentado para 24 meses
+    // Criar janela de 11 meses: mês atual + 10 próximos
+    const startDate = new Date(currentYearMonth + '-01');
+    const totalMonths = 11;
 
     for (let i = 0; i < totalMonths; i++) {
-      const month = addMonths(minDate, i);
+      const month = addMonths(startDate, i);
       const key = format(month, 'yyyy-MM');
       monthlyData[key] = { month: format(month, 'MMM/yy', { locale: ptBR }), implantacao: 0, a_receber: 0, recorrente: 0, reconhecido: 0 };
       monthlyRecorrenteProducts[key] = [];
@@ -491,8 +485,9 @@ export default function ExecutiveStatus() {
       if (monthlyData[recMonth]) monthlyData[recMonth].reconhecido += recognized.amount;
     });
 
-    // Mostrar TODOS os meses com dados (não filtrar por mês atual)
+    // Mostrar apenas os meses da janela (atual + 10 próximos)
     const chartData = Object.entries(monthlyData)
+      .sort(([a], [b]) => a.localeCompare(b))
       .map(([, value]) => value);
 
     return { monthlyData, chartData };
