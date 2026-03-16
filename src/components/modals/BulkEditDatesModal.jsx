@@ -160,11 +160,26 @@ export default function BulkEditDatesModal({
     setCompleted(false);
     setTotalBatches(eventsToUpdate.length);
 
-    // Processar item por item no frontend
-    for (let i = 0; i < eventsToUpdate.length; i++) {
-      setCurrentBatch(i + 1);
-      await onApply([eventsToUpdate[i]]);
-      setProgress(((i + 1) / eventsToUpdate.length) * 100);
+    // Processar em batches de 3 mas contar individualmente
+    const batchSize = 3;
+    const batchDelay = 1200;
+    let processedCount = 0;
+    
+    for (let i = 0; i < eventsToUpdate.length; i += batchSize) {
+      const batch = eventsToUpdate.slice(i, i + batchSize);
+      
+      // Processar o batch
+      await onApply(batch);
+      
+      // Atualizar contador item por item
+      processedCount += batch.length;
+      setCurrentBatch(processedCount);
+      setProgress((processedCount / eventsToUpdate.length) * 100);
+      
+      // Delay entre batches (exceto no último)
+      if (i + batchSize < eventsToUpdate.length) {
+        await new Promise(resolve => setTimeout(resolve, batchDelay));
+      }
     }
 
     setApplying(false);
