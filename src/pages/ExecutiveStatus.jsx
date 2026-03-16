@@ -111,8 +111,8 @@ export default function ExecutiveStatus() {
   // Fetch all projects
   const { data: allProjectsData = [], isLoading: loadingProjects, isError } = useQuery({
     queryKey: ['projects', portfolioFilter],
-    queryFn: () => base44.entities.Project.filter({ portfolio: portfolioFilter }, '-created_date', 500),
-    staleTime: 5 * 60 * 1000,
+    queryFn: () => base44.entities.Project.filter({ portfolio: portfolioFilter }, '-created_date', 2000),
+    staleTime: 1 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     retry: 2,
   });
@@ -424,8 +424,6 @@ export default function ExecutiveStatus() {
       monthlyRecorrenteProducts[key] = [];
     }
     
-    console.log('DEBUG - Meses criados:', Object.keys(monthlyData));
-
     const implantacaoProductsMap = {};
     // Usar TODOS os projetos ativos do portfólio
     allProjectsData.filter(p => p.portfolio === portfolioFilter && p.status !== 'concluido').forEach(project => {
@@ -438,13 +436,9 @@ export default function ExecutiveStatus() {
         
         if (!implEndDate) return;
         const implMonth = implEndDate.substring(0, 7);
-        
-        console.log(`DEBUG - Produto ${prod.name} (projeto ${project.name}): implMonth=${implMonth}, existe em monthlyData=${!!monthlyData[implMonth]}, implValue=${prod.implementation_value || 0}`);
-        
         if (!monthlyData[implMonth]) return;
         const totalImplValue = prod.implementation_value || 0;
         if (totalImplValue > 0) {
-          console.log(`DEBUG - ADICIONANDO ao gráfico: ${prod.name}, valor=${totalImplValue}, mês=${implMonth}`);
           monthlyData[implMonth].implantacao += totalImplValue;
           if (!implantacaoProductsMap[implMonth]) implantacaoProductsMap[implMonth] = [];
           implantacaoProductsMap[implMonth].push({ product: prod, project, end_date: implEndDate, amount: totalImplValue });
