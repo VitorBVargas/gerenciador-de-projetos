@@ -411,12 +411,10 @@ export default function ExecutiveStatus() {
     });
 
     const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
-    const currentYearMonth = `${currentYear}-${currentMonth}`;
     
     // Criar janela de 10 meses: mês atual + 9 próximos
-    const startDate = new Date(currentYearMonth + '-01');
+    // Usando o primeiro dia do mês atual para garantir consistência
+    const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
     const totalMonths = 10;
 
     for (let i = 0; i < totalMonths; i++) {
