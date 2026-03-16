@@ -214,7 +214,8 @@ export default function BulkEditDatesModal({
             </div>
           ) : null}
 
-          <div className={`space-y-4 overflow-y-auto max-h-[60vh] pr-4 ${applying ? 'opacity-50 pointer-events-none' : ''}`}>
+          {!completed && !applying && (
+          <div className="space-y-4 overflow-y-auto max-h-[60vh] pr-4">
             {/* Edit All Mode Toggle */}
             <div className="flex items-center gap-2 p-3 bg-slate-700/30 rounded border border-slate-600">
               <Checkbox
@@ -404,11 +405,10 @@ export default function BulkEditDatesModal({
                     </div>
                     </div>
                     )}
+                    </div>
+                    )}
 
-
-          </div>
-
-          <DialogFooter>
+                    <DialogFooter>
             {completed ? (
               <Button
                 onClick={() => {
