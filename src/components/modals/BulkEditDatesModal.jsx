@@ -29,6 +29,8 @@ export default function BulkEditDatesModal({
   const [applying, setApplying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentBatch, setCurrentBatch] = useState(0);
+  const [totalBatches, setTotalBatches] = useState(0);
+  const [completed, setCompleted] = useState(false);
 
   React.useEffect(() => {
     if (open) {
@@ -40,6 +42,8 @@ export default function BulkEditDatesModal({
       setApplying(false);
       setProgress(0);
       setCurrentBatch(0);
+      setTotalBatches(0);
+      setCompleted(false);
     }
   }, [open]);
 
@@ -153,28 +157,18 @@ export default function BulkEditDatesModal({
     setConfirmOpen(false);
     setProgress(0);
     setCurrentBatch(0);
+    setCompleted(false);
+    setTotalBatches(eventsToUpdate.length);
 
-    // Processar em batches de 3 com delay de 1200ms
-    const batchSize = 3;
-    const batchDelay = 1200;
-    
-    for (let i = 0; i < eventsToUpdate.length; i += batchSize) {
-      const batch = eventsToUpdate.slice(i, i + batchSize);
-      setCurrentBatch(Math.floor(i / batchSize) + 1);
-      await onApply(batch);
-      
-      // Calcular progresso
-      const processed = Math.min(i + batchSize, eventsToUpdate.length);
-      setProgress((processed / eventsToUpdate.length) * 100);
-      
-      // Delay entre batches (exceto no último)
-      if (i + batchSize < eventsToUpdate.length) {
-        await new Promise(resolve => setTimeout(resolve, batchDelay));
-      }
+    // Processar item por item no frontend
+    for (let i = 0; i < eventsToUpdate.length; i++) {
+      setCurrentBatch(i + 1);
+      await onApply([eventsToUpdate[i]]);
+      setProgress(((i + 1) / eventsToUpdate.length) * 100);
     }
 
     setApplying(false);
-    onOpenChange(false);
+    setCompleted(true);
   };
 
   const filteredVerticals = getFilteredVerticals();
@@ -184,27 +178,41 @@ export default function BulkEditDatesModal({
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange && !applying ? onOpenChange : undefined}>
+      <Dialog open={open} onOpenChange={!applying && !completed ? onOpenChange : undefined}>
         <DialogContent className="bg-slate-800 border-slate-700 max-w-2xl max-h-[80vh]">
           <DialogHeader>
-            <DialogTitle className="text-white">Editar Datas em Lote</DialogTitle>
-            {hasChanges && (
+            <DialogTitle className="text-white">
+              {completed ? 'Alteração Concluída' : 'Editar Datas em Lote'}
+            </DialogTitle>
+            {!completed && hasChanges && (
               <p className="text-xs text-slate-400 mt-1">
                 Será alterado {eventsToUpdate.length} etapa(s)
               </p>
             )}
           </DialogHeader>
 
-          {applying && (
+          {completed ? (
+            <div className="space-y-4 p-6 text-center">
+              <div className="w-16 h-16 bg-green-600/20 rounded-full flex items-center justify-center mx-auto">
+                <svg className="w-8 h-8 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-2">Alterações concluídas com sucesso!</h3>
+                <p className="text-sm text-slate-400">{totalBatches} etapa(s) foram atualizadas</p>
+              </div>
+            </div>
+          ) : applying ? (
             <div className="space-y-3 p-4 bg-blue-600/10 border border-blue-600/50 rounded">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 justify-center">
                 <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
-                <span className="text-sm text-blue-300">Processando lote {currentBatch}...</span>
+                <span className="text-sm text-blue-300">Processando {currentBatch}/{totalBatches}</span>
               </div>
               <Progress value={progress} className="h-2" />
               <p className="text-xs text-slate-400 text-center">{Math.round(progress)}% concluído</p>
             </div>
-          )}
+          ) : null}
 
           <div className={`space-y-4 overflow-y-auto max-h-[60vh] pr-4 ${applying ? 'opacity-50 pointer-events-none' : ''}`}>
             {/* Edit All Mode Toggle */}
@@ -401,24 +409,39 @@ export default function BulkEditDatesModal({
           </div>
 
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              className="border-slate-600"
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleApplyClick}
-              className="bg-blue-600 hover:bg-blue-700"
-              disabled={!hasChanges || applying}
-            >
-              {applying ? (
-                <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Aplicando...</>
-              ) : (
-                <>Aplicar em Lote {eventsToUpdate.length > 0 && `(${eventsToUpdate.length})`}</>
-              )}
-            </Button>
+            {completed ? (
+              <Button
+                onClick={() => {
+                  setCompleted(false);
+                  onOpenChange(false);
+                }}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                OK
+              </Button>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => onOpenChange(false)}
+                  className="border-slate-600"
+                  disabled={applying}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleApplyClick}
+                  className="bg-blue-600 hover:bg-blue-700"
+                  disabled={!hasChanges || applying}
+                >
+                  {applying ? (
+                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Aplicando...</>
+                  ) : (
+                    <>Aplicar em Lote {eventsToUpdate.length > 0 && `(${eventsToUpdate.length})`}</>
+                  )}
+                </Button>
+              </>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
