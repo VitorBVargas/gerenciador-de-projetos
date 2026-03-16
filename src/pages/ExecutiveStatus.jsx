@@ -415,9 +415,9 @@ export default function ExecutiveStatus() {
     const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
     const currentYearMonth = `${currentYear}-${currentMonth}`;
     
-    // Criar janela maior: 3 meses para trás + mês atual + 18 meses futuros = 22 meses total
-    const startDate = addMonths(now, -3);
-    const totalMonths = 22;
+    // Criar janela de 10 meses: mês atual + 9 próximos
+    const startDate = new Date(currentYearMonth + '-01');
+    const totalMonths = 10;
 
     for (let i = 0; i < totalMonths; i++) {
       const month = addMonths(startDate, i);
