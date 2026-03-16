@@ -439,11 +439,12 @@ export default function ExecutiveStatus() {
         if (!implEndDate) return;
         const implMonth = implEndDate.substring(0, 7);
         
-        console.log(`DEBUG - Produto ${prod.name} (projeto ${project.name}): implMonth=${implMonth}, existe em monthlyData=${!!monthlyData[implMonth]}`);
+        console.log(`DEBUG - Produto ${prod.name} (projeto ${project.name}): implMonth=${implMonth}, existe em monthlyData=${!!monthlyData[implMonth]}, implValue=${prod.implementation_value || 0}`);
         
         if (!monthlyData[implMonth]) return;
         const totalImplValue = prod.implementation_value || 0;
         if (totalImplValue > 0) {
+          console.log(`DEBUG - ADICIONANDO ao gráfico: ${prod.name}, valor=${totalImplValue}, mês=${implMonth}`);
           monthlyData[implMonth].implantacao += totalImplValue;
           if (!implantacaoProductsMap[implMonth]) implantacaoProductsMap[implMonth] = [];
           implantacaoProductsMap[implMonth].push({ product: prod, project, end_date: implEndDate, amount: totalImplValue });
