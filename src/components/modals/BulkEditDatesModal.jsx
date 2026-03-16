@@ -160,8 +160,10 @@ export default function BulkEditDatesModal({
     setCompleted(false);
     setTotalBatches(eventsToUpdate.length);
 
-    // Processar item por item com 3 segundos de delay
+    // Processar item por item com 5 segundos de delay
     for (let i = 0; i < eventsToUpdate.length; i++) {
+      console.log(`Processando ${i + 1}/${eventsToUpdate.length}`);
+      
       // Processar o item
       await onApply([eventsToUpdate[i]]);
       
@@ -169,10 +171,13 @@ export default function BulkEditDatesModal({
       setCurrentBatch(i + 1);
       setProgress(((i + 1) / eventsToUpdate.length) * 100);
       
-      // Aguardar 3 segundos antes do próximo
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      console.log(`Concluído ${i + 1}/${eventsToUpdate.length}, aguardando 5s...`);
+      
+      // Aguardar 5 segundos antes do próximo
+      await new Promise(resolve => setTimeout(resolve, 5000));
     }
 
+    console.log('Processo completo, marcando como concluído');
     setApplying(false);
     setCompleted(true);
   };
