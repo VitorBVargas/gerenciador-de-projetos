@@ -184,7 +184,7 @@ export default function BulkEditDatesModal({
 
   return (
     <>
-      <Dialog open={open} onOpenChange={!applying && !completed ? onOpenChange : undefined}>
+      <Dialog open={open} onOpenChange={!applying && !completed ? onOpenChange : () => {}}>
         <DialogContent className="bg-slate-800 border-slate-700 max-w-2xl max-h-[80vh]">
           <DialogHeader>
             <DialogTitle className="text-white">
