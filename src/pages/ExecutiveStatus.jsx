@@ -415,16 +415,15 @@ export default function ExecutiveStatus() {
     const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
     const currentYearMonth = `${currentYear}-${currentMonth}`;
     
-    // Usar janela fixa de tempo: mês atual até fim do próximo ano
-    const defaultStart = currentYearMonth;
-    const defaultEnd = `${currentYear + 1}-12`;
-
-    const minMonth = currentYearMonth; // Sempre começar do mês atual
-    const maxMonth = relevantMonths.size > 0 ? [...relevantMonths].sort().reverse()[0] : defaultEnd;
+    // Calcular range dinâmico baseado nos dados reais
+    const allMonths = [...relevantMonths].sort();
+    const minMonth = allMonths.length > 0 ? allMonths[0] : currentYearMonth;
+    const maxMonth = allMonths.length > 0 ? allMonths[allMonths.length - 1] : `${currentYear + 1}-12`;
+    
     const minDate = new Date(minMonth + '-01');
     const maxDate = new Date(maxMonth + '-01');
     const diffMonths = (maxDate.getFullYear() - minDate.getFullYear()) * 12 + (maxDate.getMonth() - minDate.getMonth());
-    const totalMonths = Math.max(diffMonths + 1, 12);
+    const totalMonths = Math.max(diffMonths + 1, 24); // Aumentado para 24 meses
 
     for (let i = 0; i < totalMonths; i++) {
       const month = addMonths(minDate, i);
@@ -492,9 +491,8 @@ export default function ExecutiveStatus() {
       if (monthlyData[recMonth]) monthlyData[recMonth].reconhecido += recognized.amount;
     });
 
-    // Filter chartData to show only current month forward
+    // Mostrar TODOS os meses com dados (não filtrar por mês atual)
     const chartData = Object.entries(monthlyData)
-      .filter(([key]) => key >= currentYearMonth)
       .map(([, value]) => value);
 
     return { monthlyData, chartData };
