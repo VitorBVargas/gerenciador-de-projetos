@@ -423,6 +423,8 @@ export default function ExecutiveStatus() {
       monthlyData[key] = { month: format(month, 'MMM/yy', { locale: ptBR }), implantacao: 0, a_receber: 0, recorrente: 0, reconhecido: 0 };
       monthlyRecorrenteProducts[key] = [];
     }
+    
+    console.log('DEBUG - Meses criados:', Object.keys(monthlyData));
 
     const implantacaoProductsMap = {};
     // Usar TODOS os projetos ativos do portfólio
@@ -436,6 +438,9 @@ export default function ExecutiveStatus() {
         
         if (!implEndDate) return;
         const implMonth = implEndDate.substring(0, 7);
+        
+        console.log(`DEBUG - Produto ${prod.name} (projeto ${project.name}): implMonth=${implMonth}, existe em monthlyData=${!!monthlyData[implMonth]}`);
+        
         if (!monthlyData[implMonth]) return;
         const totalImplValue = prod.implementation_value || 0;
         if (totalImplValue > 0) {
