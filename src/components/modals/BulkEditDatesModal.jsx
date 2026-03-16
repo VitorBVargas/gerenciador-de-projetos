@@ -162,17 +162,15 @@ export default function BulkEditDatesModal({
 
     // Processar item por item com 3 segundos de delay
     for (let i = 0; i < eventsToUpdate.length; i++) {
-      // Atualizar contador antes de processar
-      setCurrentBatch(i + 1);
-      setProgress(((i + 1) / eventsToUpdate.length) * 100);
-      
       // Processar o item
       await onApply([eventsToUpdate[i]]);
       
-      // Aguardar 3 segundos antes do próximo (exceto no último)
-      if (i < eventsToUpdate.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 3000));
-      }
+      // Atualizar contador DEPOIS de processar
+      setCurrentBatch(i + 1);
+      setProgress(((i + 1) / eventsToUpdate.length) * 100);
+      
+      // Aguardar 3 segundos antes do próximo
+      await new Promise(resolve => setTimeout(resolve, 3000));
     }
 
     setApplying(false);
