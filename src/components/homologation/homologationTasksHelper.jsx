@@ -3,6 +3,7 @@
 
 import { getDefaultTasksForProduct as getStandardTasks } from './homologationTasks';
 import { getEducationTasksForProduct } from './homologationTasksEducation';
+import { getArrecadacaoTasksForProduct } from './homologationTasksArrecadacao';
 
 export const getDefaultTasksForProduct = (productName) => {
   if (!productName) return null;
@@ -10,6 +11,10 @@ export const getDefaultTasksForProduct = (productName) => {
   // Tenta primeiro em homologationTasks (padrão)
   const standardTasks = getStandardTasks(productName);
   if (standardTasks) return standardTasks;
+  
+  // Tenta em homologationTasksArrecadacao
+  const arrecadacaoTasks = getArrecadacaoTasksForProduct(productName);
+  if (arrecadacaoTasks) return arrecadacaoTasks;
   
   // Se não encontrou, tenta em homologationTasksEducation
   const educationTasks = getEducationTasksForProduct(productName);
