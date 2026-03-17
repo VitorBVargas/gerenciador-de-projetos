@@ -1653,11 +1653,19 @@ export const getDefaultTasksForProduct = (productName) => {
   
   const normalizedInput = normalizeProductName(productName);
   
+  // 🔍 DEBUG: Log detalhado
+  console.log('🔍 [getDefaultTasksForProduct] Input original:', productName);
+  console.log('🔍 [getDefaultTasksForProduct] Input normalizado:', normalizedInput);
+  
   // Busca direto em migrationTasksByProduct com chaves normalizadas
-  const key = Object.keys(migrationTasksByProduct).find(k => {   
-   return normalizeProductName(k) === normalizedInput
-  }
-  );
+  const key = Object.keys(migrationTasksByProduct).find(k => {
+    const normalized = normalizeProductName(k);
+    console.log(`🔍 [getDefaultTasksForProduct] Comparando "${normalized}" === "${normalizedInput}"`);
+    return normalized === normalizedInput;
+  });
+  
+  console.log('🔍 [getDefaultTasksForProduct] Chave encontrada:', key);
+  console.log('🔍 [getDefaultTasksForProduct] Retornando:', key ? 'SEÇÕES ENCONTRADAS' : 'NULL');
   
   return key ? migrationTasksByProduct[key] : null;  
 };
