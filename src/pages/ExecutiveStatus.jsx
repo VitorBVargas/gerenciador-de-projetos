@@ -74,7 +74,7 @@ export default function ExecutiveStatus() {
   const [visibleCharts, setVisibleCharts] = useState({
     implantacao: true,
     recorrente: true,
-    password: true
+    password: false
   });
   const [expandedRecognitions, setExpandedRecognitions] = useState({});
   const [expandedProjectGroups, setExpandedProjectGroups] = useState({});
