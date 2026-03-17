@@ -351,9 +351,6 @@ export default function Migration() {
     return order.map(i => sectionEntries[i]).filter(Boolean);
   };
 
-  const withTimeout = (promise, ms = 8000) =>
-    Promise.race([promise, new Promise(resolve => setTimeout(resolve, ms))]);
-
   const handleMarkSectionTasks = async (sectionTasks, completed) => {
     const tasksToUpdate = sectionTasks.filter(t => t.completed !== completed);
     
@@ -361,31 +358,19 @@ export default function Migration() {
 
     setMarkingProgress({ isLoading: true, current: 0, total: tasksToUpdate.length });
 
-    const batchSize = 8;
-    const batchDelay = 150;
     const completedDate = completed ? new Date().toISOString() : null;
 
-    for (let i = 0; i < tasksToUpdate.length; i += batchSize) {
-      const batch = tasksToUpdate.slice(i, i + batchSize);
-      
-      // Timeout por requisição para não travar indefinidamente
-      await Promise.allSettled(
-        batch.map(task =>
-          withTimeout(
-            base44.entities.MigrationTask.update(task.id, { 
-              completed,
-              completed_date: completedDate
-            })
-          )
-        )
-      );
-
-      const processed = Math.min(i + batchSize, tasksToUpdate.length);
-      setMarkingProgress({ isLoading: true, current: processed, total: tasksToUpdate.length });
-
-      if (i + batchSize < tasksToUpdate.length) {
-        await new Promise(resolve => setTimeout(resolve, batchDelay));
+    // Processar uma por vez para garantir que todas sejam salvas corretamente
+    for (let i = 0; i < tasksToUpdate.length; i++) {
+      const task = tasksToUpdate[i];
+      try {
+        await base44.entities.MigrationTask.update(task.id, { completed, completed_date: completedDate });
+      } catch (e) {
+        // Se falhar, aguarda e tenta mais uma vez
+        await new Promise(resolve => setTimeout(resolve, 500));
+        await base44.entities.MigrationTask.update(task.id, { completed, completed_date: completedDate }).catch(() => {});
       }
+      setMarkingProgress({ isLoading: true, current: i + 1, total: tasksToUpdate.length });
     }
 
     setMarkingProgress({ isLoading: false, current: 0, total: 0 });
