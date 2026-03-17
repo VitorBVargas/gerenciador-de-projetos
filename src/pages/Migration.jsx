@@ -351,6 +351,9 @@ export default function Migration() {
     return order.map(i => sectionEntries[i]).filter(Boolean);
   };
 
+  const withTimeout = (promise, ms = 8000) =>
+    Promise.race([promise, new Promise(resolve => setTimeout(resolve, ms))]);
+
   const handleMarkSectionTasks = async (sectionTasks, completed) => {
     const tasksToUpdate = sectionTasks.filter(t => t.completed !== completed);
     
@@ -358,40 +361,35 @@ export default function Migration() {
 
     setMarkingProgress({ isLoading: true, current: 0, total: tasksToUpdate.length });
 
-    try {
-      // Processar em batches de 10 com delay de 200ms (mais rápido e estável)
-      const batchSize = 10;
-      const batchDelay = 200;
-      const completedDate = completed ? new Date().toISOString() : null;
+    const batchSize = 8;
+    const batchDelay = 150;
+    const completedDate = completed ? new Date().toISOString() : null;
 
-      for (let i = 0; i < tasksToUpdate.length; i += batchSize) {
-        const batch = tasksToUpdate.slice(i, i + batchSize);
-        
-        // Usar Promise.allSettled para não travar se alguma falhar
-        await Promise.allSettled(
-          batch.map(task => 
+    for (let i = 0; i < tasksToUpdate.length; i += batchSize) {
+      const batch = tasksToUpdate.slice(i, i + batchSize);
+      
+      // Timeout por requisição para não travar indefinidamente
+      await Promise.allSettled(
+        batch.map(task =>
+          withTimeout(
             base44.entities.MigrationTask.update(task.id, { 
               completed,
               completed_date: completedDate
             })
           )
-        );
+        )
+      );
 
-        const processed = Math.min(i + batchSize, tasksToUpdate.length);
-        setMarkingProgress({ isLoading: true, current: processed, total: tasksToUpdate.length });
+      const processed = Math.min(i + batchSize, tasksToUpdate.length);
+      setMarkingProgress({ isLoading: true, current: processed, total: tasksToUpdate.length });
 
-        if (i + batchSize < tasksToUpdate.length) {
-          await new Promise(resolve => setTimeout(resolve, batchDelay));
-        }
+      if (i + batchSize < tasksToUpdate.length) {
+        await new Promise(resolve => setTimeout(resolve, batchDelay));
       }
-
-      setMarkingProgress({ isLoading: false, current: 0, total: 0 });
-      queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
-    } catch (error) {
-      console.error('Erro ao marcar tarefas:', error);
-      setMarkingProgress({ isLoading: false, current: 0, total: 0 });
-      toast.error('Erro ao processar algumas tarefas');
     }
+
+    setMarkingProgress({ isLoading: false, current: 0, total: 0 });
+    queryClient.invalidateQueries({ queryKey: ['migrationTasks', projectId] });
   };
 
   const handleImportTasks = async (rawData) => {
