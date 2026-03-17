@@ -46,13 +46,48 @@ export default function MigrationProgressChart({ products, tasks }) {
     return acc;
   }, {});
 
-  // Calcula progresso por vertical
+  // Calcula progresso por vertical (removendo duplicatas como na página de Migração)
   const chartData = Object.entries(productsByVertical).map(([vertical, verticalProducts]) => {
     const productIds = verticalProducts.map(p => p.id);
     const verticalTasks = tasks.filter(t => productIds.includes(t.product_id));
     
-    const total = verticalTasks.length;
-    const completed = verticalTasks.filter(t => t.completed).length;
+    // Remover duplicatas (mesma lógica de Migration.jsx)
+    const importedTasks = verticalTasks.filter(t => t.title.includes('||'));
+    const standardTasks = verticalTasks.filter(t => !t.title.includes('||'));
+    
+    // Remover duplicatas importadas
+    const importedBySection = importedTasks.reduce((acc, task) => {
+      const match = task.title.match(/^\|\|(.+?)\|\|(.+)$/);
+      if (match) {
+        const [, sectionName, taskName] = match;
+        const titleLower = taskName.toLowerCase();
+        if (!acc[sectionName]) acc[sectionName] = new Map();
+        if (!acc[sectionName].has(titleLower)) {
+          acc[sectionName].set(titleLower, task);
+        }
+      }
+      return acc;
+    }, {});
+    
+    // Remover duplicatas padrão
+    const uniqueStandardTasks = [];
+    const seenTitles = new Set();
+    for (const task of standardTasks) {
+      const titleLower = task.title.toLowerCase();
+      if (!seenTitles.has(titleLower)) {
+        seenTitles.add(titleLower);
+        uniqueStandardTasks.push(task);
+      }
+    }
+    
+    // Contar apenas tarefas visíveis (únicas)
+    const visibleTasks = [
+      ...uniqueStandardTasks,
+      ...Object.values(importedBySection).flatMap(map => Array.from(map.values()))
+    ];
+    
+    const total = visibleTasks.length;
+    const completed = visibleTasks.filter(t => t.completed).length;
     const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
 
     return {
