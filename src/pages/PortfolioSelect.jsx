@@ -6,13 +6,13 @@ import { ArrowLeft, Building2, BarChart3 } from 'lucide-react';
 const portfolios = [
   {
     id: 'grandes_contas_sc_mg',
-    label: 'Grande Contas SC/MG',
+    label: 'Grandes Contas SC/MG',
     color: 'from-blue-600 to-blue-700',
     hoverColor: 'hover:from-blue-500 hover:to-blue-600',
   },
   {
     id: 'grandes_contas_sc_sp',
-    label: 'Grande Contas SC/SP',
+    label: 'Grandes Contas SC/SP',
     color: 'from-purple-600 to-purple-700',
     hoverColor: 'hover:from-purple-500 hover:to-purple-600',
   },
