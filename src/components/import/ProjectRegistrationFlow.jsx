@@ -13,8 +13,8 @@ import StepCronograma from './StepCronograma';
 // useQuery still used by StepTeam
 
 const PORTFOLIOS = [
-  { id: 'grandes_contas_sc_mg', label: 'Grande Contas SC/MG' },
-  { id: 'grandes_contas_sc_sp', label: 'Grande Contas SC/SP' },
+  { id: 'grandes_contas_sc_mg', label: 'Grandes Contas SC/MG' },
+  { id: 'grandes_contas_sc_sp', label: 'Grandes Contas SC/SP' },
   { id: 'medias_contas', label: 'Médias Contas' },
 ];
 
