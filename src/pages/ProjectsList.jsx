@@ -44,8 +44,8 @@ const statusLabels = {
 };
 
 const portfolioLabels = {
-  grandes_contas_sc_mg: 'Grande Contas SC/MG',
-  grandes_contas_sc_sp: 'Grande Contas SC/SP',
+  grandes_contas_sc_mg: 'Grandes Contas SC/MG',
+  grandes_contas_sc_sp: 'Grandes Contas SC/SP',
   medias_contas: 'Médias Contas',
 };
 
