@@ -26,6 +26,13 @@ const parseTasksIntoSections = (tasks) => {
 
 // Mapa de produtos com suas tarefas de migração
 export const migrationTasksByProduct = {
+  'Gestão Fiscal': parseTasksIntoSections([
+    'DADOS CADASTRAIS',
+    'Extrair Contas COSIF',
+    'Extrair Fiscais',
+    'DADOS DE LANÇAMENTOS',
+    'Extrair Ações Fiscais'
+  ]),
   'e-Nota (Cloud)': parseTasksIntoSections([
     'DADOS CADASTRAIS',
     'Extrair Competências',
