@@ -353,30 +353,40 @@ export default function Homologation() {
 
     setMarkingProgress({ isLoading: true, current: 0, total: tasksToUpdate.length });
 
-    // Processar em batches de 5 com delay de 300ms (sustentável)
-    const batchSize = 5;
-    const batchDelay = 300;
+    try {
+      // Processar em batches de 10 com delay de 200ms (mais rápido e estável)
+      const batchSize = 10;
+      const batchDelay = 200;
+      const completedDate = completed ? new Date().toISOString() : null;
 
-    for (let i = 0; i < tasksToUpdate.length; i += batchSize) {
-      const batch = tasksToUpdate.slice(i, i + batchSize);
-      
-      await Promise.all(
-        batch.map(task => base44.entities.HomologationTask.update(task.id, { 
-          completed,
-          completed_date: completed ? new Date().toISOString() : null
-        }))
-      );
+      for (let i = 0; i < tasksToUpdate.length; i += batchSize) {
+        const batch = tasksToUpdate.slice(i, i + batchSize);
+        
+        // Usar Promise.allSettled para não travar se alguma falhar
+        await Promise.allSettled(
+          batch.map(task => 
+            base44.entities.HomologationTask.update(task.id, { 
+              completed,
+              completed_date: completedDate
+            })
+          )
+        );
 
-      const processed = Math.min(i + batchSize, tasksToUpdate.length);
-      setMarkingProgress({ isLoading: true, current: processed, total: tasksToUpdate.length });
+        const processed = Math.min(i + batchSize, tasksToUpdate.length);
+        setMarkingProgress({ isLoading: true, current: processed, total: tasksToUpdate.length });
 
-      if (i + batchSize < tasksToUpdate.length) {
-        await new Promise(resolve => setTimeout(resolve, batchDelay));
+        if (i + batchSize < tasksToUpdate.length) {
+          await new Promise(resolve => setTimeout(resolve, batchDelay));
+        }
       }
-    }
 
-    setMarkingProgress({ isLoading: false, current: 0, total: 0 });
-    queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
+      setMarkingProgress({ isLoading: false, current: 0, total: 0 });
+      queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
+    } catch (error) {
+      console.error('Erro ao marcar tarefas:', error);
+      setMarkingProgress({ isLoading: false, current: 0, total: 0 });
+      toast.error('Erro ao processar algumas tarefas');
+    }
   };
 
   const handleImportTasks = async (rawData) => {
