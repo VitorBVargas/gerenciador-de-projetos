@@ -169,11 +169,29 @@ export default function Products() {
     }
   });
 
-  const handleSave = (data) => {
+  const handleSave = async (data) => {
     if (selectedProduct) {
       updateMutation.mutate({ id: selectedProduct.id, data });
     } else {
-      createMutation.mutate(data);
+      const created = await base44.entities.Product.create(data);
+      queryClient.invalidateQueries({ queryKey: ['products', projectId] });
+      setModalOpen(false);
+
+      // Initialize timeline stages, migration and homologation tasks
+      const migrationTasks = getDefaultTasksForProduct(created.name);
+      const homologationTasks = getDefaultHomologationTasks(created.name);
+      base44.functions.invoke('initializeSingleProduct', {
+        productId: created.id,
+        projectId: created.project_id,
+        productName: created.name,
+        vertical: created.vertical,
+        migrationTasks: migrationTasks || [],
+        homologationTasks: homologationTasks || []
+      }).then(() => {
+        queryClient.invalidateQueries({ queryKey: ['timelineEvents'] });
+        queryClient.invalidateQueries({ queryKey: ['migrationTasks'] });
+        queryClient.invalidateQueries({ queryKey: ['homologationTasks'] });
+      });
     }
   };
 
