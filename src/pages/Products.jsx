@@ -177,21 +177,47 @@ export default function Products() {
       queryClient.invalidateQueries({ queryKey: ['products', projectId] });
       setModalOpen(false);
 
-      // Initialize timeline stages, migration and homologation tasks
-      const migrationTasks = getDefaultTasksForProduct(created.name);
-      const homologationTasks = getDefaultHomologationTasks(created.name);
+      // 1. Create timeline stages via backend function (lightweight)
       base44.functions.invoke('initializeSingleProduct', {
         productId: created.id,
         projectId: created.project_id,
         productName: created.name,
         vertical: created.vertical,
-        migrationTasks: migrationTasks || [],
-        homologationTasks: homologationTasks || []
+        migrationTasks: [],
+        homologationTasks: []
       }).then(() => {
         queryClient.invalidateQueries({ queryKey: ['timelineEvents'] });
-        queryClient.invalidateQueries({ queryKey: ['migrationTasks'] });
-        queryClient.invalidateQueries({ queryKey: ['homologationTasks'] });
       });
+
+      // 2. Create migration tasks directly via SDK (avoids timeout with large payloads)
+      const migrationSections = getDefaultTasksForProduct(created.name);
+      if (migrationSections && migrationSections.length > 0) {
+        const migTasks = [];
+        let order = 0;
+        migrationSections.forEach(section => {
+          section.tasks.forEach(title => {
+            migTasks.push({ project_id: created.project_id, product_id: created.id, title, completed: false, order: order++ });
+          });
+        });
+        base44.entities.MigrationTask.bulkCreate(migTasks).then(() => {
+          queryClient.invalidateQueries({ queryKey: ['migrationTasks'] });
+        });
+      }
+
+      // 3. Create homologation tasks directly via SDK
+      const homologationSections = getDefaultHomologationTasks(created.name);
+      if (homologationSections && homologationSections.length > 0) {
+        const hmlTasks = [];
+        let order = 0;
+        homologationSections.forEach(section => {
+          section.tasks.forEach(title => {
+            hmlTasks.push({ project_id: created.project_id, product_id: created.id, title, completed: false, order: order++ });
+          });
+        });
+        base44.entities.HomologationTask.bulkCreate(hmlTasks).then(() => {
+          queryClient.invalidateQueries({ queryKey: ['homologationTasks'] });
+        });
+      }
     }
   };
 
