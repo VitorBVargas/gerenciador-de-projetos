@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
 import ProductModal from '../components/modals/ProductModal';
 import { VERTICAL_BADGE_COLORS } from '../components/verticalColors';
 import { getDefaultTasksForProduct } from '../components/migration/migrationTasks';
-import { getDefaultHomologationTasks } from '../components/homologation/homologationTasksHelper';
+import { getDefaultTasksForProduct as getDefaultHomologationTasks } from '../components/homologation/homologationTasksHelper';
 import EmptyState from '../components/ui/EmptyState';
 import PasswordGracePeriodModal from '../components/modals/PasswordGracePeriodModal';
 import EntityFilter from '../components/filters/EntityFilter';
