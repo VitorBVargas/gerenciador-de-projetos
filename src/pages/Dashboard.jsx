@@ -216,10 +216,15 @@ export default function Dashboard() {
       }
       return base44.entities.Project.update(id, data);
     },
-    onSuccess: () => {
+    onSuccess: (_, { data }) => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       setProjectModalOpen(false);
       setSelectedProject(null);
+      // Se concluiu o projeto, redirecionar para a lista
+      if (data.status === 'concluido') {
+        const portfolio = projects.find(p => p.id === projectId)?.portfolio || 'grandes_contas_sc_mg';
+        window.location.href = createPageUrl(`ProjectsList?portfolio=${portfolio}`);
+      }
     }
   });
 
