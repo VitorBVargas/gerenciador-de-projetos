@@ -210,11 +210,13 @@ export default function Dashboard() {
 
   const updateProjectMutation = useMutation({
     mutationFn: async ({ id, data }) => {
-      // Se está concluindo o projeto, marcar cronogramas como concluídos
+      // Salva o projeto PRIMEIRO (sempre), depois tenta completar cronogramas
+      const result = await base44.entities.Project.update(id, data);
+      // Se está concluindo o projeto, tenta marcar cronogramas (mas não bloqueia o save)
       if (data.status === 'concluido') {
-        await completeProjectCronogramas(id);
+        completeProjectCronogramas(id).catch(err => console.warn('Erro ao completar cronogramas:', err));
       }
-      return base44.entities.Project.update(id, data);
+      return result;
     },
     onSuccess: (_, { data }) => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
