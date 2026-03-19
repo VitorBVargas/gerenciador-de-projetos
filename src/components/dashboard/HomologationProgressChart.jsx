@@ -29,6 +29,38 @@ const CustomTooltip = ({ active, payload }) => {
 
 export default function HomologationProgressChart({ products, tasks }) {
   // Agrupa produtos por vertical e calcula progresso
+  // Deduplica tarefas por produto (igual à lógica da aba Homologação)
+  const deduplicateProductTasks = (productTasks) => {
+    const importedTasks = productTasks.filter(t => t.title.includes('||'));
+    const standardTasks = productTasks.filter(t => !t.title.includes('||'));
+
+    // Deduplicar tarefas padrão por título
+    const uniqueStandard = [];
+    const seenTitles = new Set();
+    for (const task of standardTasks) {
+      const key = task.title.toLowerCase();
+      if (!seenTitles.has(key)) {
+        seenTitles.add(key);
+        uniqueStandard.push(task);
+      }
+    }
+
+    // Deduplicar tarefas importadas por seção+título, preferindo marcadas
+    const importedBySection = {};
+    for (const task of importedTasks) {
+      const match = task.title.match(/^\|\|(.+?)\|\|(.+)$/);
+      if (match) {
+        const [, section, name] = match;
+        const key = `${section}|||${name.toLowerCase()}`;
+        if (!importedBySection[key] || (task.completed && !importedBySection[key].completed)) {
+          importedBySection[key] = task;
+        }
+      }
+    }
+
+    return [...uniqueStandard, ...Object.values(importedBySection)];
+  };
+
   const dataByVertical = Object.entries(
     products.reduce((acc, product) => {
       const vertical = product.vertical || 'outros';
@@ -37,10 +69,11 @@ export default function HomologationProgressChart({ products, tasks }) {
       }
       
       const productTasks = tasks.filter(t => t.product_id === product.id);
-      const completed = productTasks.filter(t => t.completed).length;
+      const uniqueTasks = deduplicateProductTasks(productTasks);
+      const completed = uniqueTasks.filter(t => t.completed).length;
       
       acc[vertical].products.push(product);
-      acc[vertical].totalTasks += productTasks.length;
+      acc[vertical].totalTasks += uniqueTasks.length;
       acc[vertical].completedTasks += completed;
       
       return acc;
