@@ -101,7 +101,7 @@ export default function Dashboard() {
     queryKey: ['homologationTasks', projectId],
     queryFn: () => projectId ? base44.entities.HomologationTask.filter({ project_id: projectId }) : [],
     enabled: !!projectId,
-    staleTime: 3 * 60 * 1000
+    staleTime: 0
   });
 
   const { data: risks = [], isLoading: loadingRisks } = useQuery({
