@@ -269,61 +269,12 @@ export default function Budget() {
 
       {/* Budget Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Implementation Estimated Budget Card */}
-        <Card className="bg-gradient-to-br from-indigo-600/20 to-indigo-800/20 border-indigo-500/30">
-          <CardContent className="p-6">
-            {editingBudget ? (
-              <div className="space-y-3">
-                <p className="text-sm text-indigo-200">Orçamento Estimado Implantação</p>
-                <Input
-                  type="number"
-                  placeholder="0,00"
-                  value={implementationBudget}
-                  onChange={(e) => setImplementationBudget(e.target.value)}
-                  className="bg-slate-700 border-slate-600 text-white"
-                  step="0.01"
-                />
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    onClick={handleSaveBudget}
-                    className="bg-green-600 hover:bg-green-700 flex-1"
-                  >
-                    <Check className="w-4 h-4 mr-1" />
-                    Salvar
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleCancelEdit}
-                    className="flex-1"
-                  >
-                    <X className="w-4 h-4 mr-1" />
-                    Cancelar
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm text-indigo-200">Orçamento Estimado Implantação</p>
-                  <button
-                    onClick={handleEditBudget}
-                    className="p-1 rounded hover:bg-indigo-500/20 transition-colors"
-                  >
-                    <Pencil className="w-4 h-4 text-indigo-400" />
-                  </button>
-                </div>
-                <p className="text-2xl font-bold text-white">{formatCurrency(activeProject?.implementation_estimated_budget || 0)}</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {/* Total Budget Card - agora primeiro */}
         <Card className="bg-gradient-to-br from-blue-600/20 to-blue-800/20 border-blue-500/30">
           <CardContent className="p-6">
             {editingTotalBudget ? (
               <div className="space-y-3">
-                <p className="text-sm text-blue-200">Orçamento Total</p>
+                <p className="text-sm text-blue-200">Orçamento pré vendas</p>
                 <Input
                   type="number"
                   placeholder="0,00"
@@ -355,7 +306,7 @@ export default function Budget() {
             ) : (
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm text-blue-200">Orçamento Total</p>
+                  <p className="text-sm text-blue-200">Orçamento pré vendas</p>
                   <button
                     onClick={handleEditTotalBudget}
                     className="p-1 rounded hover:bg-blue-500/20 transition-colors"
@@ -364,6 +315,57 @@ export default function Budget() {
                   </button>
                 </div>
                 <p className="text-2xl font-bold text-white">{formatCurrency(totalBudget)}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Implementation Estimated Budget Card - Orçamento Estimado Portfólio */}
+        <Card className="bg-gradient-to-br from-indigo-600/20 to-indigo-800/20 border-indigo-500/30">
+          <CardContent className="p-6">
+            {editingBudget ? (
+              <div className="space-y-3">
+                <p className="text-sm text-indigo-200">Orçamento Estimado Portfólio</p>
+                <Input
+                  type="number"
+                  placeholder="0,00"
+                  value={implementationBudget}
+                  onChange={(e) => setImplementationBudget(e.target.value)}
+                  className="bg-slate-700 border-slate-600 text-white"
+                  step="0.01"
+                />
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    onClick={handleSaveBudget}
+                    className="bg-green-600 hover:bg-green-700 flex-1"
+                  >
+                    <Check className="w-4 h-4 mr-1" />
+                    Salvar
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleCancelEdit}
+                    className="flex-1"
+                  >
+                    <X className="w-4 h-4 mr-1" />
+                    Cancelar
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm text-indigo-200">Orçamento Estimado Portfólio</p>
+                  <button
+                    onClick={handleEditBudget}
+                    className="p-1 rounded hover:bg-indigo-500/20 transition-colors"
+                  >
+                    <Pencil className="w-4 h-4 text-indigo-400" />
+                  </button>
+                </div>
+                <p className="text-2xl font-bold text-white">{formatCurrency(activeProject?.implementation_estimated_budget || 0)}</p>
               </div>
             )}
           </CardContent>
