@@ -9,22 +9,18 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'project_id e health_score são obrigatórios' }, { status: 400 });
     }
 
-    // Buscar cache existente
+    const cacheData = {
+      project_id,
+      health_score,
+      last_updated: new Date().toISOString()
+    };
+
     const existingCache = await base44.asServiceRole.entities.ProjectHealthCache.filter({ project_id });
 
     if (existingCache.length > 0) {
-      // Atualizar
-      await base44.asServiceRole.entities.ProjectHealthCache.update(existingCache[0].id, {
-        health_score,
-        last_updated: new Date().toISOString()
-      });
+      await base44.asServiceRole.entities.ProjectHealthCache.update(existingCache[0].id, cacheData);
     } else {
-      // Criar
-      await base44.asServiceRole.entities.ProjectHealthCache.create({
-        project_id,
-        health_score,
-        last_updated: new Date().toISOString()
-      });
+      await base44.asServiceRole.entities.ProjectHealthCache.create(cacheData);
     }
 
     return Response.json({ success: true, project_id, health_score });
