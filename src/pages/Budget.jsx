@@ -274,7 +274,7 @@ export default function Budget() {
           <CardContent className="p-6">
             {editingTotalBudget ? (
               <div className="space-y-3">
-                <p className="text-sm text-blue-200">Orçamento pré vendas</p>
+                <p className="text-sm text-blue-200">Orçamento Pré-Vendas</p>
                 <Input
                   type="number"
                   placeholder="0,00"
@@ -306,7 +306,7 @@ export default function Budget() {
             ) : (
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm text-blue-200">Orçamento pré vendas</p>
+                  <p className="text-sm text-blue-200">Orçamento Pré-Vendas</p>
                   <button
                     onClick={handleEditTotalBudget}
                     className="p-1 rounded hover:bg-blue-500/20 transition-colors"
