@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
@@ -23,32 +23,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const verticalLabels = {
-  arrecadacao: 'Arrecadação',
-  compras: 'Compras/Contratos',
-  contabil: 'Contábil',
-  pessoal: 'Pessoal',
-  educacao: 'Educação',
-  iss: 'ISS',
-  parceiros: 'Parceiros',
-  plataforma: 'Plataforma',
-  atendimento: 'Atendimento'
-};
-
-const statusLabels = {
-  nao_iniciado: 'Não Iniciado',
-  em_andamento: 'Em Andamento',
-  concluido: 'Concluído',
-  atrasado: 'Atrasado'
-};
-
-const statusColors = {
-  nao_iniciado: 'bg-slate-600',
-  em_andamento: 'bg-blue-600',
-  concluido: 'bg-green-600',
-  atrasado: 'bg-red-600'
-};
-
 export default function Timeline() {
   const queryClient = useQueryClient();
   const [modalOpen, setModalOpen] = useState(false);
@@ -65,12 +39,13 @@ export default function Timeline() {
   const urlParams = new URLSearchParams(window.location.search);
   const projectId = urlParams.get('project_id');
 
-  const { data: projects = [] } = useQuery({
-    queryKey: ['projects'],
-    queryFn: () => base44.entities.Project.list('-created_date')
+  // 🚀 OTIMIZAÇÃO 1: Buscando APENAS o projeto necessário, em vez de baixar todos do banco
+  const { data: projectData = [] } = useQuery({
+    queryKey: ['project', projectId],
+    queryFn: () => projectId ? base44.entities.Project.filter({ id: projectId }) : [],
+    enabled: !!projectId
   });
-
-  const activeProject = projects.find(p => p.id === projectId);
+  const activeProject = projectData[0]; // Como filtramos por ID, será o primeiro
 
   const { data: products = [] } = useQuery({
     queryKey: ['products', projectId],
@@ -110,36 +85,27 @@ export default function Timeline() {
     }
   });
 
+  // 🚀 MELHORIA 1: Redução do paralelismo para evitar falhas silenciosas e rate limits.
   const bulkUpdateMutation = useMutation({
     mutationFn: async (events) => {
-      // Process in chunks of 5 with 500ms delay between chunks
-      const chunkSize = 5;
+      const chunkSize = 4; // Lotes pequenos para evitar sobrecarga
       for (let i = 0; i < events.length; i += chunkSize) {
         const chunk = events.slice(i, i + chunkSize);
         await Promise.all(chunk.map(event => base44.entities.TimelineEvent.update(event.id, event)));
-        // 500ms delay between chunks
+        // Adiciona um delay entre os lotes para evitar rate limit (ex: max 100 requests / 10s)
         if (i + chunkSize < events.length) {
-          await new Promise(resolve => setTimeout(resolve, 500));
+          await new Promise(resolve => setTimeout(resolve, 600));
         }
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timelineEvents', projectId] });
-      // NÃO fechar o modal aqui - deixar o BulkEditDatesModal controlar
     }
   });
 
   const handleSave = (data) => {
-    // Não ajustar datas - usar exatamente como informadas
-    const adjustedData = {
-      ...data,
-      start_date: data.start_date,
-      end_date: data.end_date
-    };
-
+    const adjustedData = { ...data, start_date: data.start_date, end_date: data.end_date };
     if (selectedEvent) {
-      // Preserva campos originais do evento (product_id, cronograma_id, vertical, etc)
-      // e sobrescreve apenas os campos editáveis
       updateMutation.mutate({ 
         id: selectedEvent.id, 
         data: {
@@ -172,68 +138,60 @@ export default function Timeline() {
   const handleStatusChange = (eventId, newStatus) => {
     const event = timelineEvents.find(e => e.id === eventId);
     if (event) {
-      updateMutation.mutate({ 
-        id: eventId, 
-        data: { ...event, status: newStatus } 
-      });
+      updateMutation.mutate({ id: eventId, data: { ...event, status: newStatus } });
     }
   };
 
-  // Entity filter with full names
-  const entityMap = new Map();
-  products.forEach(p => {
-    if (p.entity) {
-      entityMap.set(p.entity, p.entity_full_name || p.entity);
-    }
-  });
-  const allEntities = Array.from(entityMap.entries())
-    .map(([code, fullName]) => ({ code, fullName }))
-    .sort((a, b) => {
-      const aFullName = a.fullName.toLowerCase();
-      const bFullName = b.fullName.toLowerCase();
-      const aCode = a.code.toLowerCase();
-      const bCode = b.code.toLowerCase();
-      
-      // Prefeitura primeiro
-      if (aFullName.includes('prefeitura') && !bFullName.includes('prefeitura')) return -1;
-      if (!aFullName.includes('prefeitura') && bFullName.includes('prefeitura')) return 1;
-      
-      // Câmara segundo
-      if (aFullName.includes('câmara') && !bFullName.includes('câmara')) return -1;
-      if (!aFullName.includes('câmara') && bFullName.includes('câmara')) return 1;
-      
-      // CM terceiro
-      if (aCode === 'cm' && bCode !== 'cm') return -1;
-      if (aCode !== 'cm' && bCode === 'cm') return 1;
-      
-      // Outras em ordem alfabética
-      return aFullName.localeCompare(bFullName);
+  // 🚀 OTIMIZAÇÃO 3: useMemo nas renderizações pesadas.
+  // Essa lógica de filtro e ordenação rodava a cada clique/tecla. Agora, só roda quando 'products' muda.
+  const allEntities = useMemo(() => {
+    const entityMap = new Map();
+    products.forEach(p => {
+      if (p.entity) entityMap.set(p.entity, p.entity_full_name || p.entity);
     });
-  
-  const entityProducts = selectedEntity
-    ? products.filter(p => p.entity === selectedEntity)
-    : [];
-  
-  // Get unique verticals from selected entity
-  const verticals = [...new Set(entityProducts.map(p => p.vertical).filter(Boolean))].sort();
-
-  // Get products for active vertical
-  const productsInVertical = activeVertical 
-    ? entityProducts.filter(p => p.vertical === activeVertical)
-    : [];
-
-  // Initialize: Auto-select first valid entity with products and vertical
-  React.useEffect(() => {
-    if (isInitialized || products.length === 0) return;
     
-    // Procurar entidade com produtos (prioridade: PM > CM > outras)
+    return Array.from(entityMap.entries())
+      .map(([code, fullName]) => ({ code, fullName }))
+      .sort((a, b) => {
+        const aFullName = a.fullName.toLowerCase();
+        const bFullName = b.fullName.toLowerCase();
+        const aCode = a.code.toLowerCase();
+        const bCode = b.code.toLowerCase();
+        
+        if (aFullName.includes('prefeitura') && !bFullName.includes('prefeitura')) return -1;
+        if (!aFullName.includes('prefeitura') && bFullName.includes('prefeitura')) return 1;
+        if (aFullName.includes('câmara') && !bFullName.includes('câmara')) return -1;
+        if (!aFullName.includes('câmara') && bFullName.includes('câmara')) return 1;
+        if (aCode === 'cm' && bCode !== 'cm') return -1;
+        if (aCode !== 'cm' && bCode === 'cm') return 1;
+        
+        return aFullName.localeCompare(bFullName);
+      });
+  }, [products]);
+
+  const entityProducts = useMemo(() => {
+    return selectedEntity ? products.filter(p => p.entity === selectedEntity) : [];
+  }, [products, selectedEntity]);
+
+  const verticals = useMemo(() => {
+    return [...new Set(entityProducts.map(p => p.vertical).filter(Boolean))].sort();
+  }, [entityProducts]);
+
+  const productsInVertical = useMemo(() => {
+    return activeVertical ? entityProducts.filter(p => p.vertical === activeVertical) : [];
+  }, [entityProducts, activeVertical]);
+
+  const uniqueEntitiesCodes = useMemo(() => allEntities.map(e => e.code), [allEntities]);
+
+  // Initialize: Auto-select first valid entity
+  React.useEffect(() => {
+    if (isInitialized || products.length === 0 || allEntities.length === 0) return;
+    
     for (const entity of allEntities) {
       const entProds = products.filter(p => p.entity === entity.code);
       if (entProds.length > 0) {
-        // Verificar se tem vertical
         const verts = [...new Set(entProds.map(p => p.vertical).filter(Boolean))];
         if (verts.length > 0) {
-          // Pegar produtos da primeira vertical
           const firstVertProds = entProds.filter(p => p.vertical === verts[0]);
           if (firstVertProds.length > 0) {
             setSelectedEntity(entity.code);
@@ -245,46 +203,15 @@ export default function Timeline() {
         }
       }
     }
-    
-    // Se não encontrou nenhuma entidade válida
     setIsInitialized(true);
-  }, [products.length, allEntities.length, isInitialized]);
-
-  // Current product
-  const currentProduct = productsInVertical.find(p => p.id === selectedProductId) || null;
-
-  // Calculate vertical progress (average of all products' average progress)
-  const getVerticalProgress = () => {
-    if (productsInVertical.length === 0) return 0;
-    
-    const productProgresses = productsInVertical.map(product => {
-      const productEvents = timelineEvents.filter(e => e.product_id === product.id);
-      if (productEvents.length === 0) return 0;
-      
-      const totalProgress = productEvents.reduce((sum, event) => {
-        if (event.status === 'concluido') return sum + 100;
-        return sum + (event.progress || 0);
-      }, 0);
-      return Math.round(totalProgress / productEvents.length);
-    });
-
-    return Math.round(productProgresses.reduce((a, b) => a + b, 0) / productProgresses.length);
-  };
-
-  const getUniqueEntities = () => {
-    return allEntities.map(e => e.code);
-  };
+  }, [products, allEntities, isInitialized]);
 
   const handleEditDatesApply = async (updatedEvents) => {
-    // Não precisa ajustar timezone - usar as datas exatamente como informadas
     await bulkUpdateMutation.mutateAsync(updatedEvents);
   };
 
-
-
   return (
     <div className="p-6 lg:p-8 space-y-6">
-      {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-white">Cronograma</h1>
@@ -292,12 +219,10 @@ export default function Timeline() {
         </div>
       </div>
 
-      {/* Entity Filter */}
       {allEntities.length > 0 && (
         <EntityFilter entities={allEntities} selectedEntity={selectedEntity} onEntityChange={setSelectedEntity} showAllButton={false} />
       )}
 
-      {/* Main Tabs - Cronograma do Projeto */}
       <Tabs defaultValue="timeline" className="space-y-4">
        <div className="flex items-center justify-between">
          <TabsList className="bg-slate-800 border border-slate-700">
@@ -315,7 +240,6 @@ export default function Timeline() {
          </Button>
        </div>
 
-        {/* Timeline Tab */}
         <TabsContent value="timeline" className="space-y-6">
           {entityProducts.length === 0 ? (
             <EmptyState
@@ -339,11 +263,8 @@ export default function Timeline() {
             />
           )}
         </TabsContent>
-
-
       </Tabs>
 
-      {/* Modal */}
       <TimelineEventModal
         open={modalOpen}
         onOpenChange={setModalOpen}
@@ -353,7 +274,6 @@ export default function Timeline() {
         productId={selectedProductId}
       />
 
-      {/* Delete Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className="bg-slate-800 border-slate-700">
           <AlertDialogHeader>
@@ -374,11 +294,10 @@ export default function Timeline() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Edit Dates Modal */}
       <BulkEditDatesModal
         open={editDatesOpen}
         onOpenChange={setEditDatesOpen}
-        entities={getUniqueEntities()}
+        entities={uniqueEntitiesCodes}
         verticals={verticals}
         timelineEvents={timelineEvents}
         products={products}
