@@ -81,6 +81,7 @@ export default function ExecutiveStatus() {
   const [editingProjectId, setEditingProjectId] = useState(null);
   const [isEditRecurringModalOpen, setIsEditRecurringModalOpen] = useState(false);
   const [selectedEntity, setSelectedEntity] = useState(null);
+  const [selectedFinancialProject, setSelectedFinancialProject] = useState(null);
   const [isRecalculating, setIsRecalculating] = useState(true);
   const queryClient = useQueryClient();
   const urlParams = new URLSearchParams(window.location.search);
@@ -396,6 +397,11 @@ export default function ExecutiveStatus() {
 
   // Financeiro chart data usando ProductFinancialDates
   const financeiroChartContent = useMemo(() => {
+    const activeProjects = allProjectsData.filter(p => p.portfolio === portfolioFilter && p.status !== 'concluido');
+    const projectsToUse = selectedFinancialProject
+      ? activeProjects.filter(p => p.id === selectedFinancialProject)
+      : activeProjects;
+
     const monthlyData = {};
     const monthlyRecorrenteProducts = {};
 
@@ -425,8 +431,7 @@ export default function ExecutiveStatus() {
     }
     
     const implantacaoProductsMap = {};
-    // Usar TODOS os projetos ativos do portfólio
-    allProjectsData.filter(p => p.portfolio === portfolioFilter && p.status !== 'concluido').forEach(project => {
+    projectsToUse.forEach(project => {
       const projectProducts = allProducts.filter(p => p.project_id === project.id);
       if (!projectProducts.length) return;
 
@@ -458,8 +463,8 @@ export default function ExecutiveStatus() {
       monthlyData[monthKey].a_receber = Math.max(0, totalImplValue - totalRecognized);
     });
 
-    // Usar ProductFinancialDates para recorrente - TODOS os projetos ativos
-    allProjectsData.filter(p => p.portfolio === portfolioFilter && p.status !== 'concluido').forEach(project => {
+    // Usar ProductFinancialDates para recorrente
+    projectsToUse.forEach(project => {
       const projectProducts = allProducts.filter(p => p.project_id === project.id && (p.inclusion_value || 0) > 0);
       if (!projectProducts.length) return;
       
@@ -489,7 +494,7 @@ export default function ExecutiveStatus() {
       .map(([, value]) => value);
 
     return { monthlyData, chartData };
-  }, [allProjectsData, allProducts, allProductFinancialDates, allRecognizedRevenues, portfolioFilter]);
+  }, [allProjectsData, allProducts, allProductFinancialDates, allRecognizedRevenues, portfolioFilter, selectedFinancialProject]);
 
   // Calculate project with health status
   const projectsWithMetrics = useMemo(() => {
@@ -1084,7 +1089,19 @@ export default function ExecutiveStatus() {
         <TabsContent value="financeiro" className="space-y-6">
           {/* Controles de Visibilidade */}
           <div className="bg-slate-800 border border-slate-600 rounded-lg p-4 flex items-center justify-between">
-            <h3 className="text-white font-semibold text-sm">Gráficos do Financeiro</h3>
+            <div className="flex items-center gap-3">
+              <h3 className="text-white font-semibold text-sm">Gráficos do Financeiro</h3>
+              <select
+                value={selectedFinancialProject || ''}
+                onChange={(e) => setSelectedFinancialProject(e.target.value || null)}
+                className="bg-slate-700 border border-slate-600 text-slate-200 text-xs rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="">Todos os projetos</option>
+                {allProjectsData.filter(p => p.portfolio === portfolioFilter && p.status !== 'concluido').map(p => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
+            </div>
             <div className="flex items-center gap-4 ml-auto pl-4">
               <div className="flex items-center gap-1.5">
                 <input 
