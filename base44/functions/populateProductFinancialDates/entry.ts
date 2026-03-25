@@ -5,25 +5,35 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
 
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    // Buscar todos os produtos e eventos
-    const allProducts = await base44.asServiceRole.entities.Product.list('-created_date', 5000);
-    const allTimelineEvents = await base44.asServiceRole.entities.TimelineEvent.list('-created_date', 5000);
+    // 1. Busca inicial (Trazemos as datas existentes para evitar N+1)
+    const [allProducts, allTimelineEvents, allExistingDates] = await Promise.all([
+      base44.asServiceRole.entities.Product.list('-created_date', 5000),
+      base44.asServiceRole.entities.TimelineEvent.list('-created_date', 10000),
+      base44.asServiceRole.entities.ProductFinancialDates.list('-created_date', 5000)
+    ]);
+    
+    // ✅ DICIONÁRIOS O(1): Indexando eventos e datas existentes
+    const eventsByProduct = new Map();
+    allTimelineEvents.forEach(e => {
+      if (!eventsByProduct.has(e.product_id)) eventsByProduct.set(e.product_id, []);
+      eventsByProduct.get(e.product_id).push(e);
+    });
+
+    const datesMap = new Map(allExistingDates.map(d => [d.product_id, d]));
     
     let updated = 0;
     let created = 0;
     
-    // Para cada produto, buscar as datas relevantes e fazer upsert
+    // Em vez de executar imediatamente, armazenamos uma função que retorna a Promise
+    const operations = [];
+
     for (const product of allProducts) {
-      const productEvents = allTimelineEvents.filter(e => e.product_id === product.id);
-      
+      const productEvents = eventsByProduct.get(product.id) || [];
       const goLiveEvent = productEvents.find(e => e.phase === 'go_live' && e.start_date);
       const operacaoEvent = productEvents.find(e => e.phase === 'operacao_assistida' && e.end_date);
       
-      // Processar apenas se houver pelo menos uma data
       if (goLiveEvent || operacaoEvent) {
         const dateData = {
           product_id: product.id,
@@ -33,29 +43,29 @@ Deno.serve(async (req) => {
           last_updated: new Date().toISOString()
         };
         
-        // Buscar registro existente
-        const existing = await base44.asServiceRole.entities.ProductFinancialDates.filter(
-          { product_id: product.id }
-        );
+        const existing = datesMap.get(product.id);
         
-        if (existing && existing.length > 0) {
-          // Atualizar
-          await base44.asServiceRole.entities.ProductFinancialDates.update(existing[0].id, dateData);
+        if (existing) {
+          operations.push(() => base44.asServiceRole.entities.ProductFinancialDates.update(existing.id, dateData));
           updated++;
         } else {
-          // Criar
-          await base44.asServiceRole.entities.ProductFinancialDates.create(dateData);
+          operations.push(() => base44.asServiceRole.entities.ProductFinancialDates.create(dateData));
           created++;
         }
       }
     }
     
-    return Response.json({ 
-      success: true, 
-      created,
-      updated,
-      total_products: allProducts.length
-    });
+    // ✅ CHUNKING: Executa operações em lotes menores com delay para evitar rate limit
+    const CHUNK_SIZE = 10;
+    for (let i = 0; i < operations.length; i += CHUNK_SIZE) {
+      const chunk = operations.slice(i, i + CHUNK_SIZE);
+      await Promise.all(chunk.map(op => op()));
+      if (i + CHUNK_SIZE < operations.length) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+    }
+    
+    return Response.json({ success: true, created, updated, total_products: allProducts.length });
     
   } catch (error) {
     console.error('Erro:', error);
