@@ -26,6 +26,15 @@ Deno.serve(async (req) => {
             recurring_value: totalInclusao
         });
         
+        // Limpar cache para forçar refresh
+        await base44.asServiceRole.entities.ProjectProgressCache.filter({ project_id: projectId }).then(caches => {
+            return Promise.all(caches.map(c => base44.asServiceRole.entities.ProjectProgressCache.delete(c.id)));
+        }).catch(() => null);
+        
+        await base44.asServiceRole.entities.ProjectOverallProgressCache.filter({ project_id: projectId }).then(caches => {
+            return Promise.all(caches.map(c => base44.asServiceRole.entities.ProjectOverallProgressCache.delete(c.id)));
+        }).catch(() => null)
+        
         return Response.json({ 
             success: true, 
             total_products: products.length,
