@@ -216,8 +216,11 @@ export default function Homologation() {
       }
     }
 
-    // Tarefas custom (padrão não atribuídas a nenhuma seção)
-    const customTasks = standardTasks.filter(t => !claimedStandardIds.has(t.id));
+    // Tarefas custom: só conta se o produto NÃO tem seções padrão (produto sem template)
+    // Se tem seções padrão, tarefas não atribuídas são órfãs (ignorar)
+    const customTasks = defaultSections.length === 0
+      ? standardTasks.filter(t => !claimedStandardIds.has(t.id))
+      : [];
 
     return { importedBySection, standardBySection, customTasks, defaultSections };
   };

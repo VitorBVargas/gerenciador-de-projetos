@@ -175,12 +175,13 @@ export default function Migration() {
     visibleCount += importedVisible.length;
     completedCount += importedVisible.filter(t => t.completed).length;
 
-    // Tarefas que não pertencem a nenhuma seção padrão (verdadeiramente personalizadas)
-    // Excluir duplicatas: se o título já foi contado via claimedIds, ignorar
-    const allSectionTaskNames = new Set(defaultSections.flatMap(s => s.tasks.map(t => t.toLowerCase())));
-    const unclaimed = standardTasks.filter(t => !claimedIds.has(t.id) && !allSectionTaskNames.has(t.title.toLowerCase()));
-    visibleCount += unclaimed.length;
-    completedCount += unclaimed.filter(t => t.completed).length;
+    // Tarefas não atribuídas: só conta se o produto não tem template (sem seções padrão)
+    // Se tem template, tarefas não atribuídas são órfãs (ignorar no cálculo)
+    if (defaultSections.length === 0) {
+      const unclaimed = standardTasks.filter(t => !claimedIds.has(t.id));
+      visibleCount += unclaimed.length;
+      completedCount += unclaimed.filter(t => t.completed).length;
+    }
 
     if (visibleCount === 0) return 0;
     return Math.round((completedCount / visibleCount) * 100);
@@ -545,9 +546,9 @@ export default function Migration() {
                                   });
                                 })()}
 
-                                {/* Tarefas personalizadas */}
+                                {/* Tarefas personalizadas - só mostra se produto não tem template */}
                                 {(() => {
-                                  if (!defaultSections.length) return null;
+                                  if (defaultSections.length > 0) return null;
                                   const allSectionTasks = defaultSections.flatMap(s => s.tasks.map(t => t.toLowerCase()));
                                   const customTasks = standardTasks.filter(task => !allSectionTasks.includes(task.title.toLowerCase()));
                                   if (customTasks.length > 0) {
