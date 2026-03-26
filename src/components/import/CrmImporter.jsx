@@ -337,7 +337,9 @@ export default function CrmImporter({ open, onOpenChange, portfolioFilter = 'gra
         'saúde': 'saude', 'saude': 'saude',
         'atendimento': 'atendimento',
         'gerenciamento': 'gerenciamento',
-        'suporte': 'outros', 'extensão': 'outros', 'migrador': 'outros',
+        'suporte': 'outros', 'extensão': 'outros',
+        'migrador': 'migrador', 'migradores': 'migrador',
+        'contabilidade': 'contabil',
       };
       return map[v.toLowerCase()] || 'outros';
     };
