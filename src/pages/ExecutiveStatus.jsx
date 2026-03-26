@@ -675,16 +675,15 @@ export default function ExecutiveStatus() {
                     })()}
                     {project.deadline && <div><div className="text-xs text-slate-400 font-medium">Prazo Contratual</div><div className="text-sm text-white">{format(parseISO(project.deadline), 'dd/MM/yyyy', { locale: ptBR })}</div></div>}
                     {(() => {
-                      const projectProducts = dictionaries.productsByProjectId[project.id] || [];
-                      const totalImplantacao = projectProducts.reduce((sum, p) => sum + (p.implementation_value || 0), 0);
-                      const totalInclusao = projectProducts.reduce((sum, p) => sum + (p.inclusion_value || 0), 0);
-                      return (
-                        <>
-                          {totalImplantacao > 0 && <div><div className="text-xs text-slate-400 font-medium">Implantação</div><div className="text-sm text-emerald-400 font-semibold">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(totalImplantacao)}</div></div>}
-                          {totalInclusao > 0 && <div><div className="text-xs text-slate-400 font-medium">Inclusão</div><div className="text-sm text-emerald-400 font-semibold">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(totalInclusao)}</div></div>}
-                        </>
-                      );
-                    })()}
+                                           const totalImplantacao = project.implementation_value || 0;
+                                           const totalInclusao = project.recurring_value || 0;
+                                           return (
+                                             <>
+                                               {totalImplantacao > 0 && <div><div className="text-xs text-slate-400 font-medium">Implantação</div><div className="text-sm text-emerald-400 font-semibold">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(totalImplantacao)}</div></div>}
+                                               {totalInclusao > 0 && <div><div className="text-xs text-slate-400 font-medium">Inclusão</div><div className="text-sm text-emerald-400 font-semibold">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(totalInclusao)}</div></div>}
+                                             </>
+                                           );
+                                         })()}
                     {(project.contract_recurring_value > 0 || project.contract_recurring_notes) && (
                       <div className="col-span-2">
                         {project.contract_recurring_value > 0 && <><div className="text-xs text-slate-400 font-medium">Recorrente (contrato)</div><div className="text-sm text-blue-400 font-semibold">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(project.contract_recurring_value)}</div></>}

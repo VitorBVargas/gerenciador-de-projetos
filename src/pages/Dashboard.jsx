@@ -659,17 +659,17 @@ export default function Dashboard() {
                             <span className="text-slate-500">Gerente de Portfólio:</span> <span className="text-white">{activeProject.portfolio_manager}</span>
                           </div>
                         )}
-                        {products.reduce((sum, p) => sum + (p.implementation_value || 0), 0) > 0 && (
+                        {activeProject?.implementation_value > 0 && (
                          <div className="text-slate-400">
                            <span className="text-slate-500">Implantação:</span> <span className="text-emerald-400">
-                             {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(products.reduce((sum, p) => sum + (p.implementation_value || 0), 0))}
+                             {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(activeProject.implementation_value)}
                            </span>
                          </div>
                         )}
-                        {products.reduce((sum, p) => sum + (p.inclusion_value || 0), 0) > 0 && (
+                        {activeProject?.recurring_value > 0 && (
                           <div className="text-slate-400">
                             <span className="text-slate-500">Inclusão:</span> <span className="text-emerald-400">
-                              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(products.reduce((sum, p) => sum + (p.inclusion_value || 0), 0))}
+                              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(activeProject.recurring_value)}
                             </span>
                           </div>
                         )}
