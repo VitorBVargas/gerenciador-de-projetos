@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
 
 const verticals = [
   { value: 'gerenciamento', label: 'Gerenciamento' },
@@ -21,15 +22,39 @@ const verticals = [
   { value: 'outros', label: 'Outros' }
 ];
 
-export default function TeamMemberModal({ open, onOpenChange, member, onSave, projectId }) {
+const normalizeVertical = (v) => {
+  if (!v) return '';
+  const map = {
+    'arrecadação': 'arrecadacao', 'arrecadacao': 'arrecadacao',
+    'compras': 'compras', 'compras/contratos': 'compras',
+    'contábil': 'contabil', 'contabil': 'contabil', 'contabilidade': 'contabil',
+    'pessoal': 'pessoal',
+    'educação': 'educacao', 'educacao': 'educacao',
+    'iss': 'iss',
+    'parceiros': 'parceiros',
+    'plataforma': 'plataforma',
+    'saúde': 'saude', 'saude': 'saude',
+    'atendimento': 'atendimento',
+    'gerenciamento': 'gerenciamento',
+    'migrador': 'migrador', 'migradores': 'migrador',
+  };
+  return map[v.toLowerCase()] || 'outros';
+};
+
+export default function TeamMemberModal({ open, onOpenChange, member, onSave, projectId, portfolio }) {
   const [formData, setFormData] = useState({
-    name: '',
-    vertical: '',
-    role: '',
-    entity: '',
-    ticket_number: '',
-    email: '',
-    phone: ''
+    name: '', vertical: '', role: '', entity: '', ticket_number: '', email: '', phone: ''
+  });
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const nameRef = useRef(null);
+  const suggestionsRef = useRef(null);
+
+  const { data: collaborators = [] } = useQuery({
+    queryKey: ['portfolioCollaborators', portfolio],
+    queryFn: () => portfolio
+      ? base44.entities.PortfolioCollaborator.filter({ portfolio })
+      : base44.entities.PortfolioCollaborator.list(),
+    staleTime: 5 * 60 * 1000
   });
 
   useEffect(() => {
@@ -44,24 +69,45 @@ export default function TeamMemberModal({ open, onOpenChange, member, onSave, pr
         phone: member.phone || ''
       });
     } else {
-      setFormData({
-        name: '',
-        vertical: '',
-        role: '',
-        entity: '',
-        ticket_number: '',
-        email: '',
-        phone: ''
-      });
+      setFormData({ name: '', vertical: '', role: '', entity: '', ticket_number: '', email: '', phone: '' });
     }
   }, [member, open]);
 
+  // Close suggestions on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (
+        nameRef.current && !nameRef.current.contains(e.target) &&
+        suggestionsRef.current && !suggestionsRef.current.contains(e.target)
+      ) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const filteredCollaborators = formData.name.length > 0
+    ? collaborators.filter(c =>
+        c.name?.toLowerCase().includes(formData.name.toLowerCase())
+      )
+    : collaborators;
+
+  const handleSelectCollaborator = (collab) => {
+    setFormData(prev => ({
+      ...prev,
+      name: collab.name,
+      role: collab.role || prev.role,
+      email: collab.email || prev.email,
+      phone: collab.phone || prev.phone,
+      vertical: normalizeVertical(collab.vertical1) || prev.vertical,
+    }));
+    setShowSuggestions(false);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave({
-      ...formData,
-      project_id: projectId
-    });
+    onSave({ ...formData, project_id: projectId });
   };
 
   return (
@@ -73,37 +119,60 @@ export default function TeamMemberModal({ open, onOpenChange, member, onSave, pr
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
+          {/* Name with autocomplete */}
+          <div className="space-y-2 relative">
             <Label htmlFor="name">Nome</Label>
             <Input
+              ref={nameRef}
               id="name"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) => { setFormData({ ...formData, name: e.target.value }); setShowSuggestions(true); }}
+              onFocus={() => setShowSuggestions(true)}
               className="bg-slate-700 border-slate-600 text-white"
               placeholder="Nome completo"
               required
+              autoComplete="off"
             />
+            {showSuggestions && filteredCollaborators.length > 0 && (
+              <div
+                ref={suggestionsRef}
+                className="absolute z-50 left-0 right-0 top-full mt-1 bg-slate-700 border border-slate-600 rounded-md shadow-xl max-h-52 overflow-y-auto"
+              >
+                {filteredCollaborators.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onMouseDown={() => handleSelectCollaborator(c)}
+                    className="w-full text-left px-3 py-2 hover:bg-slate-600 transition-colors"
+                  >
+                    <div className="text-sm text-white font-medium">{c.name}</div>
+                    {(c.role || c.vertical1) && (
+                      <div className="text-xs text-slate-400">{[c.role, c.vertical1].filter(Boolean).join(' · ')}</div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
+
+          {/* Vertical */}
           <div className="space-y-2">
             <Label htmlFor="vertical">Vertical</Label>
-            <div className="relative">
-              <input
-                list="vertical-options"
-                value={formData.vertical ? (verticals.find(v => v.value === formData.vertical)?.label || formData.vertical) : ''}
-                onChange={(e) => {
-                  const match = verticals.find(v => v.label.toLowerCase() === e.target.value.toLowerCase());
-                  setFormData({ ...formData, vertical: match ? match.value : e.target.value });
-                }}
-                className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder="Selecione ou digite a vertical"
-              />
-              <datalist id="vertical-options">
-                {verticals.map((v) => (
-                  <option key={v.value} value={v.label} />
-                ))}
-              </datalist>
-            </div>
+            <input
+              list="vertical-options"
+              value={formData.vertical ? (verticals.find(v => v.value === formData.vertical)?.label || formData.vertical) : ''}
+              onChange={(e) => {
+                const match = verticals.find(v => v.label.toLowerCase() === e.target.value.toLowerCase());
+                setFormData({ ...formData, vertical: match ? match.value : e.target.value });
+              }}
+              className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+              placeholder="Selecione ou digite a vertical"
+            />
+            <datalist id="vertical-options">
+              {verticals.map((v) => <option key={v.value} value={v.label} />)}
+            </datalist>
           </div>
+
           <div className="space-y-2">
             <Label htmlFor="role">Responsabilidade</Label>
             <Input
@@ -114,6 +183,7 @@ export default function TeamMemberModal({ open, onOpenChange, member, onSave, pr
               placeholder="Ex: Analista de Sistemas"
             />
           </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="entity">Entidade</Label>
@@ -136,6 +206,7 @@ export default function TeamMemberModal({ open, onOpenChange, member, onSave, pr
               />
             </div>
           </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -157,6 +228,7 @@ export default function TeamMemberModal({ open, onOpenChange, member, onSave, pr
               />
             </div>
           </div>
+
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="border-slate-600 text-slate-300 hover:bg-slate-700">
               Cancelar

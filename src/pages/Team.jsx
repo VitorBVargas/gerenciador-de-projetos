@@ -284,6 +284,7 @@ export default function Team() {
         member={selectedMember}
         onSave={handleSave}
         projectId={activeProject?.id}
+        portfolio={activeProject?.portfolio}
       />
 
       {/* Delete Confirmation */}
