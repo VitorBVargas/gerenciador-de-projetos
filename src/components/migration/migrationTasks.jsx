@@ -1082,7 +1082,6 @@ export const migrationTasksByProduct = {
         'Extrair Recebimento',
         'Extrair Recebimento Item',
         'Extrair Comprovante',
-        'Extrair Comprovante Recebimentos',
         'Extrair Rescisão Contratual',
         'Extrair Sanção'
       ]
