@@ -40,7 +40,9 @@ const verticalLabels = {
   iss: 'ISS',
   parceiros: 'Parceiros',
   plataforma: 'Plataforma',
-  saude: 'Saúde'
+  saude: 'Saúde',
+  atendimento: 'Atendimento',
+  migrador: 'Migrador'
 };
 
 // Colors imported from verticalColors.js
@@ -215,9 +217,7 @@ export default function Team() {
                               <h4 className="font-medium text-white text-sm">{member.name}</h4>
                               {member.is_leader && <Crown className="w-3.5 h-3.5 text-yellow-400 flex-shrink-0" />}
                             </div>
-                            {member.role && (
-                              <div className="text-xs text-slate-400 mt-0.5">{member.role}</div>
-                            )}
+
                             {(member.entity || member.ticket_number) && (
                               <div className="text-xs text-slate-500 mt-0.5">
                                 {member.entity && <span>{member.entity}</span>}

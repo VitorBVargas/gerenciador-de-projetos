@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const verticals = [
+  { value: 'gerenciamento', label: 'Gerenciamento' },
   { value: 'arrecadacao', label: 'Arrecadação' },
   { value: 'compras', label: 'Contratos' },
   { value: 'contabil', label: 'Contábil' },
@@ -14,7 +15,10 @@ const verticals = [
   { value: 'iss', label: 'ISS' },
   { value: 'parceiros', label: 'Parceiros' },
   { value: 'plataforma', label: 'Plataforma' },
-  { value: 'atendimento', label: 'Atendimento' }
+  { value: 'atendimento', label: 'Atendimento' },
+  { value: 'migrador', label: 'Migrador' },
+  { value: 'saude', label: 'Saúde' },
+  { value: 'outros', label: 'Outros' }
 ];
 
 export default function TeamMemberModal({ open, onOpenChange, member, onSave, projectId }) {
@@ -82,16 +86,23 @@ export default function TeamMemberModal({ open, onOpenChange, member, onSave, pr
           </div>
           <div className="space-y-2">
             <Label htmlFor="vertical">Vertical</Label>
-            <Select value={formData.vertical} onValueChange={(value) => setFormData({ ...formData, vertical: value })}>
-              <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                <SelectValue placeholder="Selecione a vertical" />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-700 border-slate-600">
+            <div className="relative">
+              <input
+                list="vertical-options"
+                value={formData.vertical ? (verticals.find(v => v.value === formData.vertical)?.label || formData.vertical) : ''}
+                onChange={(e) => {
+                  const match = verticals.find(v => v.label.toLowerCase() === e.target.value.toLowerCase());
+                  setFormData({ ...formData, vertical: match ? match.value : e.target.value });
+                }}
+                className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                placeholder="Selecione ou digite a vertical"
+              />
+              <datalist id="vertical-options">
                 {verticals.map((v) => (
-                  <SelectItem key={v.value} value={v.value}>{v.label}</SelectItem>
+                  <option key={v.value} value={v.label} />
                 ))}
-              </SelectContent>
-            </Select>
+              </datalist>
+            </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="role">Responsabilidade</Label>
