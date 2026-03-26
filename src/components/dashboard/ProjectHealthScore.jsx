@@ -24,17 +24,13 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
   // --- 1. TIMELINE (40 pts) ---
   // Etapas que já passaram da data fim E não foram concluídas
   const now = new Date();
-  const overdueEvents = timeline.filter(e => {
+  const allOverdueEvents = timeline.filter(e => {
     if (!e.end_date) return false;
     const endDate = new Date(e.end_date);
     return endDate < now && e.status !== 'concluido';
   });
 
-  const delayCost = overdueEvents.length * 3;
-  const timelineDeduction = Math.min(40, delayCost);
-  score -= timelineDeduction;
-
-  // Helper: para cada cronograma_id, busca o nome da vertical (cronograma)
+  // Helper: para cada cronograma_id, busca o nome da vertical
   const getCronogramaLabel = (event) => {
     if (cronogramas && event.cronograma_id) {
       const cron = cronogramas.find(c => c.id === event.cronograma_id);
@@ -43,7 +39,19 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
     return verticalLabels[event.vertical] || event.vertical || 'Geral';
   };
 
-  // Group overdue by vertical + cronograma name
+  // Deduplica por (vertical, título) para não contar a mesma fase N vezes (uma por produto)
+  const seenVerticalTitle = new Set();
+  const overdueEvents = allOverdueEvents.filter(e => {
+    const key = `${getCronogramaLabel(e)}||${e.title}`;
+    if (seenVerticalTitle.has(key)) return false;
+    seenVerticalTitle.add(key);
+    return true;
+  });
+
+  const delayCost = overdueEvents.length * 3;
+  const timelineDeduction = Math.min(40, delayCost);
+  score -= timelineDeduction;
+
   if (overdueEvents.length > 0) {
     const byVertical = {};
     overdueEvents.forEach(e => {
@@ -56,7 +64,7 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
     const details = Object.entries(byVertical).map(([v, d]) => `• ${v}: ${d.titles.slice(0, 3).join(', ')}${d.titles.length > 3 ? ` +${d.titles.length - 3}` : ''}`).join('\n');
     alerts.push({
       severity: overdueEvents.length >= 3 ? 'high' : 'medium',
-      text: `${overdueEvents.length} etapa${overdueEvents.length > 1 ? 's' : ''} atrasada${overdueEvents.length > 1 ? 's' : ''}`,
+      text: `${overdueEvents.length} fase${overdueEvents.length > 1 ? 's' : ''} atrasada${overdueEvents.length > 1 ? 's' : ''} no cronograma`,
       detail: `Verticais: ${summary}`,
       lines: details
     });
