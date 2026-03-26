@@ -160,47 +160,80 @@ export default function Homologation() {
     return tasks.filter(t => t.product_id === productId);
   };
 
-  const getProductProgress = (productId) => {
+  // Atribui cada tarefa a UMA ÚNICA seção (first-match-wins por task.id)
+  const assignTasksToSections = (productId) => {
     const productTasks = getProductTasks(productId);
     const product = products.find(p => p.id === productId);
     const defaultSections = getDefaultTasksForProduct(product?.name) || [];
+
     const importedTasks = productTasks.filter(t => t.title.includes('||'));
     const standardTasks = productTasks.filter(t => !t.title.includes('||'));
-    
-    // Remover duplicatas importadas
-    const importedBySection = importedTasks.reduce((acc, task) => {
+
+    // Importadas: agrupadas por seção, sem duplicatas dentro da seção
+    const importedBySection = {};
+    const claimedImportedIds = new Set();
+    importedTasks.forEach(task => {
       const match = task.title.match(/^\|\|(.+?)\|\|(.+)$/);
-      if (match) {
-        const [, sectionName, taskName] = match;
-        const titleLower = taskName.toLowerCase();
-        if (!acc[sectionName]) acc[sectionName] = new Map();
-        if (!acc[sectionName].has(titleLower)) {
-          acc[sectionName].set(titleLower, task);
+      if (!match) return;
+      const [, sectionName, taskName] = match;
+      if (!importedBySection[sectionName]) importedBySection[sectionName] = new Map();
+      const key = taskName.toLowerCase();
+      if (!importedBySection[sectionName].has(key)) {
+        importedBySection[sectionName].set(key, { ...task, displayTitle: taskName });
+        claimedImportedIds.add(task.id);
+      } else {
+        // prefere o marcado
+        const existing = importedBySection[sectionName].get(key);
+        if (task.completed && !existing.completed) {
+          importedBySection[sectionName].set(key, { ...task, displayTitle: taskName });
         }
       }
-      return acc;
-    }, {});
-    
-    // Remover duplicatas padrão
-    const uniqueStandardTasks = [];
-    const seenTitles = new Set();
-    for (const task of standardTasks) {
-      const titleLower = task.title.toLowerCase();
-      if (!seenTitles.has(titleLower)) {
-        seenTitles.add(titleLower);
-        uniqueStandardTasks.push(task);
+    });
+
+    // Padrão: first-match-wins por task.id entre seções
+    const claimedStandardIds = new Set();
+    const standardBySection = {};
+    for (const section of defaultSections) {
+      const sectionKey = section.section;
+      standardBySection[sectionKey] = [];
+      const seen = new Map();
+      for (const task of standardTasks) {
+        if (claimedStandardIds.has(task.id)) continue;
+        if (!section.tasks.some(t => t.toLowerCase() === task.title.toLowerCase())) continue;
+        const key = task.title.toLowerCase();
+        if (!seen.has(key)) {
+          seen.set(key, task);
+          standardBySection[sectionKey].push(task);
+          claimedStandardIds.add(task.id);
+        } else {
+          const existing = seen.get(key);
+          if (task.completed && !existing.completed) {
+            const idx = standardBySection[sectionKey].indexOf(existing);
+            standardBySection[sectionKey][idx] = task;
+            seen.set(key, task);
+          }
+        }
       }
     }
-    
-    // Contar apenas tarefas visíveis (únicas)
-    const visibleTasks = [
-      ...uniqueStandardTasks,
-      ...Object.values(importedBySection).flatMap(map => Array.from(map.values()))
+
+    // Tarefas custom (padrão não atribuídas a nenhuma seção)
+    const customTasks = standardTasks.filter(t => !claimedStandardIds.has(t.id));
+
+    return { importedBySection, standardBySection, customTasks, defaultSections };
+  };
+
+  const getProductProgress = (productId) => {
+    const { importedBySection, standardBySection, customTasks } = assignTasksToSections(productId);
+
+    const allVisible = [
+      ...Object.values(importedBySection).flatMap(m => Array.from(m.values())),
+      ...Object.values(standardBySection).flat(),
+      ...customTasks
     ];
-    
-    if (visibleTasks.length === 0) return 0;
-    const completed = visibleTasks.filter(t => t.completed).length;
-    return Math.round((completed / visibleTasks.length) * 100);
+
+    if (allVisible.length === 0) return 0;
+    const completed = allVisible.filter(t => t.completed).length;
+    return Math.round((completed / allVisible.length) * 100);
   };
 
   // Entity filter with full names
@@ -544,49 +577,14 @@ export default function Homologation() {
 
                         <div className="space-y-6">
                           {(() => {
-                            const productTasks = getProductTasks(product.id);
-                            const defaultSections = getDefaultTasksForProduct(product.name) || [];
-                            
-                            // Separar tarefas importadas (com ||) de tarefas padrão
-                            const importedTasks = productTasks.filter(t => t.title.includes('||'));
-                            const standardTasks = productTasks.filter(t => !t.title.includes('||'));
-                            
-                            // Agrupar tarefas importadas por etapa
-                            const importedBySection = importedTasks.reduce((acc, task) => {
-                              const match = task.title.match(/^\|\|(.+?)\|\|(.+)$/);
-                              if (match) {
-                                const [, sectionName, taskName] = match;
-                                if (!acc[sectionName]) acc[sectionName] = [];
-                                acc[sectionName].push({ ...task, displayTitle: taskName });
-                              }
-                              return acc;
-                            }, {});
-                            
-                            const hasImportedTasks = Object.keys(importedBySection).length > 0;
-                            
+                            const { importedBySection, standardBySection, customTasks, defaultSections } = assignTasksToSections(product.id);
+
                             return (
                               <>
                                 {/* Renderizar seções importadas */}
-                                {getOrderedImportedSections(product.id, Object.entries(importedBySection)).map(([sectionName, sectionTasks], displayIndex) => {
+                                {getOrderedImportedSections(product.id, Object.entries(importedBySection)).map(([sectionName, tasksMap], displayIndex) => {
                                   const totalImportedSections = Object.keys(importedBySection).length;
-                                  // Remover duplicados nas seções importadas
-                                  const uniqueImportedTasks = [];
-                                  const seenTitles = new Map();
-
-                                  for (const task of sectionTasks) {
-                                    const titleLower = task.displayTitle.toLowerCase();
-                                    if (!seenTitles.has(titleLower)) {
-                                      seenTitles.set(titleLower, task);
-                                      uniqueImportedTasks.push(task);
-                                    } else {
-                                      const existing = seenTitles.get(titleLower);
-                                      if (task.completed && !existing.completed) {
-                                        const idx = uniqueImportedTasks.indexOf(existing);
-                                        uniqueImportedTasks[idx] = task;
-                                        seenTitles.set(titleLower, task);
-                                      }
-                                    }
-                                  }
+                                  const uniqueImportedTasks = Array.from(tasksMap.values());
 
                                   return (
                                   <div key={`imported-${displayIndex}`}>
@@ -692,37 +690,13 @@ export default function Homologation() {
                                     )}
 
                                     {/* Renderizar seções padrão */}
-                                {defaultSections.length > 0 && getOrderedSections(product.id, defaultSections).map((section, displayIndex) => {
-                                 const sectionTasks = standardTasks.filter(task => 
-                                   section.tasks.some(t => t.toLowerCase() === task.title.toLowerCase())
-                                 );
+                                    {defaultSections.length > 0 && getOrderedSections(product.id, defaultSections).map((section, displayIndex) => {
+                                    const uniqueTasks = standardBySection[section.section] || [];
+                                    if (uniqueTasks.length === 0) return null;
+                                    const totalSections = defaultSections.length;
 
-                                 // Remover duplicados, mantendo o que está marcado
-                                 const uniqueTasks = [];
-                                 const seenTitles = new Map();
-
-                                 for (const task of sectionTasks) {
-                                   const titleLower = task.title.toLowerCase();
-                                   if (!seenTitles.has(titleLower)) {
-                                     seenTitles.set(titleLower, task);
-                                     uniqueTasks.push(task);
-                                   } else {
-                                     // Se já existe, mantém o marcado
-                                     const existing = seenTitles.get(titleLower);
-                                     if (task.completed && !existing.completed) {
-                                       const idx = uniqueTasks.indexOf(existing);
-                                       uniqueTasks[idx] = task;
-                                       seenTitles.set(titleLower, task);
-                                     }
-                                   }
-                                 }
-
-                                 if (uniqueTasks.length === 0) return null;
-
-                                 const totalSections = defaultSections.length;
-
-                                 return (
-                                  <div key={displayIndex}>
+                                    return (
+                                    <div key={`std-${section.section}-${displayIndex}`}>
                                     <div className="flex items-center justify-between mb-3 group/section">
                                       <h3 className="text-cyan-400 font-semibold text-sm uppercase flex-1">
                                         {section.section}
@@ -737,40 +711,23 @@ export default function Homologation() {
                                            className="text-[10px] px-2 py-0.5 rounded border border-green-500/30 text-green-400 hover:bg-green-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                                          >
                                            {markingProgress.isLoading ? (
-                                             <>
-                                               <Loader2 className="w-3 h-3 animate-spin" />
-                                               Processando...
-                                             </>
-                                           ) : uniqueTasks.every(t => t.completed) ? (
-                                             'Desmarcar'
-                                           ) : (
-                                             'Marcar todos'
-                                           )}
+                                             <><Loader2 className="w-3 h-3 animate-spin" />Processando...</>
+                                           ) : uniqueTasks.every(t => t.completed) ? 'Desmarcar' : 'Marcar todos'}
                                          </button>
-                                        <Button
-                                          size="icon"
-                                          variant="ghost"
-                                          disabled={displayIndex === 0}
+                                        <Button size="icon" variant="ghost" disabled={displayIndex === 0}
                                           className="h-6 w-6 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/20 disabled:opacity-30"
-                                          onClick={() => moveSectionUp(product.id, displayIndex)}
-                                        >
+                                          onClick={() => moveSectionUp(product.id, displayIndex)}>
                                           <ChevronUp className="w-4 h-4" />
                                         </Button>
-                                        <Button
-                                          size="icon"
-                                          variant="ghost"
-                                          disabled={displayIndex >= totalSections - 1}
+                                        <Button size="icon" variant="ghost" disabled={displayIndex >= totalSections - 1}
                                           className="h-6 w-6 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/20 disabled:opacity-30"
-                                          onClick={() => moveSectionDown(product.id, displayIndex, totalSections)}
-                                        >
+                                          onClick={() => moveSectionDown(product.id, displayIndex, totalSections)}>
                                           <ChevronDown className="w-4 h-4" />
                                         </Button>
-                                        <Button
-                                          size="icon"
-                                          variant="ghost"
+                                        <Button size="icon" variant="ghost"
                                           className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover/section:opacity-100 transition-opacity"
                                           onClick={async () => {
-                                            await Promise.all(sectionTasks.map(t => deleteTaskMutation.mutate(t.id)));
+                                            await Promise.all(uniqueTasks.map(t => deleteTaskMutation.mutate(t.id)));
                                             toast.success(`Seção "${section.section}" deletada`);
                                           }}
                                         >
@@ -812,58 +769,37 @@ export default function Homologation() {
                                   );
                                 })}
                                 
-                                {/* Tarefas personalizadas (que não fazem parte de seções) */}
-                                {(() => {
-                                  if (!defaultSections.length) return null;
-                                  const allSectionTasks = defaultSections.flatMap(s => s.tasks.map(t => t.toLowerCase()));
-                                  const customTasks = standardTasks.filter(task =>
-                                    !allSectionTasks.includes(task.title.toLowerCase())
-                                  );
-                                  
-                                  if (customTasks.length > 0) {
-                                    return (
-                                      <div>
-                                        <h3 className="text-cyan-400 font-semibold text-sm mb-3 uppercase">
-                                          TAREFAS PERSONALIZADAS
-                                        </h3>
-                                        <div className="space-y-2">
-                                          {customTasks.map(task => (
-                                            <div key={task.id} className="flex items-center gap-3 group">
-                                              <Checkbox
-                                                checked={task.completed}
-                                                onCheckedChange={() => handleToggleTask(task)}
-                                                className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
-                                              />
-                                              <span className={cn(
-                                               "flex-1 text-sm",
-                                               task.completed ? "text-slate-500" : "text-white"
-                                              )}>
-                                               {task.title}
-                                               {task.completed && task.completed_date && (
-                                                 <span className="text-slate-400 text-xs ml-2 no-underline">
-                                                   ({new Date(task.completed_date).toLocaleDateString('pt-BR')})
-                                                 </span>
-                                               )}
-                                              </span>
-                                              <Button
-                                                size="icon"
-                                                variant="ghost"
-                                                className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                onClick={() => deleteTaskMutation.mutate(task.id)}
-                                              >
-                                                <Trash2 className="w-3 h-3" />
-                                              </Button>
-                                            </div>
-                                          ))}
+                                {/* Tarefas personalizadas */}
+                                {customTasks.length > 0 && (
+                                  <div>
+                                    <h3 className="text-cyan-400 font-semibold text-sm mb-3 uppercase">TAREFAS PERSONALIZADAS</h3>
+                                    <div className="space-y-2">
+                                      {customTasks.map(task => (
+                                        <div key={task.id} className="flex items-center gap-3 group">
+                                          <Checkbox
+                                            checked={task.completed}
+                                            onCheckedChange={() => handleToggleTask(task)}
+                                            className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                                          />
+                                          <span className={cn("flex-1 text-sm", task.completed ? "text-slate-500" : "text-white")}>
+                                            {task.title}
+                                            {task.completed && task.completed_date && (
+                                              <span className="text-slate-400 text-xs ml-2">({new Date(task.completed_date).toLocaleDateString('pt-BR')})</span>
+                                            )}
+                                          </span>
+                                          <Button size="icon" variant="ghost"
+                                            className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity"
+                                            onClick={() => deleteTaskMutation.mutate(task.id)}>
+                                            <Trash2 className="w-3 h-3" />
+                                          </Button>
                                         </div>
-                                      </div>
-                                    );
-                                  }
-                                  return null;
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                                </>
+                                );
                                 })()}
-                              </>
-                            );
-                          })()}
 
                           {getProductTasks(product.id).length === 0 && (
                             <p className="text-center text-slate-500 py-4 text-sm">
