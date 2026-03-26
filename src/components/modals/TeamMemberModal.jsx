@@ -173,16 +173,6 @@ export default function TeamMemberModal({ open, onOpenChange, member, onSave, pr
             </datalist>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="role">Responsabilidade</Label>
-            <Input
-              id="role"
-              value={formData.role}
-              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-              className="bg-slate-700 border-slate-600 text-white"
-              placeholder="Ex: Analista de Sistemas"
-            />
-          </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">

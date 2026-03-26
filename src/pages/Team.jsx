@@ -118,7 +118,6 @@ export default function Team() {
 
   const filteredMembers = teamMembers.filter(member =>
     member.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    member.role?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     verticalLabels[member.vertical]?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
