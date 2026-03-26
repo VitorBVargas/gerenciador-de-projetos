@@ -359,7 +359,7 @@ export default function Dashboard() {
 
   // Calculate health score
   const { score: healthScore } = calculateHealthScore({ 
-    timeline: timelineEvents, 
+    timeline: filteredTimelineEvents, 
     budget: activeProject?.budget || 0, 
     spent: expenses.reduce((sum, e) => sum + (e.amount || 0), 0),
     migrationTasks, 
@@ -756,7 +756,7 @@ export default function Dashboard() {
 
           {/* Health Score */}
           <ProjectHealthScore
-            timeline={timelineEvents}
+            timeline={filteredTimelineEvents}
             budget={activeProject?.budget || 0}
             spent={expenses.reduce((sum, e) => sum + (e.amount || 0), 0)}
             migrationTasks={migrationTasks}
