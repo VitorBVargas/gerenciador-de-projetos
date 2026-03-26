@@ -175,6 +175,11 @@ export default function Migration() {
     visibleCount += importedVisible.length;
     completedCount += importedVisible.filter(t => t.completed).length;
 
+    // Tarefas padrão que não casaram com nenhuma seção (personalizadas / nome diferente)
+    const unclaimed = standardTasks.filter(t => !claimedIds.has(t.id));
+    visibleCount += unclaimed.length;
+    completedCount += unclaimed.filter(t => t.completed).length;
+
     if (visibleCount === 0) return 0;
     return Math.round((completedCount / visibleCount) * 100);
   };
