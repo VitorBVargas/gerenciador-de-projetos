@@ -55,7 +55,7 @@ export default function Migration() {
     enabled: !!projectId
   });
 
-  const { data: tasks = [] } = useQuery({
+  const { data: tasks = [], isFetched: tasksFetched } = useQuery({
     queryKey: ['migrationTasks', projectId],
     queryFn: () => projectId ? base44.entities.MigrationTask.filter({ project_id: projectId }) : [],
     enabled: !!projectId
@@ -121,17 +121,16 @@ export default function Migration() {
   };
 
   React.useEffect(() => {
-    if (selectedProduct && products.length > 0 && tasks.length >= 0) {
+    if (selectedProduct && products.length > 0 && tasksFetched) {
       const product = getCurrentProduct();
-      if (product) {   
-        console.log(product)   
+      if (product) {
         const existingTasks = tasks.filter(t => t.product_id === product.id);
         if (existingTasks.length === 0 && productHasMigration(product.name)) {
           createDefaultTasks(product);
         }
       }
     }
-  }, [selectedProduct, products.length, tasks.length]);
+  }, [selectedProduct, products.length, tasksFetched]);
 
   const handleAddTask = () => {
     if (!newTaskTitle.trim() || !selectedProduct) return;
