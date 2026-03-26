@@ -175,8 +175,10 @@ export default function Migration() {
     visibleCount += importedVisible.length;
     completedCount += importedVisible.filter(t => t.completed).length;
 
-    // Tarefas padrão que não casaram com nenhuma seção (personalizadas / nome diferente)
-    const unclaimed = standardTasks.filter(t => !claimedIds.has(t.id));
+    // Tarefas que não pertencem a nenhuma seção padrão (verdadeiramente personalizadas)
+    // Excluir duplicatas: se o título já foi contado via claimedIds, ignorar
+    const allSectionTaskNames = new Set(defaultSections.flatMap(s => s.tasks.map(t => t.toLowerCase())));
+    const unclaimed = standardTasks.filter(t => !claimedIds.has(t.id) && !allSectionTaskNames.has(t.title.toLowerCase()));
     visibleCount += unclaimed.length;
     completedCount += unclaimed.filter(t => t.completed).length;
 
