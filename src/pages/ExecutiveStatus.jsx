@@ -815,6 +815,23 @@ export default function ExecutiveStatus() {
             const { monthlyData, chartData } = financeiroChartContent;
             return (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {visibleCharts.recorrente !== false && (
+                <Card className="bg-slate-800 border-slate-600">
+                  <CardHeader><CardTitle className="text-white">Previsão de Inicio de inclusão (Recorrente)</CardTitle></CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={chartData} style={{ cursor: 'pointer' }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                        <XAxis dataKey="month" stroke="#94a3b8" style={{ fontSize: '12px' }} interval={0} angle={-45} textAnchor="end" height={80} />
+                        <YAxis stroke="#94a3b8" style={{ fontSize: '12px' }} tickFormatter={(value) => new Intl.NumberFormat('pt-BR', { notation: 'compact', compactDisplay: 'short' }).format(value)} />
+                        <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', color: '#fff' }} formatter={(v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)} />
+                        <Bar dataKey="recorrente" fill="#3b82f6" name="Previsão Inclusão" onClick={(data) => { const monthKey = Object.keys(monthlyData).find(key => monthlyData[key].month === data.month); if (monthKey) { setSelectedMonth(monthKey); setSelectedMonthType('recorrente'); } }} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                    <div className="mt-4 text-center"><div className="text-2xl font-bold text-blue-400">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(chartData.reduce((sum, d) => sum + d.recorrente, 0))}</div><div className="text-sm text-slate-400">Total Recorrente (12 meses)</div></div>
+                  </CardContent>
+                </Card>
+                )}
                 {visibleCharts.implantacao !== false && (
                 <Card className="bg-slate-800 border-slate-600">
                   <CardHeader><CardTitle className="text-white">Receita de Implantação</CardTitle></CardHeader>
@@ -831,23 +848,6 @@ export default function ExecutiveStatus() {
                       </BarChart>
                     </ResponsiveContainer>
                     <div className="mt-4 text-center"><div className="text-2xl font-bold text-emerald-400">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(chartData.reduce((sum, d) => sum + d.a_receber, 0))}</div><div className="text-sm text-slate-400">Total A Receber (12 meses)</div></div>
-                  </CardContent>
-                </Card>
-                )}
-                {visibleCharts.recorrente !== false && (
-                <Card className="bg-slate-800 border-slate-600">
-                  <CardHeader><CardTitle className="text-white">Previsão de Inicio de inclusão (Recorrente)</CardTitle></CardHeader>
-                  <CardContent>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={chartData} style={{ cursor: 'pointer' }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                        <XAxis dataKey="month" stroke="#94a3b8" style={{ fontSize: '12px' }} interval={0} angle={-45} textAnchor="end" height={80} />
-                        <YAxis stroke="#94a3b8" style={{ fontSize: '12px' }} tickFormatter={(value) => new Intl.NumberFormat('pt-BR', { notation: 'compact', compactDisplay: 'short' }).format(value)} />
-                        <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', color: '#fff' }} formatter={(v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)} />
-                        <Bar dataKey="recorrente" fill="#3b82f6" name="Previsão Inclusão" onClick={(data) => { const monthKey = Object.keys(monthlyData).find(key => monthlyData[key].month === data.month); if (monthKey) { setSelectedMonth(monthKey); setSelectedMonthType('recorrente'); } }} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                    <div className="mt-4 text-center"><div className="text-2xl font-bold text-blue-400">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(chartData.reduce((sum, d) => sum + d.recorrente, 0))}</div><div className="text-sm text-slate-400">Total Recorrente (12 meses)</div></div>
                   </CardContent>
                 </Card>
                 )}
