@@ -17,10 +17,22 @@ const verticalLabels = {
 
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
+    const data = payload[0].payload;
     return (
-      <div className="bg-slate-800 border border-slate-700 rounded-lg p-3 shadow-lg">
-        <p className="text-white font-medium">{payload[0].payload.name}</p>
-        <p className="text-blue-400 text-sm">{payload[0].value}% concluído</p>
+      <div className="bg-slate-800 border border-slate-700 rounded-lg p-3 shadow-lg max-w-xs">
+        <p className="text-white font-medium mb-1">{data.name}</p>
+        <p className="text-blue-400 text-sm mb-2">{payload[0].value}% concluído</p>
+        {data.productDetails && data.productDetails.length > 0 && (
+          <div className="border-t border-slate-600 pt-2 space-y-1">
+            <p className="text-slate-400 text-xs font-medium mb-1">Produtos:</p>
+            {data.productDetails.map((p, i) => (
+              <div key={i} className="flex items-center justify-between gap-3 text-xs">
+                <span className={`truncate max-w-[160px] ${p.pct < 100 ? 'text-yellow-400' : 'text-green-400'}`}>{p.name}</span>
+                <span className={`font-semibold flex-shrink-0 ${p.pct < 100 ? 'text-yellow-400' : 'text-green-400'}`}>{p.pct}%</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     );
   }
@@ -75,6 +87,13 @@ export default function HomologationProgressChart({ products, tasks }) {
       acc[vertical].products.push(product);
       acc[vertical].totalTasks += uniqueTasks.length;
       acc[vertical].completedTasks += completed;
+      acc[vertical].productDetails = acc[vertical].productDetails || [];
+      acc[vertical].productDetails.push({
+        name: product.name,
+        pct: uniqueTasks.length > 0 ? Math.round((completed / uniqueTasks.length) * 100) : 0,
+        total: uniqueTasks.length,
+        completed
+      });
       
       return acc;
     }, {})
@@ -84,7 +103,8 @@ export default function HomologationProgressChart({ products, tasks }) {
     vertical,
     name: verticalLabels[vertical] || vertical,
     progress: Math.round((data.completedTasks / data.totalTasks) * 100),
-    color: VERTICAL_CHART_COLORS[vertical] || '#64748b'
+    color: VERTICAL_CHART_COLORS[vertical] || '#64748b',
+    productDetails: (data.productDetails || []).sort((a, b) => a.pct - b.pct)
   }))
   .sort((a, b) => b.progress - a.progress);
 
