@@ -443,6 +443,18 @@ export default function Dashboard() {
     }
   });
 
+  const verticalLabels = {
+    arrecadacao: 'Arrecadação',
+    compras: 'Compras/Contratos',
+    contabil: 'Contábil',
+    pessoal: 'Pessoal',
+    educacao: 'Educação',
+    iss: 'ISS',
+    parceiros: 'Parceiros',
+    plataforma: 'Plataforma',
+    atendimento: 'Atendimento'
+  };
+
   const verticalColors = {
     arrecadacao: '#3b82f6',
     compras: '#8b5cf6',
