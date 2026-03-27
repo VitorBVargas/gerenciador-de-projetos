@@ -401,11 +401,11 @@ export default function Dashboard() {
     ? differenceInDays(new Date(activeProject.deadline), new Date())
     : null;
 
-  // Timeline progress by vertical - sempre por produto
+  // Timeline progress by vertical - usa TODOS os produtos (não filtrado por entidade)
   const eventsByVertical = {};
   
   const verticalGroups = {};
-  filteredProducts.forEach(p => {
+  products.forEach(p => {
     const v = p.vertical || 'outros';
     if (!verticalGroups[v]) verticalGroups[v] = [];
     verticalGroups[v].push(p);
@@ -416,7 +416,7 @@ export default function Dashboard() {
     const events = [];
     
     prods.forEach(product => {
-      const productEvents = filteredTimelineEvents.filter(e => e.product_id === product.id);
+      const productEvents = timelineEvents.filter(e => e.product_id === product.id);
       productEvents.forEach(e => {
         if (!eventIds.has(e.id)) {
           eventIds.add(e.id);
@@ -429,7 +429,7 @@ export default function Dashboard() {
     if (events.length === 0) {
       const cronogramaVert = cronogramas.find(c => c.vertical === vertical);
       if (cronogramaVert) {
-        filteredTimelineEvents.filter(e => e.cronograma_id === cronogramaVert.id).forEach(e => {
+        timelineEvents.filter(e => e.cronograma_id === cronogramaVert.id).forEach(e => {
           if (!eventIds.has(e.id)) {
             eventIds.add(e.id);
             events.push(e);
@@ -442,18 +442,6 @@ export default function Dashboard() {
       eventsByVertical[vertical] = events;
     }
   });
-
-  const verticalLabels = {
-    arrecadacao: 'Arrecadação',
-    compras: 'Compras/Contratos',
-    contabil: 'Contábil',
-    pessoal: 'Pessoal',
-    educacao: 'Educação',
-    iss: 'ISS',
-    parceiros: 'Parceiros',
-    plataforma: 'Plataforma',
-    atendimento: 'Atendimento'
-  };
 
   const verticalColors = {
     arrecadacao: '#3b82f6',
