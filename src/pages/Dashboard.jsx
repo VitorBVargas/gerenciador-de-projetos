@@ -310,10 +310,11 @@ export default function Dashboard() {
     ? timelineEvents.filter(e => !e.vertical || filteredVerticals.includes(e.vertical))
     : timelineEvents;
 
+  // Mesma lógica do TimelineByProduct (calculateProgressFromDates)
   const calcEventProgressDash = (e) => {
     if (e.status === 'concluido') return 100;
     if (e.status === 'nao_iniciado') return 0;
-    if (e.progress !== undefined && e.progress !== null) return e.progress;
+    // Para em_andamento ou atrasado, prioriza cálculo por datas (igual ao Cronograma)
     if (e.start_date && e.end_date) {
       const now = new Date();
       const start = new Date(e.start_date);
@@ -322,7 +323,7 @@ export default function Dashboard() {
       if (now >= end) return 99;
       return Math.round(((now - start) / (end - start)) * 100);
     }
-    return 0;
+    return e.progress || 0;
   };
 
   // Fetch cached data PRIMEIRO
