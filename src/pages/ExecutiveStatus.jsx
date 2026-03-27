@@ -81,7 +81,8 @@ export default function ExecutiveStatus() {
   const [editingProjectId, setEditingProjectId] = useState(null);
   const [isEditRecurringModalOpen, setIsEditRecurringModalOpen] = useState(false);
   const [isRecalculating, setIsRecalculating] = useState(true);
-  const [financialProjectFilter, setFinancialProjectFilter] = useState('all');
+  const [financialProjectFilters, setFinancialProjectFilters] = useState([]);
+  const [financialDropdownOpen, setFinancialDropdownOpen] = useState(false);
   const queryClient = useQueryClient();
   const urlParams = new URLSearchParams(window.location.search);
   const portfolioFilter = urlParams.get('portfolio') || 'grandes_contas_sc_mg';
@@ -162,9 +163,9 @@ export default function ExecutiveStatus() {
   const projects = allProjectsData.filter(p => p.status !== 'concluido');
 
   const filteredProjectsForFinance = useMemo(() => {
-    if (financialProjectFilter === 'all') return projects;
-    return projects.filter(p => p.id === financialProjectFilter);
-  }, [projects, financialProjectFilter]);
+    if (financialProjectFilters.length === 0) return projects;
+    return projects.filter(p => financialProjectFilters.includes(p.id));
+  }, [projects, financialProjectFilters]);
 
   // 🚀 OTIMIZAÇÃO 2: Dicionários em Memória (Hash Maps).
   // Em vez de fazer .find() e .filter() milhões de vezes na renderização, 
@@ -412,7 +413,7 @@ export default function ExecutiveStatus() {
       if (recognized.type !== 'implantacao') return;
       const project = dictionaries.projectById[recognized.project_id];
       if (!project || project.status === 'concluido') return;
-      if (financialProjectFilter !== 'all' && project.id !== financialProjectFilter) return;
+      if (financialProjectFilters.length > 0 && !financialProjectFilters.includes(project.id)) return;
       
       const recMonth = recognized.recognition_month?.substring(0, 7);
       if (recMonth && monthlyData[recMonth]) monthlyData[recMonth].reconhecido += recognized.amount;
@@ -757,17 +758,48 @@ export default function ExecutiveStatus() {
           <div className="bg-slate-800 border border-slate-600 rounded-lg p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <h3 className="text-white font-semibold text-sm">Gráficos do Financeiro</h3>
-              <Select value={financialProjectFilter} onValueChange={setFinancialProjectFilter}>
-                <SelectTrigger className="w-[250px] h-8 bg-slate-900 border-slate-700 text-slate-300">
-                  <SelectValue placeholder="Todos os Projetos" />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700 text-slate-300">
-                  <SelectItem value="all">Todos os Projetos</SelectItem>
-                  {projects.map(p => (
-                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="relative">
+                <button
+                  onClick={() => setFinancialDropdownOpen(o => !o)}
+                  className="w-[250px] h-8 bg-slate-900 border border-slate-700 text-slate-300 rounded-md px-3 text-sm flex items-center justify-between gap-2"
+                >
+                  <span className="truncate">
+                    {financialProjectFilters.length === 0
+                      ? 'Todos os Projetos'
+                      : financialProjectFilters.length === 1
+                        ? projects.find(p => p.id === financialProjectFilters[0])?.name
+                        : `${financialProjectFilters.length} projetos`}
+                  </span>
+                  <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                </button>
+                {financialDropdownOpen && (
+                  <div className="absolute z-50 mt-1 w-[250px] bg-slate-800 border border-slate-700 rounded-md shadow-lg py-1 max-h-64 overflow-y-auto">
+                    <label className="flex items-center gap-2 px-3 py-2 hover:bg-slate-700 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={financialProjectFilters.length === 0}
+                        onChange={() => setFinancialProjectFilters([])}
+                        className="w-4 h-4 rounded"
+                      />
+                      <span className="text-sm text-slate-300">Todos os Projetos</span>
+                    </label>
+                    {projects.map(p => (
+                      <label key={p.id} className="flex items-center gap-2 px-3 py-2 hover:bg-slate-700 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={financialProjectFilters.includes(p.id)}
+                          onChange={() => setFinancialProjectFilters(prev =>
+                            prev.includes(p.id) ? prev.filter(id => id !== p.id) : [...prev, p.id]
+                          )}
+                          className="w-4 h-4 rounded"
+                        />
+                        <span className="text-sm text-slate-300 truncate">{p.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+                {financialDropdownOpen && <div className="fixed inset-0 z-40" onClick={() => setFinancialDropdownOpen(false)} />}
+              </div>
             </div>
             <div className="flex items-center gap-4 ml-auto md:pl-4">
               {['implantacao', 'recorrente', 'password'].map(chart => (
@@ -823,7 +855,7 @@ export default function ExecutiveStatus() {
             );
           })()}
 
-          <PasswordReleasesChart products={allProducts.filter(p => dictionaries.projectById[p.project_id] && (financialProjectFilter === 'all' || p.project_id === financialProjectFilter))} projects={filteredProjectsForFinance} visibleCharts={visibleCharts} onVisibilityChange={handleChartVisibility} />
+          <PasswordReleasesChart products={allProducts.filter(p => dictionaries.projectById[p.project_id] && (financialProjectFilters.length === 0 || financialProjectFilters.includes(p.project_id)))} projects={filteredProjectsForFinance} visibleCharts={visibleCharts} onVisibilityChange={handleChartVisibility} />
 
           {selectedMonth && (() => {
             const [year, month] = selectedMonth.split('-');
@@ -847,7 +879,7 @@ export default function ExecutiveStatus() {
               });
             });
 
-            const recognizedProds = allRecognizedRevenues.filter(r => r.recognition_month?.substring(0, 7) === selectedMonth && r.type === 'implantacao' && (financialProjectFilter === 'all' || r.project_id === financialProjectFilter)).map(rec => ({ rec, product: allProducts.find(p => p.id === rec.product_id), project: dictionaries.projectById[rec.project_id] })).filter(x => x.product && x.project);
+            const recognizedProds = allRecognizedRevenues.filter(r => r.recognition_month?.substring(0, 7) === selectedMonth && r.type === 'implantacao' && (financialProjectFilters.length === 0 || financialProjectFilters.includes(r.project_id))).map(rec => ({ rec, product: allProducts.find(p => p.id === rec.product_id), project: dictionaries.projectById[rec.project_id] })).filter(x => x.product && x.project);
             const recorrenteProds = recorrenteProductsMap[selectedMonth] || [];
 
             if (!selectedMonthType && aReceberProds.length === 0 && recognizedProds.length === 0 && recorrenteProds.length === 0) return null;
