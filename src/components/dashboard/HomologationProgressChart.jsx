@@ -101,7 +101,12 @@ export default function HomologationProgressChart({ products, tasks }) {
       ...customTasks
     ];
 
-    if (allVisible.length === 0) return null; // sem tarefas visíveis
+    if (allVisible.length === 0) {
+      // Sem tarefas no banco ainda — usar template como base (tudo pendente)
+      const templateTotal = defaultSections.reduce((sum, s) => sum + s.tasks.length, 0);
+      if (templateTotal === 0) return null; // produto sem template, ignorar
+      return { pct: 0, total: templateTotal, completed: 0 };
+    }
     const completed = allVisible.filter(t => t.completed).length;
     return { pct: Math.round((completed / allVisible.length) * 100), total: allVisible.length, completed };
   };

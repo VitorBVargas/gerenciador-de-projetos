@@ -56,7 +56,7 @@ export default function Homologation() {
     enabled: !!projectId
   });
 
-  const { data: tasks = [] } = useQuery({
+  const { data: tasks = [], isFetched: tasksFetched } = useQuery({
     queryKey: ['homologationTasks', projectId],
     queryFn: () => projectId ? base44.entities.HomologationTask.filter({ project_id: projectId }) : [],
     enabled: !!projectId
@@ -122,7 +122,7 @@ export default function Homologation() {
   };
 
   React.useEffect(() => {
-    if (selectedProduct && products.length > 0 && tasks.length >= 0) {
+    if (selectedProduct && products.length > 0 && tasksFetched) {
       const product = getCurrentProduct();
       if (product) {
         const existingTasks = tasks.filter(t => t.product_id === product.id);
@@ -131,7 +131,7 @@ export default function Homologation() {
         }
       }
     }
-  }, [selectedProduct, products.length, tasks.length]);
+  }, [selectedProduct, products.length, tasksFetched]);
 
   const handleAddTask = () => {
     if (!newTaskTitle.trim() || !selectedProduct) return;
