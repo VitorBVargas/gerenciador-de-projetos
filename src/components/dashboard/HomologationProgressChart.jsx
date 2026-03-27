@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { VERTICAL_CHART_COLORS } from '../verticalColors';
+import { getDefaultTasksForProduct } from '../homologation/homologationTasksHelper';
 
 const verticalLabels = {
   arrecadacao: 'Arrecadação',
@@ -40,70 +41,95 @@ const CustomTooltip = ({ active, payload }) => {
 };
 
 export default function HomologationProgressChart({ products, tasks }) {
-  // Agrupa produtos por vertical e calcula progresso
-  // Deduplica tarefas por produto (igual à lógica da aba Homologação)
-  const deduplicateProductTasks = (productTasks) => {
+  // Replica EXATAMENTE a mesma lógica da aba Homologação
+  const getProductProgress = (productId, productName) => {
+    const productTasks = tasks.filter(t => t.product_id === productId);
+    const defaultSections = getDefaultTasksForProduct(productName) || [];
+
     const importedTasks = productTasks.filter(t => t.title.includes('||'));
     const standardTasks = productTasks.filter(t => !t.title.includes('||'));
 
-    // Deduplicar tarefas padrão por título
-    const uniqueStandard = [];
-    const seenTitles = new Set();
-    for (const task of standardTasks) {
-      const key = task.title.toLowerCase();
-      if (!seenTitles.has(key)) {
-        seenTitles.add(key);
-        uniqueStandard.push(task);
-      }
-    }
-
-    // Deduplicar tarefas importadas por seção+título, preferindo marcadas
+    // Importadas: agrupadas por seção, sem duplicatas
     const importedBySection = {};
-    for (const task of importedTasks) {
+    importedTasks.forEach(task => {
       const match = task.title.match(/^\|\|(.+?)\|\|(.+)$/);
-      if (match) {
-        const [, section, name] = match;
-        const key = `${section}|||${name.toLowerCase()}`;
-        if (!importedBySection[key] || (task.completed && !importedBySection[key].completed)) {
-          importedBySection[key] = task;
+      if (!match) return;
+      const [, sectionName, taskName] = match;
+      if (!importedBySection[sectionName]) importedBySection[sectionName] = new Map();
+      const key = taskName.toLowerCase();
+      if (!importedBySection[sectionName].has(key)) {
+        importedBySection[sectionName].set(key, task);
+      } else {
+        const existing = importedBySection[sectionName].get(key);
+        if (task.completed && !existing.completed) importedBySection[sectionName].set(key, task);
+      }
+    });
+
+    // Padrão: first-match-wins por seção
+    const claimedStandardIds = new Set();
+    const standardBySection = {};
+    for (const section of defaultSections) {
+      standardBySection[section.section] = [];
+      const seen = new Map();
+      for (const task of standardTasks) {
+        if (claimedStandardIds.has(task.id)) continue;
+        if (!section.tasks.some(t => t.toLowerCase() === task.title.toLowerCase())) continue;
+        const key = task.title.toLowerCase();
+        if (!seen.has(key)) {
+          seen.set(key, task);
+          standardBySection[section.section].push(task);
+          claimedStandardIds.add(task.id);
+        } else {
+          const existing = seen.get(key);
+          if (task.completed && !existing.completed) {
+            const idx = standardBySection[section.section].indexOf(existing);
+            standardBySection[section.section][idx] = task;
+            seen.set(key, task);
+          }
         }
       }
     }
 
-    return [...uniqueStandard, ...Object.values(importedBySection)];
+    // Tarefas custom: só se produto NÃO tem template
+    const customTasks = defaultSections.length === 0
+      ? standardTasks.filter(t => !claimedStandardIds.has(t.id))
+      : [];
+
+    const allVisible = [
+      ...Object.values(importedBySection).flatMap(m => Array.from(m.values())),
+      ...Object.values(standardBySection).flat(),
+      ...customTasks
+    ];
+
+    if (allVisible.length === 0) return null; // sem tarefas visíveis
+    const completed = allVisible.filter(t => t.completed).length;
+    return { pct: Math.round((completed / allVisible.length) * 100), total: allVisible.length, completed };
   };
 
   const dataByVertical = Object.entries(
     products.reduce((acc, product) => {
       const vertical = product.vertical || 'outros';
       if (!acc[vertical]) {
-        acc[vertical] = { products: [], totalTasks: 0, completedTasks: 0, productDetails: [] };
+        acc[vertical] = { totalTasks: 0, completedTasks: 0, productDetails: [] };
       }
-      
-      const productTasks = tasks.filter(t => t.product_id === product.id);
-      const uniqueTasks = deduplicateProductTasks(productTasks);
-      
-      // Ignorar produtos sem nenhuma tarefa de homologação
-      if (uniqueTasks.length === 0) return acc;
-      
-      const completed = uniqueTasks.filter(t => t.completed).length;
-      const pct = Math.round((completed / uniqueTasks.length) * 100);
-      
-      acc[vertical].products.push(product);
-      acc[vertical].totalTasks += uniqueTasks.length;
-      acc[vertical].completedTasks += completed;
-      acc[vertical].productDetails.push({ name: product.name, pct, total: uniqueTasks.length, completed });
-      
+
+      const result = getProductProgress(product.id, product.name);
+      if (result === null) return acc; // sem tarefas visíveis, ignorar
+
+      acc[vertical].totalTasks += result.total;
+      acc[vertical].completedTasks += result.completed;
+      acc[vertical].productDetails.push({ name: product.name, pct: result.pct, total: result.total, completed: result.completed });
+
       return acc;
     }, {})
   )
-  .filter(([vertical, data]) => data.totalTasks > 0)
+  .filter(([, data]) => data.totalTasks > 0)
   .map(([vertical, data]) => ({
     vertical,
     name: verticalLabels[vertical] || vertical,
     progress: Math.round((data.completedTasks / data.totalTasks) * 100),
     color: VERTICAL_CHART_COLORS[vertical] || '#64748b',
-    productDetails: (data.productDetails || []).sort((a, b) => a.pct - b.pct)
+    productDetails: data.productDetails.sort((a, b) => a.pct - b.pct)
   }))
   .sort((a, b) => b.progress - a.progress);
 
