@@ -401,11 +401,11 @@ export default function Dashboard() {
     ? differenceInDays(new Date(activeProject.deadline), new Date())
     : null;
 
-  // Timeline progress by vertical - usa TODOS os produtos (não filtrado por entidade)
+  // Timeline progress by vertical - usa produtos da entidade selecionada, mas todos os eventos
   const eventsByVertical = {};
   
   const verticalGroups = {};
-  products.forEach(p => {
+  filteredProducts.forEach(p => {
     const v = p.vertical || 'outros';
     if (!verticalGroups[v]) verticalGroups[v] = [];
     verticalGroups[v].push(p);
