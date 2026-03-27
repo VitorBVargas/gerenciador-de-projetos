@@ -471,13 +471,15 @@ export default function Dashboard() {
     .map(([vertical, events]) => {
       const totalProgress = events.reduce((sum, event) => sum + calcEventProgressDash(event), 0);
       const avgProgress = events.length > 0 ? Math.round(totalProgress / events.length) : 0;
+      const hasActiveEvents = events.some(e => e.status === 'em_andamento' || e.status === 'concluido' || e.status === 'atrasado');
       return {
         name: verticalLabels[vertical] || vertical,
         progress: avgProgress,
-        color: verticalColors[vertical] || '#3b82f6'
+        color: verticalColors[vertical] || '#3b82f6',
+        hasActiveEvents
       };
     })
-    .filter(d => d.progress > 0)
+    .filter(d => d.progress > 0 || d.hasActiveEvents)
     .sort((a, b) => b.progress - a.progress);
 
   // Homologation progress by vertical
