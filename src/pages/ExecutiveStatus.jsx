@@ -421,7 +421,7 @@ export default function ExecutiveStatus() {
 
     const chartData = Object.entries(monthlyData).sort(([a], [b]) => a.localeCompare(b)).map(([, value]) => value);
     return { monthlyData, chartData };
-  }, [filteredProjectsForFinance, dictionaries, allRecognizedRevenues, financialProjectFilter]);
+  }, [filteredProjectsForFinance, dictionaries, allRecognizedRevenues, financialProjectFilters]);
 
   // Métricas do Projeto (Otimizado com Dicionários)
   const getStatusFromHealthScore = (healthScore) => {
