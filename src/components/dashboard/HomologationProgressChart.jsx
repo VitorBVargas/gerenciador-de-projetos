@@ -77,28 +77,27 @@ export default function HomologationProgressChart({ products, tasks }) {
     products.reduce((acc, product) => {
       const vertical = product.vertical || 'outros';
       if (!acc[vertical]) {
-        acc[vertical] = { products: [], totalTasks: 0, completedTasks: 0 };
+        acc[vertical] = { products: [], totalTasks: 0, completedTasks: 0, productDetails: [] };
       }
       
       const productTasks = tasks.filter(t => t.product_id === product.id);
       const uniqueTasks = deduplicateProductTasks(productTasks);
+      
+      // Ignorar produtos sem nenhuma tarefa de homologação
+      if (uniqueTasks.length === 0) return acc;
+      
       const completed = uniqueTasks.filter(t => t.completed).length;
+      const pct = Math.round((completed / uniqueTasks.length) * 100);
       
       acc[vertical].products.push(product);
       acc[vertical].totalTasks += uniqueTasks.length;
       acc[vertical].completedTasks += completed;
-      acc[vertical].productDetails = acc[vertical].productDetails || [];
-      acc[vertical].productDetails.push({
-        name: product.name,
-        pct: uniqueTasks.length > 0 ? Math.round((completed / uniqueTasks.length) * 100) : 0,
-        total: uniqueTasks.length,
-        completed
-      });
+      acc[vertical].productDetails.push({ name: product.name, pct, total: uniqueTasks.length, completed });
       
       return acc;
     }, {})
   )
-  .filter(([vertical, data]) => data.totalTasks > 0) // Só verticais com tarefas
+  .filter(([vertical, data]) => data.totalTasks > 0)
   .map(([vertical, data]) => ({
     vertical,
     name: verticalLabels[vertical] || vertical,
