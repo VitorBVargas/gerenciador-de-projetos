@@ -43,10 +43,11 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
     return verticalLabels[event.vertical] || event.vertical || 'Geral';
   };
 
-  // Deduplica por (vertical, título) para não contar a mesma fase N vezes (uma por produto)
+  // Deduplica por (vertical, título, entidade) para não colapsar eventos de entidades diferentes
   const seenVerticalTitle = new Set();
   const overdueEvents = allOverdueEvents.filter(e => {
-    const key = `${getCronogramaLabel(e)}||${e.title}`;
+    const entity = productEntityMap[e.product_id] || '';
+    const key = `${getCronogramaLabel(e)}||${e.title}||${entity}`;
     if (seenVerticalTitle.has(key)) return false;
     seenVerticalTitle.add(key);
     return true;
