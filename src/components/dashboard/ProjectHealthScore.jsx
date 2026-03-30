@@ -21,6 +21,10 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
   let score = 100;
   const alerts = []; // { severity: 'high'|'medium'|'good', text, detail }
 
+  // Mapa product_id -> entity
+  const productEntityMap = {};
+  (products || []).forEach(p => { if (p.id && p.entity) productEntityMap[p.id] = p.entity; });
+
   // --- 1. TIMELINE (40 pts) ---
   // Etapas que já passaram da data fim E não foram concluídas
   const now = new Date();
@@ -58,10 +62,13 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
       const v = getCronogramaLabel(e);
       if (!byVertical[v]) byVertical[v] = { count: 0, titles: [] };
       byVertical[v].count++;
-      byVertical[v].titles.push(e.title);
+      const entity = productEntityMap[e.product_id];
+      const titleWithEntity = entity ? `${e.title} (${entity})` : e.title;
+      byVertical[v].titles.push(titleWithEntity);
     });
     const summary = Object.entries(byVertical).map(([v, d]) => `${v} (${d.count})`).join(', ');
     const details = Object.entries(byVertical).map(([v, d]) => `• ${v}: ${d.titles.slice(0, 3).join(', ')}${d.titles.length > 3 ? ` +${d.titles.length - 3}` : ''}`).join('\n');
+
     alerts.push({
       severity: overdueEvents.length >= 3 ? 'high' : 'medium',
       text: `${overdueEvents.length} fase${overdueEvents.length > 1 ? 's' : ''} atrasada${overdueEvents.length > 1 ? 's' : ''} no cronograma`,
