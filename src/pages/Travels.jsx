@@ -496,11 +496,26 @@ export default function Travels() {
                                 gridTemplateColumns: `repeat(${daysInMonth.length}, 48px)`,
                               }}
                             >
-                              {daysInMonth.map((day, idx) => (
-                                <div key={`sep-${idx}`} className="border-r border-slate-700/20 flex items-center justify-center text-xs font-semibold text-blue-400 h-full">
-                                  {format(day, 'dd/MM')}
-                                </div>
-                              ))}
+                              {daysInMonth.map((day, idx) => {
+                                const isToday = isSameDay(day, new Date());
+                                return (
+                                  <div
+                                    key={`sep-${idx}`}
+                                    className={cn(
+                                      "border-r border-slate-700/20 flex flex-col items-center justify-center h-full gap-0",
+                                      isToday && "bg-yellow-500/20"
+                                    )}
+                                  >
+                                    <span className={cn("text-[8px] font-bold uppercase", isToday ? "text-yellow-400" : "text-slate-500")}>
+                                      {format(day, 'EEE', { locale: ptBR })}
+                                    </span>
+                                    <span className={cn("text-[10px] font-semibold", isToday ? "text-yellow-300" : "text-blue-400")}>
+                                      {format(day, 'dd/MM')}
+                                    </span>
+                                    {isToday && <div className="w-1 h-1 rounded-full bg-yellow-400 mt-0.5" />}
+                                  </div>
+                                );
+                              })}
                             </div>
                           )}
 
