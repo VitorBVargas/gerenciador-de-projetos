@@ -823,15 +823,15 @@ export default function Dashboard() {
           </Card>
         )}
 
-        {filteredProducts.length > 0 && filteredHomologationTasks.length > 0 ? (
+        {filteredProducts.length > 0 ? (
           <HomologationProgressChart products={filteredProducts} tasks={filteredHomologationTasks} />
         ) : (
           <Card className="bg-slate-800/50 border-slate-700/50">
             <CardContent className="py-12">
               <EmptyState
                 icon={Calendar}
-                title="Nenhuma tarefa de homologação"
-                description="Adicione tarefas de homologação para visualizar o gráfico"
+                title="Nenhum produto cadastrado"
+                description="Adicione produtos para visualizar o gráfico de homologação"
               />
             </CardContent>
           </Card>
