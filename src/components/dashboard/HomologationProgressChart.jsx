@@ -111,15 +111,17 @@ export default function HomologationProgressChart({ products, tasks }) {
     return { pct: Math.round((completed / allVisible.length) * 100), total: allVisible.length, completed };
   };
 
+  const homologationProducts = products.filter(product => getDefaultTasksForProduct(product.name) !== null);
+
   const dataByVertical = Object.entries(
-    products.reduce((acc, product) => {
+    homologationProducts.reduce((acc, product) => {
       const vertical = product.vertical || 'outros';
       if (!acc[vertical]) {
         acc[vertical] = { totalTasks: 0, completedTasks: 0, productDetails: [] };
       }
 
       const result = getProductProgress(product.id, product.name);
-      if (result === null) return acc; // sem tarefas visíveis, ignorar
+      if (result === null) return acc;
 
       acc[vertical].totalTasks += result.total;
       acc[vertical].completedTasks += result.completed;
