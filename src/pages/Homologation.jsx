@@ -58,7 +58,7 @@ export default function Homologation() {
 
   const { data: tasks = [], isFetched: tasksFetched } = useQuery({
     queryKey: ['homologationTasks', projectId],
-    queryFn: () => projectId ? base44.entities.HomologationTask.filter({ project_id: projectId }, '-order', 2000) : [],
+    queryFn: () => projectId ? base44.entities.HomologationTask.filter({ project_id: projectId }, '-order', 5000) : [],
     enabled: !!projectId
   });
 
@@ -644,7 +644,7 @@ export default function Homologation() {
                                         variant="ghost"
                                         className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover/section:opacity-100 transition-opacity"
                                         onClick={async () => {
-                                          await Promise.all(sectionTasks.map(t => deleteTaskMutation.mutate(t.id)));
+                                          await Promise.all(uniqueImportedTasks.map(t => deleteTaskMutation.mutate(t.id)));
                                           toast.success(`Seção "${sectionName}" deletada`);
                                         }}
                                       >
