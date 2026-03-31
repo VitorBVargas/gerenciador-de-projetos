@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Plus, CheckCircle, Trash2, ChevronUp, ChevronDown, Upload, Loader2 } from 'lucide-react';
+import { Plus, CheckCircle, Trash2, ChevronUp, ChevronDown, Upload, Loader2, Sparkles } from 'lucide-react';
 import ImportTasksModal from '../components/modals/ImportTasksModal';
 import { toast } from 'sonner';
 import { cn } from "@/lib/utils";
@@ -39,6 +39,7 @@ export default function Homologation() {
   const [addTaskSection, setAddTaskSection] = useState('');
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [markingProgress, setMarkingProgress] = useState({ isLoading: false, current: 0, total: 0 });
+  const [creatingDefaultTasksFor, setCreatingDefaultTasksFor] = useState(null);
   const creatingTasksRef = useRef(new Set());
 
   const urlParams = new URLSearchParams(window.location.search);
@@ -87,23 +88,37 @@ export default function Homologation() {
 
   const createDefaultTasks = async (product) => {
     if (creatingTasksRef.current.has(product.id)) return;
-    const existingTasks = tasks.filter(t => t.product_id === product.id);
-    if (existingTasks.length > 0) return;
     const defaultSections = getDefaultTasksForProduct(product.name);
     if (!defaultSections) return;
+
     creatingTasksRef.current.add(product.id);
+    setCreatingDefaultTasksFor(product.id);
+
+    const existingTasks = tasks.filter(t => t.product_id === product.id);
+    const existingTitles = new Set(existingTasks.map(task => task.title.toLowerCase()));
     const tasksToCreate = [];
-    let order = 0;
+    let order = existingTasks.length;
+
     for (const section of defaultSections) {
       for (const taskTitle of section.tasks) {
-        tasksToCreate.push({ title: taskTitle, project_id: projectId, product_id: product.id, completed: false, order: order++ });
+        const normalizedTitle = taskTitle.toLowerCase();
+        if (!existingTitles.has(normalizedTitle)) {
+          existingTitles.add(normalizedTitle);
+          tasksToCreate.push({ title: taskTitle, project_id: projectId, product_id: product.id, completed: false, order: order++ });
+        }
       }
     }
+
     if (tasksToCreate.length > 0) {
       await base44.entities.HomologationTask.bulkCreate(tasksToCreate);
-      queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
+      await queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
+      toast.success(`${tasksToCreate.length} tarefas padrão criadas para ${product.name}.`);
+    } else {
+      toast.info('Todas as tarefas padrão deste produto já existem.');
     }
+
     creatingTasksRef.current.delete(product.id);
+    setCreatingDefaultTasksFor(null);
   };
 
   const handleAddTask = () => {
@@ -214,17 +229,6 @@ export default function Homologation() {
     if (selectedVertical && productsByVertical[selectedVertical]?.length > 0) setSelectedProduct(productsByVertical[selectedVertical][0].id);
   }, [selectedVertical]);
 
-  React.useEffect(() => {
-    if (selectedProduct && products.length > 0 && tasksFetched) {
-      const product = getCurrentProduct();
-      if (product) {
-        const existingTasks = tasks.filter(t => t.product_id === product.id);
-        if (existingTasks.length === 0 && productHasHomologation(product.name)) {
-          createDefaultTasks(product);
-        }
-      }
-    }
-  }, [selectedProduct, products.length, tasksFetched]);
 
   const productsWithHomologation = entityFilteredProducts.filter(p => productHasHomologation(p.name));
   const overallProgress = productsWithHomologation.length > 0
@@ -429,9 +433,23 @@ export default function Homologation() {
                               </>
                             );
                           })()}
-                          <Button variant="outline" className="w-full border-blue-500/30 text-blue-400 hover:bg-blue-500/10" onClick={() => setImportModalOpen(true)}>
-                            <Upload className="w-4 h-4 mr-2" />Importar Excel
-                          </Button>
+                          <div className="grid gap-2 md:grid-cols-2">
+                            <Button
+                              variant="outline"
+                              className="border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+                              onClick={() => createDefaultTasks(product)}
+                              disabled={creatingDefaultTasksFor === product.id}
+                            >
+                              {creatingDefaultTasksFor === product.id ? (
+                                <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Criando padrão...</>
+                              ) : (
+                                <><Sparkles className="w-4 h-4 mr-2" />Criar tarefas padrão</>
+                              )}
+                            </Button>
+                            <Button variant="outline" className="border-blue-500/30 text-blue-400 hover:bg-blue-500/10" onClick={() => setImportModalOpen(true)}>
+                              <Upload className="w-4 h-4 mr-2" />Importar Excel
+                            </Button>
+                          </div>
                         </div>
 
                         {/* Task list */}
@@ -556,7 +574,7 @@ export default function Homologation() {
                           })()}
 
                           {tasksFetched && getProductTasks(product.id).length === 0 && productHasHomologation(product.name) && (
-                            <p className="text-center text-slate-500 py-4 text-sm">Carregando tarefas padrão...</p>
+                            <p className="text-center text-slate-500 py-4 text-sm">Nenhuma tarefa cadastrada ainda para este produto.</p>
                           )}
                         </div>
                       </CardContent>
