@@ -121,17 +121,26 @@ export default function Homologation() {
     creatingTasksRef.current.delete(product.id);
   };
 
+  // ULTIMA ALTERAÇÃO 31/03/2026 - 11:29
   React.useEffect(() => {
-    if (selectedProduct && products.length > 0 && tasksFetched) {
-      const product = getCurrentProduct();
-      if (product) {
-        const existingTasks = tasks.filter(t => t.product_id === product.id);
-        if (existingTasks.length === 0 && productHasHomologation(product.name)) {
-          createDefaultTasks(product);
-        }
-      }
+    // Só executa se os dados estiverem completamente carregados e estáveis
+    if (!selectedProduct || products.length === 0 || !tasksFetched) return;
+
+    const product = getCurrentProduct();
+    if (!product) return;
+
+    // Não possui template de homologação, ignora
+    if (!productHasHomologation(product.name)) return;
+
+    // Guard: só cria se tasks já foram buscadas E o array está vazio para este produto
+    // Isso evita disparar durante estados transitórios do cache
+    const existingTasks = tasks.filter(t => t.product_id === product.id);
+    const isAlreadyCreating = creatingTasksRef.current.has(product.id);
+
+    if (existingTasks.length === 0 && !isAlreadyCreating) {
+      createDefaultTasks(product);
     }
-  }, [selectedProduct, products.length, tasksFetched]);
+  }, [selectedProduct, products.length, tasksFetched, tasks.length]); 
 
   const handleAddTask = () => {
     if (!newTaskTitle.trim() || !selectedProduct) return;
