@@ -42,6 +42,19 @@ export default function Homologation() {
   const [creatingDefaultTasksFor, setCreatingDefaultTasksFor] = useState(null);
   const creatingTasksRef = useRef(new Set());
 
+  useEffect(() => {
+    if (!selectedVertical && verticals.length > 0) {
+      setSelectedVertical(verticals[0]);
+    }
+  }, [selectedVertical, verticals]);
+
+  useEffect(() => {
+    const currentProducts = productsByVertical[selectedVertical] || [];
+    if (!currentProducts.some(product => product.id === selectedProduct)) {
+      setSelectedProduct(currentProducts[0]?.id || '');
+    }
+  }, [selectedVertical, selectedProduct, productsByVertical]);
+
   const urlParams = new URLSearchParams(window.location.search);
   const projectId = urlParams.get('project_id');
 
@@ -63,6 +76,36 @@ export default function Homologation() {
   });
 
   const activeProject = projects.find(p => p.id === projectId);
+  const getProductTasks = (productId) => tasks.filter(task => task.product_id === productId);
+  const productsWithHomologation = products.filter(product => productHasHomologation(product.name) || getProductTasks(product.id).length > 0);
+  const filteredProducts = selectedEntity
+    ? productsWithHomologation.filter(product => product.entity === selectedEntity)
+    : productsWithHomologation;
+  const verticals = [...new Set(filteredProducts.map(product => product.vertical).filter(Boolean))];
+  const productsByVertical = verticals.reduce((acc, vertical) => {
+    acc[vertical] = filteredProducts.filter(product => product.vertical === vertical);
+    return acc;
+  }, {});
+  const allEntities = [...new Map(productsWithHomologation.filter(product => product.entity).map(product => [product.entity, { code: product.entity, fullName: product.entity_full_name || null }])).values()];
+  const getCurrentProduct = () => products.find(product => product.id === selectedProduct) || filteredProducts[0] || null;
+  const getProductProgress = (productId) => {
+    const product = products.find(item => item.id === productId);
+    if (!product) return 0;
+    const productTasks = getProductTasks(productId);
+    const defaultSections = getSectionsForProduct(product.name);
+    const defaultTitles = defaultSections.flatMap(section => section.tasks.map(task => task.toLowerCase()));
+    const importedTasks = productTasks.filter(task => task.title.includes('||'));
+    const standardTasks = productTasks.filter(task => !task.title.includes('||'));
+    const matchedStandardTasks = standardTasks.filter(task => defaultTitles.includes(task.title.toLowerCase()));
+    const customTasks = standardTasks.filter(task => !defaultTitles.includes(task.title.toLowerCase()));
+    const relevantTasks = [...matchedStandardTasks, ...importedTasks, ...customTasks];
+    if (relevantTasks.length === 0) return 0;
+    const completedTasks = relevantTasks.filter(task => task.completed).length;
+    return Math.round((completedTasks / relevantTasks.length) * 100);
+  };
+  const overallProgress = productsWithHomologation.length === 0
+    ? 0
+    : Math.round(productsWithHomologation.reduce((sum, product) => sum + getProductProgress(product.id), 0) / productsWithHomologation.length);
 
   const createTaskMutation = useMutation({
     mutationFn: (data) => base44.entities.HomologationTask.create(data),
@@ -122,6 +165,8 @@ export default function Homologation() {
   };
 
   const getSectionsForProduct = (productName) => getDefaultTasksForProduct(productName) || [];
+
+  const normalizedProducts = filteredProducts.length > 0 ? filteredProducts : products;
 
   const moveSectionUp = (productId, sectionIndex) => {
     if (sectionIndex === 0) return;
@@ -222,6 +267,33 @@ export default function Homologation() {
       toast.info('Nenhuma tarefa nova encontrada. Todas já estavam cadastradas.');
     }
     queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
+  };
+
+  const handleToggleTask = (task) => {
+    updateTaskMutation.mutate({
+      id: task.id,
+      data: {
+        completed: !task.completed,
+        completed_date: !task.completed ? new Date().toISOString() : null
+      }
+    });
+  };
+
+  const handleAddTask = () => {
+    const product = getCurrentProduct();
+    const title = newTaskTitle.trim();
+    if (!product || !title) return;
+
+    const finalTitle = addTaskSection ? `||${addTaskSection}||${title}` : title;
+    const productTasks = getProductTasks(product.id);
+
+    createTaskMutation.mutate({
+      title: finalTitle,
+      project_id: projectId,
+      product_id: product.id,
+      completed: false,
+      order: productTasks.length
+    });
   };
 
   const renderTaskRow = (task, displayTitle) => (
