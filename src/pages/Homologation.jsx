@@ -175,11 +175,9 @@ export default function Homologation() {
     visibleCount += importedVisible.length;
     completedCount += importedVisible.filter(t => t.completed).length;
 
-    if (defaultSections.length === 0) {
-      const unclaimed = standardTasks.filter(t => !claimedIds.has(t.id));
-      visibleCount += unclaimed.length;
-      completedCount += unclaimed.filter(t => t.completed).length;
-    }
+    const unclaimed = standardTasks.filter(t => !claimedIds.has(t.id));
+    visibleCount += unclaimed.length;
+    completedCount += unclaimed.filter(t => t.completed).length;
 
     if (visibleCount === 0) return 0;
     return Math.round((completedCount / visibleCount) * 100);
@@ -207,8 +205,7 @@ export default function Homologation() {
   const entityFilteredProducts = selectedEntity ? products.filter(p => p.entity === selectedEntity) : products;
 
   const productsByVertical = entityFilteredProducts.reduce((acc, product) => {
-    const hasSavedTasks = tasks.some(task => task.product_id === product.id);
-    if (productHasHomologation(product.name) || hasSavedTasks) {
+    if (productHasHomologation(product.name)) {
       const vertical = product.vertical || 'outros';
       if (!acc[vertical]) acc[vertical] = [];
       acc[vertical].push(product);
@@ -231,7 +228,7 @@ export default function Homologation() {
   }, [selectedVertical]);
 
 
-  const productsWithHomologation = entityFilteredProducts.filter(p => productHasHomologation(p.name) || tasks.some(task => task.product_id === p.id));
+  const productsWithHomologation = entityFilteredProducts.filter(p => productHasHomologation(p.name));
   const overallProgress = productsWithHomologation.length > 0
     ? Math.round(productsWithHomologation.reduce((sum, p) => sum + getProductProgress(p.id), 0) / productsWithHomologation.length)
     : 0;
@@ -558,10 +555,17 @@ export default function Homologation() {
                                   });
                                 })()}
 
-                                {/* Tarefas personalizadas - só mostra se produto não tem template */}
+                                {/* Tarefas personalizadas / não mapeadas no template */}
                                 {(() => {
-                                  if (defaultSections.length > 0) return null;
-                                  const customTasks = standardTasks;
+                                  const claimedIds = new Set();
+                                  defaultSections.forEach(section => {
+                                    standardTasks.forEach(task => {
+                                      if (section.tasks.some(st => st.toLowerCase() === task.title.toLowerCase())) {
+                                        claimedIds.add(task.id);
+                                      }
+                                    });
+                                  });
+                                  const customTasks = standardTasks.filter(task => !claimedIds.has(task.id));
                                   if (customTasks.length === 0) return null;
                                   return (
                                     <div>
