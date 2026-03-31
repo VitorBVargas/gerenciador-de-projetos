@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -39,7 +39,7 @@ export default function Homologation() {
   const [addTaskSection, setAddTaskSection] = useState('');
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [markingProgress, setMarkingProgress] = useState({ isLoading: false, current: 0, total: 0 });
-  const [initializingProduct, setInitializingProduct] = useState(null);
+  const creatingTasksRef = useRef(new Set());
 
   const urlParams = new URLSearchParams(window.location.search);
   const projectId = urlParams.get('project_id');
@@ -86,28 +86,27 @@ export default function Homologation() {
   });
 
   const initializeDefaultTasks = async (product) => {
-    if (initializingProduct) return;
+    if (!product || creatingTasksRef.current.has(product.id)) return;
     const existingTasks = tasks.filter(t => t.product_id === product.id);
     if (existingTasks.length > 0) return;
-    setInitializingProduct(product.id);
-    try {
-      const defaultSections = getDefaultTasksForProduct(product.name);
-      if (!defaultSections || defaultSections.length === 0) return;
-      const tasksToCreate = [];
-      let order = 0;
-      for (const section of defaultSections) {
-        for (const taskTitle of section.tasks) {
-          tasksToCreate.push({ title: taskTitle, project_id: projectId, product_id: product.id, completed: false, order: order++ });
-        }
+    const defaultSections = getDefaultTasksForProduct(product.name);
+    if (!defaultSections || defaultSections.length === 0) return;
+
+    creatingTasksRef.current.add(product.id);
+    const tasksToCreate = [];
+    let order = 0;
+    for (const section of defaultSections) {
+      for (const taskTitle of section.tasks) {
+        tasksToCreate.push({ title: taskTitle, project_id: projectId, product_id: product.id, completed: false, order: order++ });
       }
-      if (tasksToCreate.length > 0) {
-        await base44.entities.HomologationTask.bulkCreate(tasksToCreate);
-        queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
-        toast.success(`${tasksToCreate.length} tarefas padrão criadas!`);
-      }
-    } finally {
-      setInitializingProduct(null);
     }
+
+    if (tasksToCreate.length > 0) {
+      await base44.entities.HomologationTask.bulkCreate(tasksToCreate);
+      queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
+    }
+
+    creatingTasksRef.current.delete(product.id);
   };
 
   const handleAddTask = () => {
@@ -217,6 +216,18 @@ export default function Homologation() {
   React.useEffect(() => {
     if (selectedVertical && productsByVertical[selectedVertical]?.length > 0) setSelectedProduct(productsByVertical[selectedVertical][0].id);
   }, [selectedVertical]);
+
+  useEffect(() => {
+    if (selectedProduct && products.length > 0 && tasksFetched) {
+      const product = getCurrentProduct();
+      if (product) {
+        const existingTasks = tasks.filter(t => t.product_id === product.id);
+        if (existingTasks.length === 0 && productHasHomologation(product.name)) {
+          initializeDefaultTasks(product);
+        }
+      }
+    }
+  }, [selectedProduct, products.length, tasksFetched]);
 
   const productsWithHomologation = entityFilteredProducts.filter(p => productHasHomologation(p.name));
   const overallProgress = productsWithHomologation.length > 0
@@ -548,12 +559,7 @@ export default function Homologation() {
                           })()}
 
                           {tasksFetched && getProductTasks(product.id).length === 0 && productHasHomologation(product.name) && (
-                            <div className="text-center py-8">
-                              <p className="text-slate-400 text-sm mb-4">Nenhuma tarefa cadastrada para este produto.</p>
-                              <Button onClick={() => initializeDefaultTasks(product)} disabled={initializingProduct === product.id} className="bg-blue-600 hover:bg-blue-700">
-                                {initializingProduct === product.id ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Criando tarefas...</> : <><Plus className="w-4 h-4 mr-2" />Inicializar Tarefas Padrão</>}
-                              </Button>
-                            </div>
+                            <p className="text-center text-slate-500 py-4 text-sm">Carregando tarefas padrão...</p>
                           )}
                         </div>
                       </CardContent>
