@@ -75,7 +75,6 @@ export default function Homologation() {
   }, {});
   const allEntities = [...new Map(productsWithHomologation.filter(product => product.entity).map(product => [product.entity, { code: product.entity, fullName: product.entity_full_name || null }])).values()];
   const getCurrentProduct = () => products.find(product => product.id === selectedProduct) || filteredProducts[0] || null;
-  const getSectionsForProduct = (productName) => getDefaultTasksForProduct(productName) || [];
   const getProductProgress = (productId) => {
     const product = products.find(item => item.id === productId);
     if (!product) return 0;
@@ -132,8 +131,8 @@ export default function Homologation() {
 
   const createDefaultTasks = async (product) => {
     if (creatingTasksRef.current.has(product.id)) return;
-    const defaultSections = getSectionsForProduct(product.name);
-    if (defaultSections.length === 0) return;
+    const defaultSections = getDefaultTasksForProduct(product.name);
+    if (!defaultSections) return;
 
     creatingTasksRef.current.add(product.id);
     setCreatingDefaultTasksFor(product.id);
@@ -164,6 +163,8 @@ export default function Homologation() {
     creatingTasksRef.current.delete(product.id);
     setCreatingDefaultTasksFor(null);
   };
+
+  const getSectionsForProduct = (productName) => getDefaultTasksForProduct(productName) || [];
 
   const normalizedProducts = filteredProducts.length > 0 ? filteredProducts : products;
 
