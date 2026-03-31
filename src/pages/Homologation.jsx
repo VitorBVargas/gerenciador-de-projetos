@@ -42,19 +42,6 @@ export default function Homologation() {
   const [creatingDefaultTasksFor, setCreatingDefaultTasksFor] = useState(null);
   const creatingTasksRef = useRef(new Set());
 
-  useEffect(() => {
-    if (!selectedVertical && verticals.length > 0) {
-      setSelectedVertical(verticals[0]);
-    }
-  }, [selectedVertical, verticals]);
-
-  useEffect(() => {
-    const currentProducts = productsByVertical[selectedVertical] || [];
-    if (!currentProducts.some(product => product.id === selectedProduct)) {
-      setSelectedProduct(currentProducts[0]?.id || '');
-    }
-  }, [selectedVertical, selectedProduct, productsByVertical]);
-
   const urlParams = new URLSearchParams(window.location.search);
   const projectId = urlParams.get('project_id');
 
@@ -106,6 +93,19 @@ export default function Homologation() {
   const overallProgress = productsWithHomologation.length === 0
     ? 0
     : Math.round(productsWithHomologation.reduce((sum, product) => sum + getProductProgress(product.id), 0) / productsWithHomologation.length);
+
+  useEffect(() => {
+    if (!selectedVertical && verticals.length > 0) {
+      setSelectedVertical(verticals[0]);
+    }
+  }, [selectedVertical, verticals]);
+
+  useEffect(() => {
+    const currentProducts = productsByVertical[selectedVertical] || [];
+    if (!currentProducts.some(product => product.id === selectedProduct)) {
+      setSelectedProduct(currentProducts[0]?.id || '');
+    }
+  }, [selectedVertical, selectedProduct, productsByVertical]);
 
   const createTaskMutation = useMutation({
     mutationFn: (data) => base44.entities.HomologationTask.create(data),
