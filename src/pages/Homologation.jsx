@@ -121,124 +121,12 @@ export default function Homologation() {
     setCreatingDefaultTasksFor(null);
   };
 
-  const handleAddTask = () => {
-    if (!newTaskTitle.trim() || !selectedProduct) return;
-    const title = addTaskSection ? `||${addTaskSection}||${newTaskTitle.trim()}` : newTaskTitle.trim();
-    createTaskMutation.mutate({ title, project_id: activeProject?.id, product_id: selectedProduct, completed: false });
-    setAddTaskSection('');
-  };
-
-  const handleToggleTask = (task) => {
-    const newCompleted = !task.completed;
-    updateTaskMutation.mutate({ id: task.id, data: { completed: newCompleted, completed_date: newCompleted ? new Date().toISOString() : null } });
-  };
-
-  const getProductTasks = (productId) => tasks.filter(t => t.product_id === productId);
-
-  const getProductProgress = (productId) => {
-    const productTasks = getProductTasks(productId);
-    const product = products.find(p => p.id === productId);
-    const defaultSections = getDefaultTasksForProduct(product?.name) || [];
-    const importedTasks = productTasks.filter(t => t.title.includes('||'));
-    const standardTasks = productTasks.filter(t => !t.title.includes('||'));
-
-    const importedBySection = importedTasks.reduce((acc, task) => {
-      const match = task.title.match(/^\|\|(.+?)\|\|(.+)$/);
-      if (match) {
-        const [, sectionName, taskName] = match;
-        const titleLower = taskName.toLowerCase();
-        if (!acc[sectionName]) acc[sectionName] = new Map();
-        if (!acc[sectionName].has(titleLower)) acc[sectionName].set(titleLower, task);
-      }
-      return acc;
-    }, {});
-
-    const claimedIds = new Set();
-    let visibleCount = 0;
-    let completedCount = 0;
-    for (const section of defaultSections) {
-      const seenInSection = new Set();
-      for (const task of standardTasks) {
-        if (claimedIds.has(task.id)) continue;
-        if (!section.tasks.some(st => st.toLowerCase() === task.title.toLowerCase())) continue;
-        const tl = task.title.toLowerCase();
-        if (!seenInSection.has(tl)) {
-          seenInSection.add(tl);
-          claimedIds.add(task.id);
-          visibleCount++;
-          if (task.completed) completedCount++;
-        }
-      }
-    }
-
-    const importedVisible = Object.values(importedBySection).flatMap(map => Array.from(map.values()));
-    visibleCount += importedVisible.length;
-    completedCount += importedVisible.filter(t => t.completed).length;
-
-    const unclaimed = standardTasks.filter(t => !claimedIds.has(t.id));
-    visibleCount += unclaimed.length;
-    completedCount += unclaimed.filter(t => t.completed).length;
-
-    if (visibleCount === 0) return 0;
-    return Math.round((completedCount / visibleCount) * 100);
-  };
-
-  // Entity filter
-  const entityMap = new Map();
-  products.forEach(p => { if (p.entity) entityMap.set(p.entity, p.entity_full_name || p.entity); });
-  const allEntities = Array.from(entityMap.entries()).map(([code, fullName]) => ({ code, fullName })).sort((a, b) => {
-    const af = a.fullName.toLowerCase(), bf = b.fullName.toLowerCase(), ac = a.code.toLowerCase(), bc = b.code.toLowerCase();
-    if (af.includes('prefeitura') && !bf.includes('prefeitura')) return -1;
-    if (!af.includes('prefeitura') && bf.includes('prefeitura')) return 1;
-    if ((af.includes('câmara') || ac === 'cm') && !(bf.includes('câmara') || bc === 'cm')) return -1;
-    if (!(af.includes('câmara') || ac === 'cm') && (bf.includes('câmara') || bc === 'cm')) return 1;
-    return af.localeCompare(bf);
-  });
-
-  React.useEffect(() => {
-    if (allEntities.length > 0 && !selectedEntity) {
-      const entityWithProducts = allEntities.find(entity => products.some(p => p.entity === entity.code && productHasHomologation(p.name)));
-      setSelectedEntity(entityWithProducts?.code || allEntities[0]?.code);
-    }
-  }, [allEntities.length, products.length]);
-
-  const entityFilteredProducts = selectedEntity ? products.filter(p => p.entity === selectedEntity) : products;
-
-  const productsByVertical = entityFilteredProducts.reduce((acc, product) => {
-    if (productHasHomologation(product.name)) {
-      const vertical = product.vertical || 'outros';
-      if (!acc[vertical]) acc[vertical] = [];
-      acc[vertical].push(product);
-    }
-    return acc;
-  }, {});
-
-  const verticals = Object.keys(productsByVertical).sort();
-
-  React.useEffect(() => {
-    if (verticals.length > 0) {
-      const firstVertical = verticals[0];
-      setSelectedVertical(firstVertical);
-      if (productsByVertical[firstVertical]?.length > 0) setSelectedProduct(productsByVertical[firstVertical][0].id);
-    }
-  }, [verticals.length, selectedEntity]);
-
-  React.useEffect(() => {
-    if (selectedVertical && productsByVertical[selectedVertical]?.length > 0) setSelectedProduct(productsByVertical[selectedVertical][0].id);
-  }, [selectedVertical]);
-
-
-  const productsWithHomologation = entityFilteredProducts.filter(p => productHasHomologation(p.name));
-  const overallProgress = productsWithHomologation.length > 0
-    ? Math.round(productsWithHomologation.reduce((sum, p) => sum + getProductProgress(p.id), 0) / productsWithHomologation.length)
-    : 0;
-
-  const getCurrentProduct = () => products.find(p => p.id === selectedProduct);
+  const getSectionsForProduct = (productName) => getDefaultTasksForProduct(productName) || [];
 
   const moveSectionUp = (productId, sectionIndex) => {
     if (sectionIndex === 0) return;
     setSectionOrder(prev => {
-      const currentOrder = prev[productId] || getDefaultTasksForProduct(getCurrentProduct()?.name)?.map((_, i) => i) || [];
+      const currentOrder = prev[productId] || getSectionsForProduct(getCurrentProduct()?.name).map((_, i) => i);
       const newOrder = [...currentOrder];
       [newOrder[sectionIndex - 1], newOrder[sectionIndex]] = [newOrder[sectionIndex], newOrder[sectionIndex - 1]];
       return { ...prev, [productId]: newOrder };
@@ -248,7 +136,7 @@ export default function Homologation() {
   const moveSectionDown = (productId, sectionIndex, totalSections) => {
     if (sectionIndex >= totalSections - 1) return;
     setSectionOrder(prev => {
-      const currentOrder = prev[productId] || getDefaultTasksForProduct(getCurrentProduct()?.name)?.map((_, i) => i) || [];
+      const currentOrder = prev[productId] || getSectionsForProduct(getCurrentProduct()?.name).map((_, i) => i);
       const newOrder = [...currentOrder];
       [newOrder[sectionIndex], newOrder[sectionIndex + 1]] = [newOrder[sectionIndex + 1], newOrder[sectionIndex]];
       return { ...prev, [productId]: newOrder };
@@ -413,7 +301,7 @@ export default function Homologation() {
                         {/* Add task / Import */}
                         <div className="space-y-3 mb-6">
                           {(() => {
-                            const defaultSections = getDefaultTasksForProduct(product.name) || [];
+                            const defaultSections = getSectionsForProduct(product.name);
                             const importedSectionNames = [...new Set(getProductTasks(product.id).filter(t => t.title.includes('||')).map(t => t.title.match(/^\|\|(.+?)\|\|/)?.[1]).filter(Boolean))];
                             const allSections = [...defaultSections.map(s => s.section), ...importedSectionNames];
                             return (
@@ -454,7 +342,7 @@ export default function Homologation() {
                         <div className="space-y-6">
                           {(() => {
                             const productTasks = getProductTasks(product.id);
-                            const defaultSections = getDefaultTasksForProduct(product.name) || [];
+                            const defaultSections = getSectionsForProduct(product.name);
                             const importedTasks = productTasks.filter(t => t.title.includes('||'));
                             const standardTasks = productTasks.filter(t => !t.title.includes('||'));
 
