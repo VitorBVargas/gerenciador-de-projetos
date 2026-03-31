@@ -234,7 +234,7 @@ export default function Homologation() {
     if (existingTasks.length > 0) return;
 
     createDefaultTasks(product);
-  }, [selectedProduct, products.length, tasksFetched, tasks]);
+  }, [selectedProduct, products, tasksFetched, tasks]);
 
   const productsWithHomologation = entityFilteredProducts.filter(p => productHasHomologation(p.name));
   const overallProgress = productsWithHomologation.length > 0
