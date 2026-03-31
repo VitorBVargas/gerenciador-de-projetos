@@ -86,39 +86,52 @@ export default function Homologation() {
     }
   });
 
+  // ULTIMA ALTERAÇÃO 31/03/2026 - 11:43
   const createDefaultTasks = async (product) => {
-    // Previne criação duplicada simultânea
+    // 1. Previne criação duplicada simultânea (Lock)
     if (creatingTasksRef.current.has(product.id)) return;
-    
-    const existingTasks = tasks.filter(t => t.product_id === product.id);
-    if (existingTasks.length > 0) return;
+
+    // REMOVIDO: O '.filter()' que já estava sendo feito no useEffect antes de chamar a função.
 
     const defaultSections = getDefaultTasksForProduct(product.name);
-    if (!defaultSections) return;
+    if (!defaultSections || defaultSections.length === 0) return;
 
+    // Trava o produto para não duplicar
     creatingTasksRef.current.add(product.id);
 
-    const tasksToCreate = [];
-    let order = 0;
+    try {
+      const tasksToCreate = [];
+      let order = 0;
 
-    for (const section of defaultSections) {
-      for (const taskTitle of section.tasks) {
-        tasksToCreate.push({
-          title: taskTitle,
-          project_id: projectId,
-          product_id: product.id,
-          completed: false,
-          order: order++
-        });
+      // Preparação do lote de dados
+      for (const section of defaultSections) {
+        for (const taskTitle of section.tasks) {
+          tasksToCreate.push({
+            title: taskTitle,
+            project_id: projectId,
+            product_id: product.id,
+            completed: false,
+            order: order++
+          });
+        }
       }
-    }
 
-    if (tasksToCreate.length > 0) {
-      await base44.entities.HomologationTask.bulkCreate(tasksToCreate);
-      queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
+      // Envia de uma vez para o banco
+      if (tasksToCreate.length > 0) {
+        await base44.entities.HomologationTask.bulkCreate(tasksToCreate);
+        
+        // Refaz a busca (Se quiser ser super rápido, pode usar queryClient.setQueryData aqui no futuro)
+        queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
+      }
+      
+    } catch (error) {
+      console.error("Erro ao criar tarefas padrão:", error);
+      // Opcional: toast.error('Falha ao gerar tarefas padrão.');
+      
+    } finally {
+      // 2. GARANTIA: O 'finally' garante que o Lock será limpo mesmo se a API der erro!
+      creatingTasksRef.current.delete(product.id);
     }
-    
-    creatingTasksRef.current.delete(product.id);
   };
 
   // ULTIMA ALTERAÇÃO 31/03/2026 - 11:29
