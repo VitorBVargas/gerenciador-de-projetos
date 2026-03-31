@@ -417,19 +417,21 @@ export default function Homologation() {
     queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
   };
 
+  // ULTIMA ALTERAÇÃO 31/03/2026 - 11:31
   const handleImportTasks = async (rawData) => {
     const product = getCurrentProduct();
     if (!product) return;
 
-    const existingTasks = tasks.filter(t => t.product_id === product.id);
-    await Promise.all(existingTasks.map(task =>
-      base44.entities.HomologationTask.delete(task.id).catch(() => {})
-    ));
+    // Busca tarefas frescas direto do banco, sem depender do cache local
+    const freshTasks = await base44.entities.HomologationTask.filter({ 
+      project_id: projectId,
+      product_id: product.id 
+    });
 
     const tasksToCreate = [];
     const seenTitles = new Set();
     let currentEtapa = '';
-    let order = 0;
+    let order = freshTasks.length; // continua a ordem após as existentes
 
     for (const row of rawData) {
       const colA = (row[0] || '').toString().trim().toLowerCase();
@@ -439,18 +441,32 @@ export default function Homologation() {
         currentEtapa = colB;
       } else if (colA === 'tarefa') {
         const title = currentEtapa ? `||${currentEtapa}||${colB}` : colB;
-        if (!seenTitles.has(title.toLowerCase())) {
-          seenTitles.add(title.toLowerCase());
-          tasksToCreate.push({ title, project_id: projectId, product_id: product.id, completed: false, order: order++ });
+        const titleLower = title.toLowerCase();
+
+        // Verifica se já existe no banco (evita duplicatas)
+        const alreadyExists = freshTasks.some(t => t.title.toLowerCase() === titleLower);
+
+        if (!alreadyExists && !seenTitles.has(titleLower)) {
+          seenTitles.add(titleLower);
+          tasksToCreate.push({ 
+            title, 
+            project_id: projectId, 
+            product_id: product.id, 
+            completed: false, 
+            order: order++ 
+          });
         }
       }
     }
 
     if (tasksToCreate.length > 0) {
       await base44.entities.HomologationTask.bulkCreate(tasksToCreate);
-      toast.success(`${tasksToCreate.length} tarefas importadas com sucesso!`);
-      queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
+      toast.success(`${tasksToCreate.length} tarefas novas importadas! Tarefas já existentes foram preservadas.`);
+    } else {
+      toast.info('Nenhuma tarefa nova encontrada. Todas já estavam cadastradas.');
     }
+
+    queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
   };
 
   return (
