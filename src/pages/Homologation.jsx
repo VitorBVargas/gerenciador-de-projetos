@@ -64,12 +64,7 @@ export default function Homologation() {
 
   const activeProject = projects.find(p => p.id === projectId);
   const getProductTasks = (productId) => tasks.filter(task => task.product_id === productId);
-  const productsWithHomologation = products.filter(product => {
-    const productTasks = getProductTasks(product.id);
-    const normalizedName = product.name?.trim().toLowerCase();
-    const forceShowPersistedFolha = product.vertical === 'pessoal' && normalizedName === 'folha (cloud)';
-    return forceShowPersistedFolha || productHasHomologation(product.name) || productTasks.length > 0;
-  });
+  const productsWithHomologation = products.filter(product => productHasHomologation(product.name) || getProductTasks(product.id).length > 0);
   const filteredProducts = selectedEntity
     ? productsWithHomologation.filter(product => product.entity === selectedEntity)
     : productsWithHomologation;
