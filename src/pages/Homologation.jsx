@@ -39,7 +39,6 @@ export default function Homologation() {
   const [addTaskSection, setAddTaskSection] = useState('');
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [markingProgress, setMarkingProgress] = useState({ isLoading: false, current: 0, total: 0 });
-  const [activeProductTasks, setActiveProductTasks] = useState([]);
   const creatingTasksRef = useRef(new Set());
 
   const urlParams = new URLSearchParams(window.location.search);
@@ -66,35 +65,23 @@ export default function Homologation() {
 
   const createTaskMutation = useMutation({
     mutationFn: (data) => base44.entities.HomologationTask.create(data),
-    onSuccess: async () => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
-      if (selectedProduct) {
-        const freshTasks = await base44.entities.HomologationTask.filter({ project_id: projectId, product_id: selectedProduct });
-        setActiveProductTasks(freshTasks);
-      }
       setNewTaskTitle('');
     }
   });
 
   const updateTaskMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.HomologationTask.update(id, data),
-    onSuccess: async () => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
-      if (selectedProduct) {
-        const freshTasks = await base44.entities.HomologationTask.filter({ project_id: projectId, product_id: selectedProduct });
-        setActiveProductTasks(freshTasks);
-      }
     }
   });
 
   const deleteTaskMutation = useMutation({
     mutationFn: (id) => base44.entities.HomologationTask.delete(id),
-    onSuccess: async () => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
-      if (selectedProduct) {
-        const freshTasks = await base44.entities.HomologationTask.filter({ project_id: projectId, product_id: selectedProduct });
-        setActiveProductTasks(freshTasks);
-      }
     }
   });
 
@@ -104,29 +91,19 @@ export default function Homologation() {
     if (existingTasks.length > 0) return;
     const defaultSections = getDefaultTasksForProduct(product.name);
     if (!defaultSections) return;
-
     creatingTasksRef.current.add(product.id);
-    try {
-      const freshTasks = await base44.entities.HomologationTask.filter({
-        project_id: projectId,
-        product_id: product.id
-      });
-      if (freshTasks.length > 0) return;
-
-      const tasksToCreate = [];
-      let order = 0;
-      for (const section of defaultSections) {
-        for (const taskTitle of section.tasks) {
-          tasksToCreate.push({ title: taskTitle, project_id: projectId, product_id: product.id, completed: false, order: order++ });
-        }
+    const tasksToCreate = [];
+    let order = 0;
+    for (const section of defaultSections) {
+      for (const taskTitle of section.tasks) {
+        tasksToCreate.push({ title: taskTitle, project_id: projectId, product_id: product.id, completed: false, order: order++ });
       }
-      if (tasksToCreate.length > 0) {
-        await base44.entities.HomologationTask.bulkCreate(tasksToCreate);
-        queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
-      }
-    } finally {
-      creatingTasksRef.current.delete(product.id);
     }
+    if (tasksToCreate.length > 0) {
+      await base44.entities.HomologationTask.bulkCreate(tasksToCreate);
+      queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
+    }
+    creatingTasksRef.current.delete(product.id);
   };
 
   const handleAddTask = () => {
@@ -141,10 +118,7 @@ export default function Homologation() {
     updateTaskMutation.mutate({ id: task.id, data: { completed: newCompleted, completed_date: newCompleted ? new Date().toISOString() : null } });
   };
 
-  const getProductTasks = (productId) => {
-    if (productId === selectedProduct) return activeProductTasks;
-    return tasks.filter(t => t.product_id === productId);
-  };
+  const getProductTasks = (productId) => tasks.filter(t => t.product_id === productId);
 
   const getProductProgress = (productId) => {
     const productTasks = getProductTasks(productId);
@@ -241,38 +215,16 @@ export default function Homologation() {
   }, [selectedVertical]);
 
   React.useEffect(() => {
-    if (!selectedProduct || products.length === 0 || !tasksFetched) return;
-    const product = getCurrentProduct();
-    if (!product || !productHasHomologation(product.name)) {
-      setActiveProductTasks([]);
-      return;
+    if (selectedProduct && products.length > 0 && tasksFetched) {
+      const product = getCurrentProduct();
+      if (product) {
+        const existingTasks = tasks.filter(t => t.product_id === product.id);
+        if (existingTasks.length === 0 && productHasHomologation(product.name)) {
+          createDefaultTasks(product);
+        }
+      }
     }
-
-    const loadProductTasks = async () => {
-      const freshTasks = await base44.entities.HomologationTask.filter({
-        project_id: projectId,
-        product_id: product.id
-      });
-
-      if (freshTasks.length > 0) {
-        setActiveProductTasks(freshTasks);
-        return;
-      }
-
-      setActiveProductTasks([]);
-
-      if (!creatingTasksRef.current.has(product.id)) {
-        await createDefaultTasks(product);
-        const createdTasks = await base44.entities.HomologationTask.filter({
-          project_id: projectId,
-          product_id: product.id
-        });
-        setActiveProductTasks(createdTasks);
-      }
-    };
-
-    loadProductTasks();
-  }, [selectedProduct, products, tasksFetched]);
+  }, [selectedProduct, products.length, tasksFetched]);
 
   const productsWithHomologation = entityFilteredProducts.filter(p => productHasHomologation(p.name));
   const overallProgress = productsWithHomologation.length > 0
@@ -349,10 +301,6 @@ export default function Homologation() {
     }
     setMarkingProgress({ isLoading: false, current: 0, total: 0 });
     queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
-    if (selectedProduct) {
-      const freshTasks = await base44.entities.HomologationTask.filter({ project_id: projectId, product_id: selectedProduct });
-      setActiveProductTasks(freshTasks);
-    }
   };
 
   const handleImportTasks = async (rawData) => {
@@ -384,8 +332,6 @@ export default function Homologation() {
       toast.info('Nenhuma tarefa nova encontrada. Todas já estavam cadastradas.');
     }
     queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
-    const updatedTasks = await base44.entities.HomologationTask.filter({ project_id: projectId, product_id: product.id });
-    setActiveProductTasks(updatedTasks);
   };
 
   const renderTaskRow = (task, displayTitle) => (
@@ -609,7 +555,7 @@ export default function Homologation() {
                             );
                           })()}
 
-                          {tasksFetched && creatingTasksRef.current.has(product.id) && (
+                          {tasksFetched && getProductTasks(product.id).length === 0 && productHasHomologation(product.name) && (
                             <p className="text-center text-slate-500 py-4 text-sm">Carregando tarefas padrão...</p>
                           )}
                         </div>
