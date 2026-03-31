@@ -58,7 +58,7 @@ export default function Homologation() {
 
   const { data: tasks = [], isFetched: tasksFetched } = useQuery({
     queryKey: ['homologationTasks', projectId],
-    queryFn: () => projectId ? base44.entities.HomologationTask.filter({ project_id: projectId }) : [],
+    queryFn: () => projectId ? base44.entities.HomologationTask.filter({ project_id: projectId }, '-order', 2000) : [],
     enabled: !!projectId
   });
 
