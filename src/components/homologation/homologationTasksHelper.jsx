@@ -5,21 +5,30 @@ import { getDefaultTasksForProduct as getStandardTasks } from './homologationTas
 import { getEducationTasksForProduct } from './homologationTasksEducation';
 import { getArrecadacaoTasksForProduct } from './homologationTasksArrecadacao';
 
+const homologationAliases = {
+  'Minha Folha': 'Folha (Cloud)',
+  'Monitor DF': 'Compras (Cloud)',
+  'Obras': 'Contratos (Cloud)',
+  'Patrimônio (Cloud)': 'Almoxarifado (Cloud)',
+  'Pontual (Cloud)': 'Ponto (Cloud)'
+};
+
 export const getDefaultTasksForProduct = (productName) => {
   if (!productName) return null;
-  
-  // Tenta primeiro em homologationTasks (padrão)
-  const standardTasks = getStandardTasks(productName);
-  if (standardTasks) return standardTasks;
-  
-  // Tenta em homologationTasksArrecadacao
-  const arrecadacaoTasks = getArrecadacaoTasksForProduct(productName);
-  if (arrecadacaoTasks) return arrecadacaoTasks;
-  
-  // Se não encontrou, tenta em homologationTasksEducation
-  const educationTasks = getEducationTasksForProduct(productName);
-  if (educationTasks) return educationTasks;
-  
+
+  const namesToTry = [productName, homologationAliases[productName]].filter(Boolean);
+
+  for (const name of namesToTry) {
+    const standardTasks = getStandardTasks(name);
+    if (standardTasks) return standardTasks;
+
+    const arrecadacaoTasks = getArrecadacaoTasksForProduct(name);
+    if (arrecadacaoTasks) return arrecadacaoTasks;
+
+    const educationTasks = getEducationTasksForProduct(name);
+    if (educationTasks) return educationTasks;
+  }
+
   return null;
 };
 
