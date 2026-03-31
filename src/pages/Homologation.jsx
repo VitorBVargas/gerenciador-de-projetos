@@ -58,7 +58,7 @@ export default function Homologation() {
 
   const { data: tasks = [], isFetched: tasksFetched } = useQuery({
     queryKey: ['homologationTasks', projectId],
-    queryFn: () => projectId ? base44.entities.HomologationTask.filter({ project_id: projectId }, '-order', 5000) : [],
+    queryFn: () => projectId ? base44.entities.HomologationTask.filter({ project_id: projectId }) : [],
     enabled: !!projectId
   });
 
@@ -89,20 +89,14 @@ export default function Homologation() {
   const createDefaultTasks = async (product) => {
     // Previne criação duplicada simultânea
     if (creatingTasksRef.current.has(product.id)) return;
-    creatingTasksRef.current.add(product.id);
-
-    // Consulta fresca no servidor para evitar criação com dados stale do cache
-    const freshTasks = await base44.entities.HomologationTask.filter({ product_id: product.id });
-    if (freshTasks.length > 0) {
-      creatingTasksRef.current.delete(product.id);
-      return;
-    }
+    
+    const existingTasks = tasks.filter(t => t.product_id === product.id);
+    if (existingTasks.length > 0) return;
 
     const defaultSections = getDefaultTasksForProduct(product.name);
-    if (!defaultSections) {
-      creatingTasksRef.current.delete(product.id);
-      return;
-    }
+    if (!defaultSections) return;
+
+    creatingTasksRef.current.add(product.id);
 
     const tasksToCreate = [];
     let order = 0;
@@ -644,7 +638,7 @@ export default function Homologation() {
                                         variant="ghost"
                                         className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover/section:opacity-100 transition-opacity"
                                         onClick={async () => {
-                                          await Promise.all(uniqueImportedTasks.map(t => deleteTaskMutation.mutate(t.id)));
+                                          await Promise.all(sectionTasks.map(t => deleteTaskMutation.mutate(t.id)));
                                           toast.success(`Seção "${sectionName}" deletada`);
                                         }}
                                       >
