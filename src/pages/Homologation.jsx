@@ -207,7 +207,8 @@ export default function Homologation() {
   const entityFilteredProducts = selectedEntity ? products.filter(p => p.entity === selectedEntity) : products;
 
   const productsByVertical = entityFilteredProducts.reduce((acc, product) => {
-    if (productHasHomologation(product.name)) {
+    const hasSavedTasks = tasks.some(task => task.product_id === product.id);
+    if (productHasHomologation(product.name) || hasSavedTasks) {
       const vertical = product.vertical || 'outros';
       if (!acc[vertical]) acc[vertical] = [];
       acc[vertical].push(product);
@@ -230,7 +231,7 @@ export default function Homologation() {
   }, [selectedVertical]);
 
 
-  const productsWithHomologation = entityFilteredProducts.filter(p => productHasHomologation(p.name));
+  const productsWithHomologation = entityFilteredProducts.filter(p => productHasHomologation(p.name) || tasks.some(task => task.product_id === p.id));
   const overallProgress = productsWithHomologation.length > 0
     ? Math.round(productsWithHomologation.reduce((sum, p) => sum + getProductProgress(p.id), 0) / productsWithHomologation.length)
     : 0;
@@ -573,7 +574,7 @@ export default function Homologation() {
                             );
                           })()}
 
-                          {tasksFetched && getProductTasks(product.id).length === 0 && productHasHomologation(product.name) && (
+                          {tasksFetched && getProductTasks(product.id).length === 0 && (
                             <p className="text-center text-slate-500 py-4 text-sm">Nenhuma tarefa cadastrada ainda para este produto.</p>
                           )}
                         </div>
