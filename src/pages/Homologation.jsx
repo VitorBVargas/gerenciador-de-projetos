@@ -89,14 +89,20 @@ export default function Homologation() {
   const createDefaultTasks = async (product) => {
     // Previne criação duplicada simultânea
     if (creatingTasksRef.current.has(product.id)) return;
-    
-    const existingTasks = tasks.filter(t => t.product_id === product.id);
-    if (existingTasks.length > 0) return;
+    creatingTasksRef.current.add(product.id);
+
+    // Consulta fresca no servidor para evitar criação com dados stale do cache
+    const freshTasks = await base44.entities.HomologationTask.filter({ product_id: product.id });
+    if (freshTasks.length > 0) {
+      creatingTasksRef.current.delete(product.id);
+      return;
+    }
 
     const defaultSections = getDefaultTasksForProduct(product.name);
-    if (!defaultSections) return;
-
-    creatingTasksRef.current.add(product.id);
+    if (!defaultSections) {
+      creatingTasksRef.current.delete(product.id);
+      return;
+    }
 
     const tasksToCreate = [];
     let order = 0;
