@@ -64,7 +64,12 @@ export default function Homologation() {
 
   const activeProject = projects.find(p => p.id === projectId);
   const getProductTasks = (productId) => tasks.filter(task => task.product_id === productId);
-  const productsWithHomologation = products.filter(product => productHasHomologation(product.name) || getProductTasks(product.id).length > 0);
+  const productsWithHomologation = products.filter(product => {
+    const productTasks = getProductTasks(product.id);
+    const normalizedName = product.name?.trim().toLowerCase();
+    const forceShowPersistedFolha = product.vertical === 'pessoal' && normalizedName === 'folha (cloud)';
+    return forceShowPersistedFolha || productHasHomologation(product.name) || productTasks.length > 0;
+  });
   const filteredProducts = selectedEntity
     ? productsWithHomologation.filter(product => product.entity === selectedEntity)
     : productsWithHomologation;
@@ -75,6 +80,7 @@ export default function Homologation() {
   }, {});
   const allEntities = [...new Map(productsWithHomologation.filter(product => product.entity).map(product => [product.entity, { code: product.entity, fullName: product.entity_full_name || null }])).values()];
   const getCurrentProduct = () => products.find(product => product.id === selectedProduct) || filteredProducts[0] || null;
+  const getSectionsForProduct = (productName) => getDefaultTasksForProduct(productName) || [];
   const getProductProgress = (productId) => {
     const product = products.find(item => item.id === productId);
     if (!product) return 0;
@@ -131,8 +137,8 @@ export default function Homologation() {
 
   const createDefaultTasks = async (product) => {
     if (creatingTasksRef.current.has(product.id)) return;
-    const defaultSections = getDefaultTasksForProduct(product.name);
-    if (!defaultSections) return;
+    const defaultSections = getSectionsForProduct(product.name);
+    if (defaultSections.length === 0) return;
 
     creatingTasksRef.current.add(product.id);
     setCreatingDefaultTasksFor(product.id);
@@ -163,8 +169,6 @@ export default function Homologation() {
     creatingTasksRef.current.delete(product.id);
     setCreatingDefaultTasksFor(null);
   };
-
-  const getSectionsForProduct = (productName) => getDefaultTasksForProduct(productName) || [];
 
   const normalizedProducts = filteredProducts.length > 0 ? filteredProducts : products;
 
