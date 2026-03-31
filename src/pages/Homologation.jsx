@@ -40,7 +40,7 @@ export default function Homologation() {
   const [addTaskSection, setAddTaskSection] = useState('');
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [markingProgress, setMarkingProgress] = useState({ isLoading: false, current: 0, total: 0 });
-  const creatingTasksRef = React.useRef(new Set());
+  const [initializingProduct, setInitializingProduct] = useState(null);
 
   const urlParams = new URLSearchParams(window.location.search);
   const projectId = urlParams.get('project_id');
@@ -86,24 +86,14 @@ export default function Homologation() {
     }
   });
 
-  // ULTIMA ALTERAÇÃO 31/03/2026 - 11:43
-  const createDefaultTasks = async (product) => {
-    // 1. Previne criação duplicada simultânea (Lock)
-    if (creatingTasksRef.current.has(product.id)) return;
-
-    // REMOVIDO: O '.filter()' que já estava sendo feito no useEffect antes de chamar a função.
-
-    const defaultSections = getDefaultTasksForProduct(product.name);
-    if (!defaultSections || defaultSections.length === 0) return;
-
-    // Trava o produto para não duplicar
-    creatingTasksRef.current.add(product.id);
-
+  const initializeDefaultTasks = async (product) => {
+    if (initializingProduct) return;
+    setInitializingProduct(product.id);
     try {
+      const defaultSections = getDefaultTasksForProduct(product.name);
+      if (!defaultSections || defaultSections.length === 0) return;
       const tasksToCreate = [];
       let order = 0;
-
-      // Preparação do lote de dados
       for (const section of defaultSections) {
         for (const taskTitle of section.tasks) {
           tasksToCreate.push({
@@ -115,45 +105,17 @@ export default function Homologation() {
           });
         }
       }
-
-      // Envia de uma vez para o banco
       if (tasksToCreate.length > 0) {
         await base44.entities.HomologationTask.bulkCreate(tasksToCreate);
-        
-        // Refaz a busca (Se quiser ser super rápido, pode usar queryClient.setQueryData aqui no futuro)
         queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
+        toast.success(`${tasksToCreate.length} tarefas padrão criadas!`);
       }
-      
-    } catch (error) {
-      console.error("Erro ao criar tarefas padrão:", error);
-      // Opcional: toast.error('Falha ao gerar tarefas padrão.');
-      
     } finally {
-      // 2. GARANTIA: O 'finally' garante que o Lock será limpo mesmo se a API der erro!
-      creatingTasksRef.current.delete(product.id);
+      setInitializingProduct(null);
     }
   };
 
-  // ULTIMA ALTERAÇÃO 31/03/2026 - 11:29
-  React.useEffect(() => {
-    // Só executa se os dados estiverem completamente carregados e estáveis
-    if (!selectedProduct || products.length === 0 || !tasksFetched) return;
-
-    const product = getCurrentProduct();
-    if (!product) return;
-
-    // Não possui template de homologação, ignora
-    if (!productHasHomologation(product.name)) return;
-
-    // Guard: só cria se tasks já foram buscadas E o array está vazio para este produto
-    // Isso evita disparar durante estados transitórios do cache
-    const existingTasks = tasks.filter(t => t.product_id === product.id);
-    const isAlreadyCreating = creatingTasksRef.current.has(product.id);
-
-    if (existingTasks.length === 0 && !isAlreadyCreating) {
-      createDefaultTasks(product);
-    }
-  }, [selectedProduct, products.length, tasksFetched, tasks.length]); 
+  // Tarefas agora são criadas apenas via inicialização manual (botão) ou setup do projeto.
 
   const handleAddTask = () => {
     if (!newTaskTitle.trim() || !selectedProduct) return;
@@ -842,10 +804,21 @@ export default function Homologation() {
                                 );
                                 })()}
 
-                          {getProductTasks(product.id).length === 0 && (
-                            <p className="text-center text-slate-500 py-4 text-sm">
-                              Carregando tarefas padrão...
-                            </p>
+                          {tasksFetched && getProductTasks(product.id).length === 0 && productHasHomologation(product.name) && (
+                            <div className="text-center py-8">
+                              <p className="text-slate-400 text-sm mb-4">Nenhuma tarefa cadastrada para este produto.</p>
+                              <Button
+                                onClick={() => initializeDefaultTasks(product)}
+                                disabled={initializingProduct === product.id}
+                                className="bg-blue-600 hover:bg-blue-700"
+                              >
+                                {initializingProduct === product.id ? (
+                                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Criando tarefas...</>
+                                ) : (
+                                  <><Plus className="w-4 h-4 mr-2" />Inicializar Tarefas Padrão</>
+                                )}
+                              </Button>
+                            </div>
                           )}
                         </div>
                       </CardContent>
