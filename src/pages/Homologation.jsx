@@ -85,13 +85,12 @@ export default function Homologation() {
     }
   });
 
-  const initializeDefaultTasks = async (product) => {
-    if (!product || creatingTasksRef.current.has(product.id)) return;
+  const createDefaultTasks = async (product) => {
+    if (creatingTasksRef.current.has(product.id)) return;
     const existingTasks = tasks.filter(t => t.product_id === product.id);
     if (existingTasks.length > 0) return;
     const defaultSections = getDefaultTasksForProduct(product.name);
-    if (!defaultSections || defaultSections.length === 0) return;
-
+    if (!defaultSections) return;
     creatingTasksRef.current.add(product.id);
     const tasksToCreate = [];
     let order = 0;
@@ -100,12 +99,10 @@ export default function Homologation() {
         tasksToCreate.push({ title: taskTitle, project_id: projectId, product_id: product.id, completed: false, order: order++ });
       }
     }
-
     if (tasksToCreate.length > 0) {
       await base44.entities.HomologationTask.bulkCreate(tasksToCreate);
       queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
     }
-
     creatingTasksRef.current.delete(product.id);
   };
 
@@ -190,7 +187,7 @@ export default function Homologation() {
       const entityWithProducts = allEntities.find(entity => products.some(p => p.entity === entity.code && productHasHomologation(p.name)));
       setSelectedEntity(entityWithProducts?.code || allEntities[0]?.code);
     }
-  }, [allEntities.length]);
+  }, [allEntities.length, products.length]);
 
   const entityFilteredProducts = selectedEntity ? products.filter(p => p.entity === selectedEntity) : products;
 
@@ -217,13 +214,13 @@ export default function Homologation() {
     if (selectedVertical && productsByVertical[selectedVertical]?.length > 0) setSelectedProduct(productsByVertical[selectedVertical][0].id);
   }, [selectedVertical]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (selectedProduct && products.length > 0 && tasksFetched) {
       const product = getCurrentProduct();
       if (product) {
         const existingTasks = tasks.filter(t => t.product_id === product.id);
         if (existingTasks.length === 0 && productHasHomologation(product.name)) {
-          initializeDefaultTasks(product);
+          createDefaultTasks(product);
         }
       }
     }
