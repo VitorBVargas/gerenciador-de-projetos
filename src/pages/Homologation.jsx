@@ -224,23 +224,16 @@ export default function Homologation() {
     if (selectedVertical && productsByVertical[selectedVertical]?.length > 0) setSelectedProduct(productsByVertical[selectedVertical][0].id);
   }, [selectedVertical]);
 
-  const initializedProductsRef = useRef(new Set());
-
   React.useEffect(() => {
     if (!selectedProduct || products.length === 0 || !tasksFetched) return;
     const product = getCurrentProduct();
     if (!product || !productHasHomologation(product.name)) return;
-    if (initializedProductsRef.current.has(product.id)) return;
+    if (creatingTasksRef.current.has(product.id)) return;
 
     const existingTasks = tasks.filter(t => t.product_id === product.id);
-    if (existingTasks.length > 0) {
-      initializedProductsRef.current.add(product.id);
-      return;
-    }
+    if (existingTasks.length > 0) return;
 
-    createDefaultTasks(product).then(() => {
-      initializedProductsRef.current.add(product.id);
-    });
+    createDefaultTasks(product);
   }, [selectedProduct, products.length, tasksFetched, tasks]);
 
   const productsWithHomologation = entityFilteredProducts.filter(p => productHasHomologation(p.name));
