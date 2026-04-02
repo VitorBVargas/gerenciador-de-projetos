@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { phaseLabels } from '../timeline/phaseLabels';
 
 const verticals = [
   { value: 'gerenciamento', label: 'Gerenciamento' },
@@ -43,7 +44,7 @@ const normalizeVertical = (v) => {
 
 export default function TeamMemberModal({ open, onOpenChange, member, onSave, projectId, portfolio }) {
   const [formData, setFormData] = useState({
-    name: '', vertical: '', role: '', entity: '', ticket_number: '', email: '', phone: ''
+    name: '', vertical: '', role: '', entity: '', ticket_number: '', email: '', phone: '', stages: []
   });
   const [showSuggestions, setShowSuggestions] = useState(false);
   const nameRef = useRef(null);
@@ -66,10 +67,11 @@ export default function TeamMemberModal({ open, onOpenChange, member, onSave, pr
         entity: member.entity || '',
         ticket_number: member.ticket_number || '',
         email: member.email || '',
-        phone: member.phone || ''
+        phone: member.phone || '',
+        stages: member.stages || []
       });
     } else {
-      setFormData({ name: '', vertical: '', role: '', entity: '', ticket_number: '', email: '', phone: '' });
+      setFormData({ name: '', vertical: '', role: '', entity: '', ticket_number: '', email: '', phone: '', stages: [] });
     }
   }, [member, open]);
 
@@ -103,6 +105,15 @@ export default function TeamMemberModal({ open, onOpenChange, member, onSave, pr
       vertical: normalizeVertical(collab.vertical1) || prev.vertical,
     }));
     setShowSuggestions(false);
+  };
+
+  const handleStageToggle = (stageKey) => {
+    setFormData(prev => ({
+      ...prev,
+      stages: prev.stages.includes(stageKey)
+        ? prev.stages.filter(stage => stage !== stageKey)
+        : [...prev.stages, stageKey]
+    }));
   };
 
   const handleSubmit = (e) => {
@@ -217,6 +228,26 @@ export default function TeamMemberModal({ open, onOpenChange, member, onSave, pr
                 className="bg-slate-700 border-slate-600 text-white"
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Etapas</Label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 rounded-md border border-slate-600 bg-slate-700/50 p-3 max-h-64 overflow-y-auto">
+              {Object.entries(phaseLabels).map(([key, label]) => {
+                const selected = formData.stages.includes(key);
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => handleStageToggle(key)}
+                    className={`text-left rounded-md border px-3 py-2 text-sm transition-colors ${selected ? 'border-blue-500 bg-blue-600/20 text-white' : 'border-slate-600 bg-slate-800/50 text-slate-300 hover:bg-slate-600/40'}`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-xs text-slate-400">Você pode selecionar mais de uma etapa.</p>
           </div>
 
           <DialogFooter>
