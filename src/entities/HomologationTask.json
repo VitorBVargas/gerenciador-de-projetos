@@ -6,13 +6,13 @@
       "type": "string",
       "description": "ID do projeto"
     },
+    "entity": {
+      "type": "string",
+      "description": "Entidade/órgão do produto dentro do projeto"
+    },
     "product_id": {
       "type": "string",
       "description": "ID do produto"
-    },
-    "entity": {
-      "type": "string",
-      "description": "Entidade vinculada ao produto"
     },
     "title": {
       "type": "string",
@@ -35,5 +35,10 @@
       "default": 0
     }
   },
-  "required": ["title", "project_id", "product_id"]
+  "required": [
+    "title",
+    "project_id",
+    "entity",
+    "product_id"
+  ]
 }
