@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { AlertCircle, CheckCircle2, AlertTriangle, Activity, ChevronDown, ChevronUp } from 'lucide-react';
+import HealthScoreDetailsModal from './HealthScoreDetailsModal';
 
 const verticalLabels = {
   arrecadacao: 'Arrecadação',
@@ -88,8 +90,15 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
       byVertical[v].titles.push(titleWithMeta);
     });
 
-    const summary = Object.entries(byVertical).map(([v, d]) => `${v} (${d.count})`).join(', ');
-    const details = Object.entries(byVertical).map(([v, d]) => `• ${v}: ${d.titles.slice(0, 3).join(', ')}${d.titles.length > 3 ? ` +${d.titles.length - 3}` : ''}`).join('\n');
+    const verticalEntries = Object.entries(byVertical);
+    const summary = verticalEntries.map(([v, d]) => `${v} (${d.count})`).join(', ');
+    const verticals = verticalEntries.map(([v, d]) => ({
+      name: v,
+      count: d.count,
+      previewItems: d.titles.slice(0, 3),
+      remainingCount: Math.max(0, d.titles.length - 3),
+      items: d.titles
+    }));
 
     return {
       type,
@@ -98,7 +107,8 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
         ? `${events.length} data${events.length > 1 ? 's' : ''} em atraso no cronograma`
         : `${events.length} data${events.length > 1 ? 's' : ''} em alerta no cronograma`,
       detail: `Verticais: ${summary}`,
-      lines: details
+      verticals,
+      hasMoreItems: verticals.some(vertical => vertical.remainingCount > 0)
     };
   };
 
@@ -155,6 +165,7 @@ const getHealthStatus = (score) => {
 
 export default function ProjectHealthScore({ timeline = [], budget = 0, spent = 0, migrationTasks = [], homologationTasks = [], risks = [], products = [], cronogramas = [] }) {
   const [expanded, setExpanded] = useState(null);
+  const [selectedAlert, setSelectedAlert] = useState(null);
   const { score, alerts } = calculateHealthScore({ timeline, migrationTasks, homologationTasks, risks, products, cronogramas });
   const status = getHealthStatus(score);
 
@@ -222,11 +233,29 @@ export default function ProjectHealthScore({ timeline = [], budget = 0, spent = 
                     expanded === idx ? <ChevronUp className="w-3.5 h-3.5 text-slate-500" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
                   )}
                 </div>
-                {expanded === idx && (alert.detail || alert.lines) && (
-                  <div className="mt-1.5 ml-6 space-y-1">
+                {expanded === idx && (alert.detail || alert.verticals) && (
+                  <div className="mt-1.5 ml-6 space-y-2">
                     {alert.detail && <p className="text-xs text-slate-400">{alert.detail}</p>}
-                    {alert.lines && (
-                      <pre className="text-xs text-slate-500 whitespace-pre-wrap font-sans">{alert.lines}</pre>
+                    {alert.verticals?.map((vertical) => (
+                      <div key={vertical.name} className="text-xs text-slate-500">
+                        <span className="text-slate-400 font-medium">• {vertical.name}:</span>{' '}
+                        {vertical.previewItems.join(', ')}
+                        {vertical.remainingCount > 0 ? ` +${vertical.remainingCount}` : ''}
+                      </div>
+                    ))}
+                    {alert.hasMoreItems && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="mt-1 border-slate-600 bg-slate-800 text-slate-200 hover:bg-slate-700"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedAlert(alert);
+                        }}
+                      >
+                        Ver todos
+                      </Button>
                     )}
                   </div>
                 )}
@@ -235,6 +264,11 @@ export default function ProjectHealthScore({ timeline = [], budget = 0, spent = 
           </div>
         )}
       </CardContent>
+      <HealthScoreDetailsModal
+        open={!!selectedAlert}
+        onOpenChange={(open) => !open && setSelectedAlert(null)}
+        alert={selectedAlert}
+      />
     </Card>
   );
 }
