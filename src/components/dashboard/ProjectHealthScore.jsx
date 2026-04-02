@@ -92,6 +92,7 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
     const details = Object.entries(byVertical).map(([v, d]) => `• ${v}: ${d.titles.slice(0, 3).join(', ')}${d.titles.length > 3 ? ` +${d.titles.length - 3}` : ''}`).join('\n');
 
     return {
+      type,
       severity: type === 'overdue' ? (events.length >= 3 ? 'high' : 'medium') : 'medium',
       text: type === 'overdue'
         ? `${events.length} data${events.length > 1 ? 's' : ''} em atraso no cronograma`
@@ -167,6 +168,11 @@ export default function ProjectHealthScore({ timeline = [], budget = 0, spent = 
     medium: 'border-yellow-500/20 bg-yellow-500/5',
     good: 'border-green-500/20 bg-green-500/5'
   };
+  const getAlertStyle = (alert) => {
+    if (alert.type === 'overdue') return { icon: sevIcon.high, bg: sevBg.high };
+    if (alert.type === 'alert') return { icon: sevIcon.medium, bg: sevBg.medium };
+    return { icon: sevIcon[alert.severity], bg: sevBg[alert.severity] };
+  };
 
   return (
     <Card className="bg-slate-800/50 border-slate-700/50 overflow-hidden">
@@ -204,11 +210,13 @@ export default function ProjectHealthScore({ timeline = [], budget = 0, spent = 
         {alerts.length > 0 && (
           <div className="space-y-2 pt-2 border-t border-slate-700">
             <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Diagnóstico</p>
-            {alerts.map((alert, idx) => (
-              <div key={idx} className={`rounded-lg border p-2 cursor-pointer transition-colors ${sevBg[alert.severity]}`}
+            {alerts.map((alert, idx) => {
+              const alertStyle = getAlertStyle(alert);
+              return (
+              <div key={idx} className={`rounded-lg border p-2 cursor-pointer transition-colors ${alertStyle.bg}`}
                 onClick={() => setExpanded(expanded === idx ? null : idx)}>
                 <div className="flex items-center gap-2">
-                  {sevIcon[alert.severity]}
+                  {alertStyle.icon}
                   <span className="text-sm text-slate-200 flex-1">{alert.text}</span>
                   {alert.detail && (
                     expanded === idx ? <ChevronUp className="w-3.5 h-3.5 text-slate-500" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
@@ -223,7 +231,7 @@ export default function ProjectHealthScore({ timeline = [], budget = 0, spent = 
                   </div>
                 )}
               </div>
-            ))}
+            )})}
           </div>
         )}
       </CardContent>
