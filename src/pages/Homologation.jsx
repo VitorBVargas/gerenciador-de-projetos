@@ -34,10 +34,10 @@ export default function Homologation() {
   const [selectedVertical, setSelectedVertical] = useState('');
   const [selectedProduct, setSelectedProduct] = useState('');
   const [selectedEntity, setSelectedEntity] = useState(null);
-  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [newTaskTitleByProduct, setNewTaskTitleByProduct] = useState({});
   const [sectionOrder, setSectionOrder] = useState({});
   const [importedSectionOrder, setImportedSectionOrder] = useState({});
-  const [addTaskSection, setAddTaskSection] = useState('');
+  const [addTaskSectionByProduct, setAddTaskSectionByProduct] = useState({});
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [markingProgress, setMarkingProgress] = useState({ isLoading: false, current: 0, total: 0 });
   const creatingTasksRef = React.useRef(new Set());
@@ -66,9 +66,12 @@ export default function Homologation() {
 
   const createTaskMutation = useMutation({
     mutationFn: (data) => base44.entities.HomologationTask.create(data),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
-      setNewTaskTitle('');
+      queryClient.refetchQueries({ queryKey: ['homologationTasks', projectId] });
+      if (variables?.product_id) {
+        setNewTaskTitleByProduct(prev => ({ ...prev, [variables.product_id]: '' }));
+      }
     }
   });
 
@@ -76,6 +79,7 @@ export default function Homologation() {
     mutationFn: ({ id, data }) => base44.entities.HomologationTask.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
+      queryClient.refetchQueries({ queryKey: ['homologationTasks', projectId] });
     }
   });
 
@@ -83,6 +87,7 @@ export default function Homologation() {
     mutationFn: (id) => base44.entities.HomologationTask.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
+      queryClient.refetchQueries({ queryKey: ['homologationTasks', projectId] });
     }
   });
 
@@ -135,18 +140,21 @@ export default function Homologation() {
     }
   }, [selectedProduct, products.length, tasks.length]);
 
-  const handleAddTask = () => {
-    if (!newTaskTitle.trim() || !selectedProduct) return;
-    const currentProduct = getCurrentProduct();
-    const title = addTaskSection ? `||${addTaskSection}||${newTaskTitle.trim()}` : newTaskTitle.trim();
+  const handleAddTask = (product) => {
+    const newTaskTitle = (newTaskTitleByProduct[product.id] || '').trim();
+    const addTaskSection = addTaskSectionByProduct[product.id] || '';
+    if (!newTaskTitle || !product?.id) return;
+
+    const title = addTaskSection ? `||${addTaskSection}||${newTaskTitle}` : newTaskTitle;
     createTaskMutation.mutate({
       title,
       project_id: activeProject?.id,
-      entity: currentProduct?.entity || '',
-      product_id: selectedProduct,
+      entity: product.entity || '',
+      product_id: product.id,
       completed: false
     });
-    setAddTaskSection('');
+
+    setAddTaskSectionByProduct(prev => ({ ...prev, [product.id]: '' }));
   };
 
   const handleToggleTask = (task) => {
@@ -163,7 +171,11 @@ export default function Homologation() {
   const getProductTasks = (productId) => {
     const product = products.find(p => p.id === productId);
     const entityKey = product?.entity || '';
-    return tasks.filter(t => t.product_id === productId && (t.entity || '') === entityKey);
+    return tasks.filter(t =>
+      t.project_id === projectId &&
+      t.product_id === productId &&
+      (t.entity || '') === entityKey
+    );
   };
 
   const getProductProgress = (productId) => {
@@ -399,10 +411,17 @@ export default function Homologation() {
     const product = getCurrentProduct();
     if (!product) return;
 
-    const existingTasks = tasks.filter(t => t.product_id === product.id);
+    const existingTasks = tasks.filter(t =>
+      t.project_id === projectId &&
+      t.product_id === product.id &&
+      (t.entity || '') === (product.entity || '')
+    );
     await Promise.all(existingTasks.map(task =>
       base44.entities.HomologationTask.delete(task.id).catch(() => {})
     ));
+
+    queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
+    queryClient.refetchQueries({ queryKey: ['homologationTasks', projectId] });
 
     const tasksToCreate = [];
     const seenTitles = new Set();
@@ -428,6 +447,7 @@ export default function Homologation() {
       await base44.entities.HomologationTask.bulkCreate(tasksToCreate);
       toast.success(`${tasksToCreate.length} tarefas importadas com sucesso!`);
       queryClient.invalidateQueries({ queryKey: ['homologationTasks', projectId] });
+      queryClient.refetchQueries({ queryKey: ['homologationTasks', projectId] });
     }
   };
 
@@ -530,8 +550,8 @@ export default function Homologation() {
                               <>
                                 {allSections.length > 0 && (
                                   <select
-                                    value={addTaskSection}
-                                    onChange={e => setAddTaskSection(e.target.value)}
+                                    value={addTaskSectionByProduct[product.id] || ''}
+                                    onChange={e => setAddTaskSectionByProduct(prev => ({ ...prev, [product.id]: e.target.value }))}
                                     className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2 text-sm"
                                   >
                                     <option value="">Selecione a etapa (opcional)</option>
@@ -542,13 +562,13 @@ export default function Homologation() {
                                 )}
                                 <div className="flex gap-2">
                                   <Input
-                                    value={newTaskTitle}
-                                    onChange={(e) => setNewTaskTitle(e.target.value)}
+                                    value={newTaskTitleByProduct[product.id] || ''}
+                                    onChange={(e) => setNewTaskTitleByProduct(prev => ({ ...prev, [product.id]: e.target.value }))}
                                     placeholder="Nova tarefa de homologação..."
                                     className="bg-slate-700 border-slate-600 text-white"
-                                    onKeyDown={(e) => e.key === 'Enter' && handleAddTask()}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleAddTask(product)}
                                   />
-                                  <Button onClick={handleAddTask} className="bg-blue-600 hover:bg-blue-700">
+                                  <Button onClick={() => handleAddTask(product)} className="bg-blue-600 hover:bg-blue-700">
                                     <Plus className="w-4 h-4" />
                                   </Button>
                                 </div>
