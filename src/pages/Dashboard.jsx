@@ -197,7 +197,12 @@ export default function Dashboard() {
   
   const filteredProducts = selectedEntity ? products.filter(p => p.entity === selectedEntity) : products;
   const filteredMigrationTasks = migrationTasks.filter(t => filteredProducts.some(p => p.id === t.product_id));
-  const filteredHomologationTasks = homologationTasks.filter(t => filteredProducts.some(p => p.id === t.product_id));
+  //const filteredHomologationTasks = homologationTasks.filter(t => filteredProducts.some(p => p.id === t.product_id));
+  const filteredHomologationTasks = homologationTasks.filter(t => {
+    const matchesProduct = filteredProductIds.has(t.product_id);
+    const matchesEntity = selectedEntity ? t.entity === selectedEntity : true;
+    return matchesProduct && matchesEntity;
+  });
 
 
 
