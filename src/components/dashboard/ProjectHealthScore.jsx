@@ -30,12 +30,22 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
   });
 
   // --- 1. TIMELINE (40 pts) ---
-  // Etapas que já passaram da data fim E não foram concluídas
+  // Hoje = alerta | passou de hoje = atrasado
   const now = new Date();
+  const todayKey = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
+
   const allOverdueEvents = timeline.filter(e => {
-    if (!e.end_date) return false;
+    if (!e.end_date || e.status === 'concluido') return false;
     const endDate = new Date(e.end_date);
-    return endDate < now && e.status !== 'concluido';
+    const endKey = `${endDate.getFullYear()}-${endDate.getMonth()}-${endDate.getDate()}`;
+    return endKey < todayKey;
+  });
+
+  const allAlertEvents = timeline.filter(e => {
+    if (!e.end_date || e.status === 'concluido') return false;
+    const endDate = new Date(e.end_date);
+    const endKey = `${endDate.getFullYear()}-${endDate.getMonth()}-${endDate.getDate()}`;
+    return endKey === todayKey;
   });
 
   // Helper: para cada cronograma_id, busca o nome da vertical
@@ -48,22 +58,29 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
   };
 
   // Deduplica por (vertical, título, entidade) para não colapsar eventos de entidades diferentes
-  const seenVerticalTitle = new Set();
-  const overdueEvents = allOverdueEvents.filter(e => {
-    const entity = productEntityMap[e.product_id] || '';
-    const key = `${getCronogramaLabel(e)}||${e.title}||${entity}`;
-    if (seenVerticalTitle.has(key)) return false;
-    seenVerticalTitle.add(key);
-    return true;
-  });
+  const dedupeEvents = (events) => {
+    const seenVerticalTitle = new Set();
+    return events.filter(e => {
+      const entity = productEntityMap[e.product_id] || '';
+      const key = `${getCronogramaLabel(e)}||${e.title}||${entity}`;
+      if (seenVerticalTitle.has(key)) return false;
+      seenVerticalTitle.add(key);
+      return true;
+    });
+  };
+
+  const overdueEvents = dedupeEvents(allOverdueEvents);
+  const alertEvents = dedupeEvents(allAlertEvents);
 
   const delayCost = overdueEvents.length * 3;
   const timelineDeduction = Math.min(40, delayCost);
   score -= timelineDeduction;
 
-  if (overdueEvents.length > 0) {
+  const buildTimelineAlert = (events, type) => {
+    if (events.length === 0) return;
+
     const byVertical = {};
-    overdueEvents.forEach(e => {
+    events.forEach(e => {
       const v = getCronogramaLabel(e);
       if (!byVertical[v]) byVertical[v] = { count: 0, titles: [] };
       byVertical[v].count++;
@@ -73,16 +90,22 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
       const titleWithMeta = meta ? `${e.title} (${meta})` : e.title;
       byVertical[v].titles.push(titleWithMeta);
     });
+
     const summary = Object.entries(byVertical).map(([v, d]) => `${v} (${d.count})`).join(', ');
     const details = Object.entries(byVertical).map(([v, d]) => `• ${v}: ${d.titles.slice(0, 3).join(', ')}${d.titles.length > 3 ? ` +${d.titles.length - 3}` : ''}`).join('\n');
 
     alerts.push({
-      severity: overdueEvents.length >= 3 ? 'high' : 'medium',
-      text: `${overdueEvents.length} fase${overdueEvents.length > 1 ? 's' : ''} atrasada${overdueEvents.length > 1 ? 's' : ''} no cronograma`,
+      severity: type === 'overdue' ? (events.length >= 3 ? 'high' : 'medium') : 'medium',
+      text: type === 'overdue'
+        ? `${events.length} fase${events.length > 1 ? 's' : ''} atrasada${events.length > 1 ? 's' : ''} no cronograma`
+        : `${events.length} fase${events.length > 1 ? 's' : ''} em alerta no cronograma`,
       detail: `Verticais: ${summary}`,
       lines: details
     });
-  }
+  };
+
+  buildTimelineAlert(overdueEvents, 'overdue');
+  buildTimelineAlert(alertEvents, 'alert');
 
 
 
