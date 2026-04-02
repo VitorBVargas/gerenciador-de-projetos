@@ -18,6 +18,7 @@ import {
 import { cn } from "@/lib/utils";
 import TeamMemberModal from '../components/modals/TeamMemberModal';
 import { VERTICAL_BADGE_COLORS, VERTICAL_AVATAR_COLORS } from '../components/verticalColors';
+import { phaseLabels } from '../components/timeline/phaseLabels';
 import EmptyState from '../components/ui/EmptyState';
 import {
   AlertDialog,
@@ -234,6 +235,19 @@ export default function Team() {
                               <div className="flex items-center gap-1 text-[11px] text-slate-500 mt-0.5">
                                 <Phone className="w-2.5 h-2.5" />
                                 <span>{member.phone}</span>
+                              </div>
+                            )}
+                            {member.stages?.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-2">
+                                {member.stages.map((stage) => (
+                                  <Badge
+                                    key={stage}
+                                    variant="outline"
+                                    className="border-blue-500/30 bg-blue-500/10 text-blue-300 text-[10px]"
+                                  >
+                                    {phaseLabels[stage] || stage}
+                                  </Badge>
+                                ))}
                               </div>
                             )}
                           </div>
