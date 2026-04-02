@@ -21,9 +21,13 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
   let score = 100;
   const alerts = []; // { severity: 'high'|'medium'|'good', text, detail }
 
-  // Mapa product_id -> entity
+  // Mapas por produto
   const productEntityMap = {};
-  (products || []).forEach(p => { if (p.id && p.entity) productEntityMap[p.id] = p.entity; });
+  const productNameMap = {};
+  (products || []).forEach(p => {
+    if (p.id && p.entity) productEntityMap[p.id] = p.entity;
+    if (p.id && p.name) productNameMap[p.id] = p.name;
+  });
 
   // --- 1. TIMELINE (40 pts) ---
   // Etapas que já passaram da data fim E não foram concluídas
@@ -64,8 +68,10 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
       if (!byVertical[v]) byVertical[v] = { count: 0, titles: [] };
       byVertical[v].count++;
       const entity = productEntityMap[e.product_id];
-      const titleWithEntity = entity ? `${e.title} (${entity})` : e.title;
-      byVertical[v].titles.push(titleWithEntity);
+      const productName = productNameMap[e.product_id];
+      const meta = [productName, entity].filter(Boolean).join(' • ');
+      const titleWithMeta = meta ? `${e.title} (${meta})` : e.title;
+      byVertical[v].titles.push(titleWithMeta);
     });
     const summary = Object.entries(byVertical).map(([v, d]) => `${v} (${d.count})`).join(', ');
     const details = Object.entries(byVertical).map(([v, d]) => `• ${v}: ${d.titles.slice(0, 3).join(', ')}${d.titles.length > 3 ? ` +${d.titles.length - 3}` : ''}`).join('\n');
