@@ -64,12 +64,12 @@ export default function Homologation() {
 
   const activeProject = projects.find(p => p.id === projectId);
 
-  const getProductTasks = (productId) => tasks.filter(t => t.product_id === productId);
+  const getProductTasks = (productId, entity) => tasks.filter(t => t.product_id === productId && ((!t.entity && !entity) || t.entity === entity));
   const getSectionsForProduct = (productName) => getDefaultTasksForProduct(productName) || [];
 
   const getProductProgress = (productId) => {
-    const productTasks = getProductTasks(productId);
     const product = products.find(p => p.id === productId);
+    const productTasks = getProductTasks(productId, product?.entity);
     const defaultSections = getDefaultTasksForProduct(product?.name) || [];
     const importedTasks = productTasks.filter(t => t.title.includes('||'));
     const standardTasks = productTasks.filter(t => !t.title.includes('||'));
@@ -191,7 +191,7 @@ export default function Homologation() {
 
   const createDefaultTasks = async (product) => {
     if (creatingTasksRef.current.has(product.id)) return;
-    const existingTasks = tasks.filter(t => t.product_id === product.id);
+    const existingTasks = tasks.filter(t => t.product_id === product.id && t.entity === product.entity);
     if (existingTasks.length > 0) return;
     const defaultSections = getDefaultTasksForProduct(product.name);
     if (!defaultSections) return;
@@ -202,7 +202,7 @@ export default function Homologation() {
     let order = 0;
     for (const section of defaultSections) {
       for (const taskTitle of section.tasks) {
-        tasksToCreate.push({ title: taskTitle, project_id: projectId, product_id: product.id, completed: false, order: order++ });
+        tasksToCreate.push({ title: taskTitle, project_id: projectId, product_id: product.id, entity: product.entity, completed: false, order: order++ });
       }
     }
     if (tasksToCreate.length > 0) {
@@ -217,7 +217,7 @@ export default function Homologation() {
     if (selectedProduct && products.length > 0 && tasksFetched) {
       const product = getCurrentProduct();
       if (product) {
-        const existingTasks = tasks.filter(t => t.product_id === product.id);
+        const existingTasks = tasks.filter(t => t.product_id === product.id && t.entity === product.entity);
         if (existingTasks.length === 0 && productHasHomologation(product.name)) {
           createDefaultTasks(product);
         }
@@ -298,7 +298,7 @@ export default function Homologation() {
   const handleImportTasks = async (rawData) => {
     const product = getCurrentProduct();
     if (!product) return;
-    const freshTasks = await base44.entities.HomologationTask.filter({ project_id: projectId, product_id: product.id });
+    const freshTasks = await base44.entities.HomologationTask.filter({ project_id: projectId, product_id: product.id, entity: product.entity });
     const tasksToCreate = [];
     const seenTitles = new Set();
     let currentEtapa = '';
@@ -313,7 +313,7 @@ export default function Homologation() {
         const alreadyExists = freshTasks.some(t => t.title.toLowerCase() === title.toLowerCase());
         if (!alreadyExists && !seenTitles.has(title.toLowerCase())) {
           seenTitles.add(title.toLowerCase());
-          tasksToCreate.push({ title, project_id: projectId, product_id: product.id, completed: false, order: order++ });
+          tasksToCreate.push({ title, project_id: projectId, product_id: product.id, entity: product.entity, completed: false, order: order++ });
         }
       }
     }
@@ -342,12 +342,13 @@ export default function Homologation() {
     if (!product || !title) return;
 
     const finalTitle = addTaskSection ? `||${addTaskSection}||${title}` : title;
-    const productTasks = getProductTasks(product.id);
+    const productTasks = getProductTasks(product.id, product.entity);
 
     createTaskMutation.mutate({
       title: finalTitle,
       project_id: projectId,
       product_id: product.id,
+      entity: product.entity,
       completed: false,
       order: productTasks.length
     });
@@ -431,7 +432,7 @@ export default function Homologation() {
                         <div className="space-y-3 mb-6">
                           {(() => {
                             const defaultSections = getSectionsForProduct(product.name);
-                            const importedSectionNames = [...new Set(getProductTasks(product.id).filter(t => t.title.includes('||')).map(t => t.title.match(/^\|\|(.+?)\|\|/)?.[1]).filter(Boolean))];
+                            const importedSectionNames = [...new Set(getProductTasks(product.id, product.entity).filter(t => t.title.includes('||')).map(t => t.title.match(/^\|\|(.+?)\|\|/)?.[1]).filter(Boolean))];
                             const allSections = [...defaultSections.map(s => s.section), ...importedSectionNames];
                             return (
                               <>
@@ -456,7 +457,7 @@ export default function Homologation() {
                         {/* Task list */}
                         <div className="space-y-6">
                           {(() => {
-                            const productTasks = getProductTasks(product.id);
+                            const productTasks = getProductTasks(product.id, product.entity);
                             const defaultSections = getSectionsForProduct(product.name);
                             const importedTasks = productTasks.filter(t => t.title.includes('||'));
                             const standardTasks = productTasks.filter(t => !t.title.includes('||'));
@@ -579,7 +580,7 @@ export default function Homologation() {
                             );
                           })()}
 
-                          {getProductTasks(product.id).length === 0 && (
+                          {getProductTasks(product.id, product.entity).length === 0 && (
                             <p className="text-center text-slate-500 py-4 text-sm">Carregando tarefas padrão...</p>
                           )}
                         </div>
