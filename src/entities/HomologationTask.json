@@ -1,0 +1,43 @@
+{
+  "name": "HomologationTask",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "ID do projeto"
+    },
+    "product_id": {
+      "type": "string",
+      "description": "ID do produto"
+    },
+    "entity": {
+      "type": "string",
+      "description": "Entidade/órgão do produto dentro do projeto"
+    },
+    "title": {
+      "type": "string",
+      "description": "Título da tarefa"
+    },
+    "completed": {
+      "type": "boolean",
+      "default": false
+    },
+    "completed_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data e hora em que a tarefa foi marcada como concluída"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "order": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "title",
+    "project_id",
+    "product_id"
+  ]
+}
