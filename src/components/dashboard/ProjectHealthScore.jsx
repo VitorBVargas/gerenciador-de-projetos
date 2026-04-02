@@ -29,15 +29,6 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
     if (p.id && p.name) productNameMap[p.id] = p.name;
   });
 
-  // --- 1. TIMELINE (40 pts) ---
-  // Etapas que já passaram da data fim E não foram concluídas
-  const now = new Date();
-  const allOverdueEvents = timeline.filter(e => {
-    if (!e.end_date) return false;
-    const endDate = new Date(e.end_date);
-    return endDate < now && e.status !== 'concluido';
-  });
-
   // Helper: para cada cronograma_id, busca o nome da vertical
   const getCronogramaLabel = (event) => {
     if (cronogramas && event.cronograma_id) {
@@ -47,23 +38,46 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
     return verticalLabels[event.vertical] || event.vertical || 'Geral';
   };
 
-  // Deduplica por (vertical, título, entidade) para não colapsar eventos de entidades diferentes
-  const seenVerticalTitle = new Set();
-  const overdueEvents = allOverdueEvents.filter(e => {
-    const entity = productEntityMap[e.product_id] || '';
-    const key = `${getCronogramaLabel(e)}||${e.title}||${entity}`;
-    if (seenVerticalTitle.has(key)) return false;
-    seenVerticalTitle.add(key);
-    return true;
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  const startOfTomorrow = new Date(startOfToday);
+  startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
+
+  const activeTimelineEvents = timeline.filter(e => e.end_date && e.status !== 'concluido');
+  const allAlertEvents = activeTimelineEvents.filter(e => {
+    const endDate = new Date(e.end_date);
+    return endDate >= startOfToday && endDate < startOfTomorrow;
+  });
+  const allOverdueEvents = activeTimelineEvents.filter(e => {
+    const endDate = new Date(e.end_date);
+    return endDate < startOfToday;
   });
 
+  // Deduplica por (vertical, título, entidade) para não colapsar eventos de entidades diferentes
+  const dedupeEvents = (events) => {
+    const seenVerticalTitle = new Set();
+    return events.filter(e => {
+      const entity = productEntityMap[e.product_id] || '';
+      const key = `${getCronogramaLabel(e)}||${e.title}||${entity}`;
+      if (seenVerticalTitle.has(key)) return false;
+      seenVerticalTitle.add(key);
+      return true;
+    });
+  };
+
+  const alertEvents = dedupeEvents(allAlertEvents);
+  const overdueEvents = dedupeEvents(allOverdueEvents);
+
+  const alertCost = alertEvents.length * 1;
   const delayCost = overdueEvents.length * 3;
-  const timelineDeduction = Math.min(40, delayCost);
+  const timelineDeduction = Math.min(40, alertCost + delayCost);
   score -= timelineDeduction;
 
-  if (overdueEvents.length > 0) {
+  const buildTimelineAlert = (events, type) => {
+    if (events.length === 0) return null;
+
     const byVertical = {};
-    overdueEvents.forEach(e => {
+    events.forEach(e => {
       const v = getCronogramaLabel(e);
       if (!byVertical[v]) byVertical[v] = { count: 0, titles: [] };
       byVertical[v].count++;
@@ -73,18 +87,24 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
       const titleWithMeta = meta ? `${e.title} (${meta})` : e.title;
       byVertical[v].titles.push(titleWithMeta);
     });
+
     const summary = Object.entries(byVertical).map(([v, d]) => `${v} (${d.count})`).join(', ');
     const details = Object.entries(byVertical).map(([v, d]) => `• ${v}: ${d.titles.slice(0, 3).join(', ')}${d.titles.length > 3 ? ` +${d.titles.length - 3}` : ''}`).join('\n');
 
-    alerts.push({
-      severity: overdueEvents.length >= 3 ? 'high' : 'medium',
-      text: `${overdueEvents.length} fase${overdueEvents.length > 1 ? 's' : ''} atrasada${overdueEvents.length > 1 ? 's' : ''} no cronograma`,
+    return {
+      severity: type === 'overdue' ? (events.length >= 3 ? 'high' : 'medium') : 'medium',
+      text: type === 'overdue'
+        ? `${events.length} data${events.length > 1 ? 's' : ''} em atraso no cronograma`
+        : `${events.length} data${events.length > 1 ? 's' : ''} em alerta no cronograma`,
       detail: `Verticais: ${summary}`,
       lines: details
-    });
-  }
+    };
+  };
 
-
+  const timelineAlert = buildTimelineAlert(alertEvents, 'alert');
+  const timelineOverdue = buildTimelineAlert(overdueEvents, 'overdue');
+  if (timelineAlert) alerts.push(timelineAlert);
+  if (timelineOverdue) alerts.push(timelineOverdue);
 
   // --- 2. RISKS (35 pts) ---
   if (risks.length > 0) {
