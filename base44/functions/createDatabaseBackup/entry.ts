@@ -1,4 +1,10 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+import JSZip from 'npm:jszip@3.10.1';
+
+async function uploadZipFile(base44, zipUint8Array, zipName) {
+  const zipFile = new File([zipUint8Array], zipName, { type: 'application/zip' });
+  return await base44.integrations.Core.UploadFile({ file: zipFile });
+}
 
 const BACKUP_ENTITIES = [
   'Project', 'Product', 'RecognizedRevenue', 'ProjectProgressCache', 'ProjectHealthCache',
@@ -10,27 +16,63 @@ const BACKUP_ENTITIES = [
   'StandardDocument', 'ProductDocumentStatus'
 ];
 
-const escapeCsvValue = (value) => {
+const PAGE_SIZE = 200;
+const REQUEST_DELAY_MS = 250;
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function escapeCsvValue(value) {
   if (value === null || value === undefined) return '';
-  const stringValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
-  const escapedValue = stringValue.replace(/"/g, '""');
-  return /[",\n]/.test(escapedValue) ? `"${escapedValue}"` : escapedValue;
-};
+  const stringValue = typeof value === 'string' ? value : JSON.stringify(value);
+  const escaped = stringValue.replace(/"/g, '""');
+  return /[",\n;]/.test(escaped) ? `"${escaped}"` : escaped;
+}
 
-const recordsToCsv = (records) => {
-  if (!records || records.length === 0) return 'sem_dados\n';
+function recordsToCsv(records) {
+  if (!records.length) return 'id\n';
 
-  const headers = Array.from(
-    records.reduce((set, record) => {
-      Object.keys(record || {}).forEach((key) => set.add(key));
-      return set;
-    }, new Set())
-  );
+  const headers = Array.from(new Set(records.flatMap((record) => Object.keys(record))));
+  const rows = records.map((record) => (
+    headers.map((header) => escapeCsvValue(record[header])).join(',')
+  ));
 
-  const headerRow = headers.join(',');
-  const dataRows = records.map((record) => headers.map((header) => escapeCsvValue(record?.[header])).join(','));
-  return [headerRow, ...dataRows].join('\n');
-};
+  return [headers.join(','), ...rows].join('\n');
+}
+
+async function listEntityPage(entityApi, skip) {
+  const response = await entityApi.list('-created_date', PAGE_SIZE, skip);
+  if (Array.isArray(response)) return response;
+  if (typeof response === 'string') return JSON.parse(response);
+  return [];
+}
+
+async function getAllEntityRecords(entityApi, entityName, projectId) {
+  const allRecords = [];
+  let skip = 0;
+
+  while (true) {
+    const page = await listEntityPage(entityApi, skip);
+    const filteredPage = page.filter((record) => {
+      if (record.project_id !== undefined) return record.project_id === projectId;
+      if (entityName === 'Project') return record.id === projectId;
+      return false;
+    });
+    console.log(`[BACKUP] ${entityName}: página ${Math.floor(skip / PAGE_SIZE) + 1} com ${filteredPage.length} registros do projeto`);
+
+    if (!page.length) break;
+
+    allRecords.push(...filteredPage);
+    skip += page.length;
+
+    if (page.length < PAGE_SIZE) break;
+
+    await sleep(REQUEST_DELAY_MS);
+  }
+
+  return allRecords;
+}
 
 Deno.serve(async (req) => {
   try {
@@ -41,41 +83,57 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
+    const { projectId } = await req.json();
+    if (!projectId) {
+      return Response.json({ error: 'projectId is required' }, { status: 400 });
+    }
+
     const timestamp = new Date().toISOString();
+    const zipName = `backup_${timestamp.replace(/[:.]/g, '-')}.zip`;
     const backupData = {
       timestamp,
-      entities: {},
-      csv_files: {}
+      entities: {}
     };
+    const zip = new JSZip();
+    let totalRecords = 0;
+    let entityCount = 0;
 
     for (const entityName of BACKUP_ENTITIES) {
       try {
-        const data = await base44.asServiceRole.entities[entityName].list('-created_date', 10000);
-        const records = Array.isArray(data) ? data : [];
+        const entityApi = base44.asServiceRole.entities[entityName];
+        if (!entityApi) continue;
+
+        const records = await getAllEntityRecords(entityApi, entityName, projectId);
         backupData.entities[entityName] = records;
-        backupData.csv_files[`${entityName}.csv`] = recordsToCsv(records);
-      } catch {
-        console.log(`Entity ${entityName} not found or error fetching`);
+        zip.file(`${entityName}.csv`, recordsToCsv(records));
+        totalRecords += records.length;
+        entityCount += 1;
+        await sleep(REQUEST_DELAY_MS);
+      } catch (err) {
+        console.log(`[BACKUP] Ignorando ${entityName}: ${err.message}`);
+        await sleep(REQUEST_DELAY_MS * 2);
       }
     }
 
-    const backupJson = JSON.stringify(backupData);
-    const fileName = `backup_${timestamp.replace(/[:.]/g, '-')}.json`;
+    zip.file('backup.json', JSON.stringify(backupData, null, 2));
+    const zipUint8Array = await zip.generateAsync({ type: 'uint8array' });
+    const uploadResult = await uploadZipFile(base44, zipUint8Array, zipName);
 
     await base44.asServiceRole.entities.DatabaseBackup.create({
-      filename: fileName,
+      filename: zipName,
       timestamp,
-      entity_count: Object.keys(backupData.entities).length,
-      total_records: Object.values(backupData.entities).reduce((sum, arr) => sum + arr.length, 0),
-      backup_data_json: backupJson
+      entity_count: entityCount,
+      total_records: totalRecords,
+      backup_data_json: JSON.stringify({ stored_in_zip: true, project_id: projectId }),
+      backup_file_url: uploadResult.file_url
     });
 
     return Response.json({
       success: true,
       timestamp,
-      filename: fileName,
-      entity_count: Object.keys(backupData.entities).length,
-      total_records: Object.values(backupData.entities).reduce((sum, arr) => sum + arr.length, 0),
+      filename: zipName,
+      entity_count: entityCount,
+      total_records: totalRecords,
       message: 'Backup criado com sucesso'
     });
   } catch (error) {
