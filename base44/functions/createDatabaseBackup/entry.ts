@@ -17,7 +17,7 @@ const BACKUP_ENTITIES = [
 ];
 
 const PAGE_SIZE = 200;
-const REQUEST_DELAY_MS = 250;
+const REQUEST_DELAY_MS = 50;
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
