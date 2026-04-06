@@ -1,6 +1,5 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
-// Lista de todas as entidades a fazer backup
 const BACKUP_ENTITIES = [
   'Project', 'Product', 'RecognizedRevenue', 'ProjectProgressCache', 'ProjectHealthCache',
   'TeamMember', 'Stakeholder', 'TimelineEvent', 'KanbanTask', 'Training', 'Travel',
@@ -11,6 +10,28 @@ const BACKUP_ENTITIES = [
   'StandardDocument', 'ProductDocumentStatus'
 ];
 
+const escapeCsvValue = (value) => {
+  if (value === null || value === undefined) return '';
+  const stringValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
+  const escapedValue = stringValue.replace(/"/g, '""');
+  return /[",\n]/.test(escapedValue) ? `"${escapedValue}"` : escapedValue;
+};
+
+const recordsToCsv = (records) => {
+  if (!records || records.length === 0) return 'sem_dados\n';
+
+  const headers = Array.from(
+    records.reduce((set, record) => {
+      Object.keys(record || {}).forEach((key) => set.add(key));
+      return set;
+    }, new Set())
+  );
+
+  const headerRow = headers.join(',');
+  const dataRows = records.map((record) => headers.map((header) => escapeCsvValue(record?.[header])).join(','));
+  return [headerRow, ...dataRows].join('\n');
+};
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -20,42 +41,38 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
+    const timestamp = new Date().toISOString();
     const backupData = {
-      timestamp: new Date().toISOString(),
-      entities: {}
+      timestamp,
+      entities: {},
+      csv_files: {}
     };
 
-    // Busca todos os dados de cada entidade
     for (const entityName of BACKUP_ENTITIES) {
       try {
         const data = await base44.asServiceRole.entities[entityName].list('-created_date', 10000);
-        backupData.entities[entityName] = data || [];
-      } catch (err) {
-        // Entidade pode não existir nesta app, ignora
+        const records = Array.isArray(data) ? data : [];
+        backupData.entities[entityName] = records;
+        backupData.csv_files[`${entityName}.csv`] = recordsToCsv(records);
+      } catch {
         console.log(`Entity ${entityName} not found or error fetching`);
       }
     }
 
-    // Salva backup como arquivo
-    const backupJson = JSON.stringify(backupData, null, 2);
-    const fileName = `backup_${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+    const backupJson = JSON.stringify(backupData);
+    const fileName = `backup_${timestamp.replace(/[:.]/g, '-')}.json`;
 
-    // Cria uma entidade especial para rastrear backups
-    try {
-      await base44.asServiceRole.entities.DatabaseBackup.create({
-        filename: fileName,
-        timestamp: backupData.timestamp,
-        entity_count: Object.keys(backupData.entities).length,
-        total_records: Object.values(backupData.entities).reduce((sum, arr) => sum + arr.length, 0),
-        backup_data_json: backupJson
-      });
-    } catch (err) {
-      console.error('Error creating backup record:', err);
-    }
+    await base44.asServiceRole.entities.DatabaseBackup.create({
+      filename: fileName,
+      timestamp,
+      entity_count: Object.keys(backupData.entities).length,
+      total_records: Object.values(backupData.entities).reduce((sum, arr) => sum + arr.length, 0),
+      backup_data_json: backupJson
+    });
 
     return Response.json({
       success: true,
-      timestamp: backupData.timestamp,
+      timestamp,
       filename: fileName,
       entity_count: Object.keys(backupData.entities).length,
       total_records: Object.values(backupData.entities).reduce((sum, arr) => sum + arr.length, 0),

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Download, RotateCcw, Trash2, Clock, Database, AlertTriangle, CheckCircle2, Loader2, ArrowLeft } from 'lucide-react';
+import JSZip from 'jszip';
 import { formatDistanceToNow, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -64,6 +65,32 @@ export default function BackupManagement() {
       queryClient.invalidateQueries({ queryKey: ['backups'] });
       setDeleteDialogOpen(false);
       setSelectedBackup(null);
+    }
+  });
+
+  const downloadBackupMutation = useMutation({
+    mutationFn: async (backup) => {
+      const response = await base44.functions.invoke('exportBackupZip', { backupId: backup.id });
+      const contentType = response.headers?.['content-type'] || response.headers?.['Content-Type'] || '';
+
+      if (contentType.includes('application/zip')) {
+        const zip = await JSZip.loadAsync(response.data);
+        const blob = await zip.generateAsync({ type: 'blob' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `${backup.filename.replace(/\.json$/i, '')}.zip`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+        return;
+      }
+
+      throw new Error('Não foi possível gerar o arquivo ZIP do backup');
+    },
+    onSuccess: () => {
+      toast.success('Backup em ZIP baixado com sucesso');
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Erro ao baixar backup');
     }
   });
 
@@ -163,6 +190,15 @@ export default function BackupManagement() {
                       )}
                     </div>
                     <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => downloadBackupMutation.mutate(backup)}
+                        disabled={downloadBackupMutation.isPending}
+                        className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
+                      >
+                        <Download className="w-4 h-4" />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
