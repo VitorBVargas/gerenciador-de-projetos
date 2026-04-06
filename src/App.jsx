@@ -10,6 +10,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import Activities from './pages/Activities';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -43,11 +44,16 @@ const AuthenticatedApp = () => {
   }
 
   // Render the main app
-  return (
+ return (
     <Routes>
       <Route path="/" element={
         <LayoutWrapper currentPageName={mainPageKey}>
           <MainPage />
+        </LayoutWrapper>
+      } />
+      <Route path="/Activities" element={
+        <LayoutWrapper currentPageName="Activities">
+          <Activities />
         </LayoutWrapper>
       } />
       {Object.entries(Pages).map(([path, Page]) => (
