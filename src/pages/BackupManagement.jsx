@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
@@ -6,9 +6,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Download, RotateCcw, Trash2, Clock, Database, AlertTriangle, CheckCircle2, Loader2, ArrowLeft } from 'lucide-react';
-import JSZip from 'jszip';
 import { formatDistanceToNow, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -19,6 +19,7 @@ export default function BackupManagement() {
   const [restoreDialogOpen, setRestoreDialogOpen] = useState(false);
   const [selectedBackup, setSelectedBackup] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedProjectIds, setSelectedProjectIds] = useState([]);
 
   const { data: backups = [], isLoading } = useQuery({
     queryKey: ['backups'],
@@ -27,10 +28,51 @@ export default function BackupManagement() {
     gcTime: 0
   });
 
+  const { data: projects = [] } = useQuery({
+    queryKey: ['backup-projects'],
+    queryFn: () => base44.entities.Project.list('name', 500),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000
+  });
+
+  const getApiErrorMessage = (error, fallbackMessage) => {
+    return error?.response?.data?.error || error?.message || fallbackMessage;
+  };
+
+  const selectedProjects = useMemo(
+    () => projects.filter((project) => selectedProjectIds.includes(project.id)),
+    [projects, selectedProjectIds]
+  );
+
+  const handleProjectToggle = (projectId, checked) => {
+    if (checked && selectedProjectIds.length >= 4) {
+      toast.error('Você pode selecionar no máximo 4 projetos por vez.');
+      return;
+    }
+
+    setSelectedProjectIds((current) =>
+      checked ? [...current, projectId] : current.filter((id) => id !== projectId)
+    );
+  };
+
   const createBackupMutation = useMutation({
-    mutationFn: () => base44.functions.invoke('createDatabaseBackup', {}),
+    mutationFn: async () => {
+      if (selectedProjectIds.length === 0) {
+        throw new Error('Selecione pelo menos 1 projeto para criar o backup.');
+      }
+
+      toast.info('Criação do backup iniciada.');
+
+      for (const projectId of selectedProjectIds) {
+        await base44.functions.invoke('createDatabaseBackup', { projectId });
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['backups'] });
+      toast.success(`Backup criado com sucesso para ${selectedProjectIds.length} projeto(s).`);
+    },
+    onError: (error) => {
+      toast.error(`Erro ao criar backup: ${getApiErrorMessage(error, 'Falha ao criar backup.')}`);
     }
   });
 
@@ -55,7 +97,7 @@ export default function BackupManagement() {
     },
     onError: (error) => {
       console.error('[RESTORE UI] Error:', error);
-      toast.error(`Erro na restauração: ${error.message}`);
+      toast.error(`Erro na restauração: ${getApiErrorMessage(error, 'Falha ao restaurar backup.')}`);
     }
   });
 
@@ -68,31 +110,19 @@ export default function BackupManagement() {
     }
   });
 
-  const downloadBackupMutation = useMutation({
-    mutationFn: async (backup) => {
-      const response = await base44.functions.invoke('exportBackupZip', { backupId: backup.id });
-      const contentType = response.headers?.['content-type'] || response.headers?.['Content-Type'] || '';
-
-      if (contentType.includes('application/zip')) {
-        const zip = await JSZip.loadAsync(response.data);
-        const blob = await zip.generateAsync({ type: 'blob' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `${backup.filename.replace(/\.json$/i, '')}.zip`;
-        link.click();
-        URL.revokeObjectURL(link.href);
-        return;
-      }
-
-      throw new Error('Não foi possível gerar o arquivo ZIP do backup');
-    },
-    onSuccess: () => {
-      toast.success('Backup em ZIP baixado com sucesso');
-    },
-    onError: (error) => {
-      toast.error(error.message || 'Erro ao baixar backup');
+  const handleDownloadBackup = (backup) => {
+    if (!backup?.backup_file_url) {
+      toast.error('Este backup ainda não possui arquivo ZIP disponível.');
+      return;
     }
-  });
+
+    const link = document.createElement('a');
+    link.href = backup.backup_file_url;
+    link.download = backup.filename?.endsWith('.zip') ? backup.filename : `${backup.filename || 'backup'}.zip`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <div className="min-h-screen bg-slate-900 p-6 lg:p-8 space-y-6">
@@ -119,13 +149,55 @@ export default function BackupManagement() {
         </div>
         <Button
           onClick={() => createBackupMutation.mutate()}
-          disabled={createBackupMutation.isPending}
+          disabled={createBackupMutation.isPending || selectedProjectIds.length === 0}
           className="bg-blue-600 hover:bg-blue-700 w-fit"
         >
           {createBackupMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
           {createBackupMutation.isPending ? 'Criando backup...' : 'Criar Backup Agora'}
         </Button>
       </div>
+
+      {/* Seleção de Projetos */}
+      <Card className="bg-slate-800/50 border-slate-700/50">
+        <CardHeader>
+          <CardTitle className="text-white">Projetos para backup</CardTitle>
+          <p className="text-sm text-slate-400">Selecione até 4 projetos para criar backups de uma única vez.</p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex flex-wrap gap-2">
+            <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30">
+              {selectedProjectIds.length}/4 selecionados
+            </Badge>
+            {selectedProjects.map((project) => (
+              <Badge key={project.id} className="bg-slate-700 text-slate-200 border-slate-600">
+                {project.name}
+              </Badge>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-80 overflow-y-auto pr-1">
+            {projects.map((project) => {
+              const checked = selectedProjectIds.includes(project.id);
+              return (
+                <label
+                  key={project.id}
+                  className="flex items-start gap-3 rounded-lg border border-slate-700 bg-slate-900/60 p-3 cursor-pointer hover:border-slate-600 transition-colors"
+                >
+                  <Checkbox
+                    checked={checked}
+                    onCheckedChange={(value) => handleProjectToggle(project.id, Boolean(value))}
+                    className="mt-0.5 border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                  />
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-white truncate">{project.name}</p>
+                    <p className="text-xs text-slate-500 truncate">{project.manager || 'Sem gerente definido'}</p>
+                  </div>
+                </label>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Info Card */}
       <Card className="bg-amber-500/10 border-amber-500/30">
@@ -193,9 +265,9 @@ export default function BackupManagement() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => downloadBackupMutation.mutate(backup)}
-                        disabled={downloadBackupMutation.isPending}
+                        onClick={() => handleDownloadBackup(backup)}
                         className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
+                        title="Baixar ZIP"
                       >
                         <Download className="w-4 h-4" />
                       </Button>
