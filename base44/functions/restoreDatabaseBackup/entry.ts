@@ -1,4 +1,5 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+import JSZip from 'npm:jszip@3.10.1';
 
 Deno.serve(async (req) => {
   console.log('[RESTORE] Function started');
@@ -45,18 +46,41 @@ Deno.serve(async (req) => {
 
     console.log('[RESTORE] Extracting backup from records...');
     console.log(`[RESTORE] backup type: ${typeof backup}, keys: ${Object.keys(backup || {}).join(',')}`);
-    const backupDataJson = backup.backup_data_json;
-    console.log(`[RESTORE] backupDataJson type: ${typeof backupDataJson}, exists: ${!!backupDataJson}`);
-    
-    if (!backupDataJson || typeof backupDataJson !== 'string') {
-      console.log('[RESTORE ERROR] Invalid backup_data_json');
-      return Response.json({ error: 'Invalid backup data format' }, { status: 400 });
+
+    let backupData = null;
+
+    if (backup.backup_file_url) {
+      console.log('[RESTORE] Reading backup from ZIP file URL');
+      const fileResponse = await fetch(backup.backup_file_url);
+
+      if (!fileResponse.ok) {
+        return Response.json({ error: 'Não foi possível baixar o arquivo do backup' }, { status: 400 });
+      }
+
+      const zipArrayBuffer = await fileResponse.arrayBuffer();
+      const zip = await JSZip.loadAsync(zipArrayBuffer);
+      const backupJsonFile = zip.file('backup.json');
+
+      if (!backupJsonFile) {
+        return Response.json({ error: 'backup.json não encontrado dentro do ZIP' }, { status: 400 });
+      }
+
+      const backupDataJson = await backupJsonFile.async('string');
+      backupData = JSON.parse(backupDataJson);
+    } else {
+      const backupDataJson = backup.backup_data_json;
+      console.log(`[RESTORE] backupDataJson type: ${typeof backupDataJson}, exists: ${!!backupDataJson}`);
+
+      if (!backupDataJson || typeof backupDataJson !== 'string') {
+        console.log('[RESTORE ERROR] Invalid backup_data_json');
+        return Response.json({ error: 'Invalid backup data format' }, { status: 400 });
+      }
+
+      console.log(`[RESTORE] Found backup: ${backup.filename}`);
+      console.log(`[RESTORE] Parsing backup data (${backupDataJson.length} chars)`);
+      backupData = JSON.parse(backupDataJson);
     }
-    
-    console.log(`[RESTORE] Found backup: ${backup.filename}`);
-    console.log(`[RESTORE] Parsing backup data (${backupDataJson.length} chars)`);
-    
-    const backupData = JSON.parse(backupDataJson);
+
     const entityNames = Object.keys(backupData.entities);
     console.log(`[RESTORE] Backup contains ${entityNames.length} entities: ${entityNames.join(', ')}`);
 
