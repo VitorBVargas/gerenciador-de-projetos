@@ -137,24 +137,17 @@ export default function ActivityTimeline({ activities, verticals, onEdit }) {
             </Button>
           </div>
 
-          {/* CONTAINER PRINCIPAL DO GANTT - CORTA QUALQUER VAZAMENTO DE TELA */}
-          <div className="w-full max-w-full overflow-x-auto overflow-y-hidden rounded-xl border border-slate-700/50 bg-slate-800/50 flex flex-col">
-            
-            {/* O SEGREDO ESTÁ AQUI: Flex dividindo a Sidebar fixa do Calendário com rolagem */}
-            <div className="flex min-w-max">
-              
-              {/* LADO ESQUERDO: SIDEBAR FIXA (Não rola) */}
-              <div className="w-48 flex-shrink-0 bg-slate-800/95 border-r border-slate-700/50 z-10 flex flex-col shadow-[2px_0_5px_rgba(0,0,0,0.1)]">
-                {/* Header da Sidebar */}
+          <div className="w-full overflow-hidden rounded-xl border border-slate-700/50 bg-slate-800/50 flex flex-col">
+            <div className="flex w-full overflow-hidden">
+              <div className="flex-shrink-0 bg-slate-800/95 border-r border-slate-700/50 z-10 w-[240px]">
                 <div className="h-14 px-4 bg-slate-700/30 border-b border-slate-700/50 flex items-center">
                   <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Recurso</span>
                 </div>
-                
-                {/* Linhas com os nomes */}
+
                 {rowsData.map(row => (
-                  <div 
-                    key={`sidebar-${row.assignee}`} 
-                    className="px-4 border-b border-slate-700/50 flex items-center gap-3" 
+                  <div
+                    key={`sidebar-${row.assignee}`}
+                    className="px-4 border-b border-slate-700/50 flex items-center gap-3"
                     style={{ height: `${row.rowHeight}px` }}
                   >
                     <Avatar className="w-8 h-8 border border-slate-600">
@@ -167,48 +160,63 @@ export default function ActivityTimeline({ activities, verticals, onEdit }) {
                 ))}
               </div>
 
-              {/* LADO DIREITO: CALENDÁRIO COM ROLAGEM HORIZONTAL ISOLADA */}
-              <div className="flex-1 overflow-x-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800/50 pb-2">
-                {/* Largura forçada para ativar a rolagem (56px por dia) */}
-                <div style={{ width: `${monthDays.length * 56}px`, minWidth: '100%' }}>
-                  
-                  {/* Header dos Dias */}
-                  <div className="h-14 bg-slate-700/15 border-b border-slate-700/50 flex">
-                    {monthDays.map(day => {
+              <div className="flex-1 overflow-x-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800/50">
+                <div style={{ width: `${monthDays.length * 48}px`, minWidth: '100%' }}>
+                  <div
+                    className="h-14 bg-slate-700/15 border-b border-slate-700/50"
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: `repeat(${monthDays.length}, 48px)`,
+                    }}
+                  >
+                    {monthDays.map((day) => {
                       const today = isToday(day);
                       return (
-                        <div key={`header-${day.toISOString()}`} className={cn("w-14 flex-shrink-0 border-r border-slate-700/50 flex flex-col items-center justify-center py-1", today ? "bg-blue-900/40 border-blue-500/50" : "bg-slate-800/30")}>
-                          <span className={cn("text-[10px]", today ? "text-blue-300" : "text-slate-500")}>{format(day, 'eee', { locale: ptBR })}</span>
-                          <span className={cn("text-sm font-medium", today ? "text-blue-400 font-bold" : "text-slate-300")}>{format(day, 'dd/MM')}</span>
+                        <div
+                          key={`header-${day.toISOString()}`}
+                          className={cn(
+                            "border-r border-slate-700/50 flex flex-col items-center justify-center py-1",
+                            today ? "bg-blue-900/40 border-blue-500/50" : "bg-slate-800/30"
+                          )}
+                        >
+                          <span className={cn("text-[10px]", today ? "text-blue-300" : "text-slate-500")}>
+                            {format(day, 'eee', { locale: ptBR })}
+                          </span>
+                          <span className={cn("text-sm font-medium", today ? "text-blue-400 font-bold" : "text-slate-300")}>
+                            {format(day, 'dd/MM')}
+                          </span>
                         </div>
                       );
                     })}
                   </div>
 
-                  {/* Linhas do Grid com as Atividades */}
                   {rowsData.map(row => (
-                    <div 
-                      key={`grid-${row.assignee}`} 
-                      className="flex relative border-b border-slate-700/50 group hover:bg-slate-700/30 transition-colors" 
-                      style={{ height: `${row.rowHeight}px` }}
+                    <div
+                      key={`grid-${row.assignee}`}
+                      className="relative border-b border-slate-700/50 group hover:bg-slate-700/30 transition-colors"
+                      style={{
+                        height: `${row.rowHeight}px`,
+                        display: 'grid',
+                        gridTemplateColumns: `repeat(${monthDays.length}, 48px)`,
+                      }}
                     >
-                      {/* Células de fundo (linhas verticais dos dias) */}
                       {monthDays.map(day => (
-                        <div key={`cell-${row.assignee}-${day.toISOString()}`} className={cn("w-14 flex-shrink-0 border-r border-slate-700/50 h-full", isToday(day) && "bg-blue-900/10")} />
+                        <div
+                          key={`cell-${row.assignee}-${day.toISOString()}`}
+                          className={cn("border-r border-slate-700/50 h-full", isToday(day) && "bg-blue-900/10")}
+                        />
                       ))}
-                      
-                      {/* Barras de Atividades Coloridas */}
+
                       {row.positionedActivities.map((activity) => {
                         let barColors = "bg-slate-500/20 text-slate-300 border-slate-500/30";
-                        
-                        // Lógica de Cores
+
                         if (activity.status === 'done') {
                           barColors = "bg-green-500/20 text-green-400 border-green-500/30 opacity-70";
                         } else if (activity.end_date) {
                           const endDate = new Date(activity.end_date);
                           endDate.setHours(23, 59, 59, 999);
                           const now = new Date();
-                          
+
                           if (endDate < now) {
                             barColors = "bg-red-500/20 text-red-400 border-red-500/50";
                           } else {
@@ -231,8 +239,8 @@ export default function ActivityTimeline({ activities, verticals, onEdit }) {
                               barColors
                             )}
                             style={{
-                              left: `${activity.startOffset * 56}px`, // 56px é a largura de w-14
-                              width: `${activity.duration * 56 - 4}px`, // -4px para margem visual
+                              left: `${activity.startOffset * 48}px`,
+                              width: `${activity.duration * 48 - 8}px`,
                               top: `${10 + (activity.level * 36)}px`,
                               height: '28px',
                               whiteSpace: 'nowrap',
