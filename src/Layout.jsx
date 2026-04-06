@@ -34,6 +34,7 @@ const navigation = [
   { name: 'Viagens', href: 'Travels', icon: Plane },
   { name: 'Orçamento', href: 'Budget', icon: DollarSign },
   { name: 'IA Projetos Betha', href: 'StatusReports', icon: FileText },
+  { name: 'KPI / Indicadores', href: 'Reports', icon: FileText },
   { name: 'Relatórios', href: 'Reports', icon: FileText },
   { name: 'Riscos', href: 'Risks', icon: AlertTriangle },
 ];
