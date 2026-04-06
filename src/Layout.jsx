@@ -18,7 +18,7 @@ import {
   ChevronRight,
   DollarSign,
   FolderOpen,
-  KanbanSquare
+  CheckSquare
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
@@ -28,10 +28,9 @@ const navigation = [
   { name: 'Stakeholders', href: 'Stakeholders', icon: UserCircle },
   { name: 'Produtos', href: 'Products', icon: Package },
   { name: 'Cronograma', href: 'Timeline', icon: Calendar },
-  { name: 'Atividades', href: 'Activities', icon: KanbanSquare },
   { name: 'Migração', href: 'Migration', icon: ArrowLeftRight },
   { name: 'Homologação', href: 'Homologation', icon: CheckCircle },
-
+  { name: 'Atividades', href: 'Activities', icon: CheckSquare },
   { name: 'Viagens', href: 'Travels', icon: Plane },
   { name: 'Orçamento', href: 'Budget', icon: DollarSign },
   { name: 'IA Projetos Betha', href: 'StatusReports', icon: FileText },
