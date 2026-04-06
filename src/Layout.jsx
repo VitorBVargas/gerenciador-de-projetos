@@ -167,7 +167,7 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Main Content */}
       <main className={cn(
-        "flex-1 transition-all duration-300",
+        "flex-1 transition-all duration-300 overflow-x-auto",
         collapsed ? "ml-20" : "ml-64"
       )}>
         {activeProject && (
@@ -176,7 +176,7 @@ export default function Layout({ children, currentPageName }) {
             <span className="text-xs text-slate-400 font-medium truncate">{activeProject.name}</span>
           </div>
         )}
-        <div className="min-h-screen">
+        <div className="min-h-screen min-w-0">
           {children}
         </div>
       </main>
