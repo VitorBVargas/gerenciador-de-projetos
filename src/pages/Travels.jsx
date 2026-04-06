@@ -24,6 +24,7 @@ import {
   endOfMonth, 
   eachDayOfInterval, 
   isSameDay,
+  isToday,
   addMonths,
   subMonths,
   isWithinInterval,
@@ -224,21 +225,6 @@ export default function Travels() {
     }
   };
 
-  // Calendar calculations - show 6 months ahead
-  const monthStart = startOfMonth(currentMonth);
-  const monthEnd = endOfMonth(addMonths(currentMonth, 5));
-  const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
-
-  // Get travels for a specific day
-  const getTravelsForDay = (day) => {
-    return travels.filter(travel => {
-      if (!travel.start_date) return false;
-      const start = parseISO(travel.start_date);
-      const end = travel.end_date ? parseISO(travel.end_date) : start;
-      return isWithinInterval(day, { start, end });
-    });
-  };
-
   // Filter team members based on calendarFilter
   const filteredTeamMembers = useMemo(() => {
     return teamMembers.filter(m => {
@@ -277,17 +263,14 @@ export default function Travels() {
 
   const handleMouseUp = () => {
     if (isDragging && dragStart && dragEnd && dragMember) {
-      // Determine start and end dates
       const start = dragStart < dragEnd ? dragStart : dragEnd;
       const end = dragStart < dragEnd ? dragEnd : dragStart;
       
-      // Reset drag state first
       setIsDragging(false);
       setDragStart(null);
       setDragEnd(null);
       setDragMember(null);
       
-      // Open modal with pre-filled dates
       setSelectedTravel(null);
       setFormData({
         title: '',
@@ -307,7 +290,6 @@ export default function Travels() {
     }
   };
 
-  // Check if day is in drag selection
   const isInDragRange = (day) => {
     if (!isDragging || !dragStart || !dragEnd) return false;
     const start = dragStart < dragEnd ? dragStart : dragEnd;
@@ -345,7 +327,6 @@ export default function Travels() {
       </div>
 
       <div className="flex gap-4">
-        {/* Left section */}
         <div className="flex flex-col gap-4">
           {/* Legend */}
           <Card className="bg-slate-800/50 border-slate-700/50">
@@ -402,213 +383,191 @@ export default function Travels() {
               description="Adicione membros à equipe para visualizar o calendário de viagens"
             />
           ) : (
-            <div className="w-full overflow-hidden rounded-xl border border-slate-700/50 bg-slate-800/50">
-              {/* MONTH NAVIGATION */}
-              <div className="border-b border-slate-700/50 p-4">
-                <div className="flex items-center justify-between">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-                    className="text-slate-400 hover:text-white hover:bg-slate-700"
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                  </Button>
-                  <span className="text-xl font-semibold text-white">
-                    {format(currentMonth, "MMMM 'de' yyyy", { locale: ptBR })} - {format(addMonths(currentMonth, 5), "MMMM 'de' yyyy", { locale: ptBR })}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-                    className="text-slate-400 hover:text-white hover:bg-slate-700"
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </Button>
-                </div>
+            <div className="space-y-6">
+              {/* NAVEGADOR DE MESES APRIMORADO */}
+              <div className="flex items-center justify-between bg-slate-800/50 border border-slate-700/50 p-2 rounded-xl w-full max-w-md mx-auto">
+                <Button
+                  variant="ghost"
+                  onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+                  className="text-slate-400 hover:text-white hover:bg-slate-700"
+                >
+                  <ChevronLeft className="w-5 h-5 mr-1" /> Anterior
+                </Button>
+                <h2 className="text-lg font-bold text-cyan-400 capitalize px-4">
+                  {format(currentMonth, "MMMM 'de' yyyy", { locale: ptBR })}
+                </h2>
+                <Button
+                  variant="ghost"
+                  onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+                  className="text-slate-400 hover:text-white hover:bg-slate-700"
+                >
+                  Próximo <ChevronRight className="w-5 h-5 ml-1" />
+                </Button>
               </div>
 
-              {/* TIMELINE CONTAINER - Dois painéis (sticky left + scroll right) */}
-              <div className="flex w-full overflow-hidden bg-slate-800/50" onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}>
-                {/* LEFT COLUMN - STICKY */}
-                <div 
-                  className="sticky left-0 z-20 flex flex-col flex-shrink-0 bg-slate-800/95 border-r border-slate-700/50"
-                  style={{ width: '220px' }}
-                >
-                  {/* Header Label */}
-                  <div className="h-16 px-4 py-2 bg-slate-700/30 border-b border-slate-700/50 flex items-center">
-                    <span className="text-xs font-semibold text-cyan-400 uppercase tracking-wider">Vertical/Membro</span>
-                  </div>
+              {/* RENDERIZAÇÃO DE APENAS UM MÊS POR VEZ */}
+              {(() => {
+                const monthDays = eachDayOfInterval({ start: startOfMonth(currentMonth), end: endOfMonth(currentMonth) });
+                const monthStartDay = startOfMonth(currentMonth);
 
-                  {/* Members List */}
-                  <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent">
-                    {verticals.map(vertical => (
-                      <React.Fragment key={vertical}>
-                        {/* Vertical Group Header */}
-                        <div className="h-12 px-4 py-2 bg-slate-700/25 border-b border-slate-700/30 flex items-center sticky top-0 z-10">
-                          <span className="text-sm font-semibold text-cyan-400 truncate">
-                            {verticalLabels[vertical] || vertical}
-                          </span>
+                return (
+                  <div className="w-full overflow-hidden rounded-xl border border-slate-700/50 bg-slate-800/50 flex flex-col">
+                    <div className="flex w-full overflow-hidden" onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}>
+                      
+                      {/* SIDEBAR - COLUNA FIXA ESQUERDA */}
+                      <div
+                        className="flex-shrink-0 bg-slate-800/95 border-r border-slate-700/50 z-10 w-[240px]"
+                      >
+                        <div className="h-10 px-4 bg-slate-700/30 border-b border-slate-700/50 flex items-center">
+                          <span className="text-xs font-semibold text-cyan-400 uppercase tracking-wider">Equipe / Verticais</span>
                         </div>
 
-                        {/* Member Items */}
-                        {membersByVertical[vertical].map(member => (
-                          <div 
-                            key={member.id}
-                            className="h-12 px-4 py-2 border-b border-slate-700/20 hover:bg-slate-700/20 flex items-center transition-colors"
-                          >
-                            <span className="text-sm text-white truncate">{member.name}</span>
-                          </div>
-                        ))}
-                      </React.Fragment>
-                    ))}
-                  </div>
-                </div>
-
-                {/* RIGHT COLUMN - HORIZONTAL SCROLL */}
-                <div 
-                  className="flex-1 overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800/50"
-                >
-                  <div style={{ width: `${daysInMonth.length * 48}px`, minWidth: '100%' }}>
-                    {/* HEADER ROW - Month only */}
-                    <div 
-                      className="h-16 bg-slate-700/20 border-b border-slate-700/50 flex items-center justify-start px-4"
-                    >
-                      <span className="text-sm font-semibold text-slate-300 capitalize">
-                        {format(currentMonth, "MMMM 'de' yyyy", { locale: ptBR })}
-                      </span>
-                    </div>
-
-                    {/* TIMELINE BODY ROWS */}
-                    <div>
-                      {verticals.map(vertical => {
-                        const verticalEvents = timelineEvents.filter(e => e.vertical === vertical);
-                        const verticalMembers = membersByVertical[vertical];
-
-                        return (
-                        <React.Fragment key={`vertical-${vertical}`}>
-                          {/* Vertical Cronograma Row */}
-                          {verticalMembers.length > 0 && (
-                            <div 
-                              className="h-12 bg-slate-700/15 border-b border-slate-700/30 relative flex items-center"
-                              style={{
-                                display: 'grid',
-                                gridTemplateColumns: `repeat(${daysInMonth.length}, 48px)`,
-                              }}
-                            >
-                              {daysInMonth.map((day, idx) => {
-                                const isToday = isSameDay(day, new Date());
-                                return (
-                                  <div
-                                    key={`sep-${idx}`}
-                                    className={cn(
-                                      "border-r border-slate-700/20 flex flex-col items-center justify-center h-full gap-0",
-                                      isToday && "bg-yellow-500/20"
-                                    )}
-                                  >
-                                    <span className={cn("text-[8px] font-bold uppercase", isToday ? "text-yellow-400" : "text-slate-500")}>
-                                      {format(day, 'EEE', { locale: ptBR })}
-                                    </span>
-                                    <span className={cn("text-[10px] font-semibold", isToday ? "text-yellow-300" : "text-blue-400")}>
-                                      {format(day, 'dd/MM')}
-                                    </span>
-                                    {isToday && <div className="w-1 h-1 rounded-full bg-yellow-400 mt-0.5" />}
-                                  </div>
-                                );
-                              })}
+                        {verticals.map(vertical => (
+                          <React.Fragment key={vertical}>
+                            <div className="h-10 px-4 bg-slate-700/25 border-b border-slate-700/30 flex items-center">
+                              <span className="text-sm font-semibold text-cyan-400 truncate">
+                                {verticalLabels[vertical] || vertical}
+                              </span>
                             </div>
-                          )}
+                            {membersByVertical[vertical].map(member => (
+                              <div
+                                key={member.id}
+                                className="h-12 px-4 border-b border-slate-700/20 hover:bg-slate-700/20 flex items-center transition-colors"
+                              >
+                                <span className="text-sm text-white truncate">{member.name}</span>
+                              </div>
+                            ))}
+                          </React.Fragment>
+                        ))}
+                      </div>
 
-                          {/* Member Rows for this Vertical */}
-                          {verticalMembers.map(member => {
-                            const memberTravels = travels.filter(t => t.attendees?.includes(member.name));
+                      {/* GRID DO CALENDÁRIO - ROLAGEM HORIZONTAL */}
+                      <div className="flex-1 overflow-x-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800/50">
+                        <div style={{ width: `${monthDays.length * 48}px`, minWidth: '100%' }}>
+                          {verticals.map(vertical => {
+                            const verticalMembers = membersByVertical[vertical];
+                            if (!verticalMembers.length) return null;
 
                             return (
-                              <div 
-                                key={`member-${member.id}`}
-                                className="h-12 border-b border-slate-700/20 hover:bg-slate-700/10 relative transition-colors"
-                                style={{
-                                  display: 'grid',
-                                  gridTemplateColumns: `repeat(${daysInMonth.length}, 48px)`,
-                                }}
-                                onMouseDown={(e) => {
-                                  const rect = e.currentTarget.getBoundingClientRect();
-                                  const dayIdx = Math.floor((e.clientX - rect.left) / 48);
-                                  if (dayIdx >= 0 && dayIdx < daysInMonth.length) {
-                                    handleMouseDown(daysInMonth[dayIdx], member);
-                                  }
-                                }}
-                                onMouseEnter={(e) => {
-                                  if (isDragging && e.buttons === 1) {
-                                    const rect = e.currentTarget.getBoundingClientRect();
-                                    const dayIdx = Math.floor((e.clientX - rect.left) / 48);
-                                    if (dayIdx >= 0 && dayIdx < daysInMonth.length) {
-                                      handleMouseEnter(daysInMonth[dayIdx]);
-                                    }
-                                  }
-                                }}
-                              >
-                                {/* Grid Cells Background */}
-                                {daysInMonth.map((day, idx) => {
-                                  const isInRange = isInDragRange(day) && dragMember?.id === member.id;
-                                  return (
-                                    <div 
-                                      key={`cell-${idx}`} 
-                                      className={cn(
-                                        "border-r border-slate-700/20",
-                                        isInRange && "bg-blue-500/30"
-                                      )}
-                                    />
-                                  );
-                                })}
+                              <React.Fragment key={`${format(currentMonth, 'yyyy-MM')}-${vertical}`}>
+                                {/* Cabeçalho dos dias */}
+                                <div
+                                  className="h-10 bg-slate-700/15 border-b border-slate-700/30"
+                                  style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: `repeat(${monthDays.length}, 48px)`,
+                                  }}
+                                >
+                                  {monthDays.map((day, idx) => {
+                                    const isCurrentDay = isToday(day);
+                                    return (
+                                      <div
+                                        key={idx}
+                                        className={cn(
+                                          "border-r border-slate-700/20 flex flex-col items-center justify-center text-xs h-full",
+                                          isCurrentDay ? "bg-blue-500/20 text-blue-300 font-bold" : "font-semibold text-blue-400"
+                                        )}
+                                      >
+                                        <span className={cn("text-[9px] uppercase", isCurrentDay ? "text-blue-300" : "text-slate-500 font-normal")}>
+                                          {format(day, 'eee', { locale: ptBR })}
+                                        </span>
+                                        <span>{format(day, 'dd')}</span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
 
-                                {/* Travel Events */}
-                                {memberTravels.map((travel) => {
-                                  if (!travel.start_date) return null;
-
-                                  const startDate = parseISO(travel.start_date);
-                                  const endDate = travel.end_date ? parseISO(travel.end_date) : startDate;
-                                  const firstDayOfMonth = startOfMonth(currentMonth);
-                                  const startDayIdx = Math.max(0, differenceInDays(startDate, firstDayOfMonth));
-                                  const endDayIdx = Math.min(daysInMonth.length - 1, differenceInDays(endDate, firstDayOfMonth));
-
-                                  if (startDayIdx > daysInMonth.length - 1 || endDayIdx < 0) return null;
+                                {/* Linhas de cada membro */}
+                                {verticalMembers.map(member => {
+                                  const memberTravels = travels.filter(t => t.attendees?.includes(member.name));
 
                                   return (
                                     <div
-                                      key={`event-${travel.id}`}
-                                      className="absolute top-1/2 transform -translate-y-1/2 flex gap-1"
+                                      key={`${format(currentMonth, 'yyyy-MM')}-member-${member.id}`}
+                                      className="h-12 border-b border-slate-700/20 hover:bg-slate-700/10 relative transition-colors"
                                       style={{
-                                        left: `${startDayIdx * 48 + 8}px`,
-                                        zIndex: 10
+                                        display: 'grid',
+                                        gridTemplateColumns: `repeat(${monthDays.length}, 48px)`,
+                                      }}
+                                      onMouseDown={(e) => {
+                                        const rect = e.currentTarget.getBoundingClientRect();
+                                        const dayIdx = Math.floor((e.clientX - rect.left) / 48);
+                                        if (dayIdx >= 0 && dayIdx < monthDays.length) {
+                                          handleMouseDown(monthDays[dayIdx], member);
+                                        }
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        if (isDragging && e.buttons === 1) {
+                                          const rect = e.currentTarget.getBoundingClientRect();
+                                          const dayIdx = Math.floor((e.clientX - rect.left) / 48);
+                                          if (dayIdx >= 0 && dayIdx < monthDays.length) {
+                                            handleMouseEnter(monthDays[dayIdx]);
+                                          }
+                                        }
                                       }}
                                     >
-                                      {Array.from({ length: endDayIdx - startDayIdx + 1 }).map((_, i) => (
-                                        <div
-                                          key={`badge-${i}`}
-                                          className={cn(
-                                            "w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-all hover:scale-125 hover:shadow-lg font-bold text-xs text-white flex-shrink-0",
-                                            travelTypeColors[travel.travel_type]
-                                          )}
-                                          onClick={() => handleEdit(travel)}
-                                          title={travel.title}
-                                        >
-                                          {statusAbbreviation[travel.status] || 'P'}
-                                        </div>
-                                      ))}
+                                      {/* Fundo das células */}
+                                      {monthDays.map((day, idx) => {
+                                        const isInRange = isInDragRange(day) && dragMember?.id === member.id;
+                                        const isCurrentDay = isToday(day);
+                                        return (
+                                          <div
+                                            key={idx}
+                                            className={cn(
+                                              "border-r border-slate-700/20",
+                                              isCurrentDay && "bg-blue-500/10",
+                                              isInRange && "bg-blue-500/30"
+                                            )}
+                                          />
+                                        );
+                                      })}
+
+                                      {/* Eventos de Viagem */}
+                                      {memberTravels.map((travel) => {
+                                        if (!travel.start_date) return null;
+                                        const startDate = parseISO(travel.start_date);
+                                        const endDate = travel.end_date ? parseISO(travel.end_date) : startDate;
+                                        
+                                        // Pega apenas viagens que intersectam o mês atual
+                                        const startDayIdx = Math.max(0, differenceInDays(startDate, monthStartDay));
+                                        const endDayIdx = Math.min(monthDays.length - 1, differenceInDays(endDate, monthStartDay));
+                                        
+                                        if (startDayIdx > monthDays.length - 1 || endDayIdx < 0) return null;
+
+                                        return (
+                                          <div
+                                            key={`event-${travel.id}`}
+                                            className="absolute top-1/2 transform -translate-y-1/2 flex gap-1"
+                                            style={{ left: `${startDayIdx * 48 + 8}px`, zIndex: 10 }}
+                                          >
+                                            {Array.from({ length: endDayIdx - startDayIdx + 1 }).map((_, i) => (
+                                              <div
+                                                key={i}
+                                                className={cn(
+                                                  "w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-all hover:scale-125 hover:shadow-lg font-bold text-xs text-white flex-shrink-0",
+                                                  travelTypeColors[travel.travel_type]
+                                                )}
+                                                onClick={() => handleEdit(travel)}
+                                                title={travel.title}
+                                              >
+                                                {statusAbbreviation[travel.status] || 'P'}
+                                              </div>
+                                            ))}
+                                          </div>
+                                        );
+                                      })}
                                     </div>
                                   );
                                 })}
-                              </div>
+                              </React.Fragment>
                             );
                           })}
-                        </React.Fragment>
-                        );
-                      })}
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
+                );
+              })()}
             </div>
           )}
         </>
@@ -617,7 +576,6 @@ export default function Travels() {
         <div className="space-y-6">
           {travels.length > 0 ? (
             (() => {
-              // Group travels by month
               const travelsByMonth = travels.reduce((acc, travel) => {
                 if (!travel.start_date) return acc;
                 const date = parseISO(travel.start_date);
@@ -631,11 +589,9 @@ export default function Travels() {
                 return acc;
               }, {});
 
-              // Sort months in ascending order
               const sortedMonths = Object.entries(travelsByMonth).sort((a, b) => a[0].localeCompare(b[0]));
 
               return sortedMonths.map(([monthKey, { label, travels: monthTravels }]) => {
-                // Sort travels within month by start_date
                 const sortedTravels = monthTravels.sort((a, b) => {
                   const dateA = a.start_date ? new Date(a.start_date) : new Date(0);
                   const dateB = b.start_date ? new Date(b.start_date) : new Date(0);
@@ -735,7 +691,7 @@ export default function Travels() {
         </div>
       )}
 
-      {/* Modal */}
+      {/* Modal e Confirmações mantidos inalterados abaixo... */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent className="bg-slate-800 border-slate-700 text-slate-100 max-w-2xl">
           <DialogHeader>
@@ -904,7 +860,6 @@ export default function Travels() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className="bg-slate-800 border-slate-700">
           <AlertDialogHeader>
