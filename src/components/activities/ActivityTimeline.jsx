@@ -94,7 +94,7 @@ export default function ActivityTimeline({ activities, verticals, onEdit }) {
   if (verticals.length === 0) return <div className="text-slate-400">Nenhuma vertical encontrada para este projeto.</div>;
 
   return (
-    <div className="space-y-6 w-full max-w-full">
+    <div className="space-y-6 w-full max-w-full overflow-x-hidden">
       {/* Botões de Verticais */}
       <div className="flex flex-wrap gap-2">
         {verticals.map(v => (
@@ -114,7 +114,7 @@ export default function ActivityTimeline({ activities, verticals, onEdit }) {
       {assignees.length === 0 ? (
         <div className="text-slate-400 py-4">Nenhuma atividade com responsável e datas definidas nesta vertical.</div>
       ) : (
-        <div className="space-y-4 w-full">
+        <div className="space-y-4 w-full max-w-full overflow-x-hidden">
           
           {/* NAVEGADOR DE MESES */}
           <div className="flex items-center justify-between bg-slate-800/50 border border-slate-700/50 p-2 rounded-xl w-full max-w-md mx-auto">
@@ -138,10 +138,10 @@ export default function ActivityTimeline({ activities, verticals, onEdit }) {
           </div>
 
           {/* CONTAINER PRINCIPAL DO GANTT - CORTA QUALQUER VAZAMENTO DE TELA */}
-          <div className="w-full overflow-hidden rounded-xl border border-slate-700/50 bg-slate-800/50 flex flex-col">
+          <div className="w-full max-w-full overflow-x-auto overflow-y-hidden rounded-xl border border-slate-700/50 bg-slate-800/50 flex flex-col">
             
             {/* O SEGREDO ESTÁ AQUI: Flex dividindo a Sidebar fixa do Calendário com rolagem */}
-            <div className="flex w-full overflow-hidden">
+            <div className="flex min-w-max">
               
               {/* LADO ESQUERDO: SIDEBAR FIXA (Não rola) */}
               <div className="w-48 flex-shrink-0 bg-slate-800/95 border-r border-slate-700/50 z-10 flex flex-col shadow-[2px_0_5px_rgba(0,0,0,0.1)]">
