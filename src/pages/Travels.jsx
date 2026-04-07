@@ -125,7 +125,7 @@ export default function Travels() {
     notes: '',
   });
   const [calendarFilter, setCalendarFilter] = useState({ name: '', vertical: '' });
-  const [listFilter, setListFilter] = useState({ vertical: 'all', month: 'all' });
+  const [listFilter, setListFilter] = useState({ vertical: 'all', month: 'all', title: 'all' });
 
   const urlParams = new URLSearchParams(window.location.search);
   const projectId = urlParams.get('project_id');
@@ -256,11 +256,16 @@ export default function Travels() {
     )].sort();
   }, [travels]);
 
+  const listTitleOptions = useMemo(() => {
+    return [...new Set(travels.map(travel => travel.title).filter(Boolean))].sort();
+  }, [travels]);
+
   const filteredListTravels = useMemo(() => {
     return travels.filter(travel => {
       const verticalMatch = listFilter.vertical === 'all' || travel.vertical === listFilter.vertical;
       const monthMatch = listFilter.month === 'all' || (travel.start_date && format(parseISO(travel.start_date), 'yyyy-MM') === listFilter.month);
-      return verticalMatch && monthMatch;
+      const titleMatch = listFilter.title === 'all' || travel.title === listFilter.title;
+      return verticalMatch && monthMatch && titleMatch;
     });
   }, [travels, listFilter]);
 
@@ -593,6 +598,17 @@ export default function Travels() {
           <Card className="bg-slate-800/50 border-slate-700/50">
             <CardContent className="p-4">
               <div className="flex flex-col md:flex-row gap-3">
+                <Select value={listFilter.title} onValueChange={(value) => setListFilter(prev => ({ ...prev, title: value }))}>
+                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white h-10 text-sm md:w-56">
+                    <SelectValue placeholder="Todas as etapas" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-700 border-slate-600">
+                    <SelectItem value="all">Todas as etapas</SelectItem>
+                    {listTitleOptions.map(title => (
+                      <SelectItem key={title} value={title}>{title}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Select value={listFilter.vertical} onValueChange={(value) => setListFilter(prev => ({ ...prev, vertical: value }))}>
                   <SelectTrigger className="bg-slate-700 border-slate-600 text-white h-10 text-sm md:w-56">
                     <SelectValue placeholder="Todas verticais" />
