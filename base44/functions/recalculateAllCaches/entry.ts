@@ -62,8 +62,15 @@ Deno.serve(async (req) => {
 
         let latestDate = null;
         if (projectEvents.length > 0) {
-          const maxTime = Math.max(...projectEvents.map(e => e.end_date ? new Date(e.end_date).getTime() : 0));
-          latestDate = maxTime > 0 ? new Date(maxTime).toISOString().split('T')[0] : null;
+          const validDates = projectEvents
+            .filter(e => e.end_date && (e.phase === 'encerramento_bastao' || e.title === 'Encerramento/Passagem de Bastão'))
+            .map(e => new Date(e.end_date).getTime())
+            .filter(t => t > 0);
+
+          if (validDates.length > 0) {
+            const maxTime = Math.max(...validDates);
+            latestDate = new Date(maxTime).toISOString().split('T')[0];
+          }
         }
 
         // 3. BUSCA SOB DEMANDA: Em vez de carregar todos os caches na memória no início,

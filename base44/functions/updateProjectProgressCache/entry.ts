@@ -31,14 +31,14 @@ Deno.serve(async (req) => {
     const uniqueEventsMap = new Map(rawEvents.map(e => [e.id, e]));
     const projectEvents = Array.from(uniqueEventsMap.values());
 
-    // Calcula prazo estimado (max end_date)
+    // Calcula prazo estimado pela etapa Encerramento/Passagem de Bastão
     let estimatedDeadline = null;
     if (projectEvents.length > 0) {
       const validDates = projectEvents
-        .filter(e => e.end_date)
+        .filter(e => e.end_date && (e.phase === 'encerramento_bastao' || e.title === 'Encerramento/Passagem de Bastão'))
         .map(e => new Date(e.end_date).getTime())
         .filter(t => t > 0);
-      
+
       if (validDates.length > 0) {
         const maxTime = Math.max(...validDates);
         estimatedDeadline = new Date(maxTime).toISOString().split('T')[0];
