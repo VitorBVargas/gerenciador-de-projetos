@@ -17,16 +17,16 @@ Deno.serve(async (req) => {
             1000
         );
 
-        // Encontrar a data mais recente (end_date mais longe)
+        // Encontrar a data mais recente da etapa Encerramento/Passagem de Bastão
         let estimatedDeadline = null;
-        
+
         if (events && events.length > 0) {
             const validDates = events
-                .filter(e => e.end_date)
+                .filter(e => e.end_date && (e.phase === 'encerramento_bastao' || e.title === 'Encerramento/Passagem de Bastão'))
                 .map(e => e.end_date)
                 .sort()
                 .reverse();
-            
+
             if (validDates.length > 0) {
                 estimatedDeadline = validDates[0];
             }
