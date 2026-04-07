@@ -125,6 +125,7 @@ export default function Travels() {
     notes: '',
   });
   const [calendarFilter, setCalendarFilter] = useState({ name: '', vertical: '' });
+  const [listFilter, setListFilter] = useState({ vertical: 'all', month: 'all' });
 
   const urlParams = new URLSearchParams(window.location.search);
   const projectId = urlParams.get('project_id');
@@ -246,6 +247,22 @@ export default function Travels() {
 
   const verticals = Object.keys(membersByVertical).sort();
   const allVerticals = [...new Set(teamMembers.map(m => m.vertical).filter(Boolean))].sort();
+
+  const listMonthOptions = useMemo(() => {
+    return [...new Set(
+      travels
+        .filter(travel => travel.start_date)
+        .map(travel => format(parseISO(travel.start_date), 'yyyy-MM'))
+    )].sort();
+  }, [travels]);
+
+  const filteredListTravels = useMemo(() => {
+    return travels.filter(travel => {
+      const verticalMatch = listFilter.vertical === 'all' || travel.vertical === listFilter.vertical;
+      const monthMatch = listFilter.month === 'all' || (travel.start_date && format(parseISO(travel.start_date), 'yyyy-MM') === listFilter.month);
+      return verticalMatch && monthMatch;
+    });
+  }, [travels, listFilter]);
 
   // Handle drag selection
   const handleMouseDown = (day, member) => {
@@ -572,114 +589,123 @@ export default function Travels() {
           )}
         </>
       ) : (
-        // List View
         <div className="space-y-6">
-          {travels.length > 0 ? (
-            (() => {
-              const travelsByMonth = travels.reduce((acc, travel) => {
-                if (!travel.start_date) return acc;
-                const date = parseISO(travel.start_date);
-                const monthKey = format(date, 'yyyy-MM', { locale: ptBR });
-                const monthLabel = format(date, "MMMM 'de' yyyy", { locale: ptBR });
-                
-                if (!acc[monthKey]) {
-                  acc[monthKey] = { label: monthLabel, travels: [] };
-                }
-                acc[monthKey].travels.push(travel);
-                return acc;
-              }, {});
+          <Card className="bg-slate-800/50 border-slate-700/50">
+            <CardContent className="p-4">
+              <div className="flex flex-col md:flex-row gap-3">
+                <Select value={listFilter.vertical} onValueChange={(value) => setListFilter(prev => ({ ...prev, vertical: value }))}>
+                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white h-10 text-sm md:w-56">
+                    <SelectValue placeholder="Todas verticais" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-700 border-slate-600">
+                    <SelectItem value="all">Todas verticais</SelectItem>
+                    {allVerticals.map(v => (
+                      <SelectItem key={v} value={v}>{verticalLabels[v] || v}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={listFilter.month} onValueChange={(value) => setListFilter(prev => ({ ...prev, month: value }))}>
+                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white h-10 text-sm md:w-56">
+                    <SelectValue placeholder="Todos os meses" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-700 border-slate-600">
+                    <SelectItem value="all">Todos os meses</SelectItem>
+                    {listMonthOptions.map(month => (
+                      <SelectItem key={month} value={month}>
+                        {format(parseISO(`${month}-01`), "MMMM 'de' yyyy", { locale: ptBR })}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
 
-              const sortedMonths = Object.entries(travelsByMonth).sort((a, b) => a[0].localeCompare(b[0]));
-
-              return sortedMonths.map(([monthKey, { label, travels: monthTravels }]) => {
-                const sortedTravels = monthTravels.sort((a, b) => {
-                  const dateA = a.start_date ? new Date(a.start_date) : new Date(0);
-                  const dateB = b.start_date ? new Date(b.start_date) : new Date(0);
-                  return dateA - dateB;
-                });
-
-                return (
-                  <div key={monthKey}>
-                    <h2 className="text-lg font-semibold text-cyan-400 mb-4 capitalize">
-                      {label}
-                    </h2>
-                    <div className="space-y-3">
-                      {sortedTravels.map(travel => {
+          {filteredListTravels.length > 0 ? (
+            <Card className="bg-slate-800/50 border-slate-700/50 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[980px]">
+                  <thead className="bg-slate-800">
+                    <tr className="border-b border-slate-700">
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">Etapa</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">Vertical</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">Tipo</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">Período</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">Participantes</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">Status</th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-400">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredListTravels
+                      .slice()
+                      .sort((a, b) => {
+                        const dateA = a.start_date ? new Date(a.start_date) : new Date(0);
+                        const dateB = b.start_date ? new Date(b.start_date) : new Date(0);
+                        return dateA - dateB;
+                      })
+                      .map(travel => {
                         const Icon = travelTypeIcons[travel.travel_type];
                         return (
-                          <Card key={travel.id} className="bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 transition-all group">
-                          <CardContent className="p-5">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-3 mb-2">
-                                  <div className={cn("w-10 h-10 rounded-full flex items-center justify-center", travelTypeColors[travel.travel_type])}>
-                                    <Icon className="w-5 h-5 text-white" />
-                                  </div>
-                                  <div>
-                                    <h3 className="font-semibold text-white">{travel.title}</h3>
-                                    <p className="text-sm text-slate-400">{travelTypeLabels[travel.travel_type]}</p>
-                                  </div>
+                          <tr key={travel.id} className="border-b border-slate-700/50 hover:bg-slate-800 transition-colors">
+                            <td className="px-4 py-3 text-sm font-medium text-white">{travel.title}</td>
+                            <td className="px-4 py-3 text-sm text-slate-300">{verticalLabels[travel.vertical] || travel.vertical || '—'}</td>
+                            <td className="px-4 py-3 text-sm text-slate-300">
+                              <div className="flex items-center gap-2">
+                                <div className={cn("w-7 h-7 rounded-full flex items-center justify-center", travelTypeColors[travel.travel_type])}>
+                                  <Icon className="w-4 h-4 text-white" />
                                 </div>
-                                <div className="ml-13 space-y-2 text-sm text-slate-400">
-                                  {travel.location && (
-                                    <div className="flex items-center gap-2">
-                                      <MapPin className="w-4 h-4" />
-                                      {travel.location}
-                                    </div>
-                                  )}
-                                  {travel.start_date && (
-                                    <div className="flex items-center gap-2">
-                                      <Calendar className="w-4 h-4" />
-                                      {format(parseISO(travel.start_date), "dd/MM/yyyy")}
-                                      {travel.end_date && travel.end_date !== travel.start_date && (
-                                        <> - {format(parseISO(travel.end_date), "dd/MM/yyyy")}</>
-                                      )}
-                                    </div>
-                                  )}
-                                  {travel.attendees && travel.attendees.length > 0 && (
-                                    <div className="flex flex-wrap gap-1 mt-2">
-                                      {travel.attendees.map((attendee, idx) => (
-                                        <Badge key={idx} variant="secondary" className="bg-slate-700 text-slate-300">
-                                          {attendee}
-                                        </Badge>
-                                      ))}
-                                    </div>
-                                  )}
-                                </div>
+                                <span>{travelTypeLabels[travel.travel_type]}</span>
                               </div>
-                              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            </td>
+                            <td className="px-4 py-3 text-sm text-slate-300">
+                              {travel.start_date ? format(parseISO(travel.start_date), 'dd/MM/yyyy') : '—'}
+                              {travel.end_date && travel.end_date !== travel.start_date && (
+                                <span> - {format(parseISO(travel.end_date), 'dd/MM/yyyy')}</span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-slate-300">
+                              <div className="flex flex-wrap gap-1">
+                                {travel.attendees?.length ? travel.attendees.map((attendee, idx) => (
+                                  <Badge key={idx} variant="secondary" className="bg-slate-700 text-slate-300">
+                                    {attendee}
+                                  </Badge>
+                                )) : '—'}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-sm text-slate-300">{statusLabels[travel.status] || travel.status}</td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center justify-end gap-1">
                                 <Button
                                   size="icon"
                                   variant="ghost"
-                                  className="h-7 w-7 text-slate-400 hover:text-white hover:bg-slate-700"
+                                  className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-700"
                                   onClick={() => handleEdit(travel)}
                                 >
-                                  <Pencil className="w-3 h-3" />
+                                  <Pencil className="w-4 h-4" />
                                 </Button>
                                 <Button
                                   size="icon"
                                   variant="ghost"
-                                  className="h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-500/20"
+                                  className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-red-500/20"
                                   onClick={() => handleDelete(travel)}
                                 >
-                                  <Trash2 className="w-3 h-3" />
+                                  <Trash2 className="w-4 h-4" />
                                 </Button>
                               </div>
-                            </div>
-                          </CardContent>
-                        </Card>
+                            </td>
+                          </tr>
                         );
-                        })}
-                        </div>
-                        </div>
-                        );
-                        });
-            })()
+                      })}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
           ) : (
             <EmptyState
               icon={Plane}
-              title="Nenhuma viagem cadastrada"
-              description="Adicione as viagens dos implantadores"
+              title="Nenhuma viagem encontrada"
+              description="Ajuste os filtros ou adicione uma nova viagem"
               action={
                 <Button onClick={() => setModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
                   <Plus className="w-4 h-4 mr-2" />
