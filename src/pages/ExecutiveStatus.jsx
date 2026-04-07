@@ -83,6 +83,8 @@ export default function ExecutiveStatus() {
   const [isRecalculating, setIsRecalculating] = useState(true);
   const [financialProjectFilters, setFinancialProjectFilters] = useState([]);
   const [financialDropdownOpen, setFinancialDropdownOpen] = useState(false);
+  const [selectedFinancialDetailProject, setSelectedFinancialDetailProject] = useState('all');
+  const [selectedFinancialDetailVertical, setSelectedFinancialDetailVertical] = useState('all');
   const queryClient = useQueryClient();
   const urlParams = new URLSearchParams(window.location.search);
   const portfolioFilter = urlParams.get('portfolio') || 'grandes_contas_sc_mg';
@@ -882,15 +884,55 @@ export default function ExecutiveStatus() {
             const recognizedProds = allRecognizedRevenues.filter(r => r.recognition_month?.substring(0, 7) === selectedMonth && r.type === 'implantacao' && (financialProjectFilters.length === 0 || financialProjectFilters.includes(r.project_id))).map(rec => ({ rec, product: allProducts.find(p => p.id === rec.product_id), project: dictionaries.projectById[rec.project_id] })).filter(x => x.product && x.project);
             const recorrenteProds = recorrenteProductsMap[selectedMonth] || [];
 
-            if (!selectedMonthType && aReceberProds.length === 0 && recognizedProds.length === 0 && recorrenteProds.length === 0) return null;
+            const detailProjectOptions = Array.from(new Map([
+              ...aReceberProds.map(item => [item.project.id, item.project]),
+              ...recognizedProds.map(item => [item.project.id, item.project]),
+              ...recorrenteProds.map(item => [item.project.id, item.project])
+            ]).values()).sort((a, b) => a.name.localeCompare(b.name));
+
+            const detailVerticalOptions = Array.from(new Set([
+              ...aReceberProds.map(item => item.product?.vertical),
+              ...recognizedProds.map(item => item.product?.vertical),
+              ...recorrenteProds.map(item => item.product?.vertical)
+            ].filter(Boolean))).sort();
+
+            const detailProjectFilter = selectedFinancialDetailProject || 'all';
+            const detailVerticalFilter = selectedFinancialDetailVertical || 'all';
+
+            const filteredAReceberProds = aReceberProds.filter(item =>
+              (detailProjectFilter === 'all' || item.project.id === detailProjectFilter) &&
+              (detailVerticalFilter === 'all' || item.product?.vertical === detailVerticalFilter)
+            );
+
+            const filteredRecognizedProds = recognizedProds.filter(item =>
+              (detailProjectFilter === 'all' || item.project.id === detailProjectFilter) &&
+              (detailVerticalFilter === 'all' || item.product?.vertical === detailVerticalFilter)
+            );
+
+            const filteredRecorrenteProds = recorrenteProds.filter(item =>
+              (detailProjectFilter === 'all' || item.project.id === detailProjectFilter) &&
+              (detailVerticalFilter === 'all' || item.product?.vertical === detailVerticalFilter)
+            );
+
+            if (!selectedMonthType && filteredAReceberProds.length === 0 && filteredRecognizedProds.length === 0 && filteredRecorrenteProds.length === 0) return null;
 
             if (selectedMonthType === 'recorrente') {
               return (
                 <Card className="bg-slate-800 border-slate-600">
                   <CardHeader><div className="flex items-center justify-between"><CardTitle className="text-white">Previsão de Inclusão (Recorrente) — {monthLabel}</CardTitle><Button variant="ghost" size="sm" onClick={() => { setSelectedMonth(null); setSelectedMonthType(null); }} className="text-slate-400">Fechar</Button></div></CardHeader>
                   <CardContent className="space-y-4">
+                     <div className="flex flex-col md:flex-row gap-3">
+                       <select value={selectedFinancialDetailProject} onChange={(e) => setSelectedFinancialDetailProject(e.target.value)} className="h-10 rounded-md border border-slate-600 bg-slate-900 px-3 text-sm text-slate-200">
+                         <option value="all">Todos os projetos</option>
+                         {detailProjectOptions.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}
+                       </select>
+                       <select value={selectedFinancialDetailVertical} onChange={(e) => setSelectedFinancialDetailVertical(e.target.value)} className="h-10 rounded-md border border-slate-600 bg-slate-900 px-3 text-sm text-slate-200">
+                         <option value="all">Todas as verticais</option>
+                         {detailVerticalOptions.map(vertical => <option key={vertical} value={vertical}>{vertical}</option>)}
+                       </select>
+                     </div>
                      <div className="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-2">Produtos Iniciando</div>
-                     <div className="overflow-hidden rounded-lg border border-blue-700/40">
+                      <div className="overflow-hidden rounded-lg border border-blue-700/40">
                        <div className="overflow-x-auto">
                          <table className="w-full min-w-[720px]">
                            <thead className="bg-blue-900/30">
@@ -902,7 +944,7 @@ export default function ExecutiveStatus() {
                              </tr>
                            </thead>
                            <tbody>
-                             {recorrenteProds.map(({ project, product, startDate, inclusionValue }) => (
+                             {filteredRecorrenteProds.map(({ project, product, startDate, inclusionValue }) => (
                                <tr key={`${project.id}-${product.id}`} className="border-b border-blue-800/20 bg-blue-900/10 hover:bg-blue-900/20 transition-colors">
                                  <td className="px-4 py-3 text-sm font-medium text-white">{project.name}</td>
                                  <td className="px-4 py-3 text-sm text-slate-200">{product.name}</td>
@@ -923,7 +965,17 @@ export default function ExecutiveStatus() {
               <Card className="bg-slate-800 border-slate-600">
                 <CardHeader><div className="flex items-center justify-between"><CardTitle className="text-white">Implantação — {monthLabel}</CardTitle><Button variant="ghost" size="sm" onClick={() => { setSelectedMonth(null); setSelectedMonthType(null); }} className="text-slate-400">Fechar</Button></div></CardHeader>
                 <CardContent className="space-y-4">
-                  {aReceberProds.length > 0 && (
+                  <div className="flex flex-col md:flex-row gap-3">
+                    <select value={selectedFinancialDetailProject} onChange={(e) => setSelectedFinancialDetailProject(e.target.value)} className="h-10 rounded-md border border-slate-600 bg-slate-900 px-3 text-sm text-slate-200">
+                      <option value="all">Todos os projetos</option>
+                      {detailProjectOptions.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}
+                    </select>
+                    <select value={selectedFinancialDetailVertical} onChange={(e) => setSelectedFinancialDetailVertical(e.target.value)} className="h-10 rounded-md border border-slate-600 bg-slate-900 px-3 text-sm text-slate-200">
+                      <option value="all">Todas as verticais</option>
+                      {detailVerticalOptions.map(vertical => <option key={vertical} value={vertical}>{vertical}</option>)}
+                    </select>
+                  </div>
+                  {filteredAReceberProds.length > 0 && (
                     <div>
                       <div className="text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-2">A Receber</div>
                       <div className="overflow-hidden rounded-lg border border-emerald-700/40">
@@ -938,7 +990,7 @@ export default function ExecutiveStatus() {
                               </tr>
                             </thead>
                             <tbody>
-                              {aReceberProds.map(({ project, product, deadline, amount }) => (
+                              {filteredAReceberProds.map(({ project, product, deadline, amount }) => (
                                 <tr key={`${project.id}-${product.id}`} className="border-b border-emerald-800/20 bg-emerald-900/10 hover:bg-emerald-900/20 transition-colors">
                                   <td className="px-4 py-3 text-sm font-medium text-white">{project.name}</td>
                                   <td className="px-4 py-3 text-sm text-slate-200">{product.name}</td>
@@ -952,7 +1004,7 @@ export default function ExecutiveStatus() {
                       </div>
                     </div>
                   )}
-                  {recognizedProds.length > 0 && (
+                  {filteredRecognizedProds.length > 0 && (
                     <div>
                       <div className="text-xs font-semibold text-purple-400 uppercase tracking-wider mb-2">Reconhecidos</div>
                       <div className="overflow-hidden rounded-lg border border-purple-700/40">
@@ -967,7 +1019,7 @@ export default function ExecutiveStatus() {
                               </tr>
                             </thead>
                             <tbody>
-                              {recognizedProds.map(({ rec, product, project }) => (
+                              {filteredRecognizedProds.map(({ rec, product, project }) => (
                                 <tr key={rec.id} className="border-b border-purple-800/20 bg-purple-900/10 hover:bg-purple-900/20 transition-colors">
                                   <td className="px-4 py-3 text-sm font-medium text-white">{project?.name || 'N/A'}</td>
                                   <td className="px-4 py-3 text-sm text-slate-200">{product?.name || 'N/A'}</td>
