@@ -890,24 +890,29 @@ export default function ExecutiveStatus() {
                   <CardHeader><div className="flex items-center justify-between"><CardTitle className="text-white">Previsão de Inclusão (Recorrente) — {monthLabel}</CardTitle><Button variant="ghost" size="sm" onClick={() => { setSelectedMonth(null); setSelectedMonthType(null); }} className="text-slate-400">Fechar</Button></div></CardHeader>
                   <CardContent className="space-y-4">
                      <div className="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-2">Produtos Iniciando</div>
-                     <div className="space-y-2">
-                       {Object.values(recorrenteProds.reduce((acc, item) => { if (!acc[item.project.id]) acc[item.project.id] = { project: item.project, items: [] }; acc[item.project.id].items.push(item); return acc; }, {})).map(({ project: proj, items }) => {
-                         const isExpanded = expandedProjectGroups[`recorrente-${selectedMonth}-${proj.id}`];
-                         return (
-                           <div key={proj.id} className="rounded-lg border border-blue-700/50 overflow-hidden">
-                             <button className="w-full flex items-center justify-between p-3 bg-blue-900/30 text-left" onClick={() => setExpandedProjectGroups(p => ({ ...p, [`recorrente-${selectedMonth}-${proj.id}`]: !p[`recorrente-${selectedMonth}-${proj.id}`] }))}>
-                               <span className="text-white font-semibold text-sm">{proj.name} ({items.length})</span>
-                               <span className="text-sm font-semibold text-blue-400">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(items.reduce((s, i) => s + i.inclusionValue, 0))}</span>
-                             </button>
-                             {isExpanded && items.map(({ product, startDate, inclusionValue }) => (
-                               <div key={product.id} className="flex justify-between px-4 py-2.5 bg-blue-900/10 border-t border-blue-800/30">
-                                 <div><div className="font-medium text-white text-sm">{product.name}</div></div>
-                                 <div className="text-right"><div className="text-sm font-semibold text-blue-400">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(inclusionValue)}</div>{startDate && <div className="text-xs text-slate-500">{format(new Date(startDate), 'dd/MM/yyyy')}</div>}</div>
-                               </div>
+                     <div className="overflow-hidden rounded-lg border border-blue-700/40">
+                       <div className="overflow-x-auto">
+                         <table className="w-full min-w-[720px]">
+                           <thead className="bg-blue-900/30">
+                             <tr className="border-b border-blue-800/40">
+                               <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-blue-300">Projeto</th>
+                               <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-blue-300">Produto</th>
+                               <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-blue-300">Início</th>
+                               <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-blue-300">Valor</th>
+                             </tr>
+                           </thead>
+                           <tbody>
+                             {recorrenteProds.map(({ project, product, startDate, inclusionValue }) => (
+                               <tr key={`${project.id}-${product.id}`} className="border-b border-blue-800/20 bg-blue-900/10 hover:bg-blue-900/20 transition-colors">
+                                 <td className="px-4 py-3 text-sm font-medium text-white">{project.name}</td>
+                                 <td className="px-4 py-3 text-sm text-slate-200">{product.name}</td>
+                                 <td className="px-4 py-3 text-sm text-slate-400">{startDate ? format(new Date(startDate), 'dd/MM/yyyy') : '—'}</td>
+                                 <td className="px-4 py-3 text-right text-sm font-semibold text-blue-400">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(inclusionValue)}</td>
+                               </tr>
                              ))}
-                           </div>
-                         );
-                       })}
+                           </tbody>
+                         </table>
+                       </div>
                      </div>
                   </CardContent>
                 </Card>
@@ -921,37 +926,58 @@ export default function ExecutiveStatus() {
                   {aReceberProds.length > 0 && (
                     <div>
                       <div className="text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-2">A Receber</div>
-                      <div className="space-y-2">
-                         {Object.values(aReceberProds.reduce((acc, item) => { if (!acc[item.project.id]) acc[item.project.id] = { project: item.project, items: [] }; acc[item.project.id].items.push(item); return acc; }, {})).map(({ project: proj, items }) => {
-                           const isExpanded = expandedProjectGroups[`areceber-${selectedMonth}-${proj.id}`];
-                           return (
-                             <div key={proj.id} className="rounded-lg border border-emerald-700/50 overflow-hidden">
-                               <button className="w-full flex items-center justify-between p-3 bg-emerald-900/30 text-left" onClick={() => setExpandedProjectGroups(p => ({ ...p, [`areceber-${selectedMonth}-${proj.id}`]: !p[`areceber-${selectedMonth}-${proj.id}`] }))}>
-                                 <span className="text-white font-semibold text-sm">{proj.name} ({items.length})</span>
-                                 <span className="text-sm font-semibold text-emerald-400">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(items.reduce((s, i) => s + i.amount, 0))}</span>
-                               </button>
-                               {isExpanded && items.map(({ product, deadline, amount }) => (
-                                 <div key={product.id} className="flex justify-between px-4 py-2.5 bg-emerald-900/10 border-t border-emerald-800/30">
-                                   <div><div className="font-medium text-white text-sm">{product.name}</div></div>
-                                   <div className="text-right"><div className="text-sm font-semibold text-emerald-400">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(amount)}</div>{deadline && <div className="text-xs text-slate-500">{format(new Date(deadline), 'dd/MM/yyyy')}</div>}</div>
-                                 </div>
-                               ))}
-                             </div>
-                           );
-                         })}
+                      <div className="overflow-hidden rounded-lg border border-emerald-700/40">
+                        <div className="overflow-x-auto">
+                          <table className="w-full min-w-[760px]">
+                            <thead className="bg-emerald-900/30">
+                              <tr className="border-b border-emerald-800/40">
+                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-emerald-300">Projeto</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-emerald-300">Produto</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-emerald-300">Prazo</th>
+                                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-emerald-300">Valor</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {aReceberProds.map(({ project, product, deadline, amount }) => (
+                                <tr key={`${project.id}-${product.id}`} className="border-b border-emerald-800/20 bg-emerald-900/10 hover:bg-emerald-900/20 transition-colors">
+                                  <td className="px-4 py-3 text-sm font-medium text-white">{project.name}</td>
+                                  <td className="px-4 py-3 text-sm text-slate-200">{product.name}</td>
+                                  <td className="px-4 py-3 text-sm text-slate-400">{deadline ? format(new Date(deadline), 'dd/MM/yyyy') : '—'}</td>
+                                  <td className="px-4 py-3 text-right text-sm font-semibold text-emerald-400">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(amount)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
                       </div>
                     </div>
                   )}
                   {recognizedProds.length > 0 && (
                     <div>
                       <div className="text-xs font-semibold text-purple-400 uppercase tracking-wider mb-2">Reconhecidos</div>
-                      <div className="space-y-2">
-                        {recognizedProds.map(({ rec, product, project }) => (
-                          <div key={rec.id} className="p-3 bg-purple-900/20 rounded-lg border border-purple-700/50 flex justify-between">
-                            <div><div className="font-semibold text-white text-sm">{product?.name || 'N/A'}</div><div className="text-xs text-slate-400">{project?.name || 'N/A'}</div></div>
-                            <div className="text-sm font-semibold text-purple-400">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(rec.amount)}</div>
-                          </div>
-                        ))}
+                      <div className="overflow-hidden rounded-lg border border-purple-700/40">
+                        <div className="overflow-x-auto">
+                          <table className="w-full min-w-[760px]">
+                            <thead className="bg-purple-900/30">
+                              <tr className="border-b border-purple-800/40">
+                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-purple-300">Projeto</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-purple-300">Produto</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-purple-300">Mês</th>
+                                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-purple-300">Valor</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {recognizedProds.map(({ rec, product, project }) => (
+                                <tr key={rec.id} className="border-b border-purple-800/20 bg-purple-900/10 hover:bg-purple-900/20 transition-colors">
+                                  <td className="px-4 py-3 text-sm font-medium text-white">{project?.name || 'N/A'}</td>
+                                  <td className="px-4 py-3 text-sm text-slate-200">{product?.name || 'N/A'}</td>
+                                  <td className="px-4 py-3 text-sm text-slate-400">{rec.recognition_month ? format(new Date(rec.recognition_month.split('-')[0], parseInt(rec.recognition_month.split('-')[1]) - 1, 1), 'MM/yyyy', { locale: ptBR }) : '—'}</td>
+                                  <td className="px-4 py-3 text-right text-sm font-semibold text-purple-400">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(rec.amount)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
                       </div>
                     </div>
                   )}
