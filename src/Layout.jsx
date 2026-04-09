@@ -74,11 +74,7 @@ export default function Layout({ children, currentPageName }) {
     currentPageName === 'InternalProjectsList' ||
     currentPageName === 'InternalDashboard' ||
     currentPageName === 'ExecutiveStatus' ||
-    currentPageName === 'BackupManagement' ||
-    currentPageName === 'BidPendingPortfolio' ||
-    currentPageName === 'BidPendingDashboard' ||
-    currentPageName === 'BidPendingList' ||
-    currentPageName === 'BidPendingProject'
+    currentPageName === 'BackupManagement'
   ) {
     return children;
   }
