@@ -11,6 +11,10 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Activities from './pages/Activities';
+import BidPendingPortfolio from './pages/BidPendingPortfolio';
+import BidPendingDashboard from './pages/BidPendingDashboard';
+import BidPendingList from './pages/BidPendingList';
+import BidPendingProject from './pages/BidPendingProject';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -56,6 +60,10 @@ const AuthenticatedApp = () => {
           <Activities />
         </LayoutWrapper>
       } />
+      <Route path="/BidPendingPortfolio" element={<BidPendingPortfolio />} />
+      <Route path="/BidPendingDashboard" element={<BidPendingDashboard />} />
+      <Route path="/BidPendingList" element={<BidPendingList />} />
+      <Route path="/BidPendingProject" element={<BidPendingProject />} />
       {Object.entries(Pages).map(([path, Page]) => (
         <Route
           key={path}

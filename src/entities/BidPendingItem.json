@@ -1,0 +1,53 @@
+{
+  "name": "BidPendingItem",
+  "type": "object",
+  "properties": {
+    "portfolio": {
+      "type": "string",
+      "enum": ["grandes_contas_sc_mg", "grandes_contas_sc_sp", "medias_contas"],
+      "description": "Portfólio do item"
+    },
+    "project_name": {
+      "type": "string",
+      "description": "Nome do projeto/cidade (nome da aba)"
+    },
+    "ticket_number": {
+      "type": "string",
+      "description": "Número do chamado"
+    },
+    "ticket_link": {
+      "type": "string",
+      "description": "Link do chamado"
+    },
+    "vertical": {
+      "type": "string",
+      "description": "Vertical do item"
+    },
+    "system_name": {
+      "type": "string",
+      "description": "Sistema/produto"
+    },
+    "bid_item_number": {
+      "type": "string",
+      "description": "Número do item do edital"
+    },
+    "bid_item_description": {
+      "type": "string",
+      "description": "Descrição do item do edital"
+    },
+    "status": {
+      "type": "string",
+      "description": "Status do chamado"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data prevista de conclusão"
+    },
+    "unique_key": {
+      "type": "string",
+      "description": "Chave única para atualização incremental"
+    }
+  },
+  "required": ["portfolio", "project_name", "ticket_number", "bid_item_number", "unique_key"]
+}

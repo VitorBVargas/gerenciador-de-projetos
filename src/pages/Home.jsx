@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { ArrowRight, FolderOpen, BarChart3, Database } from 'lucide-react';
+import { ArrowRight, FolderOpen, BarChart3, Database, FileWarning } from 'lucide-react';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -43,7 +43,7 @@ export default function Home() {
         </div>
 
         {/* Button Grid */}
-        <div className="grid md:grid-cols-3 gap-6 md:gap-4 max-w-4xl mx-auto">
+        <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6 md:gap-4 max-w-5xl mx-auto">
           {/* Projetos Internos */}
           <button
             onClick={() => handleNavigation('InternalProjectsList')}
@@ -91,6 +91,22 @@ export default function Home() {
             <div className="relative h-full flex flex-col items-center justify-center p-6">
               <BarChart3 className="w-12 h-12 text-blue-200 mb-3 group-hover:scale-110 transition-transform duration-300" />
               <h3 className="text-xl font-bold text-white text-center">Status Executivo</h3>
+            </div>
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
+          </button>
+
+          {/* Pendência Edital */}
+          <button
+            onClick={() => handleNavigation('BidPendingPortfolio')}
+            onMouseEnter={() => setActiveButton(3)}
+            onMouseLeave={() => setActiveButton(null)}
+            className="group relative h-40 rounded-2xl overflow-hidden transition-all duration-300 transform hover:scale-105"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-teal-600 to-cyan-700 group-hover:from-teal-500 group-hover:to-cyan-600 transition-all duration-300"></div>
+            <div className="relative h-full flex flex-col items-center justify-center p-6">
+              <FileWarning className="w-12 h-12 text-cyan-100 mb-3 group-hover:scale-110 transition-transform duration-300" />
+              <h3 className="text-xl font-bold text-white text-center">Pendência Edital</h3>
+              <p className="text-xs text-cyan-100 mt-1">Selecione portfólio</p>
             </div>
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
           </button>
