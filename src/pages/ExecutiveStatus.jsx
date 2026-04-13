@@ -426,7 +426,8 @@ export default function ExecutiveStatus() {
   }, [filteredProjectsForFinance, dictionaries, allRecognizedRevenues, financialProjectFilters]);
 
   // Métricas do Projeto (Otimizado com Dicionários)
-  const getStatusFromHealthScore = (healthScore) => {
+  const getStatusFromHealthScore = (healthScore, projectStatus) => {
+    if (projectStatus === 'pausado') return 'pausado';
     if (healthScore > 60) return 'em_dia';
     if (healthScore >= 50 && healthScore <= 60) return 'atencao';
     return 'atrasado';
@@ -447,7 +448,7 @@ export default function ExecutiveStatus() {
         ...project,
         healthScore,
         progress,
-        dynamicStatus: getStatusFromHealthScore(healthScore),
+        dynamicStatus: getStatusFromHealthScore(healthScore, project.status),
         totalRecognized,
         totalBudget: project.budget || 0
       };
@@ -662,13 +663,18 @@ export default function ExecutiveStatus() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <div className={cn("w-2.5 h-2.5 rounded-full", statusColors[project.dynamicStatus])} />
                     <span className="text-sm text-slate-300 font-medium">{statusLabels[project.dynamicStatus]}</span>
+                    {project.status === 'pausado' && (
+                      <Badge className="bg-orange-500/15 text-orange-300 border border-orange-500/30">
+                        Paralisado
+                      </Badge>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm"><span className="text-slate-300 font-medium">Progresso Geral</span><span className="text-white font-bold">{project.progress}%</span></div>
-                    <Progress value={project.progress} className="h-3 bg-slate-700" />
+                    <Progress value={project.progress} className={cn("h-3 bg-slate-700", project.status === 'pausado' && "[&>div]:bg-orange-500")} />
                   </div>
                   <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-600">
                     {project.manager && <div><div className="text-xs text-slate-400 font-medium">Gerente</div><div className="text-sm text-white truncate">{project.manager}</div></div>}
