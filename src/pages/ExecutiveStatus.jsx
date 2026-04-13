@@ -452,7 +452,13 @@ export default function ExecutiveStatus() {
         totalRecognized,
         totalBudget: project.budget || 0
       };
-    }).sort((a, b) => b.totalBudget !== a.totalBudget ? b.totalBudget - a.totalBudget : a.healthScore - b.healthScore);
+    }).sort((a, b) => {
+      const aPaused = a.status === 'pausado';
+      const bPaused = b.status === 'pausado';
+      if (aPaused !== bPaused) return aPaused ? 1 : -1;
+      if (b.totalBudget !== a.totalBudget) return b.totalBudget - a.totalBudget;
+      return a.healthScore - b.healthScore;
+    });
   }, [projects, dictionaries]);
 
   const getHealthColor = (score) => {
