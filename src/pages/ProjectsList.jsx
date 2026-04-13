@@ -148,7 +148,8 @@ export default function ProjectsList() {
   }, []);
 
   // Filter projects by status
-  const activeProjects = projects.filter(p => p.status !== 'concluido');
+  const activeProjects = projects.filter(p => p.status !== 'concluido' && p.status !== 'pausado');
+  const pausedProjects = projects.filter(p => p.status === 'pausado');
   const completedProjects = projects.filter(p => p.status === 'concluido');
 
   const handleDragEnd = async (result, projectsList) => {
@@ -260,6 +261,9 @@ export default function ProjectsList() {
             <TabsTrigger value="active" className="data-[state=active]:bg-slate-700">
               Ativos ({activeProjects.length})
             </TabsTrigger>
+            <TabsTrigger value="paused" className="data-[state=active]:bg-slate-700">
+              Pausados ({pausedProjects.length})
+            </TabsTrigger>
             <TabsTrigger value="completed" className="data-[state=active]:bg-slate-700">
               Concluídos ({completedProjects.length})
             </TabsTrigger>
@@ -294,6 +298,32 @@ export default function ProjectsList() {
                  </CardContent>
                </Card>
              )}
+          </TabsContent>
+
+          <TabsContent value="paused" className="mt-6">
+            {pausedProjects.length > 0 ? (
+              <DragDropContext onDragEnd={(result) => handleDragEnd(result, pausedProjects)}>
+                <Droppable droppableId="paused-projects">
+                  {(provided) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                    >
+                      {pausedProjects.map((project, index) => renderProjectCard(project, index, true))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
+            ) : (
+              <Card className="bg-slate-800/50 border-slate-700">
+                <CardContent className="py-16 text-center">
+                  <h3 className="text-xl font-semibold text-white mb-2">Nenhum projeto pausado</h3>
+                  <p className="text-slate-400">Os projetos pausados aparecerão aqui</p>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="completed" className="mt-6">
