@@ -614,9 +614,10 @@ export default function ExecutiveStatus() {
               </CardContent>
             </Card>
             {(() => {
-              const emDias = projectsWithMetrics.filter(p => p.healthScore > 60).length;
-              const emAlerta = projectsWithMetrics.filter(p => p.healthScore >= 50 && p.healthScore <= 60).length;
-              const atrasado = projectsWithMetrics.filter(p => p.healthScore < 50).length;
+              const emDias = projectsWithMetrics.filter(p => p.dynamicStatus === 'em_dia').length;
+              const emAlerta = projectsWithMetrics.filter(p => p.dynamicStatus === 'atencao').length;
+              const pausados = projectsWithMetrics.filter(p => p.dynamicStatus === 'pausado').length;
+              const atrasado = projectsWithMetrics.filter(p => p.dynamicStatus === 'atrasado').length;
               const concluidos = allProjectsData.filter(p => p.status === 'concluido').length;
               return (
                 <>
@@ -625,6 +626,9 @@ export default function ExecutiveStatus() {
                   </Card>
                   <Card onClick={() => setSelectedStatusFilter(selectedStatusFilter === 'emAlerta' ? null : 'emAlerta')} className={cn("bg-slate-800 border-slate-600 flex-1 min-w-[100px] cursor-pointer hover:bg-slate-700 transition-colors", selectedStatusFilter === 'emAlerta' && 'ring-2 ring-yellow-500')}>
                     <CardContent className="p-2 text-center flex flex-col items-center justify-center h-full"><div className="text-base font-bold text-yellow-400 mb-0.5">{emAlerta}</div><div className="text-xs text-yellow-300">Alerta</div></CardContent>
+                  </Card>
+                  <Card onClick={() => setSelectedStatusFilter(selectedStatusFilter === 'pausados' ? null : 'pausados')} className={cn("bg-slate-800 border-slate-600 flex-1 min-w-[100px] cursor-pointer hover:bg-slate-700 transition-colors", selectedStatusFilter === 'pausados' && 'ring-2 ring-orange-500')}>
+                    <CardContent className="p-2 text-center flex flex-col items-center justify-center h-full"><div className="text-base font-bold text-orange-400 mb-0.5">{pausados}</div><div className="text-xs text-orange-300">Paralisado</div></CardContent>
                   </Card>
                   <Card onClick={() => setSelectedStatusFilter(selectedStatusFilter === 'atrasado' ? null : 'atrasado')} className={cn("bg-slate-800 border-slate-600 flex-1 min-w-[100px] cursor-pointer hover:bg-slate-700 transition-colors", selectedStatusFilter === 'atrasado' && 'ring-2 ring-red-500')}>
                     <CardContent className="p-2 text-center flex flex-col items-center justify-center h-full"><div className="text-base font-bold text-red-400 mb-0.5">{atrasado}</div><div className="text-xs text-red-300">Atrasado</div></CardContent>
@@ -639,15 +643,16 @@ export default function ExecutiveStatus() {
 
            <div>
              <h2 className="text-xl font-bold text-white mb-4">
-               {selectedStatusFilter ? `Projetos ${selectedStatusFilter === 'emDias' ? 'Em Dia' : selectedStatusFilter === 'emAlerta' ? 'Em Alerta' : selectedStatusFilter === 'atrasado' ? 'Atrasados' : 'Concluídos'} ` : 'Projetos Ativos'}
+               {selectedStatusFilter ? `Projetos ${selectedStatusFilter === 'emDias' ? 'Em Dia' : selectedStatusFilter === 'emAlerta' ? 'Em Alerta' : selectedStatusFilter === 'pausados' ? 'Paralisados' : selectedStatusFilter === 'atrasado' ? 'Atrasados' : 'Concluídos'} ` : 'Projetos Ativos'}
                {selectedStatusFilter && <button onClick={() => setSelectedStatusFilter(null)} className="ml-3 text-sm text-slate-400 hover:text-white">✕ Limpar filtro</button>}
              </h2>
            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
            {projectsWithMetrics.filter(project => {
              if (!selectedStatusFilter) return true;
-             if (selectedStatusFilter === 'emDias') return project.healthScore > 60;
-             if (selectedStatusFilter === 'emAlerta') return project.healthScore >= 50 && project.healthScore <= 60;
-             if (selectedStatusFilter === 'atrasado') return project.healthScore < 50;
+             if (selectedStatusFilter === 'emDias') return project.dynamicStatus === 'em_dia';
+             if (selectedStatusFilter === 'emAlerta') return project.dynamicStatus === 'atencao';
+             if (selectedStatusFilter === 'pausados') return project.dynamicStatus === 'pausado';
+             if (selectedStatusFilter === 'atrasado') return project.dynamicStatus === 'atrasado';
              if (selectedStatusFilter === 'concluidos') return project.status === 'concluido';
              return true;
            }).map(project => (
