@@ -1,0 +1,56 @@
+{
+  "name": "EditalItem",
+  "type": "object",
+  "properties": {
+    "portfolio": {
+      "type": "string",
+      "description": "Portfólio (grandes_contas_sc_mg, etc)"
+    },
+    "projeto": {
+      "type": "string",
+      "description": "Nome do projeto/cidade"
+    },
+    "chamado": {
+      "type": "string",
+      "description": "Número ou texto do chamado"
+    },
+    "chamado_link": {
+      "type": "string",
+      "description": "URL do chamado (extraída do hiperlink)"
+    },
+    "tipo": {
+      "type": "string",
+      "description": "Tipo (Melhoria, etc)"
+    },
+    "vertical": {
+      "type": "string"
+    },
+    "sistema": {
+      "type": "string"
+    },
+    "numero_item": {
+      "type": "string",
+      "description": "Número do item do edital"
+    },
+    "item_edital": {
+      "type": "string",
+      "description": "Descrição completa do item do edital"
+    },
+    "status": {
+      "type": "string",
+      "description": "Status do chamado (texto livre vindo da planilha)"
+    },
+    "data_prevista": {
+      "type": "string",
+      "format": "date"
+    },
+    "observacoes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "portfolio",
+    "projeto",
+    "numero_item"
+  ]
+}
