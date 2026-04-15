@@ -28,12 +28,22 @@ const isDone = (s = '') => {
 };
 
 const getSemaforo = (items, today, soon) => {
-  const active = items.filter(i => !isDone(i.status) && i.data_prevista && i.data_prevista.length >= 10);
+  const pendingItems = items.filter(i => !isDone(i.status));
+  const active = pendingItems.filter(i => i.data_prevista && i.data_prevista.length >= 10);
+  const semPrazo = pendingItems.filter(i => !i.data_prevista || i.data_prevista.length < 10).length;
+  const semPrazoRatio = pendingItems.length > 0 ? semPrazo / pendingItems.length : 0;
+
   const hasAtrasado = active.some(i => i.data_prevista && i.data_prevista < today);
-  if (hasAtrasado) return { dot: '🔴', label: 'Com atraso', rowClass: 'bg-red-900/20 border-red-700/40' };
+  if (hasAtrasado) return { dot: '🔴', label: 'Com atraso', note: null, rowClass: 'bg-red-900/20 border-red-700/40' };
+
+  if (semPrazoRatio > 0.7) {
+    return { dot: '🟡', label: 'Em alerta', note: 'Muitos chamados sem prazo', rowClass: 'bg-yellow-900/20 border-yellow-700/40' };
+  }
+
   const hasProximo = active.some(i => i.data_prevista && i.data_prevista >= today && i.data_prevista <= soon);
-  if (hasProximo) return { dot: '🟡', label: 'Atenção (prazo próximo)', rowClass: 'bg-yellow-900/20 border-yellow-700/40' };
-  return { dot: '🟢', label: 'No prazo', rowClass: 'bg-green-900/20 border-green-700/40' };
+  if (hasProximo) return { dot: '🟡', label: 'Atenção (prazo próximo)', note: null, rowClass: 'bg-yellow-900/20 border-yellow-700/40' };
+
+  return { dot: '🟢', label: 'No prazo', note: null, rowClass: 'bg-green-900/20 border-green-700/40' };
 };
 
 export default function EditalDashboard({ items }) {
@@ -169,6 +179,7 @@ export default function EditalDashboard({ items }) {
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-white truncate">{p.name}</p>
                     <p className="text-xs text-slate-400">{p.semaforo.label}</p>
+                    {p.semaforo.note && <p className="text-[11px] text-yellow-300 truncate">{p.semaforo.note}</p>}
                   </div>
                 </div>
                 <div className="text-right flex-shrink-0 ml-2 space-y-0.5">
