@@ -94,6 +94,21 @@ export default function Home() {
             </div>
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
           </button>
+
+          {/* Pendência Edital */}
+          <button
+            onClick={() => handleNavigation('PortfolioSelect?mode=edital')}
+            onMouseEnter={() => setActiveButton(3)}
+            onMouseLeave={() => setActiveButton(null)}
+            className="group relative h-40 rounded-2xl overflow-hidden transition-all duration-300 transform hover:scale-105"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-orange-600 to-orange-700 group-hover:from-orange-500 group-hover:to-orange-600 transition-all duration-300"></div>
+            <div className="relative h-full flex flex-col items-center justify-center p-6">
+              <ClipboardList className="w-12 h-12 text-orange-200 mb-3 group-hover:scale-110 transition-transform duration-300" />
+              <h3 className="text-xl font-bold text-white text-center">Pendência Edital</h3>
+            </div>
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
+          </button>
         </div>
 
         {/* Footer hint */}
