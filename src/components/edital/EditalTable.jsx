@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import StatusCell from '@/components/edital/StatusCell';
 import { base44 } from '@/api/base44Client';
-import { ExternalLink, AlertTriangle, Clock, X } from 'lucide-react';
+import { ExternalLink, AlertTriangle, Clock, X, Search } from 'lucide-react';
 import { toast } from 'sonner';
 
 const getStatusCls = (s = '') => {
@@ -17,6 +17,7 @@ export default function EditalTable({ items, portfolio, showProject = true, proj
   const [filterVertical, setFilterVertical] = useState('');
   const [filterSistema, setFilterSistema] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Collect all unique statuses from current data for the dropdown
   const allStatuses = [...new Set(items.map(i => i.status).filter(Boolean))];
@@ -25,11 +26,31 @@ export default function EditalTable({ items, portfolio, showProject = true, proj
   const sistemas = [...new Set(items.map(i => i.sistema).filter(Boolean))].sort();
   const statusOptions = [...new Set(items.map(i => i.status).filter(Boolean))].sort();
 
-  const filteredItems = items.filter(i =>
-    (!filterVertical || i.vertical === filterVertical) &&
-    (!filterSistema || i.sistema === filterSistema) &&
-    (!filterStatus || i.status === filterStatus)
-  );
+  const normalizedSearch = searchTerm.trim().toLowerCase();
+
+  const filteredItems = items.filter(i => {
+    const matchesFilters =
+      (!filterVertical || i.vertical === filterVertical) &&
+      (!filterSistema || i.sistema === filterSistema) &&
+      (!filterStatus || i.status === filterStatus);
+
+    if (!matchesFilters) return false;
+    if (!normalizedSearch) return true;
+
+    const searchableText = [
+      i.chamado,
+      i.vertical,
+      i.sistema,
+      i.numero_item,
+      i.item_edital,
+      i.status,
+      i.projeto,
+      i.tipo,
+      i.observacoes,
+    ].filter(Boolean).join(' ').toLowerCase();
+
+    return searchableText.includes(normalizedSearch);
+  });
   const [itemModal, setItemModal] = useState(null);
   const queryClient = useQueryClient();
 
@@ -91,8 +112,18 @@ export default function EditalTable({ items, portfolio, showProject = true, proj
             <option value="">Todos os Status</option>
             {statusOptions.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
-          {(filterVertical || filterSistema || filterStatus) && (
-            <button onClick={() => { setFilterVertical(''); setFilterSistema(''); setFilterStatus(''); }}
+          <div className="relative min-w-[220px] flex-1 max-w-sm">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              placeholder="Buscar palavra..."
+              className="h-7 w-full pl-7 pr-2 rounded bg-slate-800 border border-slate-700 text-slate-200 placeholder:text-slate-500 text-xs"
+            />
+          </div>
+          {(filterVertical || filterSistema || filterStatus || searchTerm) && (
+            <button onClick={() => { setFilterVertical(''); setFilterSistema(''); setFilterStatus(''); setSearchTerm(''); }}
               className="text-xs text-slate-400 hover:text-white px-2 py-1 rounded border border-slate-700 hover:border-slate-500">
               ✕ Limpar
             </button>
