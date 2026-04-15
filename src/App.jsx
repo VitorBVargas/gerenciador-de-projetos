@@ -11,6 +11,7 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Activities from './pages/Activities';
+import PendenciaEdital from './pages/PendenciaEdital';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -54,6 +55,11 @@ const AuthenticatedApp = () => {
       <Route path="/Activities" element={
         <LayoutWrapper currentPageName="Activities">
           <Activities />
+        </LayoutWrapper>
+      } />
+      <Route path="/PendenciaEdital" element={
+        <LayoutWrapper currentPageName="PendenciaEdital">
+          <PendenciaEdital />
         </LayoutWrapper>
       } />
       {Object.entries(Pages).map(([path, Page]) => (
