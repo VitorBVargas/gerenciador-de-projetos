@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { ArrowRight, FolderOpen, BarChart3, Database } from 'lucide-react';
+import { ArrowRight, FolderOpen, BarChart3, Database, ClipboardList } from 'lucide-react';
 
 export default function Home() {
   const navigate = useNavigate();
