@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { ArrowLeft, Building2, BarChart3 } from 'lucide-react';
+import { ArrowLeft, Building2, BarChart3, ClipboardList } from 'lucide-react';
 
 const portfolios = [
   {
@@ -26,17 +26,18 @@ const portfolios = [
 
 export default function PortfolioSelect() {
   const urlParams = new URLSearchParams(window.location.search);
-  const mode = urlParams.get('mode') || 'projects'; // 'projects' or 'executive'
+  const mode = urlParams.get('mode') || 'projects';
 
-  const title = mode === 'executive' ? 'Status Executivo' : 'Projetos';
+  const title = mode === 'executive' ? 'Status Executivo' : mode === 'edital' ? 'Pendência Edital' : 'Projetos';
   const subtitle = mode === 'executive'
     ? 'Selecione o portfólio para ver o status executivo'
+    : mode === 'edital'
+    ? 'Selecione o portfólio para acessar as pendências de edital'
     : 'Selecione o portfólio para ver os projetos';
 
   const getUrl = (portfolioId) => {
-    if (mode === 'executive') {
-      return `ExecutiveStatus?portfolio=${portfolioId}`;
-    }
+    if (mode === 'executive') return `ExecutiveStatus?portfolio=${portfolioId}`;
+    if (mode === 'edital') return `PendenciaEdital?portfolio=${portfolioId}`;
     return `ProjectsList?portfolio=${portfolioId}`;
   };
 
@@ -59,6 +60,8 @@ export default function PortfolioSelect() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-600/30 border border-blue-500/40 mb-4">
             {mode === 'executive' ? (
               <BarChart3 className="w-8 h-8 text-blue-300" />
+            ) : mode === 'edital' ? (
+              <ClipboardList className="w-8 h-8 text-orange-300" />
             ) : (
               <Building2 className="w-8 h-8 text-blue-300" />
             )}
