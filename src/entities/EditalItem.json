@@ -4,7 +4,7 @@
   "properties": {
     "portfolio": {
       "type": "string",
-      "description": "Portfólio (grandes_contas_sc_mg, etc)"
+      "description": "Portfólio (grandes_contas_sc_mg, grandes_contas_sc_sp ou medias_contas)"
     },
     "projeto": {
       "type": "string",
@@ -16,17 +16,19 @@
     },
     "chamado_link": {
       "type": "string",
-      "description": "URL do chamado (extraída do hiperlink)"
+      "description": "URL do chamado"
     },
     "tipo": {
       "type": "string",
-      "description": "Tipo (Melhoria, etc)"
+      "description": "Tipo da demanda"
     },
     "vertical": {
-      "type": "string"
+      "type": "string",
+      "description": "Vertical relacionada"
     },
     "sistema": {
-      "type": "string"
+      "type": "string",
+      "description": "Sistema relacionado"
     },
     "numero_item": {
       "type": "string",
@@ -34,18 +36,20 @@
     },
     "item_edital": {
       "type": "string",
-      "description": "Descrição completa do item do edital"
+      "description": "Descrição do item do edital"
     },
     "status": {
       "type": "string",
-      "description": "Status do chamado (texto livre vindo da planilha)"
+      "description": "Status atual do item"
     },
     "data_prevista": {
       "type": "string",
-      "format": "date"
+      "format": "date",
+      "description": "Data prevista"
     },
     "observacoes": {
-      "type": "string"
+      "type": "string",
+      "description": "Observações adicionais"
     }
   },
   "required": [
