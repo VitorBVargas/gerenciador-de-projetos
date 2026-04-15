@@ -1,0 +1,60 @@
+{
+  "name": "EditalItem",
+  "type": "object",
+  "properties": {
+    "portfolio": {
+      "type": "string",
+      "description": "Portf\u00f3lio (grandes_contas_sc_mg, grandes_contas_sc_sp ou medias_contas)"
+    },
+    "projeto": {
+      "type": "string",
+      "description": "Nome do projeto/cidade"
+    },
+    "chamado": {
+      "type": "string",
+      "description": "N\u00famero ou texto do chamado"
+    },
+    "chamado_link": {
+      "type": "string",
+      "description": "URL do chamado"
+    },
+    "tipo": {
+      "type": "string",
+      "description": "Tipo da demanda"
+    },
+    "vertical": {
+      "type": "string",
+      "description": "Vertical relacionada"
+    },
+    "sistema": {
+      "type": "string",
+      "description": "Sistema relacionado"
+    },
+    "numero_item": {
+      "type": "string",
+      "description": "N\u00famero do item do edital"
+    },
+    "item_edital": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o do item do edital"
+    },
+    "status": {
+      "type": "string",
+      "description": "Status atual do item"
+    },
+    "data_prevista": {
+      "type": "string",
+      "format": "date",
+      "description": "Data prevista"
+    },
+    "observacoes": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es adicionais"
+    }
+  },
+  "required": [
+    "portfolio",
+    "projeto",
+    "numero_item"
+  ]
+}
