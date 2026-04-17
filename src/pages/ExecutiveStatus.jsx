@@ -24,6 +24,7 @@ import { createPageUrl } from '../utils';
 import { Link } from 'react-router-dom';
 
 import PasswordReleasesChart from '../components/executive/PasswordReleasesChart';
+import ProjectGoLiveTimeline from '../components/executive/ProjectGoLiveTimeline';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { format, addMonths, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -1054,6 +1055,19 @@ export default function ExecutiveStatus() {
               </Card>
             );
           })()}
+        </TabsContent>
+        
+        {/* Timeline Tab */}
+        <TabsContent value="timeline" className="space-y-4">
+          <div>
+            <h2 className="text-xl font-bold text-white mb-1">Timeline de Projetos</h2>
+            <p className="text-sm text-slate-400">Go Live (🔷) e Encerramento (🔶) de cada projeto. Navegue por janelas de 5 meses.</p>
+          </div>
+          <ProjectGoLiveTimeline
+            projects={allProjectsData}
+            dictionaries={dictionaries}
+            allTimelineEvents={allTimelineEvents}
+          />
         </TabsContent>
       </Tabs>
 
