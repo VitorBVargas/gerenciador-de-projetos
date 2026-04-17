@@ -18,7 +18,8 @@ import {
   ChevronRight,
   DollarSign,
   FolderOpen,
-  CheckSquare
+  CheckSquare,
+  Timer
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
