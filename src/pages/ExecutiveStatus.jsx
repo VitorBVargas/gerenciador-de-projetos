@@ -595,6 +595,7 @@ export default function ExecutiveStatus() {
         <TabsList className="bg-slate-800 border border-slate-700">
           <TabsTrigger value="overview" className="data-[state=active]:bg-blue-600">Visão Geral</TabsTrigger>
           <TabsTrigger value="financeiro" className="data-[state=active]:bg-blue-600">Financeiro</TabsTrigger>
+          <TabsTrigger value="timeline" className="data-[state=active]:bg-blue-600">Timeline de Projetos</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
