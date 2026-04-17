@@ -12,6 +12,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Activities from './pages/Activities';
 import PendenciaEdital from './pages/PendenciaEdital';
+import HorasApontamento from './pages/HorasApontamento';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -55,6 +56,11 @@ const AuthenticatedApp = () => {
       <Route path="/Activities" element={
         <LayoutWrapper currentPageName="Activities">
           <Activities />
+        </LayoutWrapper>
+      } />
+      <Route path="/HorasApontamento" element={
+        <LayoutWrapper currentPageName="HorasApontamento">
+          <HorasApontamento />
         </LayoutWrapper>
       } />
       <Route path="/PendenciaEdital" element={
