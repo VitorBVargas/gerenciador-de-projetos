@@ -13,6 +13,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Activities from './pages/Activities';
 import PendenciaEdital from './pages/PendenciaEdital';
 import HorasApontamento from './pages/HorasApontamento';
+import Documents from './pages/Documents';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -61,6 +62,11 @@ const AuthenticatedApp = () => {
       <Route path="/HorasApontamento" element={
         <LayoutWrapper currentPageName="HorasApontamento">
           <HorasApontamento />
+        </LayoutWrapper>
+      } />
+      <Route path="/Documents" element={
+        <LayoutWrapper currentPageName="Documents">
+          <Documents />
         </LayoutWrapper>
       } />
       <Route path="/PendenciaEdital" element={
