@@ -21,7 +21,7 @@ const phases = [
   { value: 'encerramento_bastao', label: 'Encerramento/Passagem de Bastão' },
 ];
 
-export default function TimelineEventModal({ open, onOpenChange, event, onSave, projectId, productId }) {
+export default function TimelineEventModal({ open, onOpenChange, event, onSave, projectId, productId, vertical, simpleCreate = false }) {
   const [formData, setFormData] = useState({
     title: '',
     phase: 'planejamento',
@@ -51,7 +51,7 @@ export default function TimelineEventModal({ open, onOpenChange, event, onSave, 
         end_date: '',
         status: 'nao_iniciado',
         progress: 0,
-        vertical: ''
+        vertical: vertical || ''
       });
     }
   }, [event, open]);
@@ -61,7 +61,8 @@ export default function TimelineEventModal({ open, onOpenChange, event, onSave, 
     onSave({
       ...formData,
       project_id: projectId,
-      product_id: productId
+      product_id: productId,
+      vertical: formData.vertical || vertical || ''
     });
   };
 
@@ -70,7 +71,7 @@ export default function TimelineEventModal({ open, onOpenChange, event, onSave, 
       <DialogContent className="bg-slate-800 border-slate-700 text-slate-100 max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-white">
-            {event ? 'Editar Etapa' : 'Nova Etapa do Cronograma'}
+            {event ? 'Editar Atividade' : 'Nova Atividade'}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -84,71 +85,75 @@ export default function TimelineEventModal({ open, onOpenChange, event, onSave, 
               required
             />
           </div>
-          <div className="space-y-2">
-            <Label>Fase</Label>
-            <Select value={formData.phase} onValueChange={(value) => setFormData({ ...formData, phase: value })}>
-              <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-700 border-slate-600">
-                {phases.map((p) => (
-                  <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="start_date">Data Início</Label>
-              <Input
-                id="start_date"
-                type="date"
-                value={formData.start_date}
-                onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                className="bg-slate-700 border-slate-600 text-white"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="end_date">Data Fim</Label>
-              <Input
-                id="end_date"
-                type="date"
-                value={formData.end_date}
-                onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-                className="bg-slate-700 border-slate-600 text-white"
-              />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label>Status</Label>
-            <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
-              <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-700 border-slate-600">
-                <SelectItem value="nao_iniciado">Não Iniciado</SelectItem>
-                <SelectItem value="em_andamento">Em Andamento</SelectItem>
-                <SelectItem value="concluido">Concluído</SelectItem>
-                <SelectItem value="atrasado">Atrasado</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>Progresso: {formData.progress}%</Label>
-            <Slider
-              value={[formData.progress]}
-              onValueChange={(value) => setFormData({ ...formData, progress: value[0] })}
-              max={100}
-              step={5}
-              className="py-4"
-            />
-          </div>
+          {!simpleCreate && (
+            <>
+              <div className="space-y-2">
+                <Label>Fase</Label>
+                <Select value={formData.phase} onValueChange={(value) => setFormData({ ...formData, phase: value })}>
+                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-700 border-slate-600">
+                    {phases.map((p) => (
+                      <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="start_date">Data Início</Label>
+                  <Input
+                    id="start_date"
+                    type="date"
+                    value={formData.start_date}
+                    onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                    className="bg-slate-700 border-slate-600 text-white"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="end_date">Data Fim</Label>
+                  <Input
+                    id="end_date"
+                    type="date"
+                    value={formData.end_date}
+                    onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                    className="bg-slate-700 border-slate-600 text-white"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Status</Label>
+                <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
+                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-700 border-slate-600">
+                    <SelectItem value="nao_iniciado">Não Iniciado</SelectItem>
+                    <SelectItem value="em_andamento">Em Andamento</SelectItem>
+                    <SelectItem value="concluido">Concluído</SelectItem>
+                    <SelectItem value="atrasado">Atrasado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Progresso: {formData.progress}%</Label>
+                <Slider
+                  value={[formData.progress]}
+                  onValueChange={(value) => setFormData({ ...formData, progress: value[0] })}
+                  max={100}
+                  step={5}
+                  className="py-4"
+                />
+              </div>
+            </>
+          )}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="border-slate-600 text-slate-300 hover:bg-slate-700">
               Cancelar
             </Button>
             <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
-              {event ? 'Salvar' : 'Adicionar'}
+              {event ? 'Salvar' : 'Criar'}
             </Button>
           </DialogFooter>
         </form>
