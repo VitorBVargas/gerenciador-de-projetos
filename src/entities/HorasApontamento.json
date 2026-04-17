@@ -1,0 +1,28 @@
+{
+  "name": "HorasApontamento",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "ID do projeto"
+    },
+    "team_member_id": {
+      "type": "string",
+      "description": "ID do colaborador"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data do apontamento"
+    },
+    "hours": {
+      "type": "number",
+      "description": "Quantidade de horas apontadas"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descrição da atividade executada"
+    }
+  },
+  "required": ["project_id", "date", "hours"]
+}
