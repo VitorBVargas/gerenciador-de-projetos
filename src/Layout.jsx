@@ -33,6 +33,7 @@ const navigation = [
   { name: 'Atividades', href: 'Activities', icon: CheckSquare },
   { name: 'Viagens', href: 'Travels', icon: Plane },
   { name: 'Orçamento', href: 'Budget', icon: DollarSign },
+  { name: 'Apontamento de Horas', href: 'HorasApontamento', icon: Timer },
   { name: 'IA Projetos Betha', href: 'StatusReports', icon: FileText },
   { name: 'KPI / Indicadores', href: 'Reports', icon: FileText },
   //{ name: 'Relatórios', href: 'Reports', icon: FileText },
