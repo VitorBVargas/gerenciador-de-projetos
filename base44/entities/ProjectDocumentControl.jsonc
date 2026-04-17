@@ -1,0 +1,68 @@
+{
+  "name": "ProjectDocumentControl",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "ID do projeto"
+    },
+    "document_type": {
+      "type": "string",
+      "enum": [
+        "tap",
+        "kickoff",
+        "diagnostico",
+        "mapa_relatorios",
+        "acordos_conversao",
+        "aceite_homologacao",
+        "tac",
+        "treinamentos_prova",
+        "aceite_implantacao"
+      ],
+      "description": "Tipo do documento"
+    },
+    "product_id": {
+      "type": "string",
+      "description": "ID do produto (para documentos por produto)"
+    },
+    "vertical": {
+      "type": "string",
+      "description": "Vertical (para documentos por produto)"
+    },
+    "sent": {
+      "type": "boolean",
+      "default": false,
+      "description": "Documento foi enviado"
+    },
+    "sent_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de envio"
+    },
+    "signed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Documento foi assinado"
+    },
+    "signed_file_url": {
+      "type": "string",
+      "description": "URL do documento assinado"
+    },
+    "template_url": {
+      "type": "string",
+      "description": "URL do template do documento"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es"
+    },
+    "drive_link": {
+      "type": "string",
+      "description": "Link do Google Drive (integra\u00e7\u00e3o futura)"
+    }
+  },
+  "required": [
+    "project_id",
+    "document_type"
+  ]
+}
