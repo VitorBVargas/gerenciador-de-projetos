@@ -1,0 +1,35 @@
+{
+  "name": "HorasApontamento",
+  "type": "object",
+  "properties": {
+    "person_name": {
+      "type": "string",
+      "description": "Nome da pessoa"
+    },
+    "person_username": {
+      "type": "string",
+      "description": "Username/email da pessoa"
+    },
+    "hours_worked": {
+      "type": "number",
+      "description": "Horas trabalhadas"
+    },
+    "reference_month": {
+      "type": "string",
+      "description": "M\u00eas de refer\u00eancia no formato YYYY-MM"
+    },
+    "vertical": {
+      "type": "string",
+      "description": "Vertical da pessoa (ex: arrecadacao, contabil, gerenciamento)"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "ID do projeto (opcional)"
+    }
+  },
+  "required": [
+    "person_name",
+    "hours_worked",
+    "reference_month"
+  ]
+}
