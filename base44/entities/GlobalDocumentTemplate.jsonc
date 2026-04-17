@@ -1,0 +1,18 @@
+{
+  "name": "GlobalDocumentTemplate",
+  "type": "object",
+  "properties": {
+    "document_type": {
+      "type": "string",
+      "description": "Chave do tipo de documento (ex: tap, kickoff, diagnostico)"
+    },
+    "template_url": {
+      "type": "string",
+      "description": "URL do template global"
+    }
+  },
+  "required": [
+    "document_type",
+    "template_url"
+  ]
+}
