@@ -466,6 +466,7 @@ export default function Travels() {
                       {/* GRID DO CALENDÁRIO - ROLAGEM HORIZONTAL */}
                       <div className="flex-1 overflow-x-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800/50">
                         <div style={{ width: `${monthDays.length * 48}px`, minWidth: '100%' }}>
+                        <div className="h-10 bg-slate-700/30 border-b border-slate-700/50" />
                           {verticals.map(vertical => {
                             const verticalMembers = membersByVertical[vertical];
                             if (!verticalMembers.length) return null;
