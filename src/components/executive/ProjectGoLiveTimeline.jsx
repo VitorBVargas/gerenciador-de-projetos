@@ -293,7 +293,6 @@ export default function ProjectGoLiveTimeline({ projects, dictionaries, allTimel
                   key={project.id}
                   className={cn(
                     "flex border-b border-slate-800 hover:bg-slate-800/40 transition-colors group",
-                    isPaused && "bg-orange-950/20 hover:bg-orange-950/30",
                     isOverdue && "bg-red-950/10"
                   )}
                 >
@@ -304,12 +303,12 @@ export default function ProjectGoLiveTimeline({ projects, dictionaries, allTimel
                     <div className="min-w-0">
                       <p className={cn(
                         "text-xs font-medium truncate group-hover:text-blue-400 transition-colors",
-                        isPaused ? "text-orange-300" : isOverdue ? "text-red-400" : "text-slate-200"
+                        isPaused ? "text-slate-200" : isOverdue ? "text-red-400" : "text-slate-200"
                       )} title={project.name}>
                         {project.name}
                       </p>
                       {isPaused && <span className="text-[9px] text-orange-400 font-semibold">⏸ PAUSADO</span>}
-                      {isOverdue && <span className="text-[9px] text-red-500 font-semibold">⚠ ATRASADO</span>}
+                      {!isPaused && isOverdue && <span className="text-[9px] text-red-500 font-semibold">⚠ ATRASADO</span>}
                     </div>
                   </div>
 
@@ -327,7 +326,7 @@ export default function ProjectGoLiveTimeline({ projects, dictionaries, allTimel
                       <div
                         className={cn(
                           "absolute top-1/2 -translate-y-1/2 h-2 rounded-full",
-                          isPaused ? "bg-orange-500/30 border border-orange-500/40" : isOverdue ? "bg-red-500/30 border border-red-500/40" : "bg-blue-500/30 border border-blue-500/40"
+                          isPaused ? "bg-orange-500/30 border border-orange-500/50" : isOverdue ? "bg-red-500/30 border border-red-500/40" : "bg-blue-500/30 border border-blue-500/40"
                         )}
                         style={{ left: `${barLeft}%`, width: `${barWidth}%` }}
                       />
