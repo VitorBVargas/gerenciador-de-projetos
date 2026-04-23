@@ -32,6 +32,7 @@ import RecognizedRevenueModal from '../components/modals/RecognizedRevenueModal'
 import RecognizeAllVerticalModal from '../components/modals/RecognizeAllVerticalModal';
 import ProjectRecognitionsModal from '../components/modals/ProjectRecognitionsModal';
 import EditProjectRecurringModal from '../components/modals/EditProjectRecurringModal';
+import StatusIAChat from '../components/executive/StatusIAChat';
 import { toast } from 'sonner';
 
 const statusLabels = {
@@ -475,6 +476,39 @@ export default function ExecutiveStatus() {
     if (score >= 40) return 'bg-orange-500/20 border-orange-500/30';
     return 'bg-red-500/20 border-red-500/30';
   };
+
+  const statusSummary = useMemo(() => ({
+    total: projectsWithMetrics.length,
+    emDia: projectsWithMetrics.filter(p => p.dynamicStatus === 'em_dia').length,
+    alerta: projectsWithMetrics.filter(p => p.dynamicStatus === 'atencao').length,
+    atrasado: projectsWithMetrics.filter(p => p.dynamicStatus === 'atrasado').length,
+    pausado: projectsWithMetrics.filter(p => p.dynamicStatus === 'pausado').length,
+  }), [projectsWithMetrics]);
+
+  const agentProjects = useMemo(() => projectsWithMetrics.map(project => ({
+    id: project.id,
+    name: project.name,
+    dynamicStatusLabel: statusLabels[project.dynamicStatus] || project.dynamicStatus,
+    progress: project.progress,
+    healthScore: project.healthScore,
+    deadlineLabel: project.deadline ? format(parseISO(project.deadline), 'dd/MM/yyyy', { locale: ptBR }) : '—',
+    estimatedDeadlineLabel: dictionaries.progressCacheByProjectId[project.id]?.estimated_deadline ? format(parseISO(dictionaries.progressCacheByProjectId[project.id].estimated_deadline), 'dd/MM/yyyy', { locale: ptBR }) : '—',
+    implementationValueLabel: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(project.implementation_value || 0),
+    recurringValueLabel: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(project.recurring_value || 0),
+  })), [projectsWithMetrics, dictionaries]);
+
+  const timelineSummary = useMemo(() => {
+    const totalEvents = allTimelineEvents.filter(event => dictionaries.projectById[event.project_id]?.portfolio === portfolioFilter).length;
+    const delayedEvents = allTimelineEvents.filter(event => event.status === 'atrasado' && dictionaries.projectById[event.project_id]?.portfolio === portfolioFilter).length;
+    return `${totalEvents} etapas monitoradas, com ${delayedEvents} etapas em atraso.`;
+  }, [allTimelineEvents, dictionaries, portfolioFilter]);
+
+  const financeSummary = useMemo(() => {
+    const implantacao = projectsWithMetrics.reduce((sum, project) => sum + (project.implementation_value || 0), 0);
+    const recorrente = projectsWithMetrics.reduce((sum, project) => sum + (project.recurring_value || 0), 0);
+    const reconhecido = projectsWithMetrics.reduce((sum, project) => sum + (project.totalRecognized || 0), 0);
+    return `Implantação total ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(implantacao)}, recorrente total ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(recorrente)} e reconhecido ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(reconhecido)}.`;
+  }, [projectsWithMetrics]);
 
   const loadingSteps = [
     { label: 'Projetos', done: !loadingProjects },
@@ -1076,6 +1110,13 @@ export default function ExecutiveStatus() {
       {recognitionsModalProject && <ProjectRecognitionsModal open={!!recognitionsModalProject} onOpenChange={(v) => { if (!v) setRecognitionsModalProject(null); }} project={recognitionsModalProject} recognitions={dictionaries.revenuesByProjectId[recognitionsModalProject.id] || []} products={dictionaries.productsByProjectId[recognitionsModalProject.id] || []} />}
       {editingProjectId && allProjectsData && <EditProjectRecurringModal open={isEditRecurringModalOpen} onOpenChange={setIsEditRecurringModalOpen} project={dictionaries.projectById[editingProjectId]} onSave={(value, notes) => updateProjectRecurringMutation.mutate({ id: editingProjectId, recurringValue: value, notes })} />}
       {selectedProject && <><RecognizedRevenueModal isOpen={isRevenueModalOpen} onClose={() => { setIsRevenueModalOpen(false); setSelectedProject(null); }} onSave={(data) => createRecognizedRevenueMutation.mutate(data)} onRecognizeAll={(vertical, products, data) => { if (data) { const amountPerProduct = data.amount / products.length; const recognitions = products.map(product => ({ project_id: selectedProject.id, product_id: product.id, amount: amountPerProduct, recognition_month: data.recognition_month, type: data.type, vertical_name: vertical })); createBulkRecognizedRevenueMutation.mutate(recognitions); setIsRevenueModalOpen(false); } }} project={selectedProject} products={dictionaries.productsByProjectId[selectedProject.id] || []} /><RecognizeAllVerticalModal isOpen={isRecognizeAllModalOpen} onClose={() => { setIsRecognizeAllModalOpen(false); setSelectedVertical(null); setSelectedVerticalProducts([]); }} onSave={(recognitions) => createBulkRecognizedRevenueMutation.mutate(recognitions)} project={selectedProject} vertical={selectedVertical} products={selectedVerticalProducts} /></>}
+      <StatusIAChat
+        portfolioLabel={portfolioLabels[portfolioFilter]}
+        projects={agentProjects}
+        statusSummary={statusSummary}
+        timelineSummary={timelineSummary}
+        financeSummary={financeSummary}
+      />
     </div>
   );
 }
