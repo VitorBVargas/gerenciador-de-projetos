@@ -276,8 +276,7 @@ export default function ProjectGoLiveTimeline({ projects, dictionaries, allTimel
             </div>
           ) : (
             projectRows.map(({ project, goLive, closingDate, closingSource, totalProducts }) => {
-              const isPaused = project.status === 'pausado';
-              const isOverdue = !isPaused && closingDate && closingDate < today;
+              const isOverdue = closingDate && closingDate < today;
               const goLivePct = goLive ? dayPct(goLive) : null;
               const closingPct = closingDate ? dayPct(closingDate) : null;
               const goLiveInView = goLivePct !== null && goLivePct >= 0 && goLivePct <= 100;
@@ -291,24 +290,17 @@ export default function ProjectGoLiveTimeline({ projects, dictionaries, allTimel
               return (
                 <div
                   key={project.id}
-                  className={cn(
-                    "flex border-b border-slate-800 hover:bg-slate-800/40 transition-colors group",
-                    isOverdue && "bg-red-950/10"
-                  )}
+                  className={cn("flex border-b border-slate-800 hover:bg-slate-800/40 transition-colors group", isOverdue && "bg-red-950/10")}
                 >
                   <div
                     className="w-48 flex-shrink-0 border-r border-slate-700 px-3 py-3 flex items-center cursor-pointer"
                     onClick={() => openModal({ project, goLive, closingDate, closingSource, totalProducts })}
                   >
                     <div className="min-w-0">
-                      <p className={cn(
-                        "text-xs font-medium truncate group-hover:text-blue-400 transition-colors",
-                        isPaused ? "text-slate-200" : isOverdue ? "text-red-400" : "text-slate-200"
-                      )} title={project.name}>
+                      <p className={cn("text-xs font-medium truncate group-hover:text-blue-400 transition-colors", isOverdue ? "text-red-400" : "text-slate-200")} title={project.name}>
                         {project.name}
                       </p>
-                      {isPaused && <span className="text-[9px] text-orange-400 font-semibold">⏸ PAUSADO</span>}
-                      {!isPaused && isOverdue && <span className="text-[9px] text-red-500 font-semibold">⚠ ATRASADO</span>}
+                      {isOverdue && <span className="text-[9px] text-red-500 font-semibold">⚠ ATRASADO</span>}
                     </div>
                   </div>
 
@@ -324,10 +316,7 @@ export default function ProjectGoLiveTimeline({ projects, dictionaries, allTimel
 
                     {shouldDrawBar && barWidth > 0 && (
                       <div
-                        className={cn(
-                          "absolute top-1/2 -translate-y-1/2 h-2 rounded-full",
-                          isPaused ? "bg-orange-500/30 border border-orange-500/50" : isOverdue ? "bg-red-500/30 border border-red-500/40" : "bg-blue-500/30 border border-blue-500/40"
-                        )}
+                        className={cn("absolute top-1/2 -translate-y-1/2 h-2 rounded-full", isOverdue ? "bg-red-500/30 border border-red-500/40" : "bg-blue-500/30 border border-blue-500/40")}
                         style={{ left: `${barLeft}%`, width: `${barWidth}%` }}
                       />
                     )}

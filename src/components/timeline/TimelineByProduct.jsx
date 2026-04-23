@@ -1,8 +1,7 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { Pencil, Plus, Trash2 } from 'lucide-react';
-import { Button } from "@/components/ui/button";
+import { Pencil } from 'lucide-react';
 import { phaseLabels } from './phaseLabels';
 import { formatDateForDisplay } from './dateFormatter';
 
@@ -43,19 +42,9 @@ const calculateProgressFromDates = (event) => {
 /**
  * Visão Por Produto: aba por vertical, depois aba por produto dentro da vertical
  */
-export default function TimelineByProduct({ verticals, entityProducts, timelineEvents, onStatusChange, onEdit, onDelete, onCreate }) {
+export default function TimelineByProduct({ verticals, entityProducts, timelineEvents, onStatusChange, onEdit, onDelete }) {
   const [activeVertical, setActiveVertical] = useState(verticals[0] || '');
   const [selectedProductId, setSelectedProductId] = useState(null);
-
-  const eventsByProduct = useMemo(() => {
-    const map = new Map();
-    timelineEvents.forEach((event) => {
-      if (!map.has(event.product_id)) map.set(event.product_id, []);
-      map.get(event.product_id).push(event);
-    });
-    map.forEach((events) => events.sort((a, b) => (a.order || 0) - (b.order || 0)));
-    return map;
-  }, [timelineEvents]);
 
   // When vertical changes, reset selected product
   const handleVerticalChange = (v) => {
@@ -120,78 +109,63 @@ export default function TimelineByProduct({ verticals, entityProducts, timelineE
               </TabsList>
 
               {productsInVert.map(product => {
-                const productEvents = eventsByProduct.get(product.id) || [];
+                const productEvents = timelineEvents
+                  .filter(e => e.product_id === product.id)
+                  .sort((a, b) => (a.order || 0) - (b.order || 0));
 
                 return (
                   <TabsContent key={product.id} value={product.id}>
-                    <div className="space-y-3">
-                      <div className="flex justify-end">
-                        <Button
-                          size="sm"
-                          onClick={() => onCreate?.({ productId: product.id, vertical })}
-                          className="bg-blue-600 hover:bg-blue-700 gap-2"
-                        >
-                          <Plus className="w-4 h-4" />
-                          Criar atividade
-                        </Button>
-                      </div>
-                      <div className="overflow-x-auto bg-slate-800 rounded-lg border border-slate-700">
-                        <table className="w-full">
-                          <thead>
-                            <tr className="border-b border-slate-700 bg-slate-900/50">
-                              <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Atividade</th>
-                              <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Status</th>
-                              <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Data Início</th>
-                              <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Data Fim</th>
-                              <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Progresso</th>
-                              <th className="px-4 py-3 text-right text-xs font-semibold text-slate-400">Ações</th>
+                    <div className="overflow-x-auto bg-slate-800 rounded-lg border border-slate-700">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-slate-700 bg-slate-900/50">
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Atividade</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Status</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Data Início</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Data Fim</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Progresso</th>
+                            <th className="px-4 py-3"></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {productEvents.map(event => (
+                            <tr key={event.id} className="border-b border-slate-700/30 hover:bg-slate-700/20 cursor-pointer" onDoubleClick={() => onEdit(event, product.id)}>
+                              <td className="px-4 py-3 text-sm text-white">{event.title || phaseLabels[event.phase]}</td>
+                              <td className="px-4 py-3">
+                                <select
+                                  value={event.status}
+                                  onChange={e => onStatusChange(event.id, e.target.value)}
+                                  className={`px-3 py-1 rounded text-xs font-medium text-white border-0 ${statusColors[event.status]} cursor-pointer hover:opacity-80`}
+                                >
+                                  {Object.entries(statusLabels).map(([k, l]) => (
+                                    <option key={k} value={k}>{l}</option>
+                                  ))}
+                                </select>
+                              </td>
+                              <td className="px-4 py-3 text-sm text-slate-300">
+                                {formatDateForDisplay(event.start_date)}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-slate-300">
+                                {formatDateForDisplay(event.end_date)}
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="flex items-center gap-2 max-w-xs">
+                                  <Progress value={calculateProgressFromDates(event)} className="h-2 flex-1" />
+                                  <span className="text-xs text-slate-400 min-w-[35px] text-right">{calculateProgressFromDates(event)}%</span>
+                                </div>
+                              </td>
+                              <td className="px-4 py-3">
+                                 <button onClick={() => onEdit(event, product.id)} className="text-slate-400 hover:text-blue-400 transition">
+                                   <Pencil className="w-4 h-4" />
+                                 </button>
+                               </td>
                             </tr>
-                          </thead>
-                          <tbody>
-                            {productEvents.map(event => (
-                              <tr key={event.id} className="border-b border-slate-700/30 hover:bg-slate-700/20 cursor-pointer" onDoubleClick={() => onEdit(event, product.id)}>
-                                <td className="px-4 py-3 text-sm text-white">{event.title || phaseLabels[event.phase]}</td>
-                                <td className="px-4 py-3">
-                                  <select
-                                    value={event.status}
-                                    onChange={e => onStatusChange(event.id, e.target.value)}
-                                    className={`px-3 py-1 rounded text-xs font-medium text-white border-0 ${statusColors[event.status]} cursor-pointer hover:opacity-80`}
-                                  >
-                                    {Object.entries(statusLabels).map(([k, l]) => (
-                                      <option key={k} value={k}>{l}</option>
-                                    ))}
-                                  </select>
-                                </td>
-                                <td className="px-4 py-3 text-sm text-slate-300">
-                                  {formatDateForDisplay(event.start_date)}
-                                </td>
-                                <td className="px-4 py-3 text-sm text-slate-300">
-                                  {formatDateForDisplay(event.end_date)}
-                                </td>
-                                <td className="px-4 py-3">
-                                  <div className="flex items-center gap-2 max-w-xs">
-                                    <Progress value={calculateProgressFromDates(event)} className="h-2 flex-1" />
-                                    <span className="text-xs text-slate-400 min-w-[35px] text-right">{calculateProgressFromDates(event)}%</span>
-                                  </div>
-                                </td>
-                                <td className="px-4 py-3">
-                                  <div className="flex items-center justify-end gap-2">
-                                    <button onClick={() => onEdit(event, product.id)} className="text-slate-400 hover:text-blue-400 transition">
-                                      <Pencil className="w-4 h-4" />
-                                    </button>
-                                    <button onClick={() => onDelete(event)} className="text-slate-400 hover:text-red-400 transition">
-                                      <Trash2 className="w-4 h-4" />
-                                    </button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                            {productEvents.length === 0 && (
-                              <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-500 text-sm">Nenhuma etapa</td></tr>
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
+                          ))}
+                          {productEvents.length === 0 && (
+                            <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-500 text-sm">Nenhuma etapa</td></tr>
+                          )}
+                        </tbody>
+                      </table>
                     </div>
                   </TabsContent>
                 );

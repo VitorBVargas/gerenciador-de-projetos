@@ -1,10 +1,10 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { Calendar, Edit3, Plus, Trash2 } from 'lucide-react';
+import { Calendar, Edit3 } from 'lucide-react';
 import TimelineEventModal from '../components/modals/TimelineEventModal';
 import BulkEditDatesModal from '../components/modals/BulkEditDatesModal';
 import EmptyState from '../components/ui/EmptyState';
@@ -129,14 +129,8 @@ export default function Timeline() {
     setModalOpen(true);
   };
 
-  const handleCreate = ({ productId, vertical }) => {
-    setSelectedEvent(null);
-    setSelectedProductId(productId);
-    setActiveVertical(vertical || '');
-    setModalOpen(true);
-  };
-
-  const handleDelete = (event) => {
+  const handleDelete = (eventId) => {
+    const event = timelineEvents.find(e => e.id === eventId);
     setEventToDelete(event);
     setDeleteDialogOpen(true);
   };
@@ -190,7 +184,7 @@ export default function Timeline() {
   const uniqueEntitiesCodes = useMemo(() => allEntities.map(e => e.code), [allEntities]);
 
   // Initialize: Auto-select first valid entity
-  useEffect(() => {
+  React.useEffect(() => {
     if (isInitialized || products.length === 0 || allEntities.length === 0) return;
     
     for (const entity of allEntities) {
@@ -266,7 +260,6 @@ export default function Timeline() {
               onStatusChange={handleStatusChange}
               onEdit={handleEdit}
               onDelete={handleDelete}
-              onCreate={handleCreate}
             />
           )}
         </TabsContent>
@@ -279,17 +272,14 @@ export default function Timeline() {
         onSave={handleSave}
         projectId={projectId}
         productId={selectedProductId}
-        vertical={activeVertical}
-        simpleCreate={!selectedEvent}
       />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className="bg-slate-800 border-slate-700">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white">Confirmar exclusão</AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-400 space-y-2">
-              <p>Tem certeza que deseja excluir a atividade "{eventToDelete?.title}"?</p>
-              <p>Projeto, entidade, vertical e produto vinculados a esta atividade serão preservados, mas esta exclusão é irreversível.</p>
+            <AlertDialogDescription className="text-slate-400">
+              Tem certeza que deseja excluir a etapa "{eventToDelete?.title}"?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
