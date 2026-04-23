@@ -933,6 +933,14 @@ export default function ExecutiveStatus() {
               (detailVerticalFilter === 'all' || item.product?.vertical === detailVerticalFilter)
             );
 
+            const getFinancialRowClasses = (project) => project?.status === 'pausado'
+              ? {
+                  row: 'border-orange-800/20 bg-orange-900/10 hover:bg-orange-900/20 transition-colors',
+                  projectText: 'text-orange-300',
+                  valueText: 'text-orange-400'
+                }
+              : null;
+
             if (!selectedMonthType && filteredAReceberProds.length === 0 && filteredRecognizedProds.length === 0 && filteredRecorrenteProds.length === 0) return null;
 
             if (selectedMonthType === 'recorrente') {
@@ -963,14 +971,17 @@ export default function ExecutiveStatus() {
                              </tr>
                            </thead>
                            <tbody>
-                             {filteredRecorrenteProds.map(({ project, product, startDate, inclusionValue }) => (
-                               <tr key={`${project.id}-${product.id}`} className="border-b border-blue-800/20 bg-blue-900/10 hover:bg-blue-900/20 transition-colors">
-                                 <td className="px-4 py-3 text-sm font-medium text-white">{project.name}</td>
-                                 <td className="px-4 py-3 text-sm text-slate-200">{product.name}</td>
-                                 <td className="px-4 py-3 text-sm text-slate-400">{startDate ? format(new Date(startDate), 'dd/MM/yyyy') : '—'}</td>
-                                 <td className="px-4 py-3 text-right text-sm font-semibold text-blue-400">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(inclusionValue)}</td>
-                               </tr>
-                             ))}
+                             {filteredRecorrenteProds.map(({ project, product, startDate, inclusionValue }) => {
+                               const pausedStyle = getFinancialRowClasses(project);
+                               return (
+                                 <tr key={`${project.id}-${product.id}`} className={pausedStyle?.row || "border-b border-blue-800/20 bg-blue-900/10 hover:bg-blue-900/20 transition-colors"}>
+                                   <td className={cn("px-4 py-3 text-sm font-medium text-white", pausedStyle?.projectText)}>{project.name}</td>
+                                   <td className="px-4 py-3 text-sm text-slate-200">{product.name}</td>
+                                   <td className="px-4 py-3 text-sm text-slate-400">{startDate ? format(new Date(startDate), 'dd/MM/yyyy') : '—'}</td>
+                                   <td className={cn("px-4 py-3 text-right text-sm font-semibold text-blue-400", pausedStyle?.valueText)}>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(inclusionValue)}</td>
+                                 </tr>
+                               );
+                             })}
                            </tbody>
                          </table>
                        </div>
@@ -1009,14 +1020,17 @@ export default function ExecutiveStatus() {
                               </tr>
                             </thead>
                             <tbody>
-                              {filteredAReceberProds.map(({ project, product, deadline, amount }) => (
-                                <tr key={`${project.id}-${product.id}`} className="border-b border-emerald-800/20 bg-emerald-900/10 hover:bg-emerald-900/20 transition-colors">
-                                  <td className="px-4 py-3 text-sm font-medium text-white">{project.name}</td>
-                                  <td className="px-4 py-3 text-sm text-slate-200">{product.name}</td>
-                                  <td className="px-4 py-3 text-sm text-slate-400">{deadline ? format(new Date(deadline), 'dd/MM/yyyy') : '—'}</td>
-                                  <td className="px-4 py-3 text-right text-sm font-semibold text-emerald-400">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(amount)}</td>
-                                </tr>
-                              ))}
+                              {filteredAReceberProds.map(({ project, product, deadline, amount }) => {
+                                const pausedStyle = getFinancialRowClasses(project);
+                                return (
+                                  <tr key={`${project.id}-${product.id}`} className={pausedStyle?.row || "border-b border-emerald-800/20 bg-emerald-900/10 hover:bg-emerald-900/20 transition-colors"}>
+                                    <td className={cn("px-4 py-3 text-sm font-medium text-white", pausedStyle?.projectText)}>{project.name}</td>
+                                    <td className="px-4 py-3 text-sm text-slate-200">{product.name}</td>
+                                    <td className="px-4 py-3 text-sm text-slate-400">{deadline ? format(new Date(deadline), 'dd/MM/yyyy') : '—'}</td>
+                                    <td className={cn("px-4 py-3 text-right text-sm font-semibold text-emerald-400", pausedStyle?.valueText)}>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(amount)}</td>
+                                  </tr>
+                                );
+                              })}
                             </tbody>
                           </table>
                         </div>
@@ -1038,14 +1052,17 @@ export default function ExecutiveStatus() {
                               </tr>
                             </thead>
                             <tbody>
-                              {filteredRecognizedProds.map(({ rec, product, project }) => (
-                                <tr key={rec.id} className="border-b border-purple-800/20 bg-purple-900/10 hover:bg-purple-900/20 transition-colors">
-                                  <td className="px-4 py-3 text-sm font-medium text-white">{project?.name || 'N/A'}</td>
-                                  <td className="px-4 py-3 text-sm text-slate-200">{product?.name || 'N/A'}</td>
-                                  <td className="px-4 py-3 text-sm text-slate-400">{rec.recognition_month ? format(new Date(rec.recognition_month.split('-')[0], parseInt(rec.recognition_month.split('-')[1]) - 1, 1), 'MM/yyyy', { locale: ptBR }) : '—'}</td>
-                                  <td className="px-4 py-3 text-right text-sm font-semibold text-purple-400">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(rec.amount)}</td>
-                                </tr>
-                              ))}
+                              {filteredRecognizedProds.map(({ rec, product, project }) => {
+                                const pausedStyle = getFinancialRowClasses(project);
+                                return (
+                                  <tr key={rec.id} className={pausedStyle?.row || "border-b border-purple-800/20 bg-purple-900/10 hover:bg-purple-900/20 transition-colors"}>
+                                    <td className={cn("px-4 py-3 text-sm font-medium text-white", pausedStyle?.projectText)}>{project?.name || 'N/A'}</td>
+                                    <td className="px-4 py-3 text-sm text-slate-200">{product?.name || 'N/A'}</td>
+                                    <td className="px-4 py-3 text-sm text-slate-400">{rec.recognition_month ? format(new Date(rec.recognition_month.split('-')[0], parseInt(rec.recognition_month.split('-')[1]) - 1, 1), 'MM/yyyy', { locale: ptBR }) : '—'}</td>
+                                    <td className={cn("px-4 py-3 text-right text-sm font-semibold text-purple-400", pausedStyle?.valueText)}>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(rec.amount)}</td>
+                                  </tr>
+                                );
+                              })}
                             </tbody>
                           </table>
                         </div>
