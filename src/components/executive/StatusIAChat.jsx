@@ -14,36 +14,29 @@ function buildSuggestedPrompts({ projects, statusSummary, timelineSummary, finan
   const delayedProjects = projects.filter((project) => String(project.dynamicStatusLabel || '').toLowerCase().includes('atras'));
   const lowHealthProjects = projects
     .filter((project) => typeof project.healthScore === 'number')
-    .sort((a, b) => a.healthScore - b.healthScore)
-    .slice(0, 2);
+    .sort((a, b) => a.healthScore - b.healthScore);
 
-  const prompts = [];
+  let variablePrompt = 'Existe gargalo crítico na timeline do portfólio?';
 
   if (statusSummary.atrasado > 0 || delayedProjects.length > 0) {
-    prompts.push('Analise completa do atraso GRP');
+    variablePrompt = 'Analise completa do atraso GRP';
+  } else if (stoppedProjects.length > 0) {
+    variablePrompt = `Visão PMBOK sobre projetos paralisados${stoppedProjects[0]?.name ? ` como ${stoppedProjects[0].name}` : ''}`;
+  } else if (lowHealthProjects.length > 0) {
+    variablePrompt = `O que priorizar agora para ${lowHealthProjects[0].name}`;
+  } else if (statusSummary.alerta > 0) {
+    variablePrompt = 'Quais riscos precisam de ação executiva imediata?';
+  } else if (financeSummary) {
+    variablePrompt = 'O financeiro atual sugere algum risco de entrega ou valor?';
+  } else if (timelineSummary) {
+    variablePrompt = 'Existe gargalo crítico na timeline do portfólio?';
   }
 
-  if (stoppedProjects.length > 0) {
-    prompts.push(`Visão PMBOK sobre projetos paralisados${stoppedProjects[0]?.name ? ` como ${stoppedProjects[0].name}` : ''}`);
-  }
-
-  if (lowHealthProjects.length > 0) {
-    prompts.push(`O que priorizar agora para ${lowHealthProjects[0].name}`);
-  }
-
-  if (statusSummary.alerta > 0) {
-    prompts.push('Quais riscos precisam de ação executiva imediata?');
-  }
-
-  if (timelineSummary) {
-    prompts.push('Existe gargalo crítico na timeline do portfólio?');
-  }
-
-  if (financeSummary) {
-    prompts.push('O financeiro atual sugere algum risco de entrega ou valor?');
-  }
-
-  return [...new Set(prompts)].slice(0, 4);
+  return [
+    'Quais as proximas datas de conclusão?',
+    'Faça uma analise financeira dos proximos 3 meses',
+    variablePrompt,
+  ];
 }
 
 function buildExecutiveContext({ portfolioLabel, projects, statusSummary, timelineSummary, financeSummary }) {
@@ -169,7 +162,7 @@ export default function StatusIAChat({ portfolioLabel, projects, statusSummary, 
               {messages.length === 0 && (
                 <Card className="bg-slate-800 border-slate-700">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm text-white">Você quer que eu aprofunde em algum ponto?</CardTitle>
+                    <CardTitle className="text-sm text-white">Como posso te ajudar?</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <p className="text-xs text-slate-400">Escolha uma opção ou escreva sua própria pergunta abaixo.</p>
