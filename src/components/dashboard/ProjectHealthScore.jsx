@@ -56,11 +56,14 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
     if (!event.product_id) return true;
     return validProjectProductIds.has(event.product_id);
   });
-  const allAlertEvents = activeTimelineEvents.filter(e => {
+  const alertWindowEnd = new Date(startOfToday);
+  alertWindowEnd.setDate(alertWindowEnd.getDate() + 4);
+
+  const allAlertEvents = activeTimelineEvents.filter((e) => {
     const endDate = new Date(e.end_date);
-    return endDate >= startOfToday && endDate < startOfTomorrow;
+    return endDate >= startOfToday && endDate < alertWindowEnd;
   });
-  const allOverdueEvents = activeTimelineEvents.filter(e => {
+  const allOverdueEvents = activeTimelineEvents.filter((e) => {
     const endDate = new Date(e.end_date);
     return endDate < startOfToday;
   });
@@ -115,7 +118,7 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
       severity: type === 'overdue' ? (events.length >= 3 ? 'high' : 'medium') : 'medium',
       text: type === 'overdue'
         ? `${events.length} data${events.length > 1 ? 's' : ''} em atraso no cronograma`
-        : `${events.length} data${events.length > 1 ? 's' : ''} em alerta no cronograma`,
+        : `${events.length} data${events.length > 1 ? 's' : ''} em alerta no cronograma (hoje até 3 dias)`,
       detail: `Verticais: ${summary}`,
       verticals,
       hasMoreItems: verticals.some(vertical => vertical.remainingCount > 0)
