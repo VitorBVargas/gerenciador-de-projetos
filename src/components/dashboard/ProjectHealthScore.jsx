@@ -31,6 +31,11 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
     if (p.id && p.name) productNameMap[p.id] = p.name;
   });
 
+  const productsById = {};
+  (products || []).forEach((product) => {
+    if (product?.id) productsById[product.id] = product;
+  });
+
   // Helper: para cada cronograma_id, busca o nome da vertical
   const getCronogramaLabel = (event) => {
     if (cronogramas && event.cronograma_id) {
@@ -45,7 +50,12 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
   const startOfTomorrow = new Date(startOfToday);
   startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
 
-  const activeTimelineEvents = timeline.filter(e => e.end_date && e.status !== 'concluido');
+  const validProjectProductIds = new Set((products || []).map((product) => product.id));
+  const activeTimelineEvents = timeline.filter((event) => {
+    if (!event.end_date || event.status === 'concluido') return false;
+    if (!event.product_id) return true;
+    return validProjectProductIds.has(event.product_id);
+  });
   const allAlertEvents = activeTimelineEvents.filter(e => {
     const endDate = new Date(e.end_date);
     return endDate >= startOfToday && endDate < startOfTomorrow;
