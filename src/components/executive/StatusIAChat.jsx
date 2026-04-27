@@ -3,10 +3,47 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Sparkles, X, Send, MessageCircle, Loader2 } from 'lucide-react';
+import { Sparkles, X, Send, MessageCircle, Loader2, ChevronRight } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 const AGENT_NAME = 'agente_status_ia';
+
+function buildSuggestedPrompts({ projects, statusSummary, timelineSummary, financeSummary }) {
+  const stoppedProjects = projects.filter((project) => String(project.dynamicStatusLabel || '').toLowerCase().includes('paralis'));
+  const delayedProjects = projects.filter((project) => String(project.dynamicStatusLabel || '').toLowerCase().includes('atras'));
+  const lowHealthProjects = projects
+    .filter((project) => typeof project.healthScore === 'number')
+    .sort((a, b) => a.healthScore - b.healthScore)
+    .slice(0, 2);
+
+  const prompts = [];
+
+  if (statusSummary.atrasado > 0 || delayedProjects.length > 0) {
+    prompts.push('Analise completa do atraso GRP');
+  }
+
+  if (stoppedProjects.length > 0) {
+    prompts.push(`Visão PMBOK sobre projetos paralisados${stoppedProjects[0]?.name ? ` como ${stoppedProjects[0].name}` : ''}`);
+  }
+
+  if (lowHealthProjects.length > 0) {
+    prompts.push(`O que priorizar agora para ${lowHealthProjects[0].name}`);
+  }
+
+  if (statusSummary.alerta > 0) {
+    prompts.push('Quais riscos precisam de ação executiva imediata?');
+  }
+
+  if (timelineSummary) {
+    prompts.push('Existe gargalo crítico na timeline do portfólio?');
+  }
+
+  if (financeSummary) {
+    prompts.push('O financeiro atual sugere algum risco de entrega ou valor?');
+  }
+
+  return [...new Set(prompts)].slice(0, 4);
+}
 
 function buildExecutiveContext({ portfolioLabel, projects, statusSummary, timelineSummary, financeSummary }) {
   return [
@@ -40,6 +77,7 @@ export default function StatusIAChat({ portfolioLabel, projects, statusSummary, 
   const [sending, setSending] = useState(false);
 
   const executiveContext = useMemo(() => buildExecutiveContext({ portfolioLabel, projects, statusSummary, timelineSummary, financeSummary }), [portfolioLabel, projects, statusSummary, timelineSummary, financeSummary]);
+  const suggestedPrompts = useMemo(() => buildSuggestedPrompts({ projects, statusSummary, timelineSummary, financeSummary }), [projects, statusSummary, timelineSummary, financeSummary]);
 
   useEffect(() => {
     if (!open || conversation) return;
@@ -64,17 +102,21 @@ export default function StatusIAChat({ portfolioLabel, projects, statusSummary, 
     return unsubscribe;
   }, [conversation?.id]);
 
-  const handleSend = async () => {
-    const content = question.trim();
-    if (!content || !conversation || sending) return;
+  const sendPrompt = async (content) => {
+    const normalizedContent = content.trim();
+    if (!normalizedContent || !conversation || sending) return;
 
     setSending(true);
     setQuestion('');
     await base44.agents.addMessage(conversation, {
       role: 'user',
-      content: `Contexto da tela Status Executivo:\n${executiveContext}\n\nPergunta do usuário: ${content}`
+      content: `Contexto da tela Status Executivo:\n${executiveContext}\n\nPergunta do usuário: ${normalizedContent}`
     });
     setSending(false);
+  };
+
+  const handleSend = async () => {
+    await sendPrompt(question);
   };
 
   return (
@@ -106,13 +148,24 @@ export default function StatusIAChat({ portfolioLabel, projects, statusSummary, 
               {messages.length === 0 && (
                 <Card className="bg-slate-800 border-slate-700">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm text-white">Perguntas que você pode fazer</CardTitle>
+                    <CardTitle className="text-sm text-white">Você quer que eu aprofunde em algum ponto?</CardTitle>
                   </CardHeader>
-                  <CardContent className="text-sm text-slate-300 space-y-2">
-                    <p>• Quais projetos estão em risco?</p>
-                    <p>• Qual projeto merece mais atenção?</p>
-                    <p>• Onde estão os gargalos?</p>
-                    <p>• Estamos dentro do prazo geral?</p>
+                  <CardContent className="space-y-3">
+                    <p className="text-xs text-slate-400">Escolha uma opção ou escreva sua própria pergunta abaixo.</p>
+                    <div className="grid gap-2">
+                      {suggestedPrompts.map((prompt) => (
+                        <button
+                          key={prompt}
+                          onClick={() => sendPrompt(prompt)}
+                          className="w-full rounded-xl border border-slate-700 bg-slate-900/70 px-3 py-3 text-left text-sm text-slate-100 hover:border-blue-500/50 hover:bg-slate-900 transition-colors"
+                        >
+                          <span className="flex items-center justify-between gap-3">
+                            <span>{prompt}</span>
+                            <ChevronRight className="w-4 h-4 text-slate-500" />
+                          </span>
+                        </button>
+                      ))}
+                    </div>
                   </CardContent>
                 </Card>
               )}
