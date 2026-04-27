@@ -34,7 +34,7 @@ function buildSuggestedPrompts({ projects, statusSummary, timelineSummary, finan
 
   return [
     'Quais as proximas datas de conclusão?',
-    'Me fale os valores financeiros de implantação e inclusão dos proximos 3 meses, separadamente',
+    'Me fale os valores financeiros de implantação e inclusão dos proximos 3 meses por projeto',
     variablePrompt,
   ];
 }
