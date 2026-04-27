@@ -7,6 +7,7 @@ import { Sparkles, X, Send, MessageCircle, Loader2, ChevronRight } from 'lucide-
 import ReactMarkdown from 'react-markdown';
 
 const AGENT_NAME = 'agente_status_ia';
+const FOLLOW_UP_TITLE = 'Próximos passos';
 
 function buildSuggestedPrompts({ projects, statusSummary, timelineSummary, financeSummary }) {
   const stoppedProjects = projects.filter((project) => String(project.dynamicStatusLabel || '').toLowerCase().includes('paralis'));
@@ -67,6 +68,26 @@ function buildExecutiveContext({ portfolioLabel, projects, statusSummary, timeli
     'Financeiro:',
     `- ${financeSummary}`,
   ].join('\n');
+}
+
+function extractFollowUpQuestions(content) {
+  const markerIndex = content.indexOf(`### ${FOLLOW_UP_TITLE}`);
+  if (markerIndex === -1) {
+    return { mainContent: content, followUpQuestions: [] };
+  }
+
+  const mainContent = content.slice(0, markerIndex).trim();
+  const followUpSection = content.slice(markerIndex + `### ${FOLLOW_UP_TITLE}`.length);
+
+  const followUpQuestions = followUpSection
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => line.replace(/^[-*]\s*/, '').replace(/^\d+[.)]\s*/, '').trim())
+    .filter((line) => line && !line.toLowerCase().includes('digitar'))
+    .slice(0, 3);
+
+  return { mainContent, followUpQuestions };
 }
 
 export default function StatusIAChat({ portfolioLabel, projects, statusSummary, timelineSummary, financeSummary }) {
@@ -172,19 +193,45 @@ export default function StatusIAChat({ portfolioLabel, projects, statusSummary, 
 
               {messages.map((message, index) => {
                 const isUser = message.role === 'user';
-                const displayContent = isUser
+                const rawContent = isUser
                   ? message.content.split('Pergunta do usuário: ')[1] || message.content
                   : message.content;
+                const { mainContent, followUpQuestions } = isUser
+                  ? { mainContent: rawContent, followUpQuestions: [] }
+                  : extractFollowUpQuestions(rawContent);
+                const displayContent = isUser ? rawContent : mainContent;
 
                 return (
                   <div key={index} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[90%] rounded-2xl px-4 py-3 ${isUser ? 'bg-blue-600 text-white' : 'bg-slate-800 border border-slate-700 text-slate-100'}`}>
-                      {isUser ? (
-                        <p className="text-sm whitespace-pre-wrap">{displayContent}</p>
-                      ) : (
-                        <ReactMarkdown className="text-sm prose prose-invert prose-p:my-1 prose-headings:my-2 max-w-none">
-                          {displayContent}
-                        </ReactMarkdown>
+                    <div className={`max-w-[90%] space-y-2 ${isUser ? '' : ''}`}>
+                      <div className={`rounded-2xl px-4 py-3 ${isUser ? 'bg-blue-600 text-white' : 'bg-slate-800 border border-slate-700 text-slate-100'}`}>
+                        {isUser ? (
+                          <p className="text-sm whitespace-pre-wrap">{displayContent}</p>
+                        ) : (
+                          <ReactMarkdown className="text-sm prose prose-invert prose-p:my-1 prose-headings:my-2 max-w-none">
+                            {displayContent}
+                          </ReactMarkdown>
+                        )}
+                      </div>
+
+                      {!isUser && followUpQuestions.length > 0 && (
+                        <div className="rounded-2xl border border-slate-700 bg-slate-800 px-3 py-3">
+                          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">{FOLLOW_UP_TITLE}</p>
+                          <div className="grid gap-2">
+                            {followUpQuestions.map((prompt) => (
+                              <button
+                                key={`${index}-${prompt}`}
+                                onClick={() => sendPrompt(prompt)}
+                                className="w-full rounded-xl border border-slate-700 bg-slate-900/70 px-3 py-3 text-left text-sm text-slate-100 hover:border-blue-500/50 hover:bg-slate-900 transition-colors"
+                              >
+                                <span className="flex items-center justify-between gap-3">
+                                  <span>{prompt}</span>
+                                  <ChevronRight className="w-4 h-4 text-slate-500" />
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                       )}
                     </div>
                   </div>
