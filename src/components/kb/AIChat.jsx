@@ -7,13 +7,15 @@ const AGENT_NAME = 'gerente_projetos_faq';
 function parseResponse(text) {
   const sectionDefs = [
     { marker: '### Lições Aprendidas Encontradas', title: '📚 Lições Aprendidas Encontradas', style: 'bg-emerald-950/40 border-emerald-600/50 text-emerald-100', collapsible: false },
-    { marker: '### Contexto',              title: '🔍 Contexto',              style: 'bg-blue-950/30 border-blue-800/40 text-blue-200',      collapsible: false },
+    { marker: '### Próximo passo',         title: '➡️ Próximo passo',         style: 'bg-cyan-950/30 border-cyan-800/40 text-cyan-200',       collapsible: false },
+    { marker: '### Contexto',              title: '🔍 Contexto',              style: 'bg-blue-950/30 border-blue-800/40 text-blue-200',       collapsible: false },
     { marker: '### Possíveis causas',      title: '⚠️ Possíveis causas',      style: 'bg-yellow-950/30 border-yellow-800/40 text-yellow-200', collapsible: false },
-    { marker: '### Solução Recomendada',   title: '✅ Solução Recomendada',   style: 'bg-green-950/30 border-green-800/40 text-green-200',   collapsible: false },
-    { marker: '### Solução recomendada',   title: '✅ Solução Recomendada',   style: 'bg-green-950/30 border-green-800/40 text-green-200',   collapsible: false },
-    { marker: '### Referências internas',  title: '🔗 Referências internas',  style: 'bg-slate-800/60 border-slate-600 text-slate-300',      collapsible: true  },
-    { marker: '### Boas Práticas',         title: '⭐ Boas Práticas',         style: 'bg-purple-950/30 border-purple-800/40 text-purple-200', collapsible: true  },
-    { marker: '### Boas práticas',         title: '⭐ Boas Práticas',         style: 'bg-purple-950/30 border-purple-800/40 text-purple-200', collapsible: true  },
+    { marker: '### Solução Recomendada',   title: '✅ Solução Recomendada',   style: 'bg-green-950/30 border-green-800/40 text-green-200',    collapsible: false },
+    { marker: '### Solução recomendada',   title: '✅ Solução Recomendada',   style: 'bg-green-950/30 border-green-800/40 text-green-200',    collapsible: false },
+    { marker: '### Referências internas',  title: '🔗 Referências internas',  style: 'bg-slate-800/60 border-slate-600 text-slate-300',       collapsible: true },
+    { marker: '### Boas Práticas',         title: '⭐ Boas Práticas',         style: 'bg-purple-950/30 border-purple-800/40 text-purple-200', collapsible: true },
+    { marker: '### Boas práticas',         title: '⭐ Boas Práticas',         style: 'bg-purple-950/30 border-purple-800/40 text-purple-200', collapsible: true },
+    { marker: '### Próximas opções',       title: '🧭 Próximas opções',       style: 'bg-slate-800/60 border-slate-600 text-slate-200',       collapsible: false },
   ];
 
   const found = sectionDefs
@@ -69,7 +71,7 @@ function Section({ sec }) {
   );
 }
 
-function MessageBubble({ msg }) {
+function MessageBubble({ msg, onQuickAction }) {
   const isUser = msg.role === 'user';
 
   if (isUser) {
@@ -94,7 +96,33 @@ function MessageBubble({ msg }) {
       </div>
       <div className="flex-1 max-w-[88%] space-y-2">
         {sections.length > 0 ? (
-          sections.map((sec, i) => <Section key={i} sec={sec} />)
+          sections.map((sec, i) => {
+            const lines = sec.content.split('\n').map(line => line.trim()).filter(Boolean);
+            const quickOptions = (sec.title === '➡️ Próximo passo' || sec.title === '🧭 Próximas opções')
+              ? lines
+                  .map(line => line.replace(/^[-*]\s*/, '').replace(/^\d+[.)]\s*/, '').trim())
+                  .filter(line => ['Solução recomendada', 'Boas práticas', 'Nova pergunta'].includes(line))
+              : [];
+
+            return (
+              <div key={i} className="space-y-2">
+                <Section sec={sec} />
+                {quickOptions.length > 0 && (
+                  <div className="flex flex-wrap gap-2 pl-1">
+                    {quickOptions.map((option) => (
+                      <button
+                        key={option}
+                        onClick={() => onQuickAction(option)}
+                        className="text-xs bg-slate-800 border border-slate-700 text-slate-300 hover:border-emerald-500/50 hover:text-emerald-300 rounded-full px-3 py-1.5 transition-colors"
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })
         ) : (
           <div className="bg-slate-800/80 border border-slate-700 rounded-2xl rounded-tl-sm px-4 py-3">
             <p className="text-sm text-slate-200 leading-relaxed whitespace-pre-wrap">{msg.content}</p>
@@ -207,7 +235,21 @@ export default function AIChat() {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4" style={{ maxHeight: '420px' }}>
         {messages.map((msg, i) => (
-          <MessageBubble key={i} msg={msg} />
+          <MessageBubble
+            key={i}
+            msg={msg}
+            onQuickAction={(option) => {
+              if (option === 'Nova pergunta') {
+                setInput('');
+                inputRef.current?.focus();
+                return;
+              }
+              setInput(option);
+              setTimeout(() => {
+                inputRef.current?.focus();
+              }, 0);
+            }}
+          />
         ))}
         {loading && (
           <div className="flex gap-3">
