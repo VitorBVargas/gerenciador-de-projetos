@@ -40,6 +40,7 @@ const navigation = [
   { name: 'KPI / Indicadores', href: 'Reports', icon: FileText },
   //{ name: 'Relatórios', href: 'Reports', icon: FileText },
   { name: 'Riscos', href: 'Risks', icon: AlertTriangle },
+  { name: 'Lições Aprendidas', href: 'LicoesAprendidas', icon: BookOpen },
 ];
 
 export default function Layout({ children, currentPageName }) {
