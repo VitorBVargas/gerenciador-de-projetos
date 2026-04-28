@@ -14,6 +14,8 @@ import Activities from './pages/Activities';
 import PendenciaEdital from './pages/PendenciaEdital';
 import HorasApontamento from './pages/HorasApontamento';
 import Documents from './pages/Documents';
+import LicoesAprendidasPage from './pages/LicoesAprendidas';
+import KnowledgeBase from './pages/KnowledgeBase';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -74,6 +76,12 @@ const AuthenticatedApp = () => {
           <PendenciaEdital />
         </LayoutWrapper>
       } />
+      <Route path="/LicoesAprendidas" element={
+        <LayoutWrapper currentPageName="LicoesAprendidas">
+          <LicoesAprendidasPage />
+        </LayoutWrapper>
+      } />
+      <Route path="/KnowledgeBase" element={<KnowledgeBase />} />
       {Object.entries(Pages).map(([path, Page]) => (
         <Route
           key={path}
