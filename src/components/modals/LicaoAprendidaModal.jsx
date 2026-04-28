@@ -1,9 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Plus, X } from 'lucide-react';
 
-const TIPOS = [
+const TIPO_OPTIONS = [
   { value: 'tecnico', label: 'Técnico' },
   { value: 'processo', label: 'Processo' },
   { value: 'comunicacao', label: 'Comunicação' },
@@ -13,126 +17,215 @@ const TIPOS = [
   { value: 'outro', label: 'Outro' },
 ];
 
-const emptyForm = {
+const EMPTY = {
   title: '',
-  tipo: 'outro',
+  tipo: 'tecnico',
   problema: '',
   solucao: '',
+  links: [],
+  tags: [],
   responsavel: '',
-  data: '',
-  tags: '',
-  links: '',
+  data: new Date().toISOString().split('T')[0],
 };
 
 export default function LicaoAprendidaModal({ open, onOpenChange, licao, onSave }) {
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState(EMPTY);
+  const [newLink, setNewLink] = useState('');
+  const [newTag, setNewTag] = useState('');
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    if (!open) return;
-    setForm({
-      title: licao?.title || '',
-      tipo: licao?.tipo || 'outro',
-      problema: licao?.problema || '',
-      solucao: licao?.solucao || '',
-      responsavel: licao?.responsavel || '',
-      data: licao?.data || '',
-      tags: Array.isArray(licao?.tags) ? licao.tags.join(', ') : '',
-      links: Array.isArray(licao?.links) ? licao.links.join('\n') : '',
-    });
+    if (open) {
+      setForm(licao ? { ...EMPTY, ...licao } : EMPTY);
+      setNewLink('');
+      setNewTag('');
+      setErrors({});
+    }
   }, [open, licao]);
 
-  if (!open) return null;
-
-  const handleChange = (field, value) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
+  const validate = () => {
+    const e = {};
+    if (!form.title.trim()) e.title = 'Título obrigatório';
+    if (!form.problema.trim()) e.problema = 'Problema obrigatório';
+    if (!form.solucao.trim()) e.solucao = 'Solução obrigatória';
+    setErrors(e);
+    return Object.keys(e).length === 0;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave({
-      title: form.title,
-      tipo: form.tipo,
-      problema: form.problema,
-      solucao: form.solucao,
-      responsavel: form.responsavel,
-      data: form.data,
-      tags: form.tags.split(',').map((item) => item.trim()).filter(Boolean),
-      links: form.links.split('\n').map((item) => item.trim()).filter(Boolean),
-    });
+    if (!validate()) return;
+    onSave(form);
   };
 
+  const addLink = () => {
+    const trimmed = newLink.trim();
+    if (trimmed && !form.links.includes(trimmed)) {
+      setForm(f => ({ ...f, links: [...f.links, trimmed] }));
+    }
+    setNewLink('');
+  };
+
+  const removeLink = (idx) => setForm(f => ({ ...f, links: f.links.filter((_, i) => i !== idx) }));
+
+  const addTag = () => {
+    const trimmed = newTag.trim();
+    if (trimmed && !form.tags.includes(trimmed)) {
+      setForm(f => ({ ...f, tags: [...f.tags, trimmed] }));
+    }
+    setNewTag('');
+  };
+
+  const removeTag = (tag) => setForm(f => ({ ...f, tags: f.tags.filter(t => t !== tag) }));
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => onOpenChange(false)}>
-      <div className="w-full max-w-2xl rounded-2xl border border-slate-700 bg-slate-800 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <form onSubmit={handleSubmit} className="space-y-5 p-6">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h3 className="text-lg font-semibold text-white">{licao ? 'Editar lição' : 'Nova lição'}</h3>
-              <p className="text-sm text-slate-400">Preencha os detalhes da lição aprendida.</p>
-            </div>
-            <button type="button" onClick={() => onOpenChange(false)} className="text-slate-400 hover:text-white">✕</button>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="bg-slate-800 border-slate-700 text-slate-100 max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-bold text-white">
+            {licao ? 'Editar Lição Aprendida' : 'Nova Lição Aprendida'}
+          </DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Título */}
+          <div className="space-y-1.5">
+            <Label className="text-slate-300">Título <span className="text-red-400">*</span></Label>
+            <Input
+              value={form.title}
+              onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+              placeholder="Ex: Problema com migração de banco de dados"
+              className="bg-slate-700 border-slate-600 text-white"
+            />
+            {errors.title && <p className="text-xs text-red-400">{errors.title}</p>}
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="md:col-span-2 space-y-2">
-              <label className="text-sm text-slate-300">Título</label>
-              <Input value={form.title} onChange={(e) => handleChange('title', e.target.value)} className="bg-slate-900 border-slate-700 text-white" required />
+          {/* Tipo + Responsável + Data */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-1.5">
+              <Label className="text-slate-300">Tipo</Label>
+              <Select value={form.tipo} onValueChange={v => setForm(f => ({ ...f, tipo: v }))}>
+                <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-700 border-slate-600">
+                  {TIPO_OPTIONS.map(o => (
+                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+            <div className="space-y-1.5">
+              <Label className="text-slate-300">Responsável</Label>
+              <Input
+                value={form.responsavel}
+                onChange={e => setForm(f => ({ ...f, responsavel: e.target.value }))}
+                placeholder="Nome do responsável"
+                className="bg-slate-700 border-slate-600 text-white"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-slate-300">Data</Label>
+              <Input
+                type="date"
+                value={form.data}
+                onChange={e => setForm(f => ({ ...f, data: e.target.value }))}
+                className="bg-slate-700 border-slate-600 text-white"
+              />
+            </div>
+          </div>
 
-            <div className="space-y-2">
-              <label className="text-sm text-slate-300">Tipo</label>
-              <select
-                value={form.tipo}
-                onChange={(e) => handleChange('tipo', e.target.value)}
-                className="h-10 w-full rounded-md border border-slate-700 bg-slate-900 px-3 text-sm text-white"
-              >
-                {TIPOS.map((tipo) => (
-                  <option key={tipo.value} value={tipo.value}>{tipo.label}</option>
+          {/* Problema */}
+          <div className="space-y-1.5">
+            <Label className="text-slate-300">Problema <span className="text-red-400">*</span></Label>
+            <Textarea
+              value={form.problema}
+              onChange={e => setForm(f => ({ ...f, problema: e.target.value }))}
+              placeholder="Descreva o problema enfrentado..."
+              className="bg-slate-700 border-slate-600 text-white min-h-[90px] resize-none"
+            />
+            {errors.problema && <p className="text-xs text-red-400">{errors.problema}</p>}
+          </div>
+
+          {/* Solução */}
+          <div className="space-y-1.5">
+            <Label className="text-slate-300">Solução <span className="text-red-400">*</span></Label>
+            <Textarea
+              value={form.solucao}
+              onChange={e => setForm(f => ({ ...f, solucao: e.target.value }))}
+              placeholder="Descreva a solução aplicada..."
+              className="bg-slate-700 border-slate-600 text-white min-h-[90px] resize-none"
+            />
+            {errors.solucao && <p className="text-xs text-red-400">{errors.solucao}</p>}
+          </div>
+
+          {/* Links */}
+          <div className="space-y-1.5">
+            <Label className="text-slate-300">Links úteis</Label>
+            <div className="flex gap-2">
+              <Input
+                value={newLink}
+                onChange={e => setNewLink(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addLink(); } }}
+                placeholder="https://..."
+                className="bg-slate-700 border-slate-600 text-white flex-1"
+              />
+              <Button type="button" size="sm" onClick={addLink} className="bg-slate-600 hover:bg-slate-500 px-3">
+                <Plus className="w-4 h-4" />
+              </Button>
+            </div>
+            {form.links.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-1">
+                {form.links.map((link, idx) => (
+                  <div key={idx} className="flex items-center gap-1 bg-blue-500/20 border border-blue-500/30 text-blue-300 rounded px-2 py-0.5 text-xs max-w-xs">
+                    <a href={link} target="_blank" rel="noreferrer" className="truncate hover:underline">{link}</a>
+                    <button type="button" onClick={() => removeLink(idx)} className="text-blue-400 hover:text-white flex-shrink-0">
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
                 ))}
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm text-slate-300">Data</label>
-              <Input type="date" value={form.data} onChange={(e) => handleChange('data', e.target.value)} className="bg-slate-900 border-slate-700 text-white" />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm text-slate-300">Responsável</label>
-              <Input value={form.responsavel} onChange={(e) => handleChange('responsavel', e.target.value)} className="bg-slate-900 border-slate-700 text-white" />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm text-slate-300">Tags</label>
-              <Input value={form.tags} onChange={(e) => handleChange('tags', e.target.value)} placeholder="Ex: migração, cliente, prazo" className="bg-slate-900 border-slate-700 text-white" />
-            </div>
-
-            <div className="md:col-span-2 space-y-2">
-              <label className="text-sm text-slate-300">Problema</label>
-              <Textarea value={form.problema} onChange={(e) => handleChange('problema', e.target.value)} className="min-h-[120px] bg-slate-900 border-slate-700 text-white" required />
-            </div>
-
-            <div className="md:col-span-2 space-y-2">
-              <label className="text-sm text-slate-300">Solução</label>
-              <Textarea value={form.solucao} onChange={(e) => handleChange('solucao', e.target.value)} className="min-h-[120px] bg-slate-900 border-slate-700 text-white" required />
-            </div>
-
-            <div className="md:col-span-2 space-y-2">
-              <label className="text-sm text-slate-300">Links úteis</label>
-              <Textarea value={form.links} onChange={(e) => handleChange('links', e.target.value)} placeholder="Um link por linha" className="min-h-[100px] bg-slate-900 border-slate-700 text-white" />
-            </div>
+              </div>
+            )}
           </div>
 
-          <div className="flex justify-end gap-3">
-            <Button type="button" variant="outline" className="border-slate-600 text-slate-300" onClick={() => onOpenChange(false)}>
+          {/* Tags */}
+          <div className="space-y-1.5">
+            <Label className="text-slate-300">Tags</Label>
+            <div className="flex gap-2">
+              <Input
+                value={newTag}
+                onChange={e => setNewTag(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }}
+                placeholder="Ex: migração, banco, prazo..."
+                className="bg-slate-700 border-slate-600 text-white flex-1"
+              />
+              <Button type="button" size="sm" onClick={addTag} className="bg-slate-600 hover:bg-slate-500 px-3">
+                <Plus className="w-4 h-4" />
+              </Button>
+            </div>
+            {form.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-1">
+                {form.tags.map(tag => (
+                  <span key={tag} className="flex items-center gap-1 bg-slate-600 text-slate-200 rounded-full px-2.5 py-0.5 text-xs">
+                    {tag}
+                    <button type="button" onClick={() => removeTag(tag)} className="text-slate-400 hover:text-white">
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="border-slate-600 text-slate-300 hover:bg-slate-700">
               Cancelar
             </Button>
             <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
-              {licao ? 'Salvar alterações' : 'Adicionar lição'}
+              {licao ? 'Salvar alterações' : 'Adicionar Lição'}
             </Button>
-          </div>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
