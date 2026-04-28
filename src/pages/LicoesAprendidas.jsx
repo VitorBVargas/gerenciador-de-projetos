@@ -1,29 +1,34 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, BookOpen } from 'lucide-react';
+import LicoesAprendidas from '@/components/licoes/LicoesAprendidas';
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
 
 export default function LicoesAprendidasPage() {
-  return (
-    <div className="min-h-screen bg-slate-950 p-6 md:p-8">
-      <div className="mx-auto max-w-5xl space-y-6">
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 text-sm text-slate-400 transition-colors hover:text-white"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Voltar
-        </Link>
+  const urlParams = new URLSearchParams(window.location.search);
+  const projectId = urlParams.get('project_id');
 
-        <div className="rounded-3xl border border-slate-800 bg-slate-900 p-8 shadow-xl">
-          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-400">
-            <BookOpen className="h-7 w-7" />
-          </div>
-          <h1 className="text-3xl font-bold text-white">Lições Aprendidas</h1>
-          <p className="mt-2 text-sm text-slate-400">
-            Página criada e pronta para receber a estrutura de lições aprendidas.
-          </p>
-        </div>
+  const { data: projects = [] } = useQuery({
+    queryKey: ['projects'],
+    queryFn: () => base44.entities.Project.list(),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const activeProject = projects.find(p => p.id === projectId);
+
+  if (!projectId) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <p className="text-slate-400">Selecione um projeto para ver as lições aprendidas.</p>
       </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-900 p-6">
+      <LicoesAprendidas
+        projectId={projectId}
+        portfolio={activeProject?.portfolio}
+      />
     </div>
   );
 }
