@@ -1,0 +1,68 @@
+{
+  "name": "LicaoAprendida",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "ID do projeto"
+    },
+    "portfolio": {
+      "type": "string",
+      "description": "Portf\u00f3lio do projeto"
+    },
+    "title": {
+      "type": "string",
+      "description": "T\u00edtulo da li\u00e7\u00e3o aprendida"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "tecnico",
+        "processo",
+        "comunicacao",
+        "cronograma",
+        "risco",
+        "cliente",
+        "outro"
+      ],
+      "description": "Categoria/tipo da li\u00e7\u00e3o"
+    },
+    "problema": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o do problema enfrentado"
+    },
+    "solucao": {
+      "type": "string",
+      "description": "Solu\u00e7\u00e3o aplicada"
+    },
+    "links": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Links \u00fateis relacionados"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tags/palavras-chave"
+    },
+    "responsavel": {
+      "type": "string",
+      "description": "Respons\u00e1vel pelo registro"
+    },
+    "data": {
+      "type": "string",
+      "format": "date",
+      "description": "Data da li\u00e7\u00e3o"
+    }
+  },
+  "required": [
+    "project_id",
+    "title",
+    "problema",
+    "solucao"
+  ]
+}
