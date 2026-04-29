@@ -80,9 +80,16 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
   const alertEvents = dedupeEvents(allAlertEvents);
   const overdueEvents = dedupeEvents(allOverdueEvents);
 
-  const alertCost = alertEvents.length * 1;
-  const delayCost = overdueEvents.length * 3;
-  const timelineDeduction = Math.min(40, alertCost + delayCost);
+  // Peso por fase para eventos em atraso
+  const getPhaseWeight = (phase) => {
+    if (phase === 'diagnostico' || phase === 'migracao_prd_blackout' || phase === 'treinamento') return 3;
+    if (phase === 'go_live' || phase === 'operacao_assistida') return 2;
+    return 1;
+  };
+
+  // Alertas (vencendo hoje) NÃO descontam pontos, apenas informam
+  const delayCost = overdueEvents.reduce((sum, e) => sum + getPhaseWeight(e.phase), 0);
+  const timelineDeduction = Math.min(40, delayCost);
   score -= timelineDeduction;
 
   const buildTimelineAlert = (events, type) => {
