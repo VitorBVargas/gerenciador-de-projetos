@@ -66,8 +66,7 @@ export default function DiscoveryWizard({ open, onOpenChange, discovery, project
     }
   };
 
-  const handleClose = async () => {
-    await handleSave();
+  const handleClose = () => {
     onOpenChange(false);
   };
 
