@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { riceScore, ricePriority, newId } from './discoveryUtils';
 import { cn } from "@/lib/utils";
+import AIAssistButton from './AIAssistButton';
 
 const priorityColor = {
   critica: 'bg-red-500/20 text-red-300 border-red-500/30',
@@ -14,7 +15,7 @@ const priorityColor = {
   baixa: 'bg-slate-500/20 text-slate-300 border-slate-500/30'
 };
 
-export default function StepPlanoAcoes({ acoes = [], onChange }) {
+export default function StepPlanoAcoes({ acoes = [], onChange, fullDiscovery }) {
   const [expanded, setExpanded] = React.useState({});
 
   const addAcao = () => {
@@ -35,7 +36,14 @@ export default function StepPlanoAcoes({ acoes = [], onChange }) {
           <h3 className="text-white font-semibold text-sm">Plano de Ações (5W2H + RICE)</h3>
           <p className="text-xs text-slate-500 mt-0.5">Score RICE = (Reach × Impact × Confidence/100) / Effort. Ordenado por score.</p>
         </div>
-        <Button type="button" size="sm" onClick={addAcao} className="bg-indigo-600 hover:bg-indigo-700"><Plus className="w-3 h-3 mr-1" />Nova ação</Button>
+        <div className="flex items-center gap-2">
+          <AIAssistButton
+            discovery={fullDiscovery}
+            etapa="Plano de Ações"
+            instrucaoEspecifica="Com base no TO BE, gaps priorizados e causa raiz, sugira ações 5W2H (What, Why, Where, When, Who, How, How much) específicas e prontas para uso. Para cada ação sugira também valores estimados de RICE (Reach, Impact 1-5, Confidence %, Effort). Sugira a ordem de execução considerando dependências."
+          />
+          <Button type="button" size="sm" onClick={addAcao} className="bg-indigo-600 hover:bg-indigo-700"><Plus className="w-3 h-3 mr-1" />Nova ação</Button>
+        </div>
       </div>
 
       {sorted.length === 0 && <p className="text-xs text-slate-500 py-6 text-center">Nenhuma ação cadastrada.</p>}

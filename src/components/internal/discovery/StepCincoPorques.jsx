@@ -7,7 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Sparkles, Loader2, ArrowDown } from 'lucide-react';
 import { toast } from 'sonner';
 
-export default function StepCincoPorques({ data, diagnostico, ishikawa, onChange }) {
+import AIAssistButton from './AIAssistButton';
+
+export default function StepCincoPorques({ data, diagnostico, ishikawa, onChange, fullDiscovery }) {
   const [generating, setGenerating] = useState(null); // index do próximo "porque" sendo gerado
 
   const porques = data.porques || []; // [{ pergunta, resposta }, ...]
@@ -81,9 +83,16 @@ Retorne só a pergunta, sem prefixo, sem aspas.`;
 
   return (
     <div className="space-y-5">
-      <div>
-        <h3 className="text-white font-semibold text-sm">5 Porquês</h3>
-        <p className="text-xs text-slate-500 mt-0.5">A IA gera as perguntas a partir do diagnóstico e Ishikawa. Você responde, e a próxima pergunta é gerada com base na sua resposta.</p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h3 className="text-white font-semibold text-sm">5 Porquês</h3>
+          <p className="text-xs text-slate-500 mt-0.5">A IA gera as perguntas a partir do diagnóstico e Ishikawa. Você responde, e a próxima pergunta é gerada com base na sua resposta.</p>
+        </div>
+        <AIAssistButton
+          discovery={fullDiscovery}
+          etapa="5 Porquês"
+          instrucaoEspecifica="Com base no diagnóstico e na causa principal do Ishikawa, sugira a cadeia completa dos 5 Porquês (perguntas E respostas plausíveis) e a conclusão final sobre a causa raiz. Apresente cada porquê de forma específica, atacando causa e não sintoma."
+        />
       </div>
 
       {/* Resumo do contexto */}

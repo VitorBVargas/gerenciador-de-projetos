@@ -178,12 +178,12 @@ export default function DiscoveryWizard({ open, onOpenChange, discovery, project
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto pr-2 -mr-2 py-2">
-          {stepId === 'diagnostico' && <StepDiagnostico data={data.diagnostico || {}} onChange={updateField('diagnostico')} />}
-          {stepId === 'ishikawa' && <StepIshikawa data={data.ishikawa || {}} onChange={updateField('ishikawa')} />}
-          {stepId === 'cinco_porques' && <StepCincoPorques data={data.cinco_porques || {}} diagnostico={data.diagnostico} ishikawa={data.ishikawa} onChange={updateField('cinco_porques')} />}
-          {stepId === 'as_is' && <StepAsIs data={data.as_is || {}} onChange={updateField('as_is')} />}
-          {stepId === 'to_be' && <StepToBe data={data.to_be || {}} onChange={updateField('to_be')} />}
-          {stepId === 'acoes' && <StepPlanoAcoes acoes={data.acoes || []} onChange={updateField('acoes')} />}
+          {stepId === 'diagnostico' && <StepDiagnostico data={data.diagnostico || {}} onChange={updateField('diagnostico')} fullDiscovery={data} />}
+          {stepId === 'ishikawa' && <StepIshikawa data={data.ishikawa || {}} onChange={updateField('ishikawa')} fullDiscovery={data} />}
+          {stepId === 'cinco_porques' && <StepCincoPorques data={data.cinco_porques || {}} diagnostico={data.diagnostico} ishikawa={data.ishikawa} onChange={updateField('cinco_porques')} fullDiscovery={data} />}
+          {stepId === 'as_is' && <StepAsIs data={data.as_is || {}} onChange={updateField('as_is')} fullDiscovery={data} />}
+          {stepId === 'to_be' && <StepToBe data={data.to_be || {}} onChange={updateField('to_be')} fullDiscovery={data} />}
+          {stepId === 'acoes' && <StepPlanoAcoes acoes={data.acoes || []} onChange={updateField('acoes')} fullDiscovery={data} />}
           {stepId === 'resultado' && <StepResultado discovery={data} onGenerateTasks={handleGenerateTasks} onConcluir={handleConcluir} generating={generating} />}
         </div>
 

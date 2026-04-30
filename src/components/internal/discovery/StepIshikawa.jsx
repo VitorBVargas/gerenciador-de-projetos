@@ -2,6 +2,7 @@ import React from 'react';
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import AIAssistButton from './AIAssistButton';
 
 const SEIS_M = [
   { key: 'metodo', label: 'Método', hint: 'Procedimentos, processos, normas' },
@@ -12,14 +13,21 @@ const SEIS_M = [
   { key: 'meio_ambiente', label: 'Meio ambiente', hint: 'Cultura, ambiente físico/digital' }
 ];
 
-export default function StepIshikawa({ data, onChange }) {
+export default function StepIshikawa({ data, onChange, fullDiscovery }) {
   const update = (field, value) => onChange({ ...data, [field]: value });
 
   return (
     <div className="space-y-5">
-      <div>
-        <h3 className="text-white font-semibold text-sm">Diagrama de Ishikawa (6M)</h3>
-        <p className="text-xs text-slate-500 mt-0.5">Liste possíveis causas em cada categoria. Depois resuma a causa principal abaixo.</p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h3 className="text-white font-semibold text-sm">Diagrama de Ishikawa (6M)</h3>
+          <p className="text-xs text-slate-500 mt-0.5">Liste possíveis causas em cada categoria. Depois resuma a causa principal abaixo.</p>
+        </div>
+        <AIAssistButton
+          discovery={fullDiscovery}
+          etapa="Ishikawa (6M)"
+          instrucaoEspecifica="Com base no diagnóstico, sugira possíveis causas em cada uma das 6 categorias (Método, Máquina, Mão de obra, Material, Medida, Meio ambiente). Indique também qual seria a causa principal mais provável a ser explorada nos 5 Porquês."
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

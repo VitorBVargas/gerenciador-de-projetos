@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Trash2, ArrowRight } from 'lucide-react';
 import { gutScore, newId } from './discoveryUtils';
+import AIAssistButton from './AIAssistButton';
 
-export default function StepAsIs({ data, onChange }) {
+export default function StepAsIs({ data, onChange, fullDiscovery }) {
   const update = (field, value) => onChange({ ...data, [field]: value });
 
   const addGap = () => update('gaps', [...(data.gaps || []), { id: newId(), descricao: '', gravidade: 3, urgencia: 3, tendencia: 3, no_escopo: true }]);
@@ -37,6 +38,14 @@ export default function StepAsIs({ data, onChange }) {
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <AIAssistButton
+          discovery={fullDiscovery}
+          etapa="AS IS"
+          instrucaoEspecifica="Sugira como descrever o processo atual com mais clareza, identifique gaps que possivelmente não foram percebidos, dê ideias de melhoria e oriente a priorização GUT (Gravidade, Urgência, Tendência) dos gaps."
+        />
+      </div>
+
       {/* Mapeamento AS IS */}
       <section className="space-y-3">
         <h3 className="text-white font-semibold text-sm">Mapeamento AS IS</h3>
