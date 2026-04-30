@@ -52,20 +52,20 @@ export default function DiscoveryWizard({ open, onOpenChange, discovery, project
   });
 
   const handleSave = async (extraPatch = {}) => {
-    if (!data.name?.trim()) {
-      toast.error('Defina um nome para o discovery.');
+    const name = (data.name || '').trim() || `Discovery ${new Date().toLocaleDateString('pt-BR')}`;
+    const payload = { ...data, ...extraPatch, name };
+    try {
+      const result = await saveMutation.mutateAsync(payload);
+      setData(prev => ({ ...prev, ...payload, id: result?.id || prev.id }));
+      return result;
+    } catch (err) {
+      toast.error('Erro ao salvar: ' + (err?.message || 'desconhecido'));
       return null;
     }
-    const payload = { ...data, ...extraPatch };
-    const result = await saveMutation.mutateAsync(payload);
-    setData(prev => ({ ...prev, ...payload, id: result?.id || prev.id }));
-    return result;
   };
 
   const handleClose = async () => {
-    if (data.name?.trim()) {
-      await handleSave();
-    }
+    await handleSave();
     onOpenChange(false);
   };
 
