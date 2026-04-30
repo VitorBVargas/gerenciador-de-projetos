@@ -27,12 +27,14 @@ import {
   LayoutDashboard, Users, UserCircle, Package, Calendar, ArrowLeftRight,
   CheckSquare, Plane, DollarSign, AlertTriangle, LogOut, ChevronLeft, ChevronRight,
   ArrowLeft, Plus, Pencil, Trash2, X, Search, Mail, Phone, TrendingUp,
-  TrendingDown, AlertCircle, Shield, CheckCircle, Upload
+  TrendingDown, AlertCircle, Shield, CheckCircle, Upload, Activity, BarChart3
 } from 'lucide-react';
 
 import EmptyState from '../components/ui/EmptyState';
 import ExpenseModal from '../components/modals/ExpenseModal';
 import ExpenseImporter from '../components/import/ExpenseImporter';
+import InternalActivitiesTab from '../components/internal/InternalActivitiesTab';
+import InternalKPITimeTab from '../components/internal/InternalKPITimeTab';
 import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
 
@@ -45,9 +47,11 @@ const NAV = [
   { id: 'schedule', label: 'Cronograma', icon: Calendar },
   { id: 'migration', label: 'Migração', icon: ArrowLeftRight },
   { id: 'checklist', label: 'Checklist', icon: CheckSquare },
+  { id: 'activities', label: 'Atividades', icon: Activity },
   { id: 'travels', label: 'Viagens', icon: Plane },
   { id: 'budget', label: 'Orçamento', icon: DollarSign },
   { id: 'risks', label: 'Riscos', icon: AlertTriangle },
+  { id: 'kpi', label: 'KPI / Indicadores', icon: BarChart3 },
 ];
 
 // ─── Sidebar ──────────────────────────────────────────────────────────────────
@@ -1498,9 +1502,11 @@ export default function InternalDashboard() {
       case 'schedule': return <ScheduleTab projectId={projectId} />;
       case 'migration': return <MigrationTab projectId={projectId} />;
       case 'checklist': return <ChecklistTab projectId={projectId} />;
+      case 'activities': return <InternalActivitiesTab projectId={projectId} />;
       case 'travels': return <TravelsTab projectId={projectId} />;
       case 'budget': return <BudgetTab projectId={projectId} project={project} />;
       case 'risks': return <RisksTab projectId={projectId} />;
+      case 'kpi': return <InternalKPITimeTab projectId={projectId} />;
       default: return null;
     }
   };
