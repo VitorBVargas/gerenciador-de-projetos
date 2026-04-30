@@ -117,6 +117,7 @@ export default function DiscoveryWizard({ open, onOpenChange, discovery, project
           assignee: acao.who || '',
           end_date: acao.when || null,
           status: 'todo',
+          vertical: 'interno',
           priority: ricePriority(riceScore(acao)),
           discovery_id: discoveryId
         });
