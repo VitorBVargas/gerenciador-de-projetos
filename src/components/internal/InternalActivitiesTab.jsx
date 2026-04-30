@@ -81,6 +81,7 @@ export default function InternalActivitiesTab({ projectId }) {
         activity={selectedActivity}
         projectId={projectId}
         verticals={verticals}
+        isInternal
       />
     </div>
   );
