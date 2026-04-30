@@ -63,6 +63,7 @@ export default function InternalActivitiesTab({ projectId }) {
             verticals={verticals}
             onEdit={handleEdit}
             projectId={projectId}
+            isInternal
           />
         </TabsContent>
 

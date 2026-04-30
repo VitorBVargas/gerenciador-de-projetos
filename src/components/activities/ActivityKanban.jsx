@@ -22,7 +22,7 @@ const COLOR_OPTIONS = [
   { id: 'orange', name: 'Laranja', border: 'border-orange-500', bg: 'bg-orange-500/10' },
 ];
 
-export default function ActivityKanban({ activities, verticals, onEdit, projectId }) {
+export default function ActivityKanban({ activities, verticals, onEdit, projectId, isInternal = false }) {
   const queryClient = useQueryClient();
   const [selectedVertical, setSelectedVertical] = useState(verticals[0] || null);
 
@@ -135,12 +135,12 @@ export default function ActivityKanban({ activities, verticals, onEdit, projectI
     });
   };
 
-  const verticalActivities = activities.filter(a => a.vertical === selectedVertical);
+  const verticalActivities = isInternal ? activities : activities.filter(a => a.vertical === selectedVertical);
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        {verticals.length > 0 && (
+        {!isInternal && verticals.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {verticals.map(v => (
               <button
@@ -158,11 +158,11 @@ export default function ActivityKanban({ activities, verticals, onEdit, projectI
         )}
         <Button onClick={() => openColumnModal()} variant="outline" className="ml-auto border-slate-700 bg-slate-800/50 hover:bg-slate-800 text-slate-300">
           <Plus className="w-4 h-4 mr-2" />
-          Nova Aba
+          Nova Coluna
         </Button>
       </div>
 
-      {verticals.length === 0 ? (
+      {!isInternal && verticals.length === 0 ? (
         <div className="text-slate-400 py-4">Nenhuma vertical encontrada para este projeto. Adicione produtos para gerar verticais.</div>
       ) : (
         <DragDropContext onDragEnd={onDragEnd}>
@@ -217,7 +217,7 @@ export default function ActivityKanban({ activities, verticals, onEdit, projectI
                                 </DropdownMenuItem>
                                 <DropdownMenuItem 
                                   onClick={() => {
-                                    if(window.confirm(`Tem certeza que deseja deletar a aba "${status.title}"?`)) {
+                                    if(window.confirm(`Tem certeza que deseja deletar a coluna "${status.title}"?`)) {
                                       deleteColumnMutation.mutate(status.id);
                                     }
                                   }} 
@@ -322,11 +322,11 @@ export default function ActivityKanban({ activities, verticals, onEdit, projectI
       <Dialog open={colModalOpen} onOpenChange={setColModalOpen}>
         <DialogContent className="sm:max-w-[425px] border-slate-800 bg-slate-900 text-slate-200">
           <DialogHeader>
-            <DialogTitle>{editingCol ? 'Editar Aba' : 'Nova Aba'}</DialogTitle>
+            <DialogTitle>{editingCol ? 'Editar Coluna' : 'Nova Coluna'}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="title" className="text-slate-400">Nome da Aba</Label>
+              <Label htmlFor="title" className="text-slate-400">Nome da Coluna</Label>
               <Input
                 id="title"
                 value={colTitle}
