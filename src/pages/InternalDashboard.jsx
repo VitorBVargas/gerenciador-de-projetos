@@ -27,7 +27,7 @@ import {
   LayoutDashboard, Users, UserCircle, Package, Calendar, ArrowLeftRight,
   CheckSquare, Plane, DollarSign, AlertTriangle, LogOut, ChevronLeft, ChevronRight,
   ArrowLeft, Plus, Pencil, Trash2, X, Search, Mail, Phone, TrendingUp,
-  TrendingDown, AlertCircle, Shield, CheckCircle, Upload, Activity, BarChart3
+  TrendingDown, AlertCircle, Shield, CheckCircle, Upload, Activity, BarChart3, Lightbulb
 } from 'lucide-react';
 
 import EmptyState from '../components/ui/EmptyState';
@@ -35,6 +35,7 @@ import ExpenseModal from '../components/modals/ExpenseModal';
 import ExpenseImporter from '../components/import/ExpenseImporter';
 import InternalActivitiesTab from '../components/internal/InternalActivitiesTab';
 import InternalKPITimeTab from '../components/internal/InternalKPITimeTab';
+import InternalDiscoveryTab from '../components/internal/InternalDiscoveryTab';
 import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
 
@@ -48,6 +49,7 @@ const NAV = [
   { id: 'migration', label: 'Migração', icon: ArrowLeftRight },
   { id: 'checklist', label: 'Checklist', icon: CheckSquare },
   { id: 'activities', label: 'Atividades', icon: Activity },
+  { id: 'discovery', label: 'Discovery', icon: Lightbulb },
   { id: 'travels', label: 'Viagens', icon: Plane },
   { id: 'budget', label: 'Orçamento', icon: DollarSign },
   { id: 'risks', label: 'Riscos', icon: AlertTriangle },
@@ -1503,6 +1505,7 @@ export default function InternalDashboard() {
       case 'migration': return <MigrationTab projectId={projectId} />;
       case 'checklist': return <ChecklistTab projectId={projectId} />;
       case 'activities': return <InternalActivitiesTab projectId={projectId} />;
+      case 'discovery': return <InternalDiscoveryTab projectId={projectId} />;
       case 'travels': return <TravelsTab projectId={projectId} />;
       case 'budget': return <BudgetTab projectId={projectId} project={project} />;
       case 'risks': return <RisksTab projectId={projectId} />;

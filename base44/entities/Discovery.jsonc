@@ -1,0 +1,173 @@
+{
+  "name": "Discovery",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "ID do projeto interno"
+    },
+    "name": {
+      "type": "string",
+      "description": "Nome do discovery"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "em_andamento",
+        "concluido"
+      ],
+      "default": "em_andamento"
+    },
+    "diagnostico": {
+      "type": "object",
+      "description": "Etapa 1 - Diagn\u00f3stico",
+      "properties": {
+        "problema": {
+          "type": "string"
+        },
+        "porque_resolver": {
+          "type": "string"
+        },
+        "cinco_porques": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "causa_raiz": {
+          "type": "string"
+        },
+        "observacoes": {
+          "type": "string"
+        }
+      }
+    },
+    "as_is": {
+      "type": "object",
+      "description": "Etapa 2 - Cen\u00e1rio Atual",
+      "properties": {
+        "descricao_processo": {
+          "type": "string"
+        },
+        "gaps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              },
+              "gravidade": {
+                "type": "number"
+              },
+              "urgencia": {
+                "type": "number"
+              },
+              "tendencia": {
+                "type": "number"
+              },
+              "no_escopo": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "bpmn_link": {
+          "type": "string"
+        },
+        "ideias": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "to_be": {
+      "type": "object",
+      "description": "Etapa 3 - Desenho do TO BE",
+      "properties": {
+        "descricao": {
+          "type": "string"
+        },
+        "melhorias": {
+          "type": "string"
+        },
+        "beneficios": {
+          "type": "string"
+        }
+      }
+    },
+    "acoes": {
+      "type": "array",
+      "description": "Etapa 4 - Plano 5W2H + RICE",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "what": {
+            "type": "string"
+          },
+          "why": {
+            "type": "string"
+          },
+          "where": {
+            "type": "string"
+          },
+          "when": {
+            "type": "string"
+          },
+          "who": {
+            "type": "string"
+          },
+          "how": {
+            "type": "string"
+          },
+          "how_much": {
+            "type": "string"
+          },
+          "reach": {
+            "type": "number"
+          },
+          "impact": {
+            "type": "number"
+          },
+          "confidence": {
+            "type": "number"
+          },
+          "effort": {
+            "type": "number"
+          },
+          "task_id": {
+            "type": "string",
+            "description": "ID da ProjectActivity gerada"
+          }
+        }
+      }
+    },
+    "mvp": {
+      "type": "object",
+      "description": "MVP / Valida\u00e7\u00e3o",
+      "properties": {
+        "descricao": {
+          "type": "string"
+        },
+        "validacao": {
+          "type": "string"
+        },
+        "criterios_sucesso": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "required": [
+    "project_id",
+    "name"
+  ]
+}
