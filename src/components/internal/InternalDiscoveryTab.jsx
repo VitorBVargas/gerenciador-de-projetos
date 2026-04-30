@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Lightbulb, CheckCircle2, Trash2, Loader2 } from 'lucide-react';
+import { Plus, Lightbulb, CheckCircle2, Trash2, Loader2, Pencil } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from "@/lib/utils";
@@ -14,10 +14,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import EmptyState from '../ui/EmptyState';
 import DiscoveryWizard from './discovery/DiscoveryWizard';
+import DiscoveryReport from './discovery/DiscoveryReport';
 
 export default function InternalDiscoveryTab({ projectId }) {
   const queryClient = useQueryClient();
   const [wizardOpen, setWizardOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   const [selected, setSelected] = useState(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [toDelete, setToDelete] = useState(null);
@@ -38,7 +40,8 @@ export default function InternalDiscoveryTab({ projectId }) {
   });
 
   const openCreate = () => { setSelected(null); setWizardOpen(true); };
-  const openEdit = (d) => { setSelected(d); setWizardOpen(true); };
+  const openEdit = (d) => { setSelected(d); setReportOpen(false); setWizardOpen(true); };
+  const openReport = (d) => { setSelected(d); setReportOpen(true); };
 
   const statusBadge = {
     em_andamento: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
@@ -77,7 +80,7 @@ export default function InternalDiscoveryTab({ projectId }) {
             const totalAcoes = d.acoes?.length || 0;
             const tarefasGeradas = d.acoes?.filter(a => a.task_id).length || 0;
             return (
-              <Card key={d.id} className="bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 hover:border-indigo-500/40 transition-all group cursor-pointer" onClick={() => openEdit(d)}>
+              <Card key={d.id} className="bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 hover:border-indigo-500/40 transition-all group cursor-pointer" onClick={() => openReport(d)}>
                 <CardContent className="p-5 space-y-3">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
@@ -101,14 +104,26 @@ export default function InternalDiscoveryTab({ projectId }) {
                       <span><span className="text-white font-medium">{totalAcoes}</span> ações</span>
                       <span><span className="text-green-400 font-medium">{tarefasGeradas}</span> no board</span>
                     </div>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-7 w-7 text-red-400 hover:text-red-300 opacity-0 group-hover:opacity-100"
-                      onClick={(e) => { e.stopPropagation(); setToDelete(d); setDeleteOpen(true); }}
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 text-slate-400 hover:text-indigo-300"
+                        onClick={(e) => { e.stopPropagation(); openEdit(d); }}
+                        title="Editar"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 text-red-400 hover:text-red-300 opacity-0 group-hover:opacity-100"
+                        onClick={(e) => { e.stopPropagation(); setToDelete(d); setDeleteOpen(true); }}
+                        title="Excluir"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -122,6 +137,13 @@ export default function InternalDiscoveryTab({ projectId }) {
         onOpenChange={setWizardOpen}
         discovery={selected}
         projectId={projectId}
+      />
+
+      <DiscoveryReport
+        open={reportOpen}
+        onOpenChange={setReportOpen}
+        discovery={selected}
+        onEdit={() => { setReportOpen(false); setWizardOpen(true); }}
       />
 
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
