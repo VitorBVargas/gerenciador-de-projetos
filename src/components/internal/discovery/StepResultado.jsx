@@ -24,14 +24,14 @@ export default function StepResultado({ discovery, onGenerateTasks, onConcluir, 
           {discovery.diagnostico?.problema && (
             <div><p className="text-xs text-slate-500">Problema</p><p className="text-sm text-slate-200">{discovery.diagnostico.problema}</p></div>
           )}
-          {discovery.diagnostico?.causa_raiz && (
-            <div><p className="text-xs text-slate-500">Causa raiz</p><p className="text-sm text-slate-200">{discovery.diagnostico.causa_raiz}</p></div>
+          {discovery.ishikawa?.causa_principal && (
+            <div><p className="text-xs text-slate-500">Causa principal (Ishikawa)</p><p className="text-sm text-slate-200">{discovery.ishikawa.causa_principal}</p></div>
+          )}
+          {discovery.cinco_porques?.conclusao && (
+            <div><p className="text-xs text-slate-500">Causa raiz (5 Porquês)</p><p className="text-sm text-slate-200">{discovery.cinco_porques.conclusao}</p></div>
           )}
           {discovery.to_be?.descricao && (
             <div><p className="text-xs text-slate-500">TO BE</p><p className="text-sm text-slate-200">{discovery.to_be.descricao}</p></div>
-          )}
-          {discovery.mvp?.descricao && (
-            <div><p className="text-xs text-slate-500">MVP</p><p className="text-sm text-slate-200">{discovery.mvp.descricao}</p></div>
           )}
         </CardContent>
       </Card>

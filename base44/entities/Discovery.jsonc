@@ -28,23 +28,67 @@
         "porque_resolver": {
           "type": "string"
         },
-        "cinco_porques": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "causa_raiz": {
+        "observacoes": {
+          "type": "string"
+        }
+      }
+    },
+    "ishikawa": {
+      "type": "object",
+      "description": "Etapa 2 - Causa Raiz (Ishikawa 6M)",
+      "properties": {
+        "metodo": {
           "type": "string"
         },
-        "observacoes": {
+        "maquina": {
+          "type": "string"
+        },
+        "mao_de_obra": {
+          "type": "string"
+        },
+        "material": {
+          "type": "string"
+        },
+        "medida": {
+          "type": "string"
+        },
+        "meio_ambiente": {
+          "type": "string"
+        },
+        "causa_principal": {
+          "type": "string"
+        }
+      }
+    },
+    "cinco_porques": {
+      "type": "object",
+      "description": "Etapa 3 - 5 Porqu\u00eas",
+      "properties": {
+        "primeira_pergunta": {
+          "type": "string"
+        },
+        "porques": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "pergunta": {
+                "type": "string"
+              },
+              "resposta": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "conclusao": {
           "type": "string"
         }
       }
     },
     "as_is": {
       "type": "object",
-      "description": "Etapa 2 - Cen\u00e1rio Atual",
+      "description": "Etapa 4 - Cen\u00e1rio Atual",
       "properties": {
         "descricao_processo": {
           "type": "string"
@@ -88,7 +132,7 @@
     },
     "to_be": {
       "type": "object",
-      "description": "Etapa 3 - Desenho do TO BE",
+      "description": "Etapa 5 - Desenho do TO BE",
       "properties": {
         "descricao": {
           "type": "string"
@@ -103,7 +147,7 @@
     },
     "acoes": {
       "type": "array",
-      "description": "Etapa 4 - Plano 5W2H + RICE",
+      "description": "Etapa 6 - Plano 5W2H + RICE",
       "items": {
         "type": "object",
         "properties": {
@@ -147,21 +191,6 @@
             "type": "string",
             "description": "ID da ProjectActivity gerada"
           }
-        }
-      }
-    },
-    "mvp": {
-      "type": "object",
-      "description": "MVP / Valida\u00e7\u00e3o",
-      "properties": {
-        "descricao": {
-          "type": "string"
-        },
-        "validacao": {
-          "type": "string"
-        },
-        "criterios_sucesso": {
-          "type": "string"
         }
       }
     }

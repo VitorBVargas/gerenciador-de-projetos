@@ -9,20 +9,22 @@ import { cn } from "@/lib/utils";
 import { toast } from 'sonner';
 
 import StepDiagnostico from './StepDiagnostico';
+import StepIshikawa from './StepIshikawa';
+import StepCincoPorques from './StepCincoPorques';
 import StepAsIs from './StepAsIs';
 import StepToBe from './StepToBe';
 import StepPlanoAcoes from './StepPlanoAcoes';
-import StepMvp from './StepMvp';
 import StepResultado from './StepResultado';
 import { riceScore, ricePriority, emptyDiscovery } from './discoveryUtils';
 
 const STEPS = [
   { id: 'diagnostico', label: '1. Diagnóstico' },
-  { id: 'as_is', label: '2. AS IS' },
-  { id: 'to_be', label: '3. TO BE' },
-  { id: 'acoes', label: '4. Plano de Ações' },
-  { id: 'mvp', label: '5. MVP' },
-  { id: 'resultado', label: '6. Resultado' }
+  { id: 'ishikawa', label: '2. Causa Raiz' },
+  { id: 'cinco_porques', label: '3. 5 Porquês' },
+  { id: 'as_is', label: '4. AS IS' },
+  { id: 'to_be', label: '5. TO BE' },
+  { id: 'acoes', label: '6. Plano de Ações' },
+  { id: 'resultado', label: 'Resultado' }
 ];
 
 export default function DiscoveryWizard({ open, onOpenChange, discovery, projectId }) {
@@ -176,10 +178,11 @@ export default function DiscoveryWizard({ open, onOpenChange, discovery, project
 
         <div className="flex-1 overflow-y-auto pr-2 -mr-2 py-2">
           {stepId === 'diagnostico' && <StepDiagnostico data={data.diagnostico || {}} onChange={updateField('diagnostico')} />}
+          {stepId === 'ishikawa' && <StepIshikawa data={data.ishikawa || {}} onChange={updateField('ishikawa')} />}
+          {stepId === 'cinco_porques' && <StepCincoPorques data={data.cinco_porques || {}} diagnostico={data.diagnostico} ishikawa={data.ishikawa} onChange={updateField('cinco_porques')} />}
           {stepId === 'as_is' && <StepAsIs data={data.as_is || {}} onChange={updateField('as_is')} />}
           {stepId === 'to_be' && <StepToBe data={data.to_be || {}} onChange={updateField('to_be')} />}
           {stepId === 'acoes' && <StepPlanoAcoes acoes={data.acoes || []} onChange={updateField('acoes')} />}
-          {stepId === 'mvp' && <StepMvp data={data.mvp || {}} onChange={updateField('mvp')} />}
           {stepId === 'resultado' && <StepResultado discovery={data} onGenerateTasks={handleGenerateTasks} onConcluir={handleConcluir} generating={generating} />}
         </div>
 

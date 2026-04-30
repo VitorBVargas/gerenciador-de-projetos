@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, ArrowRight } from 'lucide-react';
 import { gutScore, newId } from './discoveryUtils';
 
 export default function StepAsIs({ data, onChange }) {
@@ -21,6 +21,17 @@ export default function StepAsIs({ data, onChange }) {
     update('ideias', arr);
   };
   const removeIdeia = (idx) => update('ideias', data.ideias.filter((_, i) => i !== idx));
+
+  const promoverIdeiaParaGap = (idx) => {
+    const ideia = (data.ideias || [])[idx];
+    if (!ideia?.trim()) return;
+    const novosGaps = [...(data.gaps || []), { id: newId(), descricao: ideia.trim(), gravidade: 3, urgencia: 3, tendencia: 3, no_escopo: true }];
+    onChange({
+      ...data,
+      gaps: novosGaps,
+      ideias: data.ideias.filter((_, i) => i !== idx)
+    });
+  };
 
   const sortedGaps = [...(data.gaps || [])].sort((a, b) => gutScore(b) - gutScore(a));
 
@@ -42,12 +53,16 @@ export default function StepAsIs({ data, onChange }) {
       {/* Brainstorming */}
       <section className="space-y-2 pt-3 border-t border-slate-700">
         <div className="flex items-center justify-between">
-          <h3 className="text-white font-semibold text-sm">Brainstorming de melhorias</h3>
+          <div>
+            <h3 className="text-white font-semibold text-sm">Brainstorming de melhorias</h3>
+            <p className="text-[11px] text-slate-500">Use a seta para mover uma ideia direto para o GUT abaixo.</p>
+          </div>
           <Button type="button" size="sm" variant="ghost" onClick={addIdeia} className="text-indigo-400 hover:text-indigo-300 h-7"><Plus className="w-3 h-3 mr-1" />Adicionar ideia</Button>
         </div>
         {(data.ideias || []).map((idea, i) => (
           <div key={i} className="flex gap-2">
             <Input value={idea} onChange={e => updateIdeia(i, e.target.value)} className="bg-slate-700 border-slate-600 text-white" placeholder="Ideia de melhoria..." />
+            <Button type="button" size="icon" variant="ghost" className="h-9 w-9 text-indigo-400 hover:text-indigo-300 flex-shrink-0" onClick={() => promoverIdeiaParaGap(i)} title="Mover para GUT"><ArrowRight className="w-4 h-4" /></Button>
             <Button type="button" size="icon" variant="ghost" className="h-9 w-9 text-red-400 hover:text-red-300 flex-shrink-0" onClick={() => removeIdeia(i)}><Trash2 className="w-3 h-3" /></Button>
           </div>
         ))}
