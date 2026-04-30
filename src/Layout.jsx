@@ -20,7 +20,8 @@ import {
   FolderOpen,
   CheckSquare,
   Timer,
-  BookOpen
+  BookOpen,
+  Lightbulb
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
@@ -29,6 +30,7 @@ const navigation = [
   { name: 'Equipe', href: 'Team', icon: Users },
   { name: 'Stakeholders', href: 'Stakeholders', icon: UserCircle },
   { name: 'Produtos', href: 'Products', icon: Package },
+  { name: 'Discovery', href: 'Discovery', icon: Lightbulb },
   { name: 'Cronograma', href: 'Timeline', icon: Calendar },
   { name: 'Migração', href: 'Migration', icon: ArrowLeftRight },
   { name: 'Homologação', href: 'Homologation', icon: CheckCircle },
