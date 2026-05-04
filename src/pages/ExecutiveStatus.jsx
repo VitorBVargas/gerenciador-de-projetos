@@ -902,7 +902,6 @@ export default function ExecutiveStatus() {
                        <XAxis dataKey="month" stroke="#94a3b8" style={{ fontSize: '12px' }} interval={0} angle={-45} textAnchor="end" height={80} />
                        <YAxis stroke="#94a3b8" style={{ fontSize: '12px' }} tickFormatter={(value) => new Intl.NumberFormat('pt-BR', { notation: 'compact', compactDisplay: 'short' }).format(value)} />
                        <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', color: '#fff' }} formatter={(v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)} />
-                       <Legend wrapperStyle={{ paddingTop: '15px' }} />
                        <Bar dataKey="a_receber" stackId="a_receber" fill="#10b981" name="A Receber" onClick={(data) => { const monthKey = Object.keys(monthlyData).find(key => monthlyData[key].month === data.month); if (monthKey) { setSelectedMonth(monthKey); setSelectedMonthType('implantacao'); } }} />
                        <Bar dataKey="a_receber_pausado" stackId="a_receber" fill="#f97316" name="A Receber — Pausado" onClick={(data) => { const monthKey = Object.keys(monthlyData).find(key => monthlyData[key].month === data.month); if (monthKey) { setSelectedMonth(monthKey); setSelectedMonthType('implantacao'); } }} />
                        <Bar dataKey="reconhecido" stackId="reconhecido" fill="#a855f7" name="Reconhecido" onClick={(data) => { const monthKey = Object.keys(monthlyData).find(key => monthlyData[key].month === data.month); if (monthKey) { setSelectedMonth(monthKey); setSelectedMonthType('reconhecido_implantacao'); } }} />
@@ -921,6 +920,14 @@ export default function ExecutiveStatus() {
                     </div>
                   </CardContent>
                 </Card>
+                )}
+                {visibleCharts.implantacao !== false && (
+                  <div className="lg:col-span-2 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg">
+                    <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-sm bg-emerald-500" /><span className="text-xs text-slate-300">A Receber</span></div>
+                    <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-sm bg-orange-500" /><span className="text-xs text-slate-300">A Receber — Pausado</span></div>
+                    <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-sm bg-purple-500" /><span className="text-xs text-slate-300">Reconhecido</span></div>
+                    <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-sm" style={{ backgroundColor: '#fb923c' }} /><span className="text-xs text-slate-300">Reconhecido — Pausado</span></div>
+                  </div>
                 )}
               </div>
             );
