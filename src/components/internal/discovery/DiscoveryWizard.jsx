@@ -9,21 +9,25 @@ import { cn } from "@/lib/utils";
 import { toast } from 'sonner';
 
 import StepDiagnostico from './StepDiagnostico';
+import StepPersona from './StepPersona';
 import StepIshikawa from './StepIshikawa';
 import StepCincoPorques from './StepCincoPorques';
 import StepAsIs from './StepAsIs';
 import StepToBe from './StepToBe';
+import StepHipoteses from './StepHipoteses';
 import StepPlanoAcoes from './StepPlanoAcoes';
 import StepResultado from './StepResultado';
 import { riceScore, ricePriority, emptyDiscovery } from './discoveryUtils';
 
 const STEPS = [
   { id: 'diagnostico', label: '1. Diagnóstico' },
-  { id: 'ishikawa', label: '2. Causa Raiz' },
-  { id: 'cinco_porques', label: '3. 5 Porquês' },
+  { id: 'persona', label: '2. Persona' },
+  { id: 'ishikawa', label: '3. Causa Raiz' },
+  { id: 'cinco_porques', label: '3.1 5 Porquês' },
   { id: 'as_is', label: '4. AS IS' },
   { id: 'to_be', label: '5. TO BE' },
-  { id: 'acoes', label: '6. Plano de Ações' },
+  { id: 'hipoteses', label: '6. Hipóteses' },
+  { id: 'acoes', label: '7. Plano de Ações' },
   { id: 'resultado', label: 'Resultado' }
 ];
 
@@ -178,12 +182,14 @@ export default function DiscoveryWizard({ open, onOpenChange, discovery, project
 
         <div className="flex-1 overflow-y-auto pr-2 -mr-2 py-2">
           {stepId === 'diagnostico' && <StepDiagnostico data={data.diagnostico || {}} onChange={updateField('diagnostico')} fullDiscovery={data} />}
+          {stepId === 'persona' && <StepPersona data={data.persona || {}} onChange={updateField('persona')} fullDiscovery={data} />}
           {stepId === 'ishikawa' && <StepIshikawa data={data.ishikawa || {}} onChange={updateField('ishikawa')} fullDiscovery={data} />}
           {stepId === 'cinco_porques' && <StepCincoPorques data={data.cinco_porques || {}} diagnostico={data.diagnostico} ishikawa={data.ishikawa} onChange={updateField('cinco_porques')} fullDiscovery={data} />}
           {stepId === 'as_is' && <StepAsIs data={data.as_is || {}} onChange={updateField('as_is')} fullDiscovery={data} />}
           {stepId === 'to_be' && <StepToBe data={data.to_be || {}} onChange={updateField('to_be')} fullDiscovery={data} />}
+          {stepId === 'hipoteses' && <StepHipoteses hipoteses={data.hipoteses || []} onChange={updateField('hipoteses')} fullDiscovery={data} />}
           {stepId === 'acoes' && <StepPlanoAcoes acoes={data.acoes || []} onChange={updateField('acoes')} fullDiscovery={data} />}
-          {stepId === 'resultado' && <StepResultado discovery={data} onGenerateTasks={handleGenerateTasks} onConcluir={handleConcluir} generating={generating} />}
+          {stepId === 'resultado' && <StepResultado discovery={data} onGenerateTasks={handleGenerateTasks} onConcluir={handleConcluir} generating={generating} onMetricasChange={updateField('metricas')} />}
         </div>
 
         <div className="flex items-center justify-between pt-3 border-t border-slate-800">

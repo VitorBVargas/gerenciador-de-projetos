@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, Zap, Loader2 } from 'lucide-react';
 import { riceScore, ricePriority } from './discoveryUtils';
 import { cn } from "@/lib/utils";
+import MetricasSection from './MetricasSection';
 
 const priorityColor = {
   critica: 'bg-red-500/20 text-red-300 border-red-500/30',
@@ -12,7 +13,7 @@ const priorityColor = {
   baixa: 'bg-slate-500/20 text-slate-300 border-slate-500/30'
 };
 
-export default function StepResultado({ discovery, onGenerateTasks, onConcluir, generating }) {
+export default function StepResultado({ discovery, onGenerateTasks, onConcluir, generating, onMetricasChange }) {
   const sortedAcoes = [...(discovery.acoes || [])].sort((a, b) => riceScore(b) - riceScore(a));
   const gerouAlguma = sortedAcoes.some(a => a.task_id);
 
@@ -73,6 +74,16 @@ export default function StepResultado({ discovery, onGenerateTasks, onConcluir, 
           ) : (
             <p className="text-xs text-slate-500">Nenhuma ação cadastrada na etapa de Plano de Ações.</p>
           )}
+        </CardContent>
+      </Card>
+
+      <Card className="bg-slate-900/60 border-slate-700">
+        <CardContent className="p-4">
+          <MetricasSection
+            metricas={discovery.metricas || []}
+            onChange={onMetricasChange}
+            fullDiscovery={discovery}
+          />
         </CardContent>
       </Card>
 

@@ -29,10 +29,13 @@ export const emptyDiscovery = (name = '') => ({
   name,
   status: 'em_andamento',
   diagnostico: { problema: '', porque_resolver: '', observacoes: '' },
+  persona: { nome: '', perfil: '', necessidades: '', dores: '', ganhos: '', jornada: '' },
   ishikawa: { metodo: '', maquina: '', mao_de_obra: '', material: '', medida: '', meio_ambiente: '', causa_principal: '' },
   cinco_porques: { primeira_pergunta: '', porques: [], conclusao: '' },
   as_is: { descricao_processo: '', gaps: [], bpmn_link: '', ideias: [] },
   to_be: { descricao: '', melhorias: '', beneficios: '' },
+  hipoteses: [],
   acoes: [],
+  metricas: [],
   mvp: { descricao: '', validacao: '', criterios_sucesso: '' }
 });

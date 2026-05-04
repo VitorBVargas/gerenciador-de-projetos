@@ -33,9 +33,39 @@
         }
       }
     },
+    "persona": {
+      "type": "object",
+      "description": "Etapa 2 - Usu\u00e1rio / Persona",
+      "properties": {
+        "nome": {
+          "type": "string",
+          "description": "Nome da persona"
+        },
+        "perfil": {
+          "type": "string",
+          "description": "Perfil/Cargo/Contexto"
+        },
+        "necessidades": {
+          "type": "string",
+          "description": "Necessidades e objetivos"
+        },
+        "dores": {
+          "type": "string",
+          "description": "Dores e frustra\u00e7\u00f5es"
+        },
+        "ganhos": {
+          "type": "string",
+          "description": "Ganhos esperados"
+        },
+        "jornada": {
+          "type": "string",
+          "description": "Jornada atual resumida"
+        }
+      }
+    },
     "ishikawa": {
       "type": "object",
-      "description": "Etapa 2 - Causa Raiz (Ishikawa 6M)",
+      "description": "Etapa 3 - Causa Raiz (Ishikawa 6M)",
       "properties": {
         "metodo": {
           "type": "string"
@@ -62,7 +92,7 @@
     },
     "cinco_porques": {
       "type": "object",
-      "description": "Etapa 3 - 5 Porqu\u00eas",
+      "description": "Subetapa - 5 Porqu\u00eas",
       "properties": {
         "primeira_pergunta": {
           "type": "string"
@@ -145,9 +175,50 @@
         }
       }
     },
+    "hipoteses": {
+      "type": "array",
+      "description": "Etapa 6 - Hip\u00f3teses a serem validadas",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "acreditamos_que": {
+            "type": "string",
+            "description": "Acreditamos que..."
+          },
+          "se_fizermos": {
+            "type": "string",
+            "description": "Se fizermos..."
+          },
+          "iremos_observar": {
+            "type": "string",
+            "description": "Iremos observar..."
+          },
+          "metrica_validacao": {
+            "type": "string",
+            "description": "M\u00e9trica/sinal de valida\u00e7\u00e3o"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "a_validar",
+              "validada",
+              "invalidada"
+            ],
+            "default": "a_validar"
+          },
+          "confianca": {
+            "type": "number",
+            "description": "N\u00edvel de confian\u00e7a 1-5"
+          }
+        }
+      }
+    },
     "acoes": {
       "type": "array",
-      "description": "Etapa 6 - Plano 5W2H + RICE",
+      "description": "Etapa 7 - Plano 5W2H + RICE",
       "items": {
         "type": "object",
         "properties": {
@@ -190,6 +261,43 @@
           "task_id": {
             "type": "string",
             "description": "ID da ProjectActivity gerada"
+          }
+        }
+      }
+    },
+    "metricas": {
+      "type": "array",
+      "description": "M\u00e9tricas/indicadores para acompanhar ap\u00f3s a execu\u00e7\u00e3o",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "nome": {
+            "type": "string",
+            "description": "Nome da m\u00e9trica/indicador"
+          },
+          "descricao": {
+            "type": "string",
+            "description": "O que mede e por que importa"
+          },
+          "meta": {
+            "type": "string",
+            "description": "Meta/valor alvo"
+          },
+          "frequencia": {
+            "type": "string",
+            "description": "Frequ\u00eancia de medi\u00e7\u00e3o (di\u00e1ria, semanal, mensal)"
+          },
+          "responsavel": {
+            "type": "string",
+            "description": "Respons\u00e1vel pelo acompanhamento"
+          },
+          "fonte_ia": {
+            "type": "boolean",
+            "default": false,
+            "description": "Foi sugerida pela IA"
           }
         }
       }
