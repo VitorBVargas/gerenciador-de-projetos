@@ -8,13 +8,17 @@ export default function StepDiagnostico({ data, onChange, fullDiscovery }) {
 
   return (
     <div className="space-y-5">
-      <div className="flex justify-end">
-        <AIAssistButton
-          discovery={fullDiscovery}
-          etapa="Diagnóstico"
-          instrucaoEspecifica="Sugira como descrever melhor o problema, perguntas de aprofundamento e justificativas convincentes para resolvê-lo. Se o usuário ainda não preencheu nada, ofereça um esqueleto baseado no nome do discovery."
-        />
-      </div>
+      <AIAssistButton
+        discovery={fullDiscovery}
+        etapa="Diagnóstico"
+        instrucaoEspecifica="Sugira conteúdo concreto e pronto para uso para cada campo do diagnóstico, baseado no nome do discovery e no contexto disponível."
+        campos={[
+          { key: 'problema', label: 'Descrição do problema', type: 'text' },
+          { key: 'porque_resolver', label: 'Por que precisa ser resolvido', type: 'text' },
+          { key: 'observacoes', label: 'Observações adicionais', type: 'text' }
+        ]}
+        onApply={(key, value) => update(key, value)}
+      />
 
       <div className="space-y-1">
         <Label className="text-slate-300 text-xs">Descrição do problema</Label>

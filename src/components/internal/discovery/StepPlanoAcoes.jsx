@@ -40,7 +40,30 @@ export default function StepPlanoAcoes({ acoes = [], onChange, fullDiscovery }) 
           <AIAssistButton
             discovery={fullDiscovery}
             etapa="Plano de Ações"
-            instrucaoEspecifica="Com base no TO BE, gaps priorizados e causa raiz, sugira ações 5W2H (What, Why, Where, When, Who, How, How much) específicas e prontas para uso. Para cada ação sugira também valores estimados de RICE (Reach, Impact 1-5, Confidence %, Effort). Sugira a ordem de execução considerando dependências."
+            instrucaoEspecifica="Sugira de 3 a 6 ações 5W2H. Cada ação deve ser uma string única no formato: 'What: [o quê] | Why: [por quê] | Who: [quem] | How: [como]'. Use exatamente esse separador ' | '."
+            campos={[
+              { key: 'acoes', label: 'Ações sugeridas (clique para adicionar)', type: 'list' }
+            ]}
+            onApply={(key, value) => {
+              const parts = String(value).split('|').map(s => s.trim());
+              const getField = (label) => {
+                const found = parts.find(p => p.toLowerCase().startsWith(label.toLowerCase() + ':'));
+                return found ? found.split(':').slice(1).join(':').trim() : '';
+              };
+              const id = newId();
+              onChange([...acoes, {
+                id,
+                what: getField('What'),
+                why: getField('Why'),
+                where: getField('Where'),
+                when: '',
+                who: getField('Who'),
+                how: getField('How'),
+                how_much: getField('How much'),
+                reach: 100, impact: 3, confidence: 80, effort: 1
+              }]);
+              setExpanded(prev => ({ ...prev, [id]: true }));
+            }}
           />
           <Button type="button" size="sm" onClick={addAcao} className="bg-indigo-600 hover:bg-indigo-700"><Plus className="w-3 h-3 mr-1" />Nova ação</Button>
         </div>

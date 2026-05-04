@@ -16,8 +16,17 @@ export default function StepPersona({ data, onChange, fullDiscovery }) {
         </div>
         <AIAssistButton
           discovery={fullDiscovery}
-          etapa="Usuário / Persona"
-          instrucaoEspecifica="Com base no diagnóstico (problema e por que resolver), construa uma persona realista e específica para o contexto: nome fictício, perfil/cargo/contexto, necessidades, dores, ganhos esperados e um resumo da jornada atual. Evite generalidades — seja concreto."
+          etapa="Persona"
+          instrucaoEspecifica="Com base no diagnóstico, construa uma persona realista e específica. Evite generalidades."
+          campos={[
+            { key: 'nome', label: 'Nome da persona', type: 'text' },
+            { key: 'perfil', label: 'Perfil / Cargo / Contexto', type: 'text' },
+            { key: 'necessidades', label: 'Necessidades / Objetivos', type: 'text' },
+            { key: 'dores', label: 'Dores / Frustrações', type: 'text' },
+            { key: 'ganhos', label: 'Ganhos esperados', type: 'text' },
+            { key: 'jornada', label: 'Jornada atual (resumo)', type: 'text' }
+          ]}
+          onApply={(key, value) => update(key, value)}
         />
       </div>
 

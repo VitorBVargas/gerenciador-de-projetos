@@ -38,13 +38,25 @@ export default function StepAsIs({ data, onChange, fullDiscovery }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-end">
-        <AIAssistButton
-          discovery={fullDiscovery}
-          etapa="AS IS"
-          instrucaoEspecifica="Sugira como descrever o processo atual com mais clareza, identifique gaps que possivelmente não foram percebidos, dê ideias de melhoria e oriente a priorização GUT (Gravidade, Urgência, Tendência) dos gaps."
-        />
-      </div>
+      <AIAssistButton
+        discovery={fullDiscovery}
+        etapa="AS IS"
+        instrucaoEspecifica="Sugira a descrição do processo atual e listas separadas de ideias de melhoria e gaps identificados. Cada item deve ser uma frase curta e específica."
+        campos={[
+          { key: 'descricao_processo', label: 'Descrição do processo atual', type: 'text' },
+          { key: 'ideias', label: 'Ideias de melhoria (clique para adicionar)', type: 'list' },
+          { key: 'gaps', label: 'Gaps identificados (clique para adicionar ao GUT)', type: 'list' }
+        ]}
+        onApply={(key, value) => {
+          if (key === 'descricao_processo') {
+            update('descricao_processo', value);
+          } else if (key === 'ideias') {
+            update('ideias', [...(data.ideias || []), value]);
+          } else if (key === 'gaps') {
+            update('gaps', [...(data.gaps || []), { id: newId(), descricao: value, gravidade: 3, urgencia: 3, tendencia: 3, no_escopo: true }]);
+          }
+        }}
+      />
 
       {/* Mapeamento AS IS */}
       <section className="space-y-3">

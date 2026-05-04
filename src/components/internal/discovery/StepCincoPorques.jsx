@@ -91,7 +91,39 @@ Retorne só a pergunta, sem prefixo, sem aspas.`;
         <AIAssistButton
           discovery={fullDiscovery}
           etapa="5 Porquês"
-          instrucaoEspecifica="Com base no diagnóstico e na causa principal do Ishikawa, sugira a cadeia completa dos 5 Porquês (perguntas E respostas plausíveis) e a conclusão final sobre a causa raiz. Apresente cada porquê de forma específica, atacando causa e não sintoma."
+          instrucaoEspecifica="Com base no diagnóstico e Ishikawa, sugira a cadeia completa dos 5 Porquês. Para cada porquê, gere uma pergunta E uma resposta plausível. Por fim, sugira a conclusão sobre a causa raiz."
+          campos={[
+            { key: 'p1', label: 'Porquê 1 — pergunta', type: 'text' },
+            { key: 'r1', label: 'Porquê 1 — resposta', type: 'text' },
+            { key: 'p2', label: 'Porquê 2 — pergunta', type: 'text' },
+            { key: 'r2', label: 'Porquê 2 — resposta', type: 'text' },
+            { key: 'p3', label: 'Porquê 3 — pergunta', type: 'text' },
+            { key: 'r3', label: 'Porquê 3 — resposta', type: 'text' },
+            { key: 'p4', label: 'Porquê 4 — pergunta', type: 'text' },
+            { key: 'r4', label: 'Porquê 4 — resposta', type: 'text' },
+            { key: 'p5', label: 'Porquê 5 — pergunta', type: 'text' },
+            { key: 'r5', label: 'Porquê 5 — resposta', type: 'text' },
+            { key: 'conclusao', label: 'Conclusão / Causa raiz final', type: 'text' }
+          ]}
+          onApply={(key, value) => {
+            if (key === 'conclusao') {
+              updateConclusao(value);
+              return;
+            }
+            const m = key.match(/^([pr])(\d)$/);
+            if (m) {
+              const idx = Number(m[2]) - 1;
+              const field = m[1] === 'p' ? 'pergunta' : 'resposta';
+              const arr = [...porques];
+              while (arr.length <= idx) arr.push({ pergunta: '', resposta: '' });
+              arr[idx] = { ...arr[idx], [field]: value };
+              if (idx === 0 && field === 'pergunta') {
+                onChange({ ...data, primeira_pergunta: value, porques: arr });
+              } else {
+                onChange({ ...data, porques: arr });
+              }
+            }
+          }}
         />
       </div>
 

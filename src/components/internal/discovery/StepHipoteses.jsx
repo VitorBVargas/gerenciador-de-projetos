@@ -41,7 +41,21 @@ export default function StepHipoteses({ hipoteses = [], onChange, fullDiscovery 
           <AIAssistButton
             discovery={fullDiscovery}
             etapa="Hipóteses"
-            instrucaoEspecifica="Com base no diagnóstico, persona, causa raiz, AS IS e TO BE, gere 3 a 5 hipóteses no formato 'Acreditamos que [premissa]. Se fizermos [ação], iremos observar [resultado]'. Para cada hipótese, sugira a métrica/sinal de validação concreta e um nível de confiança (1-5)."
+            instrucaoEspecifica="Gere de 3 a 5 hipóteses, cada uma como uma string única no formato: 'Acreditamos que [premissa] | Se fizermos [ação] | Iremos observar [resultado] | Métrica: [como validar]'. Use exatamente esse separador ' | '."
+            campos={[
+              { key: 'hipoteses', label: 'Hipóteses (clique para adicionar)', type: 'list' }
+            ]}
+            onApply={(key, value) => {
+              const parts = String(value).split('|').map(s => s.trim());
+              const acreditamos = parts[0]?.replace(/^Acreditamos que\s*/i, '') || '';
+              const seFizermos = parts[1]?.replace(/^Se fizermos\s*/i, '') || '';
+              const iremosObservar = parts[2]?.replace(/^Iremos observar\s*/i, '') || '';
+              const metrica = parts[3]?.replace(/^Métrica:?\s*/i, '') || '';
+              onChange([
+                ...hipoteses,
+                { id: newId(), acreditamos_que: acreditamos, se_fizermos: seFizermos, iremos_observar: iremosObservar, metrica_validacao: metrica, status: 'a_validar', confianca: 3 }
+              ]);
+            }}
           />
           <Button type="button" size="sm" onClick={addHipotese} className="bg-indigo-600 hover:bg-indigo-700">
             <Plus className="w-3 h-3 mr-1" />Nova hipótese

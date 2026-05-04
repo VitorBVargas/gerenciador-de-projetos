@@ -26,7 +26,17 @@ export default function StepIshikawa({ data, onChange, fullDiscovery }) {
         <AIAssistButton
           discovery={fullDiscovery}
           etapa="Ishikawa (6M)"
-          instrucaoEspecifica="Com base no diagnóstico, sugira possíveis causas em cada uma das 6 categorias (Método, Máquina, Mão de obra, Material, Medida, Meio ambiente). Indique também qual seria a causa principal mais provável a ser explorada nos 5 Porquês."
+          instrucaoEspecifica="Com base no diagnóstico, sugira possíveis causas em cada uma das 6 categorias e indique a causa principal a ser explorada."
+          campos={[
+            { key: 'metodo', label: 'Método', type: 'text' },
+            { key: 'maquina', label: 'Máquina', type: 'text' },
+            { key: 'mao_de_obra', label: 'Mão de obra', type: 'text' },
+            { key: 'material', label: 'Material', type: 'text' },
+            { key: 'medida', label: 'Medida', type: 'text' },
+            { key: 'meio_ambiente', label: 'Meio ambiente', type: 'text' },
+            { key: 'causa_principal', label: 'Causa principal', type: 'text' }
+          ]}
+          onApply={(key, value) => update(key, value)}
         />
       </div>
 

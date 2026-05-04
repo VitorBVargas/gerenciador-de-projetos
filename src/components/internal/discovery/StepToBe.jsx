@@ -8,13 +8,17 @@ export default function StepToBe({ data, onChange, fullDiscovery }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
-        <AIAssistButton
-          discovery={fullDiscovery}
-          etapa="TO BE"
-          instrucaoEspecifica="Com base no AS IS, gaps priorizados e causa raiz, sugira o desenho do novo processo (TO BE), as melhorias práticas em relação ao atual e os benefícios esperados (KPIs, ganhos operacionais, valor entregue)."
-        />
-      </div>
+      <AIAssistButton
+        discovery={fullDiscovery}
+        etapa="TO BE"
+        instrucaoEspecifica="Com base no AS IS, gaps priorizados e causa raiz, sugira o desenho do novo processo, as melhorias e os benefícios esperados."
+        campos={[
+          { key: 'descricao', label: 'Descrição do novo processo', type: 'text' },
+          { key: 'melhorias', label: 'Melhorias em relação ao atual', type: 'text' },
+          { key: 'beneficios', label: 'Benefícios esperados', type: 'text' }
+        ]}
+        onApply={(key, value) => update(key, value)}
+      />
 
       <div className="space-y-1">
         <Label className="text-slate-300 text-xs">Descrição do novo processo</Label>
