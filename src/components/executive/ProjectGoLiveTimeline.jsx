@@ -307,8 +307,6 @@ export default function ProjectGoLiveTimeline({ projects, dictionaries, allTimel
                       <p className={cn("text-xs font-medium truncate transition-colors", isPaused ? "text-orange-300 group-hover:text-orange-200" : isOverdue ? "text-red-400 group-hover:text-red-300" : "text-slate-200 group-hover:text-blue-400")} title={project.name}>
                         {project.name}
                       </p>
-                      {isPaused && <span className="text-[9px] text-orange-400 font-semibold">⏸ PAUSADO</span>}
-                      {isOverdue && <span className="text-[9px] text-red-500 font-semibold">⚠ ATRASADO</span>}
                     </div>
                   </div>
 
