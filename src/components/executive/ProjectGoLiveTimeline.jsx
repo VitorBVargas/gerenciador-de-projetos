@@ -111,6 +111,8 @@ export default function ProjectGoLiveTimeline({ projects, dictionaries, allTimel
     setModalData({ ...row, verticals });
   };
 
+  const isModalProjectPaused = modalData?.project?.status === 'pausado';
+
   return (
     <div className="space-y-4">
 
@@ -120,7 +122,10 @@ export default function ProjectGoLiveTimeline({ projects, dictionaries, allTimel
           <div className="bg-slate-800 border border-slate-600 rounded-xl shadow-2xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
             <div className="flex items-start justify-between p-4 border-b border-slate-700">
               <div>
-                <h3 className="text-white font-semibold text-base">{modalData.project.name}</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-white font-semibold text-base">{modalData.project.name}</h3>
+                  {isModalProjectPaused && <span className="rounded-full bg-orange-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-orange-300 border border-orange-500/30">Pausado</span>}
+                </div>
                 <p className="text-xs text-slate-400 mt-0.5">{modalData.totalProducts} produtos analisados</p>
               </div>
               <button onClick={() => setModalData(null)} className="text-slate-400 hover:text-white transition-colors ml-4 mt-0.5">
@@ -222,6 +227,7 @@ export default function ProjectGoLiveTimeline({ projects, dictionaries, allTimel
         <div className="flex items-center gap-1.5"><span className="text-amber-400 text-base">🔶</span> Encerramento</div>
         <div className="flex items-center gap-1.5"><div className="w-3 h-0.5 border-t-2 border-dashed border-red-500" /> Hoje</div>
         <div className="flex items-center gap-1.5"><div className="w-3 h-2 rounded-sm bg-blue-500/40" /> Duração</div>
+        <div className="flex items-center gap-1.5"><div className="w-3 h-2 rounded-sm bg-orange-500/50" /> Projeto Pausado</div>
         <div className="flex items-center gap-1.5 text-slate-500 italic">Clique na linha para ver detalhes por vertical</div>
       </div>
 
@@ -276,7 +282,8 @@ export default function ProjectGoLiveTimeline({ projects, dictionaries, allTimel
             </div>
           ) : (
             projectRows.map(({ project, goLive, closingDate, closingSource, totalProducts }) => {
-              const isOverdue = closingDate && closingDate < today;
+            const isPaused = project.status === 'pausado';
+            const isOverdue = !isPaused && closingDate && closingDate < today;
               const goLivePct = goLive ? dayPct(goLive) : null;
               const closingPct = closingDate ? dayPct(closingDate) : null;
               const goLiveInView = goLivePct !== null && goLivePct >= 0 && goLivePct <= 100;
@@ -297,9 +304,10 @@ export default function ProjectGoLiveTimeline({ projects, dictionaries, allTimel
                     onClick={() => openModal({ project, goLive, closingDate, closingSource, totalProducts })}
                   >
                     <div className="min-w-0">
-                      <p className={cn("text-xs font-medium truncate group-hover:text-blue-400 transition-colors", isOverdue ? "text-red-400" : "text-slate-200")} title={project.name}>
+                      <p className={cn("text-xs font-medium truncate transition-colors", isPaused ? "text-orange-300 group-hover:text-orange-200" : isOverdue ? "text-red-400 group-hover:text-red-300" : "text-slate-200 group-hover:text-blue-400")} title={project.name}>
                         {project.name}
                       </p>
+                      {isPaused && <span className="text-[9px] text-orange-400 font-semibold">⏸ PAUSADO</span>}
                       {isOverdue && <span className="text-[9px] text-red-500 font-semibold">⚠ ATRASADO</span>}
                     </div>
                   </div>
@@ -316,7 +324,7 @@ export default function ProjectGoLiveTimeline({ projects, dictionaries, allTimel
 
                     {shouldDrawBar && barWidth > 0 && (
                       <div
-                        className={cn("absolute top-1/2 -translate-y-1/2 h-2 rounded-full", isOverdue ? "bg-red-500/30 border border-red-500/40" : "bg-blue-500/30 border border-blue-500/40")}
+                        className={cn("absolute top-1/2 -translate-y-1/2 h-2 rounded-full", isPaused ? "bg-orange-500/40 border border-orange-400/60" : isOverdue ? "bg-red-500/30 border border-red-500/40" : "bg-blue-500/30 border border-blue-500/40")}
                         style={{ left: `${barLeft}%`, width: `${barWidth}%` }}
                       />
                     )}
