@@ -879,7 +879,16 @@ export default function ExecutiveStatus() {
                         <Bar dataKey="recorrente_pausado" stackId="recorrente" fill="#f97316" name="Previsão Inclusão — Pausado" onClick={(data) => { const monthKey = Object.keys(monthlyData).find(key => monthlyData[key].month === data.month); if (monthKey) { setSelectedMonth(monthKey); setSelectedMonthType('recorrente'); } }} />
                       </BarChart>
                     </ResponsiveContainer>
-                    <div className="mt-4 text-center"><div className="text-2xl font-bold text-blue-400">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(chartData.reduce((sum, d) => sum + d.recorrente, 0))}</div><div className="text-sm text-slate-400">Total Recorrente (12 meses)</div></div>
+                    <div className="mt-4 grid grid-cols-2 gap-3 text-center">
+                      <div>
+                        <div className="text-2xl font-bold text-blue-400">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(chartData.reduce((sum, d) => sum + d.recorrente, 0))}</div>
+                        <div className="text-xs text-slate-400">Ativos (12 meses)</div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-bold text-orange-400">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(chartData.reduce((sum, d) => sum + (d.recorrente_pausado || 0), 0))}</div>
+                        <div className="text-xs text-slate-400">Pausados (12 meses)</div>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
                 )}
@@ -900,7 +909,16 @@ export default function ExecutiveStatus() {
                        <Bar dataKey="reconhecido_pausado" stackId="reconhecido" fill="#fb923c" name="Reconhecido — Pausado" onClick={(data) => { const monthKey = Object.keys(monthlyData).find(key => monthlyData[key].month === data.month); if (monthKey) { setSelectedMonth(monthKey); setSelectedMonthType('reconhecido_implantacao'); } }} />
                       </BarChart>
                     </ResponsiveContainer>
-                    <div className="mt-4 text-center"><div className="text-2xl font-bold text-emerald-400">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(chartData.reduce((sum, d) => sum + d.a_receber + d.a_receber_pausado, 0))}</div><div className="text-sm text-slate-400">Total A Receber (12 meses)</div></div>
+                    <div className="mt-4 grid grid-cols-2 gap-3 text-center">
+                      <div>
+                        <div className="text-2xl font-bold text-emerald-400">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(chartData.reduce((sum, d) => sum + d.a_receber, 0))}</div>
+                        <div className="text-xs text-slate-400">Ativos (12 meses)</div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-bold text-orange-400">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(chartData.reduce((sum, d) => sum + (d.a_receber_pausado || 0), 0))}</div>
+                        <div className="text-xs text-slate-400">Pausados (12 meses)</div>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
                 )}
