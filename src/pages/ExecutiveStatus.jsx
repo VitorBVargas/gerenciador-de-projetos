@@ -1013,14 +1013,17 @@ export default function ExecutiveStatus() {
                              </tr>
                            </thead>
                            <tbody>
-                             {filteredRecorrenteProds.map(({ project, product, startDate, inclusionValue }) => (
-                               <tr key={`${project.id}-${product.id}`} className="border-b border-blue-800/20 bg-blue-900/10 hover:bg-blue-900/20 transition-colors">
-                                 <td className="px-4 py-3 text-sm font-medium text-white">{project.name}</td>
-                                 <td className="px-4 py-3 text-sm text-slate-200">{product.name}</td>
-                                 <td className="px-4 py-3 text-sm text-slate-400">{startDate ? format(new Date(startDate), 'dd/MM/yyyy') : '—'}</td>
-                                 <td className="px-4 py-3 text-right text-sm font-semibold text-blue-400">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(inclusionValue)}</td>
-                               </tr>
-                             ))}
+                             {filteredRecorrenteProds.map(({ project, product, startDate, inclusionValue }) => {
+                               const isPaused = project.status === 'pausado';
+                               return (
+                                 <tr key={`${project.id}-${product.id}`} className={cn("border-b transition-colors", isPaused ? "border-orange-800/20 bg-orange-900/10 hover:bg-orange-900/20" : "border-blue-800/20 bg-blue-900/10 hover:bg-blue-900/20")}>
+                                   <td className="px-4 py-3 text-sm font-medium text-white flex items-center gap-2">{project.name}{isPaused && <Badge className="bg-orange-500/15 text-orange-300 border border-orange-500/30 text-[10px]">Paralisado</Badge>}</td>
+                                   <td className="px-4 py-3 text-sm text-slate-200">{product.name}</td>
+                                   <td className="px-4 py-3 text-sm text-slate-400">{startDate ? format(new Date(startDate), 'dd/MM/yyyy') : '—'}</td>
+                                   <td className={cn("px-4 py-3 text-right text-sm font-semibold", isPaused ? "text-orange-400" : "text-blue-400")}>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(inclusionValue)}</td>
+                                 </tr>
+                               );
+                             })}
                            </tbody>
                          </table>
                        </div>
@@ -1059,14 +1062,17 @@ export default function ExecutiveStatus() {
                               </tr>
                             </thead>
                             <tbody>
-                              {filteredAReceberProds.map(({ project, product, deadline, amount }) => (
-                                <tr key={`${project.id}-${product.id}`} className="border-b border-emerald-800/20 bg-emerald-900/10 hover:bg-emerald-900/20 transition-colors">
-                                  <td className="px-4 py-3 text-sm font-medium text-white">{project.name}</td>
-                                  <td className="px-4 py-3 text-sm text-slate-200">{product.name}</td>
-                                  <td className="px-4 py-3 text-sm text-slate-400">{deadline ? format(new Date(deadline), 'dd/MM/yyyy') : '—'}</td>
-                                  <td className="px-4 py-3 text-right text-sm font-semibold text-emerald-400">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(amount)}</td>
-                                </tr>
-                              ))}
+                              {filteredAReceberProds.map(({ project, product, deadline, amount }) => {
+                                const isPaused = project.status === 'pausado';
+                                return (
+                                  <tr key={`${project.id}-${product.id}`} className={cn("border-b transition-colors", isPaused ? "border-orange-800/20 bg-orange-900/10 hover:bg-orange-900/20" : "border-emerald-800/20 bg-emerald-900/10 hover:bg-emerald-900/20")}>
+                                    <td className="px-4 py-3 text-sm font-medium text-white flex items-center gap-2">{project.name}{isPaused && <Badge className="bg-orange-500/15 text-orange-300 border border-orange-500/30 text-[10px]">Paralisado</Badge>}</td>
+                                    <td className="px-4 py-3 text-sm text-slate-200">{product.name}</td>
+                                    <td className="px-4 py-3 text-sm text-slate-400">{deadline ? format(new Date(deadline), 'dd/MM/yyyy') : '—'}</td>
+                                    <td className={cn("px-4 py-3 text-right text-sm font-semibold", isPaused ? "text-orange-400" : "text-emerald-400")}>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(amount)}</td>
+                                  </tr>
+                                );
+                              })}
                             </tbody>
                           </table>
                         </div>
@@ -1088,14 +1094,17 @@ export default function ExecutiveStatus() {
                               </tr>
                             </thead>
                             <tbody>
-                              {filteredRecognizedProds.map(({ rec, product, project }) => (
-                                <tr key={rec.id} className="border-b border-purple-800/20 bg-purple-900/10 hover:bg-purple-900/20 transition-colors">
-                                  <td className="px-4 py-3 text-sm font-medium text-white">{project?.name || 'N/A'}</td>
-                                  <td className="px-4 py-3 text-sm text-slate-200">{product?.name || 'N/A'}</td>
-                                  <td className="px-4 py-3 text-sm text-slate-400">{rec.recognition_month ? format(new Date(rec.recognition_month.split('-')[0], parseInt(rec.recognition_month.split('-')[1]) - 1, 1), 'MM/yyyy', { locale: ptBR }) : '—'}</td>
-                                  <td className="px-4 py-3 text-right text-sm font-semibold text-purple-400">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(rec.amount)}</td>
-                                </tr>
-                              ))}
+                              {filteredRecognizedProds.map(({ rec, product, project }) => {
+                                const isPaused = project?.status === 'pausado';
+                                return (
+                                  <tr key={rec.id} className={cn("border-b transition-colors", isPaused ? "border-orange-800/20 bg-orange-900/10 hover:bg-orange-900/20" : "border-purple-800/20 bg-purple-900/10 hover:bg-purple-900/20")}>
+                                    <td className="px-4 py-3 text-sm font-medium text-white flex items-center gap-2">{project?.name || 'N/A'}{isPaused && <Badge className="bg-orange-500/15 text-orange-300 border border-orange-500/30 text-[10px]">Paralisado</Badge>}</td>
+                                    <td className="px-4 py-3 text-sm text-slate-200">{product?.name || 'N/A'}</td>
+                                    <td className="px-4 py-3 text-sm text-slate-400">{rec.recognition_month ? format(new Date(rec.recognition_month.split('-')[0], parseInt(rec.recognition_month.split('-')[1]) - 1, 1), 'MM/yyyy', { locale: ptBR }) : '—'}</td>
+                                    <td className={cn("px-4 py-3 text-right text-sm font-semibold", isPaused ? "text-orange-400" : "text-purple-400")}>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(rec.amount)}</td>
+                                  </tr>
+                                );
+                              })}
                             </tbody>
                           </table>
                         </div>
