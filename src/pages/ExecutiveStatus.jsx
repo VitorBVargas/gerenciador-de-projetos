@@ -17,7 +17,8 @@ import {
   ArrowLeft,
   Loader2,
   Sparkles,
-  Pencil
+  Pencil,
+  ExternalLink
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { createPageUrl } from '../utils';
@@ -25,6 +26,7 @@ import { Link } from 'react-router-dom';
 
 import PasswordReleasesChart from '../components/executive/PasswordReleasesChart';
 import ProjectGoLiveTimeline from '../components/executive/ProjectGoLiveTimeline';
+import ProjectVerticalTrafficLightModal from '../components/executive/ProjectVerticalTrafficLightModal';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { format, addMonths, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -32,7 +34,6 @@ import RecognizedRevenueModal from '../components/modals/RecognizedRevenueModal'
 import RecognizeAllVerticalModal from '../components/modals/RecognizeAllVerticalModal';
 import ProjectRecognitionsModal from '../components/modals/ProjectRecognitionsModal';
 import EditProjectRecurringModal from '../components/modals/EditProjectRecurringModal';
-import StatusIAChat from '../components/executive/StatusIAChat';
 import { toast } from 'sonner';
 
 const statusLabels = {
@@ -87,6 +88,7 @@ export default function ExecutiveStatus() {
   const [financialDropdownOpen, setFinancialDropdownOpen] = useState(false);
   const [selectedFinancialDetailProject, setSelectedFinancialDetailProject] = useState('all');
   const [selectedFinancialDetailVertical, setSelectedFinancialDetailVertical] = useState('all');
+  const [trafficLightProject, setTrafficLightProject] = useState(null);
   const queryClient = useQueryClient();
   const urlParams = new URLSearchParams(window.location.search);
   const portfolioFilter = urlParams.get('portfolio') || 'grandes_contas_sc_mg';
@@ -363,7 +365,16 @@ export default function ExecutiveStatus() {
     for (let i = 0; i < 10; i++) {
       const month = addMonths(startDate, i);
       const key = format(month, 'yyyy-MM');
-      monthlyData[key] = { month: format(month, 'MMM/yy', { locale: ptBR }), implantacao: 0, a_receber: 0, recorrente: 0, reconhecido: 0 };
+      monthlyData[key] = {
+        month: format(month, 'MMM/yy', { locale: ptBR }),
+        implantacao: 0,
+        a_receber: 0,
+        a_receber_pausado: 0,
+        recorrente: 0,
+        recorrente_pausado: 0,
+        reconhecido: 0,
+        reconhecido_pausado: 0
+      };
     }
     
     const implantacaoProductsMap = {};
@@ -393,7 +404,11 @@ export default function ExecutiveStatus() {
         if (goLiveStart && (prod.inclusion_value || 0) > 0) {
           const goLiveMonth = goLiveStart.substring(0, 7);
           if (monthlyData[goLiveMonth]) {
-            monthlyData[goLiveMonth].recorrente += prod.inclusion_value;
+            if (project.status === 'pausado') {
+              monthlyData[goLiveMonth].recorrente_pausado += prod.inclusion_value;
+            } else {
+              monthlyData[goLiveMonth].recorrente += prod.inclusion_value;
+            }
           }
         }
       });
@@ -405,12 +420,18 @@ export default function ExecutiveStatus() {
       let totalImplValue = 0;
       let totalRecognized = 0;
       
-      productsThisMonth.forEach(({ product, amount }) => {
+      productsThisMonth.forEach(({ product, project, amount }) => {
         totalImplValue += amount;
         const productRevs = (dictionaries.revenuesByProductId[product.id] || []).filter(r => r.type === 'implantacao');
         totalRecognized += productRevs.reduce((sum, r) => sum + r.amount, 0);
+        const pendingAmount = Math.max(0, amount - productRevs.reduce((sum, r) => sum + r.amount, 0));
+
+        if (project.status === 'pausado') {
+          monthlyData[monthKey].a_receber_pausado += pendingAmount;
+        } else {
+          monthlyData[monthKey].a_receber += pendingAmount;
+        }
       });
-      monthlyData[monthKey].a_receber = Math.max(0, totalImplValue - totalRecognized);
     });
 
     allRecognizedRevenues.forEach(recognized => {
@@ -420,7 +441,13 @@ export default function ExecutiveStatus() {
       if (financialProjectFilters.length > 0 && !financialProjectFilters.includes(project.id)) return;
       
       const recMonth = recognized.recognition_month?.substring(0, 7);
-      if (recMonth && monthlyData[recMonth]) monthlyData[recMonth].reconhecido += recognized.amount;
+      if (recMonth && monthlyData[recMonth]) {
+        if (project.status === 'pausado') {
+          monthlyData[recMonth].reconhecido_pausado += recognized.amount;
+        } else {
+          monthlyData[recMonth].reconhecido += recognized.amount;
+        }
+      }
     });
 
     const chartData = Object.entries(monthlyData).sort(([a], [b]) => a.localeCompare(b)).map(([, value]) => value);
@@ -476,39 +503,6 @@ export default function ExecutiveStatus() {
     if (score >= 40) return 'bg-orange-500/20 border-orange-500/30';
     return 'bg-red-500/20 border-red-500/30';
   };
-
-  const statusSummary = useMemo(() => ({
-    total: projectsWithMetrics.length,
-    emDia: projectsWithMetrics.filter(p => p.dynamicStatus === 'em_dia').length,
-    alerta: projectsWithMetrics.filter(p => p.dynamicStatus === 'atencao').length,
-    atrasado: projectsWithMetrics.filter(p => p.dynamicStatus === 'atrasado').length,
-    pausado: projectsWithMetrics.filter(p => p.dynamicStatus === 'pausado').length,
-  }), [projectsWithMetrics]);
-
-  const agentProjects = useMemo(() => projectsWithMetrics.map(project => ({
-    id: project.id,
-    name: project.name,
-    dynamicStatusLabel: statusLabels[project.dynamicStatus] || project.dynamicStatus,
-    progress: project.progress,
-    healthScore: project.healthScore,
-    deadlineLabel: project.deadline ? format(parseISO(project.deadline), 'dd/MM/yyyy', { locale: ptBR }) : '—',
-    estimatedDeadlineLabel: dictionaries.progressCacheByProjectId[project.id]?.estimated_deadline ? format(parseISO(dictionaries.progressCacheByProjectId[project.id].estimated_deadline), 'dd/MM/yyyy', { locale: ptBR }) : '—',
-    implementationValueLabel: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(project.implementation_value || 0),
-    recurringValueLabel: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(project.recurring_value || 0),
-  })), [projectsWithMetrics, dictionaries]);
-
-  const timelineSummary = useMemo(() => {
-    const totalEvents = allTimelineEvents.filter(event => dictionaries.projectById[event.project_id]?.portfolio === portfolioFilter).length;
-    const delayedEvents = allTimelineEvents.filter(event => event.status === 'atrasado' && dictionaries.projectById[event.project_id]?.portfolio === portfolioFilter).length;
-    return `${totalEvents} etapas monitoradas, com ${delayedEvents} etapas em atraso.`;
-  }, [allTimelineEvents, dictionaries, portfolioFilter]);
-
-  const financeSummary = useMemo(() => {
-    const implantacao = projectsWithMetrics.reduce((sum, project) => sum + (project.implementation_value || 0), 0);
-    const recorrente = projectsWithMetrics.reduce((sum, project) => sum + (project.recurring_value || 0), 0);
-    const reconhecido = projectsWithMetrics.reduce((sum, project) => sum + (project.totalRecognized || 0), 0);
-    return `Implantação total ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(implantacao)}, recorrente total ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(recorrente)} e reconhecido ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(reconhecido)}.`;
-  }, [projectsWithMetrics]);
 
   const loadingSteps = [
     { label: 'Projetos', done: !loadingProjects },
@@ -693,17 +687,18 @@ export default function ExecutiveStatus() {
              return true;
            }).map(project => (
             <div key={project.id} className="relative">
-              <Card className="bg-slate-800 border-slate-600 hover:bg-slate-700 transition-all h-full group">
-                <Link to={createPageUrl(`Dashboard?project_id=${project.id}`)} className="block">
+              <Card className="bg-slate-800 border-slate-600 hover:bg-slate-700 transition-all h-full group cursor-pointer" onClick={() => setTrafficLightProject(project)}>
+                <div className="block">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-3">
                     <CardTitle className="text-lg text-white group-hover:text-blue-400 transition-colors">{project.name}</CardTitle>
                     <div className="flex items-center gap-2">
                       <Badge className={cn("border", getHealthBg(project.healthScore))}><span className={getHealthColor(project.healthScore)}>{project.healthScore}</span></Badge>
                       <div className="flex items-center gap-1">
-                        <Button size="icon" onClick={(e) => { e.preventDefault(); setEditingProjectId(project.id); setIsEditRecurringModalOpen(true); }} className="h-8 w-8 bg-blue-800/50 hover:bg-blue-700 border border-blue-600/40 shrink-0" title="Editar Recorrente do Contrato"><Pencil className="w-4 h-4 text-blue-300" /></Button>
+                        <Button size="icon" onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.location.href = createPageUrl(`Dashboard?project_id=${project.id}`); }} className="h-8 w-8 bg-emerald-800/50 hover:bg-emerald-700 border border-emerald-600/40 shrink-0" title="Abrir projeto"><ExternalLink className="w-4 h-4 text-emerald-300" /></Button>
+                        <Button size="icon" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setEditingProjectId(project.id); setIsEditRecurringModalOpen(true); }} className="h-8 w-8 bg-blue-800/50 hover:bg-blue-700 border border-blue-600/40 shrink-0" title="Editar Recorrente do Contrato"><Pencil className="w-4 h-4 text-blue-300" /></Button>
                         {(dictionaries.revenuesByProjectId[project.id]?.length > 0) && (
-                          <Button size="icon" onClick={(e) => { e.preventDefault(); setRecognitionsModalProject(project); }} className="h-8 w-8 bg-purple-800/50 hover:bg-purple-700 border border-purple-600/40 shrink-0" title="Ver reconhecimentos"><Sparkles className="w-4 h-4 text-purple-300" /></Button>
+                          <Button size="icon" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setRecognitionsModalProject(project); }} className="h-8 w-8 bg-purple-800/50 hover:bg-purple-700 border border-purple-600/40 shrink-0" title="Ver reconhecimentos"><Sparkles className="w-4 h-4 text-purple-300" /></Button>
                         )}
                       </div>
                     </div>
@@ -771,8 +766,8 @@ export default function ExecutiveStatus() {
                         <div className="flex items-center justify-between mb-2">
                           <div className="text-xs text-slate-400 font-medium">Reconhecido</div>
                           <div className="flex items-center gap-2">
-                            {allItems.length > 3 && <button onClick={(e) => { e.preventDefault(); setExpandedRecognitions(prev => ({ ...prev, [project.id]: !prev[project.id] })); }} className="text-xs text-yellow-400 hover:text-yellow-300">{isExpanded ? '★' : '☆'} {!isExpanded && allItems.length}</button>}
-                            <button onClick={(e) => { e.preventDefault(); if (projectRevenues.length > 0 && window.confirm('Deletar todos os reconhecimentos deste projeto?')) projectRevenues.forEach(r => deleteRecognizedRevenueMutation.mutate(r.id)); }} className="text-xs text-red-400 hover:text-red-300">Limpar</button>
+                            {allItems.length > 3 && <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setExpandedRecognitions(prev => ({ ...prev, [project.id]: !prev[project.id] })); }} className="text-xs text-yellow-400 hover:text-yellow-300">{isExpanded ? '★' : '☆'} {!isExpanded && allItems.length}</button>}
+                            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (projectRevenues.length > 0 && window.confirm('Deletar todos os reconhecimentos deste projeto?')) projectRevenues.forEach(r => deleteRecognizedRevenueMutation.mutate(r.id)); }} className="text-xs text-red-400 hover:text-red-300">Limpar</button>
                           </div>
                         </div>
                         <div className="space-y-1">{visibleItems.map(item => <div key={item.key} className="text-xs text-purple-400">{item.label}</div>)}{!isExpanded && allItems.length > 1 && <div className="text-xs text-slate-500">+{allItems.length - 1} mais...</div>}</div>
@@ -780,7 +775,7 @@ export default function ExecutiveStatus() {
                     );
                   })()}
                 </CardContent>
-                </Link>
+                </div>
               </Card>
             </div>
           ))}
@@ -880,7 +875,8 @@ export default function ExecutiveStatus() {
                         <XAxis dataKey="month" stroke="#94a3b8" style={{ fontSize: '12px' }} interval={0} angle={-45} textAnchor="end" height={80} />
                         <YAxis stroke="#94a3b8" style={{ fontSize: '12px' }} tickFormatter={(value) => new Intl.NumberFormat('pt-BR', { notation: 'compact', compactDisplay: 'short' }).format(value)} />
                         <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', color: '#fff' }} formatter={(v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)} />
-                        <Bar dataKey="recorrente" fill="#3b82f6" name="Previsão Inclusão" onClick={(data) => { const monthKey = Object.keys(monthlyData).find(key => monthlyData[key].month === data.month); if (monthKey) { setSelectedMonth(monthKey); setSelectedMonthType('recorrente'); } }} />
+                        <Bar dataKey="recorrente" stackId="recorrente" fill="#3b82f6" name="Previsão Inclusão" onClick={(data) => { const monthKey = Object.keys(monthlyData).find(key => monthlyData[key].month === data.month); if (monthKey) { setSelectedMonth(monthKey); setSelectedMonthType('recorrente'); } }} />
+                        <Bar dataKey="recorrente_pausado" stackId="recorrente" fill="#f97316" name="Previsão Inclusão — Pausado" onClick={(data) => { const monthKey = Object.keys(monthlyData).find(key => monthlyData[key].month === data.month); if (monthKey) { setSelectedMonth(monthKey); setSelectedMonthType('recorrente'); } }} />
                       </BarChart>
                     </ResponsiveContainer>
                     <div className="mt-4 text-center"><div className="text-2xl font-bold text-blue-400">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(chartData.reduce((sum, d) => sum + d.recorrente, 0))}</div><div className="text-sm text-slate-400">Total Recorrente (12 meses)</div></div>
@@ -898,11 +894,13 @@ export default function ExecutiveStatus() {
                        <YAxis stroke="#94a3b8" style={{ fontSize: '12px' }} tickFormatter={(value) => new Intl.NumberFormat('pt-BR', { notation: 'compact', compactDisplay: 'short' }).format(value)} />
                        <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', color: '#fff' }} formatter={(v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)} />
                        <Legend wrapperStyle={{ paddingTop: '15px' }} />
-                       <Bar dataKey="a_receber" fill="#10b981" name="A Receber" onClick={(data) => { const monthKey = Object.keys(monthlyData).find(key => monthlyData[key].month === data.month); if (monthKey) { setSelectedMonth(monthKey); setSelectedMonthType('implantacao'); } }} />
-                       <Bar dataKey="reconhecido" fill="#a855f7" name="Reconhecido" onClick={(data) => { const monthKey = Object.keys(monthlyData).find(key => monthlyData[key].month === data.month); if (monthKey) { setSelectedMonth(monthKey); setSelectedMonthType('reconhecido_implantacao'); } }} />
+                       <Bar dataKey="a_receber" stackId="a_receber" fill="#10b981" name="A Receber" onClick={(data) => { const monthKey = Object.keys(monthlyData).find(key => monthlyData[key].month === data.month); if (monthKey) { setSelectedMonth(monthKey); setSelectedMonthType('implantacao'); } }} />
+                       <Bar dataKey="a_receber_pausado" stackId="a_receber" fill="#f97316" name="A Receber — Pausado" onClick={(data) => { const monthKey = Object.keys(monthlyData).find(key => monthlyData[key].month === data.month); if (monthKey) { setSelectedMonth(monthKey); setSelectedMonthType('implantacao'); } }} />
+                       <Bar dataKey="reconhecido" stackId="reconhecido" fill="#a855f7" name="Reconhecido" onClick={(data) => { const monthKey = Object.keys(monthlyData).find(key => monthlyData[key].month === data.month); if (monthKey) { setSelectedMonth(monthKey); setSelectedMonthType('reconhecido_implantacao'); } }} />
+                       <Bar dataKey="reconhecido_pausado" stackId="reconhecido" fill="#fb923c" name="Reconhecido — Pausado" onClick={(data) => { const monthKey = Object.keys(monthlyData).find(key => monthlyData[key].month === data.month); if (monthKey) { setSelectedMonth(monthKey); setSelectedMonthType('reconhecido_implantacao'); } }} />
                       </BarChart>
                     </ResponsiveContainer>
-                    <div className="mt-4 text-center"><div className="text-2xl font-bold text-emerald-400">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(chartData.reduce((sum, d) => sum + d.a_receber, 0))}</div><div className="text-sm text-slate-400">Total A Receber (12 meses)</div></div>
+                    <div className="mt-4 text-center"><div className="text-2xl font-bold text-emerald-400">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(chartData.reduce((sum, d) => sum + d.a_receber + d.a_receber_pausado, 0))}</div><div className="text-sm text-slate-400">Total A Receber (12 meses)</div></div>
                   </CardContent>
                 </Card>
                 )}
@@ -1107,16 +1105,17 @@ export default function ExecutiveStatus() {
       </Tabs>
 
       {/* Modais (Mantidos intactos) */}
+      {trafficLightProject && (
+        <ProjectVerticalTrafficLightModal
+          project={trafficLightProject}
+          projectProgress={trafficLightProject.progress || 0}
+          onClose={() => setTrafficLightProject(null)}
+          onOpenProject={() => window.location.href = createPageUrl(`Dashboard?project_id=${trafficLightProject.id}`)}
+        />
+      )}
       {recognitionsModalProject && <ProjectRecognitionsModal open={!!recognitionsModalProject} onOpenChange={(v) => { if (!v) setRecognitionsModalProject(null); }} project={recognitionsModalProject} recognitions={dictionaries.revenuesByProjectId[recognitionsModalProject.id] || []} products={dictionaries.productsByProjectId[recognitionsModalProject.id] || []} />}
       {editingProjectId && allProjectsData && <EditProjectRecurringModal open={isEditRecurringModalOpen} onOpenChange={setIsEditRecurringModalOpen} project={dictionaries.projectById[editingProjectId]} onSave={(value, notes) => updateProjectRecurringMutation.mutate({ id: editingProjectId, recurringValue: value, notes })} />}
       {selectedProject && <><RecognizedRevenueModal isOpen={isRevenueModalOpen} onClose={() => { setIsRevenueModalOpen(false); setSelectedProject(null); }} onSave={(data) => createRecognizedRevenueMutation.mutate(data)} onRecognizeAll={(vertical, products, data) => { if (data) { const amountPerProduct = data.amount / products.length; const recognitions = products.map(product => ({ project_id: selectedProject.id, product_id: product.id, amount: amountPerProduct, recognition_month: data.recognition_month, type: data.type, vertical_name: vertical })); createBulkRecognizedRevenueMutation.mutate(recognitions); setIsRevenueModalOpen(false); } }} project={selectedProject} products={dictionaries.productsByProjectId[selectedProject.id] || []} /><RecognizeAllVerticalModal isOpen={isRecognizeAllModalOpen} onClose={() => { setIsRecognizeAllModalOpen(false); setSelectedVertical(null); setSelectedVerticalProducts([]); }} onSave={(recognitions) => createBulkRecognizedRevenueMutation.mutate(recognitions)} project={selectedProject} vertical={selectedVertical} products={selectedVerticalProducts} /></>}
-      <StatusIAChat
-        portfolioLabel={portfolioLabels[portfolioFilter]}
-        projects={agentProjects}
-        statusSummary={statusSummary}
-        timelineSummary={timelineSummary}
-        financeSummary={financeSummary}
-      />
     </div>
   );
 }
