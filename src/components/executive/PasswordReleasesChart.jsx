@@ -13,6 +13,7 @@ export default function PasswordReleasesChart({ products, projects = [], visible
   const chartData = useMemo(() => {
     const monthlyData = {};
     const now = new Date();
+    const projectById = Object.fromEntries(projects.map(project => [project.id, project]));
 
     // Gerar próximos 12 meses
     for (let i = 0; i < 12; i++) {
@@ -21,7 +22,9 @@ export default function PasswordReleasesChart({ products, projects = [], visible
       monthlyData[key] = {
         month: format(month, 'MMM/yy', { locale: ptBR }),
         liberadas: 0,
+        liberadasPausadas: 0,
         comCarencia: 0,
+        comCarenciaPausadas: 0,
         raw_key: key,
         products: []
       };
@@ -31,6 +34,7 @@ export default function PasswordReleasesChart({ products, projects = [], visible
     products.forEach(product => {
       if (product.production_password) {
         const inclusionValue = product.inclusion_value || 0;
+        const isPausedProject = projectById[product.project_id]?.status === 'pausado';
         
         // Se tem carência até uma data
         if (product.password_grace_period_until) {
@@ -44,7 +48,7 @@ export default function PasswordReleasesChart({ products, projects = [], visible
           // Percorrer todos os meses de hoje até o fim da carência
           while (currentMonth <= graceEndMonth) {
             if (monthlyData[currentMonth]) {
-              monthlyData[currentMonth].comCarencia += inclusionValue;
+              monthlyData[currentMonth][isPausedProject ? 'comCarenciaPausadas' : 'comCarencia'] += inclusionValue;
               if (!monthlyData[currentMonth].products.includes(product)) {
                 monthlyData[currentMonth].products.push(product);
               }
@@ -58,7 +62,7 @@ export default function PasswordReleasesChart({ products, projects = [], visible
           const countMonth = format(new Date(nextMonthAfterGrace.getFullYear(), nextMonthAfterGrace.getMonth(), 1), 'yyyy-MM');
           
           if (monthlyData[countMonth]) {
-            monthlyData[countMonth].liberadas += inclusionValue;
+            monthlyData[countMonth][isPausedProject ? 'liberadasPausadas' : 'liberadas'] += inclusionValue;
             if (!monthlyData[countMonth].products.includes(product)) {
               monthlyData[countMonth].products.push(product);
             }
@@ -67,15 +71,15 @@ export default function PasswordReleasesChart({ products, projects = [], visible
           // Senha liberada SEM carência: somar no mês atual
           const currentMonth = format(now, 'yyyy-MM');
           if (monthlyData[currentMonth]) {
-            monthlyData[currentMonth].liberadas += inclusionValue;
+            monthlyData[currentMonth][isPausedProject ? 'liberadasPausadas' : 'liberadas'] += inclusionValue;
             monthlyData[currentMonth].products.push(product);
           }
         }
       }
     });
 
-    return Object.values(monthlyData).filter(d => d.liberadas > 0 || d.comCarencia > 0);
-  }, [products]);
+    return Object.values(monthlyData).filter(d => d.liberadas > 0 || d.liberadasPausadas > 0 || d.comCarencia > 0 || d.comCarenciaPausadas > 0);
+  }, [products, projects]);
 
   const releasedProducts = useMemo(() => {
     if (!selectedMonth) return [];
@@ -136,9 +140,25 @@ export default function PasswordReleasesChart({ products, projects = [], visible
                 stackId="a"
               />
               <Bar
+                dataKey="liberadasPausadas"
+                fill="#f97316"
+                name="Liberadas — Pausado"
+                cursor="pointer"
+                onClick={(data) => setSelectedMonth(data.raw_key)}
+                stackId="a"
+              />
+              <Bar
                 dataKey="comCarencia"
                 fill="#f59e0b"
                 name="Com Carência"
+                cursor="pointer"
+                onClick={(data) => setSelectedMonth(data.raw_key)}
+                stackId="a"
+              />
+              <Bar
+                dataKey="comCarenciaPausadas"
+                fill="#fb923c"
+                name="Com Carência — Pausado"
                 cursor="pointer"
                 onClick={(data) => setSelectedMonth(data.raw_key)}
                 stackId="a"
