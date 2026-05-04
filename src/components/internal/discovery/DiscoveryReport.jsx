@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Loader2, Pencil, CheckCircle2, AlertCircle, ArrowRight, Lightbulb } from 'lucide-react';
+import { Sparkles, Loader2, Pencil, CheckCircle2, AlertCircle, ArrowRight, Lightbulb, Target } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { cn } from "@/lib/utils";
 import { riceScore, ricePriority } from './discoveryUtils';
@@ -171,6 +171,32 @@ ${summary}`;
             </section>
           )}
 
+          {/* Indicadores / Métricas */}
+          {(discovery.metricas || []).length > 0 && (
+            <section className="bg-slate-800/40 border border-slate-700/50 rounded-lg p-4 space-y-2">
+              <h3 className="font-semibold text-white text-sm flex items-center gap-2">
+                <Target className="w-4 h-4 text-emerald-400" />
+                Indicadores / Métricas de acompanhamento
+              </h3>
+              <div className="space-y-1.5">
+                {discovery.metricas.map((m, idx) => (
+                  <div key={m.id || idx} className="py-2 px-3 rounded bg-slate-800/40 space-y-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-sm text-slate-200 font-medium truncate">{m.nome || '(sem nome)'}</p>
+                      {m.fonte_ia && <Badge className="bg-indigo-500/20 text-indigo-300 border-indigo-500/30 text-[10px] flex-shrink-0">IA</Badge>}
+                    </div>
+                    {m.descricao && <p className="text-xs text-slate-400">{m.descricao}</p>}
+                    <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-slate-500">
+                      {m.meta && <span><span className="text-slate-600">Meta:</span> <span className="text-emerald-400">{m.meta}</span></span>}
+                      {m.frequencia && <span><span className="text-slate-600">Frequência:</span> {m.frequencia}</span>}
+                      {m.responsavel && <span><span className="text-slate-600">Responsável:</span> {m.responsavel}</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
           {/* Análise IA */}
           <section className="bg-gradient-to-br from-indigo-900/30 to-purple-900/20 border border-indigo-500/30 rounded-lg p-4 space-y-3">
             <div className="flex items-center justify-between gap-2">
@@ -272,6 +298,12 @@ function buildSummary(d) {
     parts.push('--- Plano de Ações (5W2H + RICE) ---');
     d.acoes.forEach((a, i) => {
       parts.push(`${i+1}. What: ${a.what || '-'} | Why: ${a.why || '-'} | Who: ${a.who || '-'} | When: ${a.when || '-'} | How: ${a.how || '-'} | RICE(R${a.reach||0}/I${a.impact||0}/C${a.confidence||0}/E${a.effort||1})`);
+    });
+  }
+  if (d.metricas?.length) {
+    parts.push('--- Indicadores / Métricas ---');
+    d.metricas.forEach((m, i) => {
+      parts.push(`${i+1}. ${m.nome || '-'} | Meta: ${m.meta || '-'} | Frequência: ${m.frequencia || '-'} | Responsável: ${m.responsavel || '-'}${m.descricao ? ` | ${m.descricao}` : ''}`);
     });
   }
   return parts.join('\n');
