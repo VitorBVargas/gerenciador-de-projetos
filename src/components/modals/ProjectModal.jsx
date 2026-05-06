@@ -14,7 +14,8 @@ export default function ProjectModal({ open, onOpenChange, project, onSave }) {
     deadline: '',
     contract_link: '',
     documents_folder_link: '',
-    status: 'planejamento'
+    status: 'planejamento',
+    hide_from_executive_status: false
   });
 
   useEffect(() => {
@@ -27,7 +28,8 @@ export default function ProjectModal({ open, onOpenChange, project, onSave }) {
         deadline: project.deadline || '',
         contract_link: project.contract_link || '',
         documents_folder_link: project.documents_folder_link || '',
-        status: project.status || 'planejamento'
+        status: project.status || 'planejamento',
+        hide_from_executive_status: project.hide_from_executive_status || false
       });
     } else {
       setFormData({
@@ -38,7 +40,8 @@ export default function ProjectModal({ open, onOpenChange, project, onSave }) {
         deadline: '',
         contract_link: '',
         documents_folder_link: '',
-        status: 'planejamento'
+        status: 'planejamento',
+        hide_from_executive_status: false
       });
     }
   }, [project, open]);
@@ -152,6 +155,23 @@ export default function ProjectModal({ open, onOpenChange, project, onSave }) {
               className="bg-slate-700 border-slate-600 text-white"
               placeholder="https://drive.google.com/..."
             />
+          </div>
+          <div className="flex items-start gap-3 rounded-lg border border-slate-600 bg-slate-900/40 p-3">
+            <input
+              id="hide_from_executive_status"
+              type="checkbox"
+              checked={formData.hide_from_executive_status}
+              onChange={(e) => setFormData({ ...formData, hide_from_executive_status: e.target.checked })}
+              className="mt-0.5 w-4 h-4 rounded cursor-pointer accent-blue-600"
+            />
+            <div className="flex-1">
+              <Label htmlFor="hide_from_executive_status" className="cursor-pointer text-slate-200">
+                Ocultar do Status Executivo
+              </Label>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Quando marcado, este projeto não será exibido nem terá seus dados contabilizados nos painéis do Status Executivo do portfólio.
+              </p>
+            </div>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="border-slate-600 text-slate-300 hover:bg-slate-700">

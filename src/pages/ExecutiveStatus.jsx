@@ -166,7 +166,8 @@ export default function ExecutiveStatus() {
 
   const isLoading = isRecalculating || loadingProjects || loadingCronogramas || loadingEvents || loadingProducts || loadingRevenues || loadingProgressCache || loadingOverallProgressCache || loadingFinancialDates || loadingHealthCaches;
 
-  const projects = allProjectsData.filter(p => p.status !== 'concluido');
+  const visibleProjectsData = allProjectsData.filter(p => !p.hide_from_executive_status);
+  const projects = visibleProjectsData.filter(p => p.status !== 'concluido');
 
   const filteredProjectsForFinance = useMemo(() => {
     if (financialProjectFilters.length === 0) return projects;
@@ -648,7 +649,7 @@ export default function ExecutiveStatus() {
               const emAlerta = projectsWithMetrics.filter(p => p.dynamicStatus === 'atencao').length;
               const pausados = projectsWithMetrics.filter(p => p.dynamicStatus === 'pausado').length;
               const atrasado = projectsWithMetrics.filter(p => p.dynamicStatus === 'atrasado').length;
-              const concluidos = allProjectsData.filter(p => p.status === 'concluido').length;
+              const concluidos = visibleProjectsData.filter(p => p.status === 'concluido').length;
               return (
                 <>
                   <Card onClick={() => setSelectedStatusFilter(selectedStatusFilter === 'emDias' ? null : 'emDias')} className={cn("bg-slate-800 border-slate-600 flex-1 min-w-[100px] cursor-pointer hover:bg-slate-700 transition-colors", selectedStatusFilter === 'emDias' && 'ring-2 ring-green-500')}>
@@ -783,10 +784,10 @@ export default function ExecutiveStatus() {
         {projectsWithMetrics.length === 0 && <Card className="bg-slate-800 border-slate-600"><CardContent className="py-12 text-center"><LayoutDashboard className="w-12 h-12 text-slate-500 mx-auto mb-3" /><p className="text-slate-300">Nenhum projeto ativo no momento</p></CardContent></Card>}
         </div>
 
-        {allProjectsData.filter(p => p.status === 'concluido').length > 0 && (
+        {visibleProjectsData.filter(p => p.status === 'concluido').length > 0 && (
           <div>
             <h2 className="text-xl font-bold text-white mb-4">Projetos Concluídos</h2>
-            <Card className="bg-slate-800 border-slate-600"><CardContent className="p-0"><div className="divide-y divide-slate-700">{allProjectsData.filter(p => p.status === 'concluido').map(project => <div key={project.id} className="p-4 flex items-center justify-between hover:bg-slate-700/50 transition-colors"><span className="text-white font-medium">{project.name}</span>{project.deadline && <span className="text-sm text-slate-400">{format(new Date(project.deadline), 'dd/MM/yyyy', { locale: ptBR })}</span>}</div>)}</div></CardContent></Card>
+            <Card className="bg-slate-800 border-slate-600"><CardContent className="p-0"><div className="divide-y divide-slate-700">{visibleProjectsData.filter(p => p.status === 'concluido').map(project => <div key={project.id} className="p-4 flex items-center justify-between hover:bg-slate-700/50 transition-colors"><span className="text-white font-medium">{project.name}</span>{project.deadline && <span className="text-sm text-slate-400">{format(new Date(project.deadline), 'dd/MM/yyyy', { locale: ptBR })}</span>}</div>)}</div></CardContent></Card>
           </div>
         )}
 
@@ -1131,7 +1132,7 @@ export default function ExecutiveStatus() {
             <p className="text-sm text-slate-400">Go Live (🔷) e Encerramento (🔶) de cada projeto. Navegue por janelas de 5 meses.</p>
           </div>
           <ProjectGoLiveTimeline
-            projects={allProjectsData}
+            projects={visibleProjectsData}
             dictionaries={dictionaries}
             allTimelineEvents={allTimelineEvents}
           />
