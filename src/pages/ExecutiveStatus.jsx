@@ -27,6 +27,7 @@ import { Link } from 'react-router-dom';
 import PasswordReleasesChart from '../components/executive/PasswordReleasesChart';
 import ProjectGoLiveTimeline from '../components/executive/ProjectGoLiveTimeline';
 import ProjectVerticalTrafficLightModal from '../components/executive/ProjectVerticalTrafficLightModal';
+import StatusIAChat from '../components/executive/StatusIAChat';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { format, addMonths, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -1150,6 +1151,32 @@ export default function ExecutiveStatus() {
       )}
       {recognitionsModalProject && <ProjectRecognitionsModal open={!!recognitionsModalProject} onOpenChange={(v) => { if (!v) setRecognitionsModalProject(null); }} project={recognitionsModalProject} recognitions={dictionaries.revenuesByProjectId[recognitionsModalProject.id] || []} products={dictionaries.productsByProjectId[recognitionsModalProject.id] || []} />}
       {editingProjectId && allProjectsData && <EditProjectRecurringModal open={isEditRecurringModalOpen} onOpenChange={setIsEditRecurringModalOpen} project={dictionaries.projectById[editingProjectId]} onSave={(value, notes) => updateProjectRecurringMutation.mutate({ id: editingProjectId, recurringValue: value, notes })} />}
+      {/* Status IA - Botão flutuante */}
+      <StatusIAChat
+        portfolioLabel={portfolioLabels[portfolioFilter]}
+        projects={projectsWithMetrics.map(p => ({
+          name: p.name,
+          dynamicStatusLabel: statusLabels[p.dynamicStatus],
+          progress: p.progress,
+          healthScore: p.healthScore,
+          deadlineLabel: p.deadline ? format(parseISO(p.deadline), 'dd/MM/yyyy', { locale: ptBR }) : '—',
+          estimatedDeadlineLabel: dictionaries.progressCacheByProjectId[p.id]?.estimated_deadline
+            ? format(parseISO(dictionaries.progressCacheByProjectId[p.id].estimated_deadline), 'dd/MM/yyyy', { locale: ptBR })
+            : '—',
+          implementationValueLabel: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(p.implementation_value || 0),
+          recurringValueLabel: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(p.recurring_value || 0),
+        }))}
+        statusSummary={{
+          total: projectsWithMetrics.length,
+          emDia: projectsWithMetrics.filter(p => p.dynamicStatus === 'em_dia').length,
+          alerta: projectsWithMetrics.filter(p => p.dynamicStatus === 'atencao').length,
+          atrasado: projectsWithMetrics.filter(p => p.dynamicStatus === 'atrasado').length,
+          pausado: projectsWithMetrics.filter(p => p.dynamicStatus === 'pausado').length,
+        }}
+        timelineSummary={`${allTimelineEvents.length} etapas no portfólio`}
+        financeSummary={`Total reconhecido: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(allRecognizedRevenues.reduce((s, r) => s + (r.amount || 0), 0))}`}
+      />
+
       {selectedProject && <><RecognizedRevenueModal isOpen={isRevenueModalOpen} onClose={() => { setIsRevenueModalOpen(false); setSelectedProject(null); }} onSave={(data) => createRecognizedRevenueMutation.mutate(data)} onRecognizeAll={(vertical, products, data) => { if (data) { const amountPerProduct = data.amount / products.length; const recognitions = products.map(product => ({ project_id: selectedProject.id, product_id: product.id, amount: amountPerProduct, recognition_month: data.recognition_month, type: data.type, vertical_name: vertical })); createBulkRecognizedRevenueMutation.mutate(recognitions); setIsRevenueModalOpen(false); } }} project={selectedProject} products={dictionaries.productsByProjectId[selectedProject.id] || []} /><RecognizeAllVerticalModal isOpen={isRecognizeAllModalOpen} onClose={() => { setIsRecognizeAllModalOpen(false); setSelectedVertical(null); setSelectedVerticalProducts([]); }} onSave={(recognitions) => createBulkRecognizedRevenueMutation.mutate(recognitions)} project={selectedProject} vertical={selectedVertical} products={selectedVerticalProducts} /></>}
     </div>
   );
