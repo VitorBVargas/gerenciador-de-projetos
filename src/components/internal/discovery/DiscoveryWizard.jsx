@@ -59,7 +59,20 @@ export default function DiscoveryWizard({ open, onOpenChange, discovery, project
 
   const handleSave = async (extraPatch = {}) => {
     const name = (data.name || '').trim() || `Discovery ${new Date().toLocaleDateString('pt-BR')}`;
-    const payload = { ...data, ...extraPatch, name };
+    const merged = { ...data, ...extraPatch, name };
+
+    // Sanitiza gaps do AS IS: descricao deve sempre ser string
+    if (merged.as_is?.gaps) {
+      merged.as_is = {
+        ...merged.as_is,
+        gaps: merged.as_is.gaps.map(g => ({
+          ...g,
+          descricao: typeof g.descricao === 'string' ? g.descricao : (g.descricao == null ? '' : String(g.descricao))
+        }))
+      };
+    }
+
+    const payload = merged;
     try {
       const result = await saveMutation.mutateAsync(payload);
       setData(prev => ({ ...prev, ...payload, id: result?.id || prev.id }));

@@ -53,7 +53,8 @@ export default function StepAsIs({ data, onChange, fullDiscovery }) {
           } else if (key === 'ideias') {
             update('ideias', [...(data.ideias || []), value]);
           } else if (key === 'gaps') {
-            update('gaps', [...(data.gaps || []), { id: newId(), descricao: value, gravidade: 3, urgencia: 3, tendencia: 3, no_escopo: true }]);
+            const descricao = typeof value === 'string' ? value : (value?.descricao || JSON.stringify(value));
+            update('gaps', [...(data.gaps || []), { id: newId(), descricao, gravidade: 3, urgencia: 3, tendencia: 3, no_escopo: true }]);
           }
         }}
       />
