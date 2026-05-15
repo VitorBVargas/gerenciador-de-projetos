@@ -115,17 +115,39 @@ export default function ProjectSetupWizard({ open, onOpenChange, project, onComp
       });
 
       // Create team members
-      if (selectedTeam.length > 0) {
-        await base44.entities.TeamMember.bulkCreate(
-          selectedTeam.map(c => ({
-            project_id: project.id,
-            name: c.name,
-            role: c.role || '',
-            vertical: c.vertical1 || 'gerenciamento',
-            email: c.email || '',
-            phone: c.phone || ''
-          }))
-        );
+      const teamToCreate = selectedTeam.map(c => ({
+        project_id: project.id,
+        name: c.name,
+        role: c.role || '',
+        vertical: c.vertical1 || 'gerenciamento',
+        email: c.email || '',
+        phone: c.phone || ''
+      }));
+
+      // Adiciona automaticamente Gerente, Coordenador e Gerente de Portfólio à equipe (se preenchidos)
+      const autoRoles = [
+        { name: projectData.manager, role: 'Gerente do Projeto' },
+        { name: projectData.coordinator, role: 'Coordenador Técnico' },
+        { name: projectData.portfolio_manager, role: 'Gerente de Portfólio' },
+      ];
+      autoRoles.forEach(({ name, role }) => {
+        const trimmed = (name || '').trim();
+        if (!trimmed) return;
+        // evita duplicata se a mesma pessoa já foi selecionada manualmente
+        const alreadyIncluded = teamToCreate.some(t => (t.name || '').trim().toLowerCase() === trimmed.toLowerCase());
+        if (alreadyIncluded) return;
+        teamToCreate.push({
+          project_id: project.id,
+          name: trimmed,
+          role,
+          vertical: 'gerenciamento',
+          email: '',
+          phone: ''
+        });
+      });
+
+      if (teamToCreate.length > 0) {
+        await base44.entities.TeamMember.bulkCreate(teamToCreate);
       }
 
       // Create stakeholders

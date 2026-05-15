@@ -116,13 +116,24 @@ export default function InternalProjectWizard({ open, onOpenChange, onComplete }
     const pid = project.id;
     const creates = [];
     scheduleItems.forEach((s, i) => creates.push(base44.entities.InternalSchedule.create({ ...s, project_id: pid, order: i })));
-    teamItems.forEach(t => creates.push(base44.entities.InternalTeamMember.create({ ...t, project_id: pid })));
+
+    // Adiciona automaticamente o Responsável à equipe (se preenchido e ainda não estiver na lista)
+    const responsavelNome = (general.manager || '').trim();
+    const teamToCreate = [...teamItems];
+    if (responsavelNome) {
+      const alreadyIncluded = teamToCreate.some(t => (t.name || '').trim().toLowerCase() === responsavelNome.toLowerCase());
+      if (!alreadyIncluded) {
+        teamToCreate.push({ name: responsavelNome, role: 'Responsável pelo Projeto', email: '', phone: '' });
+      }
+    }
+    teamToCreate.forEach(t => creates.push(base44.entities.InternalTeamMember.create({ ...t, project_id: pid })));
     stakeholders.forEach(s => creates.push(base44.entities.InternalStakeholder.create({ ...s, project_id: pid })));
     products.forEach(p => creates.push(base44.entities.InternalProduct.create({ ...p, project_id: pid })));
     checklistItems.forEach((c, i) => creates.push(base44.entities.InternalChecklist.create({ ...c, project_id: pid, order: i })));
     risks.forEach(r => creates.push(base44.entities.InternalRisk.create({ ...r, project_id: pid })));
     await Promise.all(creates);
     queryClient.invalidateQueries({ queryKey: ['internalProjects'] });
+    queryClient.invalidateQueries({ queryKey: ['internalTeam', pid] });
     setSaving(false);
     handleClose();
     onComplete?.();
