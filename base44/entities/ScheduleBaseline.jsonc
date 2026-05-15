@@ -1,0 +1,101 @@
+{
+  "name": "ScheduleBaseline",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "ID do projeto"
+    },
+    "version": {
+      "type": "number",
+      "description": "N\u00famero da vers\u00e3o (V1, V2, V3...)"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Se \u00e9 a vers\u00e3o ativa atualmente (apenas a \u00faltima)"
+    },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "planejamento_inicial",
+        "cliente",
+        "migracao",
+        "integracao",
+        "escopo",
+        "treinamento",
+        "interno",
+        "planejamento",
+        "outro"
+      ],
+      "default": "planejamento_inicial",
+      "description": "Motivo da cria\u00e7\u00e3o/revis\u00e3o"
+    },
+    "observation": {
+      "type": "string",
+      "description": "Observa\u00e7\u00e3o livre sobre a altera\u00e7\u00e3o"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "Nome do usu\u00e1rio que criou esta baseline"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "E-mail do usu\u00e1rio que criou esta baseline"
+    },
+    "milestones": {
+      "type": "array",
+      "description": "Snapshot das datas dos marcos no momento da cria\u00e7\u00e3o",
+      "items": {
+        "type": "object",
+        "properties": {
+          "product_id": {
+            "type": "string"
+          },
+          "product_name": {
+            "type": "string"
+          },
+          "phase": {
+            "type": "string",
+            "enum": [
+              "go_live",
+              "operacao_assistida",
+              "encerramento_bastao"
+            ]
+          },
+          "baseline_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Data registrada nesta baseline"
+          }
+        }
+      }
+    },
+    "previous_milestones": {
+      "type": "array",
+      "description": "Datas anteriores (da baseline imediatamente anterior). Vazio em V1.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "product_id": {
+            "type": "string"
+          },
+          "product_name": {
+            "type": "string"
+          },
+          "phase": {
+            "type": "string"
+          },
+          "baseline_date": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "project_id",
+    "version"
+  ]
+}

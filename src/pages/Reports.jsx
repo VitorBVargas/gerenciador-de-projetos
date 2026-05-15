@@ -31,6 +31,7 @@ import KPICard from '../components/reports/KPICard';
 import ExportButton from '../components/reports/ExportButton';
 import EmptyState from '../components/ui/EmptyState';
 import { phaseLabels } from '../components/timeline/phaseLabels';
+import BaselineKPICard from '../components/baseline/BaselineKPICard';
 
 const verticalLabels = {
   arrecadacao: 'Arrecadação',
@@ -681,6 +682,11 @@ export default function Reports() {
               color="cyan"
               onClick={() => setSelectedKPI(selectedKPI === 'viagens' ? null : 'viagens')}
               isSelected={selectedKPI === 'viagens'}
+            />
+            <BaselineKPICard
+              projectId={projectId}
+              timelineEvents={timelineEvents}
+              products={products}
             />
           </div>
 

@@ -9,6 +9,7 @@ import TimelineEventModal from '../components/modals/TimelineEventModal';
 import BulkEditDatesModal from '../components/modals/BulkEditDatesModal';
 import EmptyState from '../components/ui/EmptyState';
 import EntityFilter from '../components/filters/EntityFilter';
+import BaselineButton from '../components/baseline/BaselineButton';
 
 import { phaseLabels } from '../components/timeline/phaseLabels';
 import TimelineByProduct from '../components/timeline/TimelineByProduct';
@@ -230,14 +231,21 @@ export default function Timeline() {
              Cronograma do Projeto
            </TabsTrigger>
          </TabsList>
-         <Button
-           size="sm"
-           onClick={() => setEditDatesOpen(true)}
-           className="bg-blue-600 hover:bg-blue-700 gap-2"
-         >
-           <Edit3 className="w-4 h-4" />
-           Editar datas
-         </Button>
+         <div className="flex items-center gap-2">
+           <BaselineButton
+             projectId={projectId}
+             timelineEvents={timelineEvents}
+             products={products}
+           />
+           <Button
+             size="sm"
+             onClick={() => setEditDatesOpen(true)}
+             className="bg-blue-600 hover:bg-blue-700 gap-2"
+           >
+             <Edit3 className="w-4 h-4" />
+             Editar datas
+           </Button>
+         </div>
        </div>
 
         <TabsContent value="timeline" className="space-y-6">
