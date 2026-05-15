@@ -36,6 +36,7 @@ import ExpenseImporter from '../components/import/ExpenseImporter';
 import InternalActivitiesTab from '../components/internal/InternalActivitiesTab';
 import InternalKPITimeTab from '../components/internal/InternalKPITimeTab';
 import InternalDiscoveryTab from '../components/internal/InternalDiscoveryTab';
+import InternalProjectModal from '../components/internal/InternalProjectModal';
 import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
 
@@ -133,6 +134,19 @@ function Sidebar({ activeTab, setActiveTab, projectId, collapsed, setCollapsed, 
 
 // ─── Overview Tab ─────────────────────────────────────────────────────────────
 function OverviewTab({ project, teamMembers, checklist, risks, schedule, budget }) {
+  const queryClient = useQueryClient();
+  const [editOpen, setEditOpen] = useState(false);
+
+  const updateProjectM = useMutation({
+    mutationFn: (data) => base44.entities.InternalProject.update(project.id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['internalProject', project?.id]);
+      setEditOpen(false);
+      toast.success('Projeto atualizado com sucesso');
+    },
+    onError: () => toast.error('Erro ao atualizar projeto')
+  });
+
   const totalTasks = checklist.length;
   const completedTasks = checklist.filter(c => c.completed).length;
   const checklistProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
@@ -166,6 +180,17 @@ function OverviewTab({ project, teamMembers, checklist, risks, schedule, budget 
                   <Badge className={cn("border text-xs", statusColors[project.status])}>
                     {statusLabels[project.status]}
                   </Badge>
+                )}
+                {project && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setEditOpen(true)}
+                    className="ml-auto border-slate-600 bg-slate-800/50 text-slate-200 hover:bg-slate-800 gap-1.5 h-7 px-2.5 text-xs"
+                  >
+                    <Pencil className="w-3 h-3" />
+                    Editar
+                  </Button>
                 )}
               </div>
               <div className="grid grid-cols-2 gap-3 text-sm">
@@ -224,6 +249,13 @@ function OverviewTab({ project, teamMembers, checklist, risks, schedule, budget 
           </div>
         </CardContent>
       </Card>
+
+      <InternalProjectModal
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        project={project}
+        onSave={(data) => updateProjectM.mutate(data)}
+      />
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

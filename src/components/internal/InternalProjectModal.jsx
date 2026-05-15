@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const defaultForm = {
@@ -20,9 +21,28 @@ const defaultForm = {
   status: 'planejamento',
 };
 
-export default function InternalProjectModal({ open, onOpenChange, onSave }) {
+export default function InternalProjectModal({ open, onOpenChange, onSave, project = null }) {
   const [form, setForm] = useState(defaultForm);
   const [saving, setSaving] = useState(false);
+
+  const isEditing = !!project;
+
+  useEffect(() => {
+    if (open) {
+      if (project) {
+        setForm({
+          name: project.name || '',
+          manager: project.manager || '',
+          description: project.description || '',
+          deadline: project.deadline || '',
+          budget: project.budget != null ? String(project.budget) : '',
+          status: project.status || 'planejamento',
+        });
+      } else {
+        setForm(defaultForm);
+      }
+    }
+  }, [open, project]);
 
   const handleClose = () => {
     setForm(defaultForm);
@@ -36,15 +56,17 @@ export default function InternalProjectModal({ open, onOpenChange, onSave }) {
       ...form,
       budget: form.budget ? parseFloat(form.budget) : undefined,
     });
-    setForm(defaultForm);
     setSaving(false);
+    if (!isEditing) setForm(defaultForm);
   };
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="bg-slate-800 border-slate-700 text-slate-100 max-w-lg">
         <DialogHeader>
-          <DialogTitle className="text-white text-xl font-bold">Novo Projeto Interno</DialogTitle>
+          <DialogTitle className="text-white text-xl font-bold">
+            {isEditing ? 'Editar Projeto Interno' : 'Novo Projeto Interno'}
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -70,10 +92,10 @@ export default function InternalProjectModal({ open, onOpenChange, onSave }) {
 
           <div className="space-y-2">
             <Label>Descrição</Label>
-            <Input
+            <Textarea
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className="bg-slate-700 border-slate-600 text-white"
+              className="bg-slate-700 border-slate-600 text-white h-20 resize-none"
               placeholder="Objetivo do projeto"
             />
           </div>
@@ -120,7 +142,7 @@ export default function InternalProjectModal({ open, onOpenChange, onSave }) {
               Cancelar
             </Button>
             <Button type="submit" disabled={saving} className="bg-indigo-600 hover:bg-indigo-700">
-              {saving ? 'Criando...' : 'Criar Projeto'}
+              {saving ? 'Salvando...' : isEditing ? 'Salvar Alterações' : 'Criar Projeto'}
             </Button>
           </DialogFooter>
         </form>
