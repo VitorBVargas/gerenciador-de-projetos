@@ -194,6 +194,33 @@ export default function EditalTable({ items, portfolio, showProject = true, proj
         </div>
       )}
 
+      {/* Busca global para a Lista Geral (filtra em todas as colunas) */}
+      {isListaGeral && (
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="relative min-w-[280px] flex-1 max-w-md">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              placeholder="Buscar em todas as colunas (projeto, status, vertical, chamado...)"
+              className="h-8 w-full pl-8 pr-2 rounded bg-slate-800 border border-slate-700 text-slate-200 placeholder:text-slate-500 text-xs focus:border-orange-500 focus:outline-none"
+            />
+          </div>
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm('')}
+              className="text-xs text-slate-400 hover:text-white px-2 py-1 rounded border border-slate-700 hover:border-slate-500"
+            >
+              ✕ Limpar
+            </button>
+          )}
+          <span className="text-xs text-slate-500 ml-auto">
+            {filteredItems.length} de {items.length} itens
+          </span>
+        </div>
+      )}
+
       {/* Table */}
       <div className="overflow-x-auto rounded-lg border border-slate-700">
         <table className="w-full text-sm">
