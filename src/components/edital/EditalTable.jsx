@@ -6,7 +6,7 @@ import { ExternalLink, AlertTriangle, Clock, X, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import EditalPagination from '@/components/edital/EditalPagination';
 
-const LISTA_GERAL_PAGE_SIZE = 20;
+const PAGE_SIZE_OPTIONS = [20, 50, 100];
 
 // Compara "Nº Item" como número quando possível, caindo para string como fallback.
 const compareNumeroItem = (a = '', b = '') => {
@@ -83,18 +83,19 @@ export default function EditalTable({ items, portfolio, showProject = true, proj
   // Paginação apenas na Lista Geral
   const isListaGeral = showProject;
   const [page, setPage] = useState(1);
-  const totalPages = isListaGeral ? Math.max(1, Math.ceil(filteredItems.length / LISTA_GERAL_PAGE_SIZE)) : 1;
+  const [pageSize, setPageSize] = useState(PAGE_SIZE_OPTIONS[0]);
+  const totalPages = isListaGeral ? Math.max(1, Math.ceil(filteredItems.length / pageSize)) : 1;
 
-  // Reset para página 1 quando filtros/busca/total mudarem
-  useEffect(() => { setPage(1); }, [filterVertical, filterSistema, filterStatus, normalizedSearch, items.length]);
+  // Reset para página 1 quando filtros/busca/total/tamanho mudarem
+  useEffect(() => { setPage(1); }, [filterVertical, filterSistema, filterStatus, normalizedSearch, items.length, pageSize]);
   // Garante que a página atual nunca passe do total (após mudança de filtros)
   useEffect(() => { if (page > totalPages) setPage(totalPages); }, [page, totalPages]);
 
   const pagedItems = useMemo(() => {
     if (!isListaGeral) return filteredItems;
-    const start = (page - 1) * LISTA_GERAL_PAGE_SIZE;
-    return filteredItems.slice(start, start + LISTA_GERAL_PAGE_SIZE);
-  }, [filteredItems, isListaGeral, page]);
+    const start = (page - 1) * pageSize;
+    return filteredItems.slice(start, start + pageSize);
+  }, [filteredItems, isListaGeral, page, pageSize]);
 
   const [itemModal, setItemModal] = useState(null);
   const queryClient = useQueryClient();
@@ -333,7 +334,9 @@ export default function EditalTable({ items, portfolio, showProject = true, proj
           page={page}
           totalPages={totalPages}
           total={filteredItems.length}
-          pageSize={LISTA_GERAL_PAGE_SIZE}
+          pageSize={pageSize}
+          pageSizeOptions={PAGE_SIZE_OPTIONS}
+          onPageSizeChange={setPageSize}
           onChange={setPage}
         />
       )}

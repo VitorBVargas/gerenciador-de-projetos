@@ -5,20 +5,46 @@ import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-r
  * Paginação compacta para a Lista Geral do Edital.
  * Mostra: << < [página atual de N] > >>
  */
-export default function EditalPagination({ page, totalPages, total, pageSize, onChange }) {
-  if (totalPages <= 1) return null;
-
+export default function EditalPagination({
+  page,
+  totalPages,
+  total,
+  pageSize,
+  pageSizeOptions,
+  onPageSizeChange,
+  onChange,
+}) {
   const goTo = (p) => onChange(Math.max(1, Math.min(totalPages, p)));
 
-  const from = (page - 1) * pageSize + 1;
+  const from = total === 0 ? 0 : (page - 1) * pageSize + 1;
   const to = Math.min(page * pageSize, total);
+
+  // Esconde toda a barra apenas quando não há controle algum a mostrar
+  if (totalPages <= 1 && !pageSizeOptions) return null;
 
   return (
     <div className="flex items-center justify-between gap-3 flex-wrap py-2 px-1">
-      <span className="text-xs text-slate-400">
-        Exibindo <b className="text-slate-200">{from}–{to}</b> de <b className="text-slate-200">{total}</b>
-      </span>
+      <div className="flex items-center gap-3 flex-wrap">
+        <span className="text-xs text-slate-400">
+          Exibindo <b className="text-slate-200">{from}–{to}</b> de <b className="text-slate-200">{total}</b>
+        </span>
+        {pageSizeOptions && onPageSizeChange && (
+          <label className="flex items-center gap-1.5 text-xs text-slate-400">
+            Itens por página:
+            <select
+              value={pageSize}
+              onChange={e => onPageSizeChange(Number(e.target.value))}
+              className="h-7 px-2 rounded bg-slate-800 border border-slate-700 text-slate-200 text-xs hover:border-slate-500 focus:border-orange-500 focus:outline-none"
+            >
+              {pageSizeOptions.map(opt => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+          </label>
+        )}
+      </div>
 
+      {totalPages > 1 && (
       <div className="flex items-center gap-1">
         <button
           onClick={() => goTo(1)}
@@ -58,6 +84,7 @@ export default function EditalPagination({ page, totalPages, total, pageSize, on
           <ChevronsRight className="w-3.5 h-3.5" />
         </button>
       </div>
+      )}
     </div>
   );
 }
