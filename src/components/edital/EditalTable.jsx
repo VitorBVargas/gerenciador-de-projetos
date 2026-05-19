@@ -1,9 +1,24 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import StatusCell from '@/components/edital/StatusCell';
 import { base44 } from '@/api/base44Client';
 import { ExternalLink, AlertTriangle, Clock, X, Search } from 'lucide-react';
 import { toast } from 'sonner';
+import EditalPagination from '@/components/edital/EditalPagination';
+
+const LISTA_GERAL_PAGE_SIZE = 20;
+
+// Compara "Nº Item" como número quando possível, caindo para string como fallback.
+const compareNumeroItem = (a = '', b = '') => {
+  const na = parseFloat(String(a).replace(',', '.'));
+  const nb = parseFloat(String(b).replace(',', '.'));
+  const aNum = !Number.isNaN(na);
+  const bNum = !Number.isNaN(nb);
+  if (aNum && bNum) return na - nb;
+  if (aNum) return -1;
+  if (bNum) return 1;
+  return String(a).localeCompare(String(b), 'pt-BR', { numeric: true });
+};
 
 const getStatusCls = (s = '') => {
   const sl = s.toLowerCase();
@@ -28,29 +43,59 @@ export default function EditalTable({ items, portfolio, showProject = true, proj
 
   const normalizedSearch = searchTerm.trim().toLowerCase();
 
-  const filteredItems = items.filter(i => {
-    const matchesFilters =
-      (!filterVertical || i.vertical === filterVertical) &&
-      (!filterSistema || i.sistema === filterSistema) &&
-      (!filterStatus || i.status === filterStatus);
+  const filteredItems = useMemo(() => {
+    const result = items.filter(i => {
+      const matchesFilters =
+        (!filterVertical || i.vertical === filterVertical) &&
+        (!filterSistema || i.sistema === filterSistema) &&
+        (!filterStatus || i.status === filterStatus);
 
-    if (!matchesFilters) return false;
-    if (!normalizedSearch) return true;
+      if (!matchesFilters) return false;
+      if (!normalizedSearch) return true;
 
-    const searchableText = [
-      i.chamado,
-      i.vertical,
-      i.sistema,
-      i.numero_item,
-      i.item_edital,
-      i.status,
-      i.projeto,
-      i.tipo,
-      i.observacoes,
-    ].filter(Boolean).join(' ').toLowerCase();
+      const searchableText = [
+        i.chamado,
+        i.vertical,
+        i.sistema,
+        i.numero_item,
+        i.item_edital,
+        i.status,
+        i.projeto,
+        i.tipo,
+        i.observacoes,
+      ].filter(Boolean).join(' ').toLowerCase();
 
-    return searchableText.includes(normalizedSearch);
-  });
+      return searchableText.includes(normalizedSearch);
+    });
+
+    // Na Lista Geral (showProject=true), ordena por Projeto → Nº Item
+    if (showProject) {
+      result.sort((a, b) => {
+        const projCmp = String(a.projeto || '').localeCompare(String(b.projeto || ''), 'pt-BR', { sensitivity: 'base' });
+        if (projCmp !== 0) return projCmp;
+        return compareNumeroItem(a.numero_item, b.numero_item);
+      });
+    }
+
+    return result;
+  }, [items, filterVertical, filterSistema, filterStatus, normalizedSearch, showProject]);
+
+  // Paginação apenas na Lista Geral
+  const isListaGeral = showProject;
+  const [page, setPage] = useState(1);
+  const totalPages = isListaGeral ? Math.max(1, Math.ceil(filteredItems.length / LISTA_GERAL_PAGE_SIZE)) : 1;
+
+  // Reset para página 1 quando filtros/busca/total mudarem
+  useEffect(() => { setPage(1); }, [filterVertical, filterSistema, filterStatus, normalizedSearch, items.length]);
+  // Garante que a página atual nunca passe do total (após mudança de filtros)
+  useEffect(() => { if (page > totalPages) setPage(totalPages); }, [page, totalPages]);
+
+  const pagedItems = useMemo(() => {
+    if (!isListaGeral) return filteredItems;
+    const start = (page - 1) * LISTA_GERAL_PAGE_SIZE;
+    return filteredItems.slice(start, start + LISTA_GERAL_PAGE_SIZE);
+  }, [filteredItems, isListaGeral, page]);
+
   const [itemModal, setItemModal] = useState(null);
   const queryClient = useQueryClient();
 
@@ -167,7 +212,7 @@ export default function EditalTable({ items, portfolio, showProject = true, proj
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-700/50">
-            {filteredItems.map(item => {
+            {pagedItems.map(item => {
               const atrasado = isAtrasado(item);
               const proximo = isProximo(item);
               return (
@@ -254,6 +299,17 @@ export default function EditalTable({ items, portfolio, showProject = true, proj
           </tbody>
         </table>
       </div>
+
+      {/* Paginação (apenas Lista Geral) */}
+      {isListaGeral && (
+        <EditalPagination
+          page={page}
+          totalPages={totalPages}
+          total={filteredItems.length}
+          pageSize={LISTA_GERAL_PAGE_SIZE}
+          onChange={setPage}
+        />
+      )}
 
       {/* Item description modal */}
       {itemModal && (
