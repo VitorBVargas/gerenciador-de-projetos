@@ -69,16 +69,18 @@ export default function ProjectGoLiveTimeline({ projects, dictionaries, allTimel
   const todayPct = dayPct(today);
 
   const projectRows = useMemo(() => {
-    return projects.map(project => {
-      const dates = getProjectDates({
-        project,
-        productsByProjectId: dictionaries.productsByProjectId,
-        financialDatesByProductId: dictionaries.financialDatesByProductId,
-        progressCacheByProjectId: dictionaries.progressCacheByProjectId,
-        allTimelineEvents,
-      });
-      return { project, ...dates };
-    }).filter(row => row.goLive || row.closingDate);
+    return projects
+      .filter(project => project.status !== 'concluido')
+      .map(project => {
+        const dates = getProjectDates({
+          project,
+          productsByProjectId: dictionaries.productsByProjectId,
+          financialDatesByProductId: dictionaries.financialDatesByProductId,
+          progressCacheByProjectId: dictionaries.progressCacheByProjectId,
+          allTimelineEvents,
+        });
+        return { project, ...dates };
+      }).filter(row => row.goLive || row.closingDate);
   }, [projects, dictionaries, allTimelineEvents]);
 
   const [modalData, setModalData] = useState(null);
