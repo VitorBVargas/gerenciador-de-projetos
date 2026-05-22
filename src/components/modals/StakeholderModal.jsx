@@ -10,6 +10,7 @@ export default function StakeholderModal({ open, onOpenChange, stakeholder, onSa
   const [formData, setFormData] = useState({
     name: '',
     role: '',
+    vertical: 'outros',
     email: '',
     phone: '',
     communication_level: 'medio',
@@ -21,6 +22,7 @@ export default function StakeholderModal({ open, onOpenChange, stakeholder, onSa
       setFormData({
         name: stakeholder.name || '',
         role: stakeholder.role || '',
+        vertical: stakeholder.vertical || 'outros',
         email: stakeholder.email || '',
         phone: stakeholder.phone || '',
         communication_level: stakeholder.communication_level || 'medio',
@@ -30,6 +32,7 @@ export default function StakeholderModal({ open, onOpenChange, stakeholder, onSa
       setFormData({
         name: '',
         role: '',
+        vertical: 'outros',
         email: '',
         phone: '',
         communication_level: 'medio',
@@ -95,6 +98,28 @@ export default function StakeholderModal({ open, onOpenChange, stakeholder, onSa
                 className="bg-slate-700 border-slate-600 text-white"
               />
             </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Vertical</Label>
+            <Select value={formData.vertical} onValueChange={(value) => setFormData({ ...formData, vertical: value })}>
+              <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-700 border-slate-600">
+                <SelectItem value="gerenciamento">Gerenciamento</SelectItem>
+                <SelectItem value="arrecadacao">Arrecadação</SelectItem>
+                <SelectItem value="compras">Contratos</SelectItem>
+                <SelectItem value="contabil">Contábil</SelectItem>
+                <SelectItem value="pessoal">Pessoal</SelectItem>
+                <SelectItem value="educacao">Educação</SelectItem>
+                <SelectItem value="iss">ISS</SelectItem>
+                <SelectItem value="parceiros">Parceiros</SelectItem>
+                <SelectItem value="plataforma">Plataforma</SelectItem>
+                <SelectItem value="saude">Saúde</SelectItem>
+                <SelectItem value="atendimento">Atendimento</SelectItem>
+                <SelectItem value="outros">Outros</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label>Nível de Comunicação</Label>
