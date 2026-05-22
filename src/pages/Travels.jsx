@@ -466,13 +466,40 @@ export default function Travels() {
                       {/* GRID DO CALENDÁRIO - ROLAGEM HORIZONTAL */}
                       <div className="flex-1 overflow-x-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800/50">
                         <div style={{ width: `${monthDays.length * 48}px`, minWidth: '100%' }}>
+                          {/* Cabeçalho único dos dias - alinhado à linha "EQUIPE / VERTICAIS" */}
+                          <div
+                            className="h-10 bg-slate-700/30 border-b border-slate-700/50"
+                            style={{
+                              display: 'grid',
+                              gridTemplateColumns: `repeat(${monthDays.length}, 48px)`,
+                            }}
+                          >
+                            {monthDays.map((day, idx) => {
+                              const isCurrentDay = isToday(day);
+                              return (
+                                <div
+                                  key={idx}
+                                  className={cn(
+                                    "border-r border-slate-700/20 flex flex-col items-center justify-center text-xs h-full",
+                                    isCurrentDay ? "bg-blue-500/20 text-blue-300 font-bold" : "font-semibold text-blue-400"
+                                  )}
+                                >
+                                  <span className={cn("text-[9px] uppercase", isCurrentDay ? "text-blue-300" : "text-slate-500 font-normal")}>
+                                    {format(day, 'eee', { locale: ptBR })}
+                                  </span>
+                                  <span>{format(day, 'dd')}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+
                           {verticals.map(vertical => {
                             const verticalMembers = membersByVertical[vertical];
                             if (!verticalMembers.length) return null;
 
                             return (
                               <React.Fragment key={`${format(currentMonth, 'yyyy-MM')}-${vertical}`}>
-                                {/* Cabeçalho dos dias */}
+                                {/* Linha vazia da vertical (alinha com o cabeçalho da vertical na sidebar) */}
                                 <div
                                   className="h-10 bg-slate-700/15 border-b border-slate-700/30"
                                   style={{
@@ -486,15 +513,10 @@ export default function Travels() {
                                       <div
                                         key={idx}
                                         className={cn(
-                                          "border-r border-slate-700/20 flex flex-col items-center justify-center text-xs h-full",
-                                          isCurrentDay ? "bg-blue-500/20 text-blue-300 font-bold" : "font-semibold text-blue-400"
+                                          "border-r border-slate-700/20 h-full",
+                                          isCurrentDay && "bg-blue-500/10"
                                         )}
-                                      >
-                                        <span className={cn("text-[9px] uppercase", isCurrentDay ? "text-blue-300" : "text-slate-500 font-normal")}>
-                                          {format(day, 'eee', { locale: ptBR })}
-                                        </span>
-                                        <span>{format(day, 'dd')}</span>
-                                      </div>
+                                      />
                                     );
                                   })}
                                 </div>
