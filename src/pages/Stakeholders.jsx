@@ -57,6 +57,10 @@ const verticalLabels = {
   plataforma: 'Plataforma',
   saude: 'Saúde',
   atendimento: 'Atendimento',
+  extensoes: 'Extensões',
+  gestao_projetos: 'Gestão de Projetos',
+  gestao_operacoes: 'Gestão de Operações',
+  coordenacao_tecnica: 'Coordenação Técnica',
   outros: 'Outros'
 };
 

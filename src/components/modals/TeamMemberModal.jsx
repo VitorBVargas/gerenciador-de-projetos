@@ -20,6 +20,10 @@ const verticals = [
   { value: 'atendimento', label: 'Atendimento' },
   { value: 'migrador', label: 'Migrador' },
   { value: 'saude', label: 'Saúde' },
+  { value: 'extensoes', label: 'Extensões' },
+  { value: 'gestao_projetos', label: 'Gestão de Projetos' },
+  { value: 'gestao_operacoes', label: 'Gestão de Operações' },
+  { value: 'coordenacao_tecnica', label: 'Coordenação Técnica' },
   { value: 'outros', label: 'Outros' }
 ];
 

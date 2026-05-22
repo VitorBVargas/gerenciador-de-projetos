@@ -9,7 +9,10 @@ const verticalLabels = {
   arrecadacao: 'Arrecadação', compras: 'Compras/Contratos', contabil: 'Contábil',
   pessoal: 'Pessoal', educacao: 'Educação', iss: 'ISS',
   parceiros: 'Parceiros', plataforma: 'Plataforma', atendimento: 'Atendimento',
-  saude: 'Saúde', gerenciamento: 'Gerenciamento', outros: 'Outros',
+  saude: 'Saúde', gerenciamento: 'Gerenciamento',
+  extensoes: 'Extensões', gestao_projetos: 'Gestão de Projetos',
+  gestao_operacoes: 'Gestão de Operações', coordenacao_tecnica: 'Coordenação Técnica',
+  outros: 'Outros',
 };
 
 const statusLabels = {

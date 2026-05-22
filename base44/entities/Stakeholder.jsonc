@@ -1,0 +1,63 @@
+{
+  "name": "Stakeholder",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "ID do projeto"
+    },
+    "name": {
+      "type": "string",
+      "description": "Nome do stakeholder"
+    },
+    "role": {
+      "type": "string",
+      "description": "Atua\u00e7\u00e3o/Papel"
+    },
+    "vertical": {
+      "type": "string",
+      "enum": [
+        "gerenciamento",
+        "arrecadacao",
+        "compras",
+        "contabil",
+        "pessoal",
+        "educacao",
+        "iss",
+        "parceiros",
+        "plataforma",
+        "saude",
+        "atendimento",
+        "extensoes",
+        "gestao_projetos",
+        "gestao_operacoes",
+        "coordenacao_tecnica",
+        "outros"
+      ],
+      "description": "Vertical de atua\u00e7\u00e3o"
+    },
+    "email": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "communication_level": {
+      "type": "string",
+      "enum": [
+        "alto",
+        "medio",
+        "baixo"
+      ],
+      "description": "N\u00edvel de comunica\u00e7\u00e3o"
+    },
+    "communication_routine": {
+      "type": "string",
+      "description": "Rotina de comunica\u00e7\u00e3o"
+    }
+  },
+  "required": [
+    "name",
+    "project_id"
+  ]
+}

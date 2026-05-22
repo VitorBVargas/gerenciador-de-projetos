@@ -117,6 +117,10 @@ export default function StakeholderModal({ open, onOpenChange, stakeholder, onSa
                 <SelectItem value="plataforma">Plataforma</SelectItem>
                 <SelectItem value="saude">Saúde</SelectItem>
                 <SelectItem value="atendimento">Atendimento</SelectItem>
+                <SelectItem value="extensoes">Extensões</SelectItem>
+                <SelectItem value="gestao_projetos">Gestão de Projetos</SelectItem>
+                <SelectItem value="gestao_operacoes">Gestão de Operações</SelectItem>
+                <SelectItem value="coordenacao_tecnica">Coordenação Técnica</SelectItem>
                 <SelectItem value="outros">Outros</SelectItem>
               </SelectContent>
             </Select>

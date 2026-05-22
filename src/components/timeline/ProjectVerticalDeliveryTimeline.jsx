@@ -14,7 +14,11 @@ const verticalLabels = {
   iss: 'ISS',
   parceiros: 'Parceiros',
   plataforma: 'Plataforma',
-  atendimento: 'Atendimento'
+  atendimento: 'Atendimento',
+  extensoes: 'Extensões',
+  gestao_projetos: 'Gestão de Projetos',
+  gestao_operacoes: 'Gestão de Operações',
+  coordenacao_tecnica: 'Coordenação Técnica'
 };
 
 export default function ProjectVerticalDeliveryTimeline({ projectId, timelineEvents }) {
