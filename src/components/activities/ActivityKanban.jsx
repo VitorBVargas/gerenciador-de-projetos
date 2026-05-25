@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { format } from 'date-fns';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
@@ -37,18 +37,45 @@ export default function ActivityKanban({ activities, verticals, onEdit, projectI
     enabled: !!projectId
   });
 
+  // Flag para impedir múltiplas execuções simultâneas de inicialização/limpeza
+  const initRef = useRef(false);
+
   useEffect(() => {
-    if (!isLoadingCols && dbColumns.length === 0 && projectId) {
+    if (isLoadingCols || !projectId || initRef.current) return;
+
+    // 1) Caso vazio: criar as colunas padrão UMA única vez
+    if (dbColumns.length === 0) {
+      initRef.current = true;
       const defaults = [
         { project_id: projectId, key: 'todo', title: 'A Fazer', color: 'border-slate-500', bg: 'bg-slate-500/10', order: 0 },
         { project_id: projectId, key: 'in_progress', title: 'Em Andamento', color: 'border-blue-500', bg: 'bg-blue-500/10', order: 1 },
         { project_id: projectId, key: 'done', title: 'Concluído', color: 'border-green-500', bg: 'bg-green-500/10', order: 2 }
       ];
-      Promise.all(defaults.map(c => base44.entities.KanbanColumn.create(c))).then(() => {
-        queryClient.invalidateQueries({ queryKey: ['kanbanColumns', projectId] });
-      });
+      Promise.all(defaults.map(c => base44.entities.KanbanColumn.create(c)))
+        .then(() => queryClient.invalidateQueries({ queryKey: ['kanbanColumns', projectId] }))
+        .catch(() => { initRef.current = false; });
+      return;
     }
-  }, [isLoadingCols, dbColumns.length, projectId, queryClient]);
+
+    // 2) Limpeza automática de duplicatas (mesmo key/title repetidos)
+    const seen = new Map();
+    const duplicates = [];
+    for (const col of dbColumns) {
+      const dedupKey = (col.key || col.title || '').toLowerCase().trim();
+      if (!dedupKey) continue;
+      if (seen.has(dedupKey)) {
+        duplicates.push(col.id);
+      } else {
+        seen.set(dedupKey, col.id);
+      }
+    }
+    if (duplicates.length > 0) {
+      initRef.current = true;
+      Promise.all(duplicates.map(id => base44.entities.KanbanColumn.delete(id)))
+        .then(() => queryClient.invalidateQueries({ queryKey: ['kanbanColumns', projectId] }))
+        .catch(() => { initRef.current = false; });
+    }
+  }, [isLoadingCols, dbColumns, projectId, queryClient]);
 
   const columns = dbColumns.length > 0 ? [...dbColumns].sort((a,b) => a.order - b.order) : [
     { id: 'todo', key: 'todo', title: 'A Fazer', color: 'border-slate-500', bg: 'bg-slate-500/10', order: 0 },
