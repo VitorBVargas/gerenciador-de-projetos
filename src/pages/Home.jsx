@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { ArrowRight, FolderOpen, BarChart3, Database, ClipboardList, BookOpen } from 'lucide-react';
+import { ArrowRight, FolderOpen, BarChart3, Database, ClipboardList, BookOpen, Lightbulb } from 'lucide-react';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -43,7 +43,7 @@ export default function Home() {
         </div>
 
         {/* Button Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 max-w-5xl mx-auto">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 max-w-6xl mx-auto">
           {/* Projetos Internos */}
           <button
             onClick={() => handleNavigation('InternalProjectsList')}
@@ -104,6 +104,21 @@ export default function Home() {
             <div className="relative h-full flex flex-col items-center justify-center p-4">
               <ClipboardList className="w-9 h-9 text-orange-200 mb-2 group-hover:scale-110 transition-transform duration-300" />
               <h3 className="text-sm font-bold text-white text-center">Pendência Edital</h3>
+            </div>
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
+          </button>
+
+          {/* Discovery Studio */}
+          <button
+            onClick={() => handleNavigation('DiscoveryStudio')}
+            onMouseEnter={() => setActiveButton(5)}
+            onMouseLeave={() => setActiveButton(null)}
+            className="group relative h-32 rounded-2xl overflow-hidden transition-all duration-300 transform hover:scale-105"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-yellow-500 to-amber-600 group-hover:from-yellow-400 group-hover:to-amber-500 transition-all duration-300"></div>
+            <div className="relative h-full flex flex-col items-center justify-center p-4">
+              <Lightbulb className="w-9 h-9 text-yellow-100 mb-2 group-hover:scale-110 transition-transform duration-300" />
+              <h3 className="text-sm font-bold text-white text-center leading-tight">Discovery Studio</h3>
             </div>
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
           </button>

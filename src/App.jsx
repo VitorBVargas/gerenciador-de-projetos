@@ -16,6 +16,7 @@ import HorasApontamento from './pages/HorasApontamento';
 import Documents from './pages/Documents';
 import LicoesAprendidasPage from './pages/LicoesAprendidas';
 import KnowledgeBase from './pages/KnowledgeBase';
+import DiscoveryStudio from './pages/DiscoveryStudio';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -82,6 +83,7 @@ const AuthenticatedApp = () => {
         </LayoutWrapper>
       } />
       <Route path="/KnowledgeBase" element={<KnowledgeBase />} />
+      <Route path="/DiscoveryStudio" element={<DiscoveryStudio />} />
       {Object.entries(Pages).map(([path, Page]) => (
         <Route
           key={path}
