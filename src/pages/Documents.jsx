@@ -284,15 +284,11 @@ export default function Documents() {
                     </div>
                     <div className="mt-3 space-y-2">
                       {doc.byProduct && productsWithTemplate.length > 0 && (
-                        <div className="text-xs text-slate-400 bg-slate-700/30 rounded px-2 py-1.5 border border-slate-600/50">
-                          <p className="font-medium text-slate-300 mb-1">Templates carregados:</p>
-                          <div className="flex flex-wrap gap-1">
-                            {productsWithTemplate.map(p => (
-                              <span key={p.id} className="inline-block bg-blue-500/20 border border-blue-500/30 text-blue-300 px-2 py-0.5 rounded text-xs">
-                                {p.name.substring(0, 15)}{p.name.length > 15 ? '...' : ''}
-                              </span>
-                            ))}
-                          </div>
+                        <div className="text-xs text-slate-400 bg-slate-700/30 rounded px-2 py-1.5 border border-slate-600/50 flex items-center gap-2">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />
+                          <span className="text-slate-300">
+                            <span className="font-semibold text-white">{productsWithTemplate.length}</span> {productsWithTemplate.length === 1 ? 'template carregado' : 'templates carregados'}
+                          </span>
                         </div>
                       )}
                       <div className="flex items-center gap-2 flex-wrap">
