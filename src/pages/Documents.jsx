@@ -54,26 +54,45 @@ export default function Documents() {
     queryFn: () => base44.entities.GlobalDocumentTemplate.list(),
   });
 
+  // Mapa para templates globais SEM produto (chave = document_type)
   const globalTemplateMap = useMemo(() => {
     const map = {};
-    globalTemplates.forEach(t => { map[t.document_type] = t; });
+    globalTemplates.forEach(t => {
+      if (!t.product_name) map[t.document_type] = t;
+    });
     return map;
   }, [globalTemplates]);
+
+  // Mapa para templates globais POR produto (chave = document_type + nome do produto)
+  const globalProductTemplateMap = useMemo(() => {
+    const map = {};
+    globalTemplates.forEach(t => {
+      if (t.product_name) map[`${t.document_type}__${t.product_name}`] = t;
+    });
+    return map;
+  }, [globalTemplates]);
+
+  const getGlobalProductTemplate = (docType, productId) => {
+    const product = products.find(p => p.id === productId);
+    if (!product) return null;
+    return globalProductTemplateMap[`${docType}__${product.name}`] || null;
+  };
 
   const upsertTemplateMutation = useMutation({
     mutationFn: async ({ docType, file_url, productId = null }) => {
       if (productId) {
-        // Save as product-specific template
-        const existing = getControl(docType, productId);
-        if (existing) return base44.entities.ProjectDocumentControl.update(existing.id, { template_url: file_url });
-        return base44.entities.ProjectDocumentControl.create({
-          project_id: projectId,
+        // Template POR PRODUTO agora também é global (compartilhado entre projetos pelo nome do produto)
+        const product = products.find(p => p.id === productId);
+        if (!product) throw new Error('Produto não encontrado');
+        const existing = globalProductTemplateMap[`${docType}__${product.name}`];
+        if (existing) return base44.entities.GlobalDocumentTemplate.update(existing.id, { template_url: file_url });
+        return base44.entities.GlobalDocumentTemplate.create({
           document_type: docType,
-          product_id: productId,
+          product_name: product.name,
           template_url: file_url,
         });
       } else {
-        // Save as global template
+        // Template global do tipo de documento
         const existing = globalTemplateMap[docType];
         if (existing) return base44.entities.GlobalDocumentTemplate.update(existing.id, { template_url: file_url });
         return base44.entities.GlobalDocumentTemplate.create({ document_type: docType, template_url: file_url });
@@ -263,8 +282,7 @@ export default function Documents() {
             {DOCUMENTS.map(doc => {
               const globalTpl = globalTemplateMap[doc.key];
               const productsWithTemplate = doc.byProduct ? products.filter(p => {
-                const ctrl = getControl(doc.key, p.id);
-                return !!ctrl?.template_url;
+                return !!globalProductTemplateMap[`${doc.key}__${p.name}`]?.template_url;
               }) : [];
               const hasTemplate = !!globalTpl?.template_url || productsWithTemplate.length > 0;
               return (
@@ -564,7 +582,7 @@ export default function Documents() {
               disabled={!selectedProduct}
               className="w-full bg-blue-600 hover:bg-blue-700 gap-2"
               onClick={() => {
-                const productTpl = getControl(productModal.key, selectedProduct);
+                const productTpl = getGlobalProductTemplate(productModal.key, selectedProduct);
                 const tpl = productTpl?.template_url ? productTpl : globalTemplateMap[productModal.key];
                 if (tpl?.template_url) window.open(tpl.template_url, '_blank');
                 else toast.info('Template ainda não foi carregado para este documento.');

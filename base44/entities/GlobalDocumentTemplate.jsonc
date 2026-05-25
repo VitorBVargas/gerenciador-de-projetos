@@ -6,6 +6,10 @@
       "type": "string",
       "description": "Chave do tipo de documento (ex: tap, kickoff, diagnostico)"
     },
+    "product_name": {
+      "type": "string",
+      "description": "Nome do produto (somente para templates por produto). Vazio = template global do tipo."
+    },
     "template_url": {
       "type": "string",
       "description": "URL do template global"
