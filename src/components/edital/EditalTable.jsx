@@ -2,9 +2,10 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import StatusCell from '@/components/edital/StatusCell';
 import { base44 } from '@/api/base44Client';
-import { ExternalLink, AlertTriangle, Clock, X, Search } from 'lucide-react';
+import { ExternalLink, AlertTriangle, Clock, X, Search, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import EditalPagination from '@/components/edital/EditalPagination';
+import EditEditalItemModal from '@/components/edital/EditEditalItemModal';
 
 const PAGE_SIZE_OPTIONS = [20, 50, 100];
 
@@ -98,6 +99,7 @@ export default function EditalTable({ items, portfolio, showProject = true, proj
   }, [filteredItems, isListaGeral, page, pageSize]);
 
   const [itemModal, setItemModal] = useState(null);
+  const [editItem, setEditItem] = useState(null);
   const queryClient = useQueryClient();
 
   const today = new Date().toISOString().split('T')[0];
@@ -237,6 +239,7 @@ export default function EditalTable({ items, portfolio, showProject = true, proj
               <th className="text-left px-3 py-2.5 text-xs font-semibold text-slate-400 uppercase tracking-wider">Item do Edital</th>
               <th className="text-left px-3 py-2.5 text-xs font-semibold text-slate-400 uppercase tracking-wider w-40">Status</th>
               <th className="text-left px-3 py-2.5 text-xs font-semibold text-slate-400 uppercase tracking-wider w-40">Data Prevista</th>
+              <th className="text-left px-3 py-2.5 text-xs font-semibold text-slate-400 uppercase tracking-wider w-12"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-700/50">
@@ -321,6 +324,15 @@ export default function EditalTable({ items, portfolio, showProject = true, proj
                       />
                     </div>
                   </td>
+                  <td className="px-3 py-2.5">
+                    <button
+                      onClick={() => setEditItem(item)}
+                      title="Editar item"
+                      className="p-1.5 rounded hover:bg-slate-700 text-slate-400 hover:text-orange-400 transition-colors"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                  </td>
                 </tr>
               );
             })}
@@ -338,6 +350,26 @@ export default function EditalTable({ items, portfolio, showProject = true, proj
           pageSizeOptions={PAGE_SIZE_OPTIONS}
           onPageSizeChange={setPageSize}
           onChange={setPage}
+        />
+      )}
+
+      {/* Edit modal */}
+      {editItem && (
+        <EditEditalItemModal
+          item={editItem}
+          onClose={() => setEditItem(null)}
+          isSaving={updateMutation.isPending}
+          onSave={(data) => {
+            updateMutation.mutate(
+              { id: editItem.id, data },
+              {
+                onSuccess: () => {
+                  toast.success('Item atualizado');
+                  setEditItem(null);
+                },
+              }
+            );
+          }}
         />
       )}
 
