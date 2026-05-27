@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { Pencil } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
 import { phaseLabels } from './phaseLabels';
 import { formatDateForDisplay } from './dateFormatter';
 
@@ -158,10 +158,15 @@ export default function TimelineByProduct({ verticals, entityProducts, timelineE
                                 </div>
                               </td>
                               <td className="px-4 py-3">
-                                 <button onClick={() => onEdit(event, product.id)} className="text-slate-400 hover:text-blue-400 transition">
-                                   <Pencil className="w-4 h-4" />
-                                 </button>
-                               </td>
+                                <div className="flex items-center gap-2">
+                                  <button onClick={() => onEdit(event, product.id)} title="Editar" className="text-slate-400 hover:text-blue-400 transition">
+                                    <Pencil className="w-4 h-4" />
+                                  </button>
+                                  <button onClick={() => onDelete(event.id)} title="Excluir" className="text-slate-400 hover:text-red-400 transition">
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </td>
                             </tr>
                           ))}
                           {productEvents.length === 0 && (
