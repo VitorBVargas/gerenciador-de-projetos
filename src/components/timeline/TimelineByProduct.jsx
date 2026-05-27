@@ -162,9 +162,11 @@ export default function TimelineByProduct({ verticals, entityProducts, timelineE
                                   <button onClick={() => onEdit(event, product.id)} title="Editar" className="text-slate-400 hover:text-blue-400 transition">
                                     <Pencil className="w-4 h-4" />
                                   </button>
-                                  <button onClick={() => onDelete(event.id)} title="Excluir" className="text-slate-400 hover:text-red-400 transition">
-                                    <Trash2 className="w-4 h-4" />
-                                  </button>
+                                  {!['go_live', 'operacao_assistida', 'encerramento_bastao'].includes(event.phase) && (
+                                    <button onClick={() => onDelete(event.id)} title="Excluir" className="text-slate-400 hover:text-red-400 transition">
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  )}
                                 </div>
                               </td>
                             </tr>
