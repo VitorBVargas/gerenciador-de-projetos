@@ -91,6 +91,15 @@ const parseExcelDate = (val) => {
   return null;
 };
 
+// Detecta produtos com sufixo de entidade no nome (ex: "Contabilidade (Cloud) - CM Curitiba")
+// Retorna lista de nomes problemáticos encontrados na planilha
+const detectProductsWithEntitySuffix = (productNames) => {
+  // Regex: detecta " - <algo>" no final, onde <algo> tem cara de sigla/nome de entidade
+  // Cobre: "- CM Curitiba", "- PM Araras", "- CMC", "- Prefeitura de X", "- IPASI", etc.
+  const suffixRegex = /\s-\s[A-ZÀ-Úa-zà-ú0-9][A-ZÀ-Úa-zà-ú0-9\s.()/]*$/;
+  return productNames.filter(name => suffixRegex.test(name));
+};
+
 const parseCrmData = (workbook) => {
   const sheetName = workbook.SheetNames[0];
   const sheet = workbook.Sheets[sheetName];
@@ -157,6 +166,7 @@ export default function CrmImporter({ open, onOpenChange, portfolioFilter = 'gra
   const [error, setError] = useState('');
   const [flowOpen, setFlowOpen] = useState(false);
   const [parsedData, setParsedData] = useState(null);
+  const [invalidProducts, setInvalidProducts] = useState([]);
 
   const handleFileSelect = (e) => {
     const selectedFile = e.target.files?.[0];
@@ -169,12 +179,24 @@ export default function CrmImporter({ open, onOpenChange, portfolioFilter = 'gra
   const handleStart = async () => {
     if (!file) return;
     setError('');
+    setInvalidProducts([]);
     try {
       const data = await file.arrayBuffer();
       const workbook = XLSX.read(data, { type: 'array' });
       const { entityProductMap, entityNames } = parseCrmData(workbook);
       const entities = Object.keys(entityProductMap);
       if (entities.length === 0) throw new Error('Nenhuma entidade encontrada na planilha');
+
+      // Valida nomes de produtos antes de continuar — bloqueia se houver sufixo de entidade
+      const allProductNames = new Set();
+      entities.forEach(ent => {
+        Object.keys(entityProductMap[ent]).forEach(p => allProductNames.add(p));
+      });
+      const problematic = detectProductsWithEntitySuffix([...allProductNames]);
+      if (problematic.length > 0) {
+        setInvalidProducts(problematic);
+        return;
+      }
 
       let totalImpl = 0;
       let totalIncl = 0;
@@ -398,6 +420,7 @@ export default function CrmImporter({ open, onOpenChange, portfolioFilter = 'gra
     setFile(null);
     setError('');
     setParsedData(null);
+    setInvalidProducts([]);
     onOpenChange(false);
   };
 
@@ -447,6 +470,29 @@ export default function CrmImporter({ open, onOpenChange, portfolioFilter = 'gra
               <Alert className="bg-red-500/10 border-red-500/30">
                 <AlertCircle className="w-4 h-4 text-red-400" />
                 <AlertDescription className="text-red-400">{error}</AlertDescription>
+              </Alert>
+            )}
+
+            {invalidProducts.length > 0 && (
+              <Alert className="bg-amber-500/10 border-amber-500/40">
+                <AlertCircle className="w-4 h-4 text-amber-400" />
+                <AlertDescription className="text-amber-200 space-y-2">
+                  <p className="font-semibold">
+                    Importação bloqueada: {invalidProducts.length} produto(s) com sufixo de entidade no nome.
+                  </p>
+                  <p className="text-xs text-amber-200/80">
+                    Os produtos abaixo possuem o nome da entidade no final (ex: "- CM Curitiba", "- PM Araras"). 
+                    Isso quebra a padronização e prejudica templates e relatórios. 
+                    Por favor, ajuste a planilha removendo esse sufixo e tente novamente.
+                  </p>
+                  <div className="max-h-40 overflow-y-auto bg-slate-900/50 rounded p-2 mt-2">
+                    <ul className="text-xs text-amber-100 space-y-0.5">
+                      {invalidProducts.map((p, i) => (
+                        <li key={i} className="font-mono">• {p}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </AlertDescription>
               </Alert>
             )}
 
