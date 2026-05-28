@@ -40,7 +40,7 @@ export default function Homologation() {
   const [importedSectionOrder, setImportedSectionOrder] = useState({});
   const [addTaskSectionByProduct, setAddTaskSectionByProduct] = useState({});
   const [newSectionNameByProduct, setNewSectionNameByProduct] = useState({});
-  const [viewMode, setViewMode] = useState('cards'); // 'cards' | 'table'
+  const [viewMode, setViewMode] = useState('table'); // 'cards' | 'table'
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [markingProgress, setMarkingProgress] = useState({ isLoading: false, current: 0, total: 0 });
   const creatingTasksRef = React.useRef(new Set());

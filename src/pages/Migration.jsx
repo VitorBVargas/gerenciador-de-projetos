@@ -39,7 +39,7 @@ export default function Migration() {
   const [importedSectionOrder, setImportedSectionOrder] = useState({});
   const [addTaskSection, setAddTaskSection] = useState('');
   const [newSectionName, setNewSectionName] = useState('');
-  const [viewMode, setViewMode] = useState('cards'); // 'cards' | 'table'
+  const [viewMode, setViewMode] = useState('table'); // 'cards' | 'table'
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [markingProgress, setMarkingProgress] = useState({ isLoading: false, current: 0, total: 0 });
   const creatingTasksRef = React.useRef(new Set());
