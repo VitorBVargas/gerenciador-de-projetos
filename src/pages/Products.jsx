@@ -327,14 +327,6 @@ export default function Products() {
   });
   const entities = sortEntities(Array.from(entityMap.entries()).map(([code, fullName]) => ({ code, fullName })));
   
-  // Auto-select first entity if none selected
-  React.useEffect(() => {
-    if (entities.length > 0 && !selectedEntity) {
-      const firstEntity = entities[0].code;
-      setSelectedEntity(firstEntity);
-    }
-  }, [entities.length]);
-  
   const entityFilteredProducts = selectedEntity
     ? filteredProducts.filter(p => p.entity === selectedEntity)
     : filteredProducts;
@@ -417,7 +409,7 @@ export default function Products() {
             )}
           </div>
         </div>
-        <EntityFilter entities={entities} selectedEntity={selectedEntity} onEntityChange={setSelectedEntity} showAllButton={false} />
+        <EntityFilter entities={entities} selectedEntity={selectedEntity} onEntityChange={setSelectedEntity} showAllButton={true} />
       </div>
 
       {/* Products view */}
