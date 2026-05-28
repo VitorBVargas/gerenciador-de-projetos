@@ -41,8 +41,14 @@ export default function ProductListView({
 }) {
   const hasRecognition = (productId) => recognizedRevenues.some(r => r.product_id === productId);
 
+  const totalCount = usedVerticals.reduce((sum, v) => sum + (productsByVertical[v]?.length || 0), 0);
+
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-between bg-slate-800/50 border border-slate-700/50 rounded-lg px-4 py-2.5">
+        <span className="text-sm text-slate-400">Total exibido</span>
+        <span className="text-lg font-bold text-white">{totalCount} <span className="text-xs font-normal text-slate-400">produtos</span></span>
+      </div>
       {usedVerticals.map((vertical) => {
         const list = productsByVertical[vertical] || [];
         if (list.length === 0) return null;
