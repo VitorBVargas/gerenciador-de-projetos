@@ -14,7 +14,9 @@ import {
   Trash2,
   Check,
   Sparkles,
-  X
+  X,
+  LayoutGrid,
+  Table as TableIcon
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import ProductModal from '../components/modals/ProductModal';
@@ -26,6 +28,7 @@ import PasswordGracePeriodModal from '../components/modals/PasswordGracePeriodMo
 import EntityFilter from '../components/filters/EntityFilter';
 import EntityBadge from '../components/EntityBadge';
 import ProductRecognitionModal from '../components/modals/ProductRecognitionModal';
+import ProductListView from '../components/products/ProductListView';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -87,6 +90,7 @@ export default function Products() {
   const [recognitionModalOpen, setRecognitionModalOpen] = useState(false);
   const [productForRecognition, setProductForRecognition] = useState(null);
   const [flagFilters, setFlagFilters] = useState([]);
+  const [viewMode, setViewMode] = useState('cards'); // 'cards' | 'list'
 
   // Get project_id from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -350,13 +354,23 @@ export default function Products() {
           <h1 className="text-2xl lg:text-3xl font-bold text-white">Produtos</h1>
           <p className="text-slate-400 mt-1">{products.length} produtos cadastrados</p>
         </div>
-        <Button 
-          onClick={() => { setSelectedProduct(null); setModalOpen(true); }}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Adicionar Produto
-        </Button>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center bg-slate-800/50 rounded-lg p-1 border border-slate-700/50">
+            <Button size="sm" variant={viewMode === 'cards' ? 'default' : 'ghost'} onClick={() => setViewMode('cards')} className={cn("h-8", viewMode === 'cards' ? "bg-blue-600 hover:bg-blue-700" : "text-slate-300 hover:text-white")}>
+              <LayoutGrid className="w-4 h-4 mr-1" /> Cards
+            </Button>
+            <Button size="sm" variant={viewMode === 'list' ? 'default' : 'ghost'} onClick={() => setViewMode('list')} className={cn("h-8", viewMode === 'list' ? "bg-blue-600 hover:bg-blue-700" : "text-slate-300 hover:text-white")}>
+              <TableIcon className="w-4 h-4 mr-1" /> Lista
+            </Button>
+          </div>
+          <Button 
+            onClick={() => { setSelectedProduct(null); setModalOpen(true); }}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Adicionar Produto
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -406,8 +420,24 @@ export default function Products() {
         <EntityFilter entities={entities} selectedEntity={selectedEntity} onEntityChange={setSelectedEntity} showAllButton={false} />
       </div>
 
-      {/* Products Table by Vertical */}
+      {/* Products view */}
       {entityFilteredProducts.length > 0 ? (
+        viewMode === 'list' ? (
+          <ProductListView
+            productsByVertical={productsByVertical}
+            usedVerticals={usedVerticals}
+            recognizedRevenues={recognizedRevenues}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onTogglePassword={handleTogglePassword}
+            onToggleAcceptance={handleToggleAcceptance}
+            onOpenRecognition={(p) => { setProductForRecognition(p); setRecognitionModalOpen(true); }}
+            onRemoveRecognition={(p) => {
+              const recognitions = recognizedRevenues.filter(r => r.product_id === p.id);
+              recognitions.forEach(rec => deleteRecognitionMutation.mutate(rec.id));
+            }}
+          />
+        ) : (
         <div className="overflow-x-auto -mx-6 lg:-mx-8 px-6 lg:px-8">
           <div className="inline-flex gap-4 pb-4 min-w-full">
             {usedVerticals.map((vertical) => {
@@ -566,6 +596,7 @@ export default function Products() {
             })}
           </div>
         </div>
+        )
       ) : (
         <EmptyState
           icon={Package}
