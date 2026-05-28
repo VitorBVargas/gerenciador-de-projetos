@@ -8,9 +8,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Plus, CheckCircle, Trash2, ChevronUp, ChevronDown, Upload, Loader2 } from 'lucide-react';
+import { Plus, CheckCircle, Trash2, ChevronUp, ChevronDown, Upload, Loader2, LayoutGrid, Table as TableIcon } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import ImportTasksModal from '../components/modals/ImportTasksModal';
+import TaskTableView from '../components/tasks/TaskTableView';
 import { toast } from 'sonner';
 import { cn } from "@/lib/utils";
 import EmptyState from '../components/ui/EmptyState';
@@ -39,6 +40,7 @@ export default function Homologation() {
   const [importedSectionOrder, setImportedSectionOrder] = useState({});
   const [addTaskSectionByProduct, setAddTaskSectionByProduct] = useState({});
   const [newSectionNameByProduct, setNewSectionNameByProduct] = useState({});
+  const [viewMode, setViewMode] = useState('cards'); // 'cards' | 'table'
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [markingProgress, setMarkingProgress] = useState({ isLoading: false, current: 0, total: 0 });
   const creatingTasksRef = React.useRef(new Set());
@@ -469,15 +471,25 @@ export default function Homologation() {
           <h1 className="text-2xl lg:text-3xl font-bold text-white">Homologação</h1>
           <p className="text-slate-400 mt-1">Acompanhe o progresso de homologação por produto</p>
         </div>
-        {productsWithHomologation.length > 0 && (
-          <div className="flex items-center gap-4 bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
-            <div className="text-sm text-slate-400">Progresso Geral</div>
-            <div className="w-32">
-              <Progress value={overallProgress} className="h-2" />
+        <div className="flex items-center gap-3">
+          {productsWithHomologation.length > 0 && (
+            <div className="flex items-center gap-4 bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
+              <div className="text-sm text-slate-400">Progresso Geral</div>
+              <div className="w-32">
+                <Progress value={overallProgress} className="h-2" />
+              </div>
+              <div className="text-lg font-bold text-white">{overallProgress}%</div>
             </div>
-            <div className="text-lg font-bold text-white">{overallProgress}%</div>
+          )}
+          <div className="flex items-center bg-slate-800/50 rounded-lg p-1 border border-slate-700/50">
+            <Button size="sm" variant={viewMode === 'cards' ? 'default' : 'ghost'} onClick={() => setViewMode('cards')} className={cn("h-8", viewMode === 'cards' ? "bg-blue-600 hover:bg-blue-700" : "text-slate-300 hover:text-white")}>
+              <LayoutGrid className="w-4 h-4 mr-1" /> Cards
+            </Button>
+            <Button size="sm" variant={viewMode === 'table' ? 'default' : 'ghost'} onClick={() => setViewMode('table')} className={cn("h-8", viewMode === 'table' ? "bg-blue-600 hover:bg-blue-700" : "text-slate-300 hover:text-white")}>
+              <TableIcon className="w-4 h-4 mr-1" /> Tabela
+            </Button>
           </div>
-        )}
+        </div>
       </div>
 
       {allEntities.length > 0 && (
@@ -625,7 +637,50 @@ export default function Homologation() {
                             }, {});
                             
                             const hasImportedTasks = Object.keys(importedBySection).length > 0;
-                            
+
+                            // === MODO TABELA ===
+                            if (viewMode === 'table') {
+                              const tableSections = [];
+                              // Seções importadas
+                              getOrderedImportedSections(product.id, Object.entries(importedBySection)).forEach(([sectionName, sectionTasks]) => {
+                                const uniq = [];
+                                const seen = new Map();
+                                for (const t of sectionTasks) {
+                                  const tl = t.displayTitle.toLowerCase();
+                                  if (!seen.has(tl)) { seen.set(tl, t); uniq.push(t); }
+                                  else if (t.completed && !seen.get(tl).completed) { uniq[uniq.indexOf(seen.get(tl))] = t; seen.set(tl, t); }
+                                }
+                                tableSections.push({ name: sectionName, tasks: uniq });
+                              });
+                              // Seções padrão
+                              if (defaultSections.length > 0) {
+                                getOrderedSections(product.id, defaultSections).forEach((section) => {
+                                  const raw = standardTasks.filter(task => section.tasks.some(st => st.toLowerCase() === task.title.toLowerCase()));
+                                  const uniq = [];
+                                  const seen = new Map();
+                                  for (const t of raw) {
+                                    const tl = t.title.toLowerCase();
+                                    if (!seen.has(tl)) { seen.set(tl, t); uniq.push(t); }
+                                    else if (t.completed && !seen.get(tl).completed) { uniq[uniq.indexOf(seen.get(tl))] = t; seen.set(tl, t); }
+                                  }
+                                  if (uniq.length > 0) tableSections.push({ name: section.section, tasks: uniq });
+                                });
+                                // Personalizadas (fora das seções padrão)
+                                const allSectionTitles = defaultSections.flatMap(s => s.tasks.map(t => t.toLowerCase()));
+                                const custom = standardTasks.filter(t => !allSectionTitles.includes(t.title.toLowerCase()));
+                                if (custom.length > 0) tableSections.push({ name: 'TAREFAS PERSONALIZADAS', tasks: custom });
+                              } else {
+                                if (standardTasks.length > 0) tableSections.push({ name: 'TAREFAS PERSONALIZADAS', tasks: standardTasks });
+                              }
+                              return (
+                                <TaskTableView
+                                  sections={tableSections}
+                                  onToggle={handleToggleTask}
+                                  onDelete={(id) => deleteTaskMutation.mutate(id)}
+                                />
+                              );
+                            }
+
                             return (
                               <>
                                 {/* Renderizar seções importadas */}
