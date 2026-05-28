@@ -521,6 +521,12 @@ export default function Migration() {
                                   sections={tableSections}
                                   onToggle={handleToggleTask}
                                   onDelete={(id) => deleteTaskMutation.mutate(id)}
+                                  onRename={(task, newTitle) => {
+                                    // Preserva prefixo ||seção|| se existir
+                                    const match = task.title.match(/^\|\|(.+?)\|\|/);
+                                    const finalTitle = match ? `||${match[1]}||${newTitle}` : newTitle;
+                                    updateTaskMutation.mutate({ id: task.id, data: { title: finalTitle } });
+                                  }}
                                 />
                               );
                             }

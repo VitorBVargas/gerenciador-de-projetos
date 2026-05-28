@@ -1,17 +1,50 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from 'lucide-react';
+import { Input } from "@/components/ui/input";
+import { Trash2, Pencil, Check, X } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 /**
  * Visualização em tabela: Etapa Macro | Ação | Check | Data
  * Props:
- * - sections: [{ name: string, tasks: [{ id, title, completed, completed_date }] }]
+ * - sections: [{ name: string, tasks: [{ id, title, completed, completed_date, displayTitle? }] }]
  * - onToggle: (task) => void
  * - onDelete: (taskId) => void
+ * - onRename: (task, newTitle) => void   // newTitle = apenas o nome da ação (sem prefixo ||seção||)
  */
-export default function TaskTableView({ sections, onToggle, onDelete }) {
+export default function TaskTableView({ sections, onToggle, onDelete, onRename }) {
+  const [editingId, setEditingId] = useState(null);
+  const [editValue, setEditValue] = useState('');
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (editingId && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [editingId]);
+
+  const startEdit = (task) => {
+    setEditingId(task.id);
+    setEditValue(task.displayTitle || task.title);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditValue('');
+  };
+
+  const saveEdit = (task) => {
+    const trimmed = editValue.trim();
+    if (!trimmed || trimmed === (task.displayTitle || task.title)) {
+      cancelEdit();
+      return;
+    }
+    if (onRename) onRename(task, trimmed);
+    cancelEdit();
+  };
+
   if (!sections || sections.length === 0) {
     return <p className="text-center text-slate-500 py-4 text-sm">Nenhuma tarefa cadastrada.</p>;
   }
@@ -25,7 +58,7 @@ export default function TaskTableView({ sections, onToggle, onDelete }) {
             <th className="px-4 py-3">Ação</th>
             <th className="px-4 py-3 w-20 text-center">Check</th>
             <th className="px-4 py-3 w-32">Data</th>
-            <th className="px-4 py-3 w-12"></th>
+            <th className="px-4 py-3 w-20"></th>
           </tr>
         </thead>
         <tbody>
@@ -41,44 +74,78 @@ export default function TaskTableView({ sections, onToggle, onDelete }) {
                 </td>
               </tr>
               {/* Linhas das tarefas */}
-              {section.tasks.map((task, tIdx) => (
-                <tr
-                  key={task.id}
-                  className={cn(
-                    "border-b border-slate-800/60 group hover:bg-slate-800/40 transition-colors",
-                    tIdx === section.tasks.length - 1 && sIdx < sections.length - 1 && "border-b-slate-700/50"
-                  )}
-                >
-                  <td className="px-4 py-2.5 text-slate-500 text-xs">
-                    {/* vazio — referência visual à seção acima */}
-                  </td>
-                  <td className={cn("px-4 py-2.5", task.completed ? "text-slate-400 line-through" : "text-white")}>
-                    {task.displayTitle || task.title}
-                  </td>
-                  <td className="px-4 py-2.5 text-center">
-                    <Checkbox
-                      checked={task.completed}
-                      onCheckedChange={() => onToggle(task)}
-                      className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
-                    />
-                  </td>
-                  <td className="px-4 py-2.5 text-slate-400 text-xs">
-                    {task.completed && task.completed_date
-                      ? new Date(task.completed_date).toLocaleDateString('pt-BR')
-                      : '—'}
-                  </td>
-                  <td className="px-4 py-2.5">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => onDelete(task.id)}
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </td>
-                </tr>
-              ))}
+              {section.tasks.map((task, tIdx) => {
+                const isEditing = editingId === task.id;
+                return (
+                  <tr
+                    key={task.id}
+                    className={cn(
+                      "border-b border-slate-800/60 group hover:bg-slate-800/40 transition-colors",
+                      tIdx === section.tasks.length - 1 && sIdx < sections.length - 1 && "border-b-slate-700/50"
+                    )}
+                  >
+                    <td className="px-4 py-2.5 text-slate-500 text-xs">
+                      {/* vazio — referência visual à seção acima */}
+                    </td>
+                    <td className={cn("px-4 py-2.5", task.completed ? "text-slate-400 line-through" : "text-white")}>
+                      {isEditing ? (
+                        <div className="flex items-center gap-2">
+                          <Input
+                            ref={inputRef}
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') saveEdit(task);
+                              if (e.key === 'Escape') cancelEdit();
+                            }}
+                            className="bg-slate-700 border-slate-600 text-white h-7 text-sm"
+                          />
+                          <Button size="icon" variant="ghost" className="h-6 w-6 text-green-400 hover:text-green-300 hover:bg-green-500/20" onClick={() => saveEdit(task)}>
+                            <Check className="w-3.5 h-3.5" />
+                          </Button>
+                          <Button size="icon" variant="ghost" className="h-6 w-6 text-slate-400 hover:text-slate-300 hover:bg-slate-700" onClick={cancelEdit}>
+                            <X className="w-3.5 h-3.5" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 group/cell">
+                          <span className="flex-1">{task.displayTitle || task.title}</span>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-6 w-6 text-slate-400 hover:text-blue-300 hover:bg-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => startEdit(task)}
+                          >
+                            <Pencil className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-2.5 text-center">
+                      <Checkbox
+                        checked={task.completed}
+                        onCheckedChange={() => onToggle(task)}
+                        className="border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                      />
+                    </td>
+                    <td className="px-4 py-2.5 text-slate-400 text-xs">
+                      {task.completed && task.completed_date
+                        ? new Date(task.completed_date).toLocaleDateString('pt-BR')
+                        : '—'}
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => onDelete(task.id)}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </td>
+                  </tr>
+                );
+              })}
             </React.Fragment>
           ))}
         </tbody>
