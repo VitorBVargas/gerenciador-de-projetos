@@ -38,6 +38,7 @@ export default function Homologation() {
   const [sectionOrder, setSectionOrder] = useState({});
   const [importedSectionOrder, setImportedSectionOrder] = useState({});
   const [addTaskSectionByProduct, setAddTaskSectionByProduct] = useState({});
+  const [newSectionNameByProduct, setNewSectionNameByProduct] = useState({});
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [markingProgress, setMarkingProgress] = useState({ isLoading: false, current: 0, total: 0 });
   const creatingTasksRef = React.useRef(new Set());
@@ -145,7 +146,16 @@ export default function Homologation() {
     const addTaskSection = addTaskSectionByProduct[product.id] || '';
     if (!newTaskTitle || !product?.id) return;
 
-    const title = addTaskSection ? `||${addTaskSection}||${newTaskTitle}` : newTaskTitle;
+    // Se o usuário escolheu "__new__", usa o nome digitado em newSectionNameByProduct
+    const sectionToUse = addTaskSection === '__new__'
+      ? (newSectionNameByProduct[product.id] || '').trim()
+      : addTaskSection;
+    if (addTaskSection === '__new__' && !sectionToUse) {
+      toast.error('Informe o nome da nova etapa');
+      return;
+    }
+
+    const title = sectionToUse ? `||${sectionToUse}||${newTaskTitle}` : newTaskTitle;
     createTaskMutation.mutate({
       title,
       project_id: activeProject?.id,
@@ -155,6 +165,7 @@ export default function Homologation() {
     });
 
     setAddTaskSectionByProduct(prev => ({ ...prev, [product.id]: '' }));
+    setNewSectionNameByProduct(prev => ({ ...prev, [product.id]: '' }));
   };
 
   const handleToggleTask = (task) => {
@@ -548,17 +559,25 @@ export default function Homologation() {
                             ];
                             return (
                               <>
-                                {allSections.length > 0 && (
-                                  <select
-                                    value={addTaskSectionByProduct[product.id] || ''}
-                                    onChange={e => setAddTaskSectionByProduct(prev => ({ ...prev, [product.id]: e.target.value }))}
-                                    className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2 text-sm"
-                                  >
-                                    <option value="">Selecione a etapa (opcional)</option>
-                                    {allSections.map(s => (
-                                      <option key={s} value={s}>{s}</option>
-                                    ))}
-                                  </select>
+                                <select
+                                  value={addTaskSectionByProduct[product.id] || ''}
+                                  onChange={e => setAddTaskSectionByProduct(prev => ({ ...prev, [product.id]: e.target.value }))}
+                                  className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2 text-sm"
+                                >
+                                  <option value="">Selecione a etapa</option>
+                                  {allSections.map(s => (
+                                    <option key={s} value={s}>{s}</option>
+                                  ))}
+                                  <option value="__new__">+ Criar nova etapa...</option>
+                                </select>
+                                {addTaskSectionByProduct[product.id] === '__new__' && (
+                                  <Input
+                                    value={newSectionNameByProduct[product.id] || ''}
+                                    onChange={(e) => setNewSectionNameByProduct(prev => ({ ...prev, [product.id]: e.target.value }))}
+                                    placeholder="Nome da nova etapa (ex: VALIDAÇÕES FINAIS)"
+                                    className="bg-slate-700 border-slate-600 text-white"
+                                    autoFocus
+                                  />
                                 )}
                                 <div className="flex gap-2">
                                   <Input

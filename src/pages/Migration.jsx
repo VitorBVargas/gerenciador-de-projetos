@@ -37,6 +37,7 @@ export default function Migration() {
   const [sectionOrder, setSectionOrder] = useState({});
   const [importedSectionOrder, setImportedSectionOrder] = useState({});
   const [addTaskSection, setAddTaskSection] = useState('');
+  const [newSectionName, setNewSectionName] = useState('');
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [markingProgress, setMarkingProgress] = useState({ isLoading: false, current: 0, total: 0 });
   const creatingTasksRef = React.useRef(new Set());
@@ -120,9 +121,16 @@ export default function Migration() {
 
   const handleAddTask = () => {
     if (!newTaskTitle.trim() || !selectedProduct) return;
-    const title = addTaskSection ? `||${addTaskSection}||${newTaskTitle.trim()}` : newTaskTitle.trim();
+    // Se o usuário escolheu "__new__", usa o nome digitado em newSectionName
+    const sectionToUse = addTaskSection === '__new__' ? newSectionName.trim() : addTaskSection;
+    if (addTaskSection === '__new__' && !sectionToUse) {
+      toast.error('Informe o nome da nova etapa');
+      return;
+    }
+    const title = sectionToUse ? `||${sectionToUse}||${newTaskTitle.trim()}` : newTaskTitle.trim();
     createTaskMutation.mutate({ title, project_id: activeProject?.id, product_id: selectedProduct, completed: false });
     setAddTaskSection('');
+    setNewSectionName('');
   };
 
   const handleToggleTask = (task) => {
@@ -419,11 +427,19 @@ export default function Migration() {
                             const allSections = [...defaultSections.map(s => s.section), ...importedSectionNames];
                             return (
                               <>
-                                {allSections.length > 0 && (
-                                  <select value={addTaskSection} onChange={e => setAddTaskSection(e.target.value)} className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2 text-sm">
-                                    <option value="">Selecione a etapa (opcional)</option>
-                                    {allSections.map(s => <option key={s} value={s}>{s}</option>)}
-                                  </select>
+                                <select value={addTaskSection} onChange={e => setAddTaskSection(e.target.value)} className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2 text-sm">
+                                  <option value="">Selecione a etapa</option>
+                                  {allSections.map(s => <option key={s} value={s}>{s}</option>)}
+                                  <option value="__new__">+ Criar nova etapa...</option>
+                                </select>
+                                {addTaskSection === '__new__' && (
+                                  <Input
+                                    value={newSectionName}
+                                    onChange={(e) => setNewSectionName(e.target.value)}
+                                    placeholder="Nome da nova etapa (ex: VALIDAÇÕES FINAIS)"
+                                    className="bg-slate-700 border-slate-600 text-white"
+                                    autoFocus
+                                  />
                                 )}
                                 <div className="flex gap-2">
                                   <Input value={newTaskTitle} onChange={(e) => setNewTaskTitle(e.target.value)} placeholder="Nova tarefa de migração..." className="bg-slate-700 border-slate-600 text-white" onKeyDown={(e) => e.key === 'Enter' && handleAddTask()} />
