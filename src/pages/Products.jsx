@@ -280,6 +280,7 @@ export default function Products() {
     filteredProducts = filteredProducts.filter(p => {
       return flagFilters.every(flag => {
         if (flag === 'aceite') return p.implementation_accepted;
+        if (flag === 'sem_aceite') return !p.implementation_accepted;
         if (flag === 'reconhecimento') return recognizedRevenues.some(r => r.product_id === p.id);
         if (flag === 'senha') return p.production_password && !p.password_grace_period_until;
         if (flag === 'senha_carencia') return p.production_password && !!p.password_grace_period_until;
@@ -373,6 +374,7 @@ export default function Products() {
           <div className="flex flex-wrap items-center gap-2">
             {[
               { key: 'aceite', label: 'Aceite de Implantação', activeClass: 'bg-orange-500/20 text-orange-400 border-orange-500/40' },
+              { key: 'sem_aceite', label: 'Sem Aceite de Implantação', activeClass: 'bg-red-500/20 text-red-400 border-red-500/40' },
               { key: 'reconhecimento', label: 'Reconhecimento', activeClass: 'bg-purple-500/20 text-purple-400 border-purple-500/40' },
               { key: 'senha', label: 'Senha Liberada', activeClass: 'bg-green-500/20 text-green-400 border-green-500/40' },
               { key: 'senha_carencia', label: 'Senha c/ Carência', activeClass: 'bg-amber-500/20 text-amber-400 border-amber-500/40' },
