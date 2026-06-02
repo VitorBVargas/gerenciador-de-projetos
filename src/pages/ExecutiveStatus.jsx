@@ -739,7 +739,7 @@ export default function ExecutiveStatus() {
                       const badgeLabel = isOverdue
                         ? "Prazo Contratual Estourado"
                         : isWarning
-                          ? "Prazo Contratual Próximo"
+                          ? `Faltam ${diffDays}d para o Prazo`
                           : null;
                       return (
                         <div>
