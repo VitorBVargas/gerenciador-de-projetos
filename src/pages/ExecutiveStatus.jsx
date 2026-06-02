@@ -726,7 +726,37 @@ export default function ExecutiveStatus() {
                        const estDeadline = dictionaries.progressCacheByProjectId[project.id]?.estimated_deadline;
                        return <div><div className="text-xs text-slate-400 font-medium">Prazo Estimado</div><div className="text-sm text-white">{estDeadline ? format(parseISO(estDeadline), 'dd/MM/yyyy', { locale: ptBR }) : '—'}</div></div>;
                     })()}
-                    {project.deadline && <div><div className="text-xs text-slate-400 font-medium">Prazo Contratual</div><div className="text-sm text-white">{format(parseISO(project.deadline), 'dd/MM/yyyy', { locale: ptBR })}</div></div>}
+                    {project.deadline && (() => {
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      const deadlineDate = parseISO(project.deadline);
+                      const diffDays = Math.ceil((deadlineDate - today) / (1000 * 60 * 60 * 24));
+                      const isOverdue = diffDays < 0;
+                      const isWarning = diffDays >= 0 && diffDays <= 10;
+                      const badgeClass = isOverdue
+                        ? "bg-red-500/20 text-red-300 border border-red-500/40"
+                        : isWarning
+                          ? "bg-yellow-500/20 text-yellow-300 border border-yellow-500/40"
+                          : null;
+                      const badgeLabel = isOverdue
+                        ? `${Math.abs(diffDays)}d atrasado`
+                        : isWarning
+                          ? `${diffDays}d restantes`
+                          : null;
+                      return (
+                        <div>
+                          <div className="text-xs text-slate-400 font-medium">Prazo Contratual</div>
+                          <div className="text-sm text-white flex items-center gap-2 flex-wrap">
+                            <span>{format(deadlineDate, 'dd/MM/yyyy', { locale: ptBR })}</span>
+                            {badgeLabel && (
+                              <span className={cn("text-[10px] px-1.5 py-0.5 rounded font-semibold", badgeClass)}>
+                                {badgeLabel}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })()}
                     {(() => {
                                            const totalImplantacao = project.implementation_value || 0;
                                            const totalInclusao = project.recurring_value || 0;
