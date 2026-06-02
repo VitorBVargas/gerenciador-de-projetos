@@ -1,0 +1,51 @@
+{
+  "name": "Expense",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "ID do projeto"
+    },
+    "title": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o da despesa"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Valor da despesa"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data da despesa"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "viagem",
+        "hospedagem",
+        "alimentacao",
+        "transporte",
+        "material",
+        "servico",
+        "outros"
+      ],
+      "default": "viagem",
+      "description": "Categoria da despesa"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Motivo/Observa\u00e7\u00f5es"
+    },
+    "external_id": {
+      "type": "string",
+      "description": "ID externo para deduplica\u00e7\u00e3o (source_id + row_id)"
+    }
+  },
+  "required": [
+    "title",
+    "project_id",
+    "amount",
+    "date"
+  ]
+}

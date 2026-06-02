@@ -1,0 +1,62 @@
+{
+  "name": "Task",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "ID do projeto"
+    },
+    "title": {
+      "type": "string",
+      "description": "T\u00edtulo da tarefa"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o da tarefa"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de in\u00edcio"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de t\u00e9rmino"
+    },
+    "duration_days": {
+      "type": "integer",
+      "default": 1,
+      "description": "Dura\u00e7\u00e3o em dias"
+    },
+    "order_index": {
+      "type": "integer",
+      "default": 0,
+      "description": "\u00cdndice de ordena\u00e7\u00e3o"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "planned",
+        "in_progress",
+        "done",
+        "delayed"
+      ],
+      "default": "planned",
+      "description": "Status da tarefa"
+    },
+    "progress": {
+      "type": "integer",
+      "default": 0,
+      "description": "Percentual de progresso (0-100)"
+    }
+  },
+  "required": [
+    "project_id",
+    "title",
+    "start_date",
+    "end_date",
+    "duration_days",
+    "order_index"
+  ]
+}

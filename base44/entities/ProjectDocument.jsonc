@@ -1,0 +1,34 @@
+{
+  "name": "ProjectDocument",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "ID do projeto"
+    },
+    "title": {
+      "type": "string",
+      "description": "T\u00edtulo do documento"
+    },
+    "link": {
+      "type": "string",
+      "description": "Link do documento (drive, etc)"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "URL do arquivo enviado"
+    },
+    "completed": {
+      "type": "boolean",
+      "default": false
+    },
+    "order": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "title",
+    "project_id"
+  ]
+}

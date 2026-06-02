@@ -19,7 +19,7 @@ const verticalLabels = {
   outros: 'Outros'
 };
 
-export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, homologationTasks, risks, products, cronogramas }) => {
+export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, homologationTasks, risks, products, cronogramas, deadline, overallProgress, projectStatus }) => {
   let score = 100;
   const alerts = []; // { severity: 'high'|'medium'|'good', text, detail }
 
@@ -164,9 +164,54 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
 
 
 
+  // --- 3. PRAZO CONTRATUAL ---
+  // Só avalia se houver deadline e o projeto NÃO estiver concluído
+  if (deadline && projectStatus !== 'concluido') {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const deadlineDate = new Date(deadline);
+    deadlineDate.setHours(0, 0, 0, 0);
+    const msPerDay = 1000 * 60 * 60 * 24;
+    const daysToDeadline = Math.round((deadlineDate - today) / msPerDay);
+    const progress = Number(overallProgress) || 0;
+    const deadlineStr = deadlineDate.toLocaleDateString('pt-BR');
+
+    if (daysToDeadline < 0) {
+      score -= 15;
+      alerts.push({
+        severity: 'high',
+        text: 'Prazo contratual vencido',
+        detail: `Venceu em ${deadlineStr} (${Math.abs(daysToDeadline)} dia${Math.abs(daysToDeadline) !== 1 ? 's' : ''} atrás) — projeto ${progress}% concluído`
+      });
+    } else if (daysToDeadline <= 30 && progress < 80) {
+      score -= 8;
+      alerts.push({
+        severity: 'medium',
+        text: 'Prazo contratual próximo com progresso baixo',
+        detail: `Faltam ${daysToDeadline} dia${daysToDeadline !== 1 ? 's' : ''} (${deadlineStr}) e projeto está em ${progress}%`
+      });
+    } else if (daysToDeadline <= 60 && progress < 50) {
+      score -= 5;
+      alerts.push({
+        severity: 'medium',
+        text: 'Risco de atraso no prazo contratual',
+        detail: `Faltam ${daysToDeadline} dias (${deadlineStr}) e projeto está em ${progress}%`
+      });
+    } else {
+      // Tudo ok — alerta informativo (não desconta)
+      alerts.push({
+        severity: 'good',
+        text: 'Prazo contratual em dia',
+        detail: `Faltam ${daysToDeadline} dia${daysToDeadline !== 1 ? 's' : ''} (${deadlineStr}) — projeto em ${progress}%`
+      });
+    }
+  }
+
   const finalScore = Math.max(0, Math.round(score));
 
-  if (finalScore >= 85 && alerts.length === 0) {
+  // "Projeto em dia" só se NÃO houver nenhum alerta de risco (ignora os 'good' já adicionados)
+  const hasRiskAlerts = alerts.some(a => a.severity === 'high' || a.severity === 'medium');
+  if (finalScore >= 85 && !hasRiskAlerts && alerts.length === 0) {
     alerts.push({ severity: 'good', text: 'Projeto em dia', detail: 'Todas as métricas dentro do esperado' });
   }
 
@@ -180,10 +225,10 @@ const getHealthStatus = (score) => {
   return { label: 'Crítico', color: 'text-red-400', bgColor: 'bg-red-500', ringColor: 'text-red-400' };
 };
 
-export default function ProjectHealthScore({ timeline = [], budget = 0, spent = 0, migrationTasks = [], homologationTasks = [], risks = [], products = [], cronogramas = [] }) {
+export default function ProjectHealthScore({ timeline = [], budget = 0, spent = 0, migrationTasks = [], homologationTasks = [], risks = [], products = [], cronogramas = [], deadline = null, overallProgress = 0, projectStatus = null }) {
   const [expanded, setExpanded] = useState(null);
   const [selectedAlert, setSelectedAlert] = useState(null);
-  const { score, alerts } = calculateHealthScore({ timeline, migrationTasks, homologationTasks, risks, products, cronogramas });
+  const { score, alerts } = calculateHealthScore({ timeline, migrationTasks, homologationTasks, risks, products, cronogramas, deadline, overallProgress, projectStatus });
   const status = getHealthStatus(score);
 
   const sevIcon = {

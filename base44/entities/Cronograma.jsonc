@@ -1,0 +1,31 @@
+{
+  "name": "Cronograma",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "ID do projeto"
+    },
+    "vertical": {
+      "type": "string",
+      "description": "Nome da vertical/cronograma (ex: Arrecada\u00e7\u00e3o, Educa\u00e7\u00e3o, Obras - GovView)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "nao_iniciado",
+        "em_dia",
+        "atencao",
+        "atrasado",
+        "pausado",
+        "concluido"
+      ],
+      "default": "nao_iniciado",
+      "description": "Status calculado baseado nas etapas associadas"
+    }
+  },
+  "required": [
+    "project_id",
+    "vertical"
+  ]
+}

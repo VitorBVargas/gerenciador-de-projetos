@@ -1,0 +1,53 @@
+{
+  "name": "OperationalReport",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "ID do projeto"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "observacao",
+        "problema",
+        "decisao",
+        "licao_aprendida",
+        "proximo_passo"
+      ],
+      "default": "observacao"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "aberto",
+        "em_andamento",
+        "resolvido"
+      ],
+      "default": "aberto"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "baixa",
+        "media",
+        "alta"
+      ],
+      "default": "media"
+    }
+  },
+  "required": [
+    "title",
+    "project_id"
+  ]
+}

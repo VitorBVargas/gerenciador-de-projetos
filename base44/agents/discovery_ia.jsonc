@@ -5,7 +5,9 @@
     {
       "entity_name": "Discovery",
       "allowed_operations": [
-        "read"
+        "read",
+        "create",
+        "update"
       ]
     },
     {
@@ -15,5 +17,15 @@
       ]
     }
   ],
+  "selected_skill_names": [],
+  "selected_workspace_skill_ids": [],
+  "model": "automatic",
+  "whatsapp_greeting": "",
+  "telegram_greeting": "",
+  "memory_config": {
+    "enabled": true,
+    "scope": "both",
+    "instructions": null
+  },
   "name": "discovery_ia"
 }

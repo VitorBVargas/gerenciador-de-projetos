@@ -1,0 +1,35 @@
+{
+  "name": "InternalProduct",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "ID do projeto interno"
+    },
+    "name": {
+      "type": "string",
+      "description": "Nome do software/produto"
+    },
+    "delivery": {
+      "type": "string",
+      "description": "O que ser\u00e1 entregue"
+    },
+    "monitoring": {
+      "type": "string",
+      "description": "O que precisa ser monitorado"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pendente",
+        "em_andamento",
+        "concluido"
+      ],
+      "default": "pendente"
+    }
+  },
+  "required": [
+    "name",
+    "project_id"
+  ]
+}

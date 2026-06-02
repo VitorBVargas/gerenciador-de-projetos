@@ -378,7 +378,10 @@ export default function Dashboard() {
     homologationTasks, 
     risks, 
     products,
-    cronogramas
+    cronogramas,
+    deadline: activeProject?.deadline,
+    overallProgress: allEntitiesProgress,
+    projectStatus: activeProject?.status
   });
 
   // Recalcular cache ao entrar no Dashboard
@@ -778,6 +781,9 @@ export default function Dashboard() {
             risks={risks}
             products={products}
             cronogramas={cronogramas}
+            deadline={activeProject?.deadline}
+            overallProgress={allEntitiesProgress}
+            projectStatus={activeProject?.status}
           />
         </div>
       )}

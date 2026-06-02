@@ -1,0 +1,62 @@
+{
+  "name": "StatusReport",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "ID do projeto"
+    },
+    "report_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data do relat\u00f3rio"
+    },
+    "week_start": {
+      "type": "string",
+      "format": "date",
+      "description": "In\u00edcio da semana"
+    },
+    "week_end": {
+      "type": "string",
+      "format": "date",
+      "description": "Fim da semana"
+    },
+    "summary": {
+      "type": "string",
+      "description": "Resumo executivo gerado pela IA"
+    },
+    "progress_updates": {
+      "type": "string",
+      "description": "Atualiza\u00e7\u00f5es de progresso"
+    },
+    "completed_tasks": {
+      "type": "string",
+      "description": "Tarefas conclu\u00eddas na semana"
+    },
+    "attention_points": {
+      "type": "string",
+      "description": "Pontos de aten\u00e7\u00e3o"
+    },
+    "next_actions": {
+      "type": "string",
+      "description": "Pr\u00f3ximas a\u00e7\u00f5es recomendadas"
+    },
+    "risks_updates": {
+      "type": "string",
+      "description": "Atualiza\u00e7\u00f5es de riscos"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "published"
+      ],
+      "default": "published"
+    }
+  },
+  "required": [
+    "project_id",
+    "report_date",
+    "summary"
+  ]
+}

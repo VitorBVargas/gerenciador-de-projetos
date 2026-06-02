@@ -1,0 +1,90 @@
+{
+  "name": "Product",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "ID do projeto"
+    },
+    "name": {
+      "type": "string",
+      "description": "Nome do produto (pode incluir Cloud no nome)"
+    },
+    "vertical": {
+      "type": "string",
+      "description": "Vertical do produto"
+    },
+    "entity": {
+      "type": "string",
+      "description": "Entidade/\u00d3rg\u00e3o (ex: CM, IPASI, PM)"
+    },
+    "entity_full_name": {
+      "type": "string",
+      "description": "Nome completo da entidade (ex: C\u00e2mara Municipal de Ibirit\u00e9)"
+    },
+    "ticket_number": {
+      "type": "string",
+      "description": "N\u00famero do chamado"
+    },
+    "implementation_value": {
+      "type": "number",
+      "default": 0,
+      "description": "Valor de implanta\u00e7\u00e3o do produto"
+    },
+    "inclusion_value": {
+      "type": "number",
+      "default": 0,
+      "description": "Valor de inclus\u00e3o/recorrente do produto"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pendente",
+        "em_homologacao",
+        "homologado",
+        "em_producao"
+      ],
+      "default": "pendente"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "baixa",
+        "media",
+        "alta",
+        "critica"
+      ],
+      "default": "media"
+    },
+    "production_password": {
+      "type": "boolean",
+      "default": false,
+      "description": "Senha de produ\u00e7\u00e3o foi liberada"
+    },
+    "password_grace_period_until": {
+      "type": "string",
+      "format": "date",
+      "description": "Data at\u00e9 qual h\u00e1 car\u00eancia na libera\u00e7\u00e3o da senha de produ\u00e7\u00e3o"
+    },
+    "implementation_accepted": {
+      "type": "boolean",
+      "default": false,
+      "description": "Aceite de implanta\u00e7\u00e3o foi dado"
+    },
+    "document_sent": {
+      "type": "boolean",
+      "default": false,
+      "description": "Documento foi enviado"
+    },
+    "document_signed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Documento foi assinado"
+    }
+  },
+  "required": [
+    "name",
+    "project_id",
+    "vertical"
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "name": "Travel",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "ID do projeto"
+    },
+    "title": {
+      "type": "string",
+      "description": "T\u00edtulo/Objetivo da viagem"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "location": {
+      "type": "string",
+      "description": "Local de destino"
+    },
+    "attendees": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Participantes (nomes)"
+    },
+    "travel_type": {
+      "type": "string",
+      "enum": [
+        "presencial",
+        "carro",
+        "aviao"
+      ],
+      "default": "presencial",
+      "description": "Tipo de deslocamento"
+    },
+    "vertical": {
+      "type": "string",
+      "description": "Vertical associada"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "planejada",
+        "confirmada",
+        "realizada",
+        "cancelada"
+      ],
+      "default": "planejada"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "title",
+    "project_id",
+    "start_date"
+  ]
+}

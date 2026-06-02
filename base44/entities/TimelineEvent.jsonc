@@ -1,0 +1,77 @@
+{
+  "name": "TimelineEvent",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "ID do projeto"
+    },
+    "product_id": {
+      "type": "string",
+      "description": "ID do produto (cada produto tem suas pr\u00f3prias etapas)"
+    },
+    "cronograma_id": {
+      "type": "string",
+      "description": "ID do cronograma associado"
+    },
+    "title": {
+      "type": "string",
+      "description": "T\u00edtulo da etapa"
+    },
+    "phase": {
+      "type": "string",
+      "enum": [
+        "planejamento_contrato",
+        "kickoff",
+        "diagnostico",
+        "onboarding_cliente",
+        "configuracao_migracao_hml",
+        "homologacao_base",
+        "migracao_prd_blackout",
+        "configuracao_prd",
+        "treinamento",
+        "go_live",
+        "operacao_assistida",
+        "encerramento_bastao"
+      ],
+      "description": "Fase do projeto"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "nao_iniciado",
+        "em_andamento",
+        "concluido",
+        "atrasado"
+      ],
+      "default": "nao_iniciado"
+    },
+    "progress": {
+      "type": "number",
+      "default": 0,
+      "description": "Percentual de conclus\u00e3o (0-100)"
+    },
+    "vertical": {
+      "type": "string",
+      "description": "Vertical associada (opcional)"
+    },
+    "order": {
+      "type": "number",
+      "default": 0,
+      "description": "Ordem de exibi\u00e7\u00e3o"
+    }
+  },
+  "required": [
+    "title",
+    "project_id",
+    "product_id"
+  ]
+}

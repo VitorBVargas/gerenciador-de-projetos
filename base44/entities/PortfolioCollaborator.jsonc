@@ -1,0 +1,55 @@
+{
+  "name": "PortfolioCollaborator",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nome completo do colaborador"
+    },
+    "role": {
+      "type": "string",
+      "description": "Cargo/fun\u00e7\u00e3o do colaborador"
+    },
+    "entity": {
+      "type": "string",
+      "description": "Entidade/\u00d3rg\u00e3o (ex: Betha, PM, CM)"
+    },
+    "vertical1": {
+      "type": "string",
+      "description": "Vertical principal de atua\u00e7\u00e3o (ex: Arrecada\u00e7\u00e3o, Educa\u00e7\u00e3o, Suporte, Extens\u00e3o, Migrador)"
+    },
+    "vertical2": {
+      "type": "string",
+      "description": "Segunda vertical de atua\u00e7\u00e3o (opcional)"
+    },
+    "portfolio": {
+      "type": "string",
+      "enum": [
+        "grandes_contas_sc_mg",
+        "grandes_contas_sc_sp",
+        "medias_contas"
+      ],
+      "description": "Portf\u00f3lio ao qual o colaborador pertence"
+    },
+    "email": {
+      "type": "string",
+      "description": "E-mail institucional"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Telefone de contato"
+    },
+    "department": {
+      "type": "string",
+      "description": "Setor/Departamento"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es"
+    }
+  },
+  "required": [
+    "name",
+    "entity"
+  ]
+}

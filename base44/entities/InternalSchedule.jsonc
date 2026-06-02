@@ -1,0 +1,63 @@
+{
+  "name": "InternalSchedule",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "ID do projeto interno"
+    },
+    "edt": {
+      "type": "string",
+      "description": "C\u00f3digo EDT original (ex: 1.2.3)"
+    },
+    "title": {
+      "type": "string",
+      "description": "Nome da etapa"
+    },
+    "responsible": {
+      "type": "string",
+      "description": "Respons\u00e1vel pela etapa"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "real_start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data real de in\u00edcio"
+    },
+    "real_end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data real de t\u00e9rmino"
+    },
+    "progress": {
+      "type": "number",
+      "default": 0,
+      "description": "Percentual de conclus\u00e3o (0-100)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "nao_iniciado",
+        "em_andamento",
+        "concluido",
+        "atrasado"
+      ],
+      "default": "nao_iniciado"
+    },
+    "order": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "title",
+    "project_id"
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "name": "DatabaseBackup",
+  "type": "object",
+  "properties": {
+    "filename": {
+      "type": "string",
+      "description": "Nome do arquivo de backup"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data/hora do backup"
+    },
+    "entity_count": {
+      "type": "number",
+      "description": "Quantidade de entidades no backup"
+    },
+    "total_records": {
+      "type": "number",
+      "description": "Total de registros no backup"
+    },
+    "backup_data_json": {
+      "type": "string",
+      "description": "Metadados do backup em JSON"
+    },
+    "backup_file_url": {
+      "type": "string",
+      "description": "URL do arquivo ZIP do backup"
+    },
+    "restored_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Quando foi restaurado (se foi)"
+    }
+  },
+  "required": [
+    "filename",
+    "timestamp",
+    "entity_count",
+    "total_records",
+    "backup_data_json"
+  ]
+}

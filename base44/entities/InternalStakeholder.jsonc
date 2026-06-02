@@ -1,0 +1,28 @@
+{
+  "name": "InternalStakeholder",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "ID do projeto interno"
+    },
+    "name": {
+      "type": "string",
+      "description": "Nome do stakeholder"
+    },
+    "role": {
+      "type": "string",
+      "description": "Cargo/Fun\u00e7\u00e3o"
+    },
+    "email": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name",
+    "project_id"
+  ]
+}

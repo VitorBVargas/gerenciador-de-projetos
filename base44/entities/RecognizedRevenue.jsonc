@@ -1,0 +1,43 @@
+{
+  "name": "RecognizedRevenue",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "ID do projeto"
+    },
+    "product_id": {
+      "type": "string",
+      "description": "ID do produto reconhecido"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Valor reconhecido"
+    },
+    "recognition_month": {
+      "type": "string",
+      "format": "date",
+      "description": "M\u00eas do reconhecimento"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "implantacao",
+        "recorrente"
+      ],
+      "default": "implantacao",
+      "description": "Tipo de receita reconhecida"
+    },
+    "vertical_name": {
+      "type": "string",
+      "description": "Nome da vertical quando reconhecimento em lote"
+    }
+  },
+  "required": [
+    "project_id",
+    "product_id",
+    "amount",
+    "recognition_month",
+    "type"
+  ]
+}

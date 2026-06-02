@@ -1,0 +1,44 @@
+{
+  "name": "InternalProject",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nome do projeto interno"
+    },
+    "manager": {
+      "type": "string",
+      "description": "Respons\u00e1vel pelo projeto"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o do projeto"
+    },
+    "budget": {
+      "type": "number",
+      "description": "Or\u00e7amento do projeto"
+    },
+    "deadline": {
+      "type": "string",
+      "format": "date",
+      "description": "Prazo final"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "planejamento",
+        "em_andamento",
+        "pausado",
+        "concluido"
+      ],
+      "default": "planejamento"
+    },
+    "display_order": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

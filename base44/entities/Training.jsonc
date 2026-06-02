@@ -1,0 +1,59 @@
+{
+  "name": "Training",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "ID do projeto"
+    },
+    "title": {
+      "type": "string",
+      "description": "T\u00edtulo do treinamento"
+    },
+    "product": {
+      "type": "string",
+      "description": "Produto relacionado"
+    },
+    "vertical": {
+      "type": "string"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "time": {
+      "type": "string",
+      "description": "Hor\u00e1rio"
+    },
+    "location": {
+      "type": "string",
+      "enum": [
+        "presencial",
+        "remoto"
+      ],
+      "default": "remoto"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "agendado",
+        "realizado",
+        "cancelado"
+      ],
+      "default": "agendado"
+    },
+    "participants": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "title",
+    "project_id"
+  ]
+}
