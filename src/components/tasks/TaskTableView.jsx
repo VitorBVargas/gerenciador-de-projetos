@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Trash2, Pencil, Check, X } from 'lucide-react';
+import { Trash2, Pencil, Check, X, Loader2 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 /**
@@ -12,8 +12,10 @@ import { cn } from "@/lib/utils";
  * - onToggle: (task) => void
  * - onDelete: (taskId) => void
  * - onRename: (task, newTitle) => void   // newTitle = apenas o nome da ação (sem prefixo ||seção||)
+ * - onMarkAll: (sectionTasks, completed) => void   // opcional — habilita botão "Marcar todos" por seção
+ * - markingDisabled: boolean   // opcional — desabilita o botão enquanto processa
  */
-export default function TaskTableView({ sections, onToggle, onDelete, onRename }) {
+export default function TaskTableView({ sections, onToggle, onDelete, onRename, onMarkAll, markingDisabled = false }) {
   const [editingId, setEditingId] = useState(null);
   const [editValue, setEditValue] = useState('');
   const inputRef = useRef(null);
@@ -66,11 +68,31 @@ export default function TaskTableView({ sections, onToggle, onDelete, onRename }
             <React.Fragment key={`${section.name}-${sIdx}`}>
               {/* Header da etapa macro */}
               <tr className="bg-cyan-500/10 border-y border-cyan-500/20">
-                <td colSpan={5} className="px-4 py-2 text-cyan-300 font-semibold text-xs uppercase tracking-wide">
-                  {section.name}
-                  <span className="ml-2 text-slate-400 normal-case font-normal">
-                    ({section.tasks.filter(t => t.completed).length}/{section.tasks.length})
-                  </span>
+                <td colSpan={5} className="px-4 py-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="text-cyan-300 font-semibold text-xs uppercase tracking-wide">
+                      {section.name}
+                      <span className="ml-2 text-slate-400 normal-case font-normal">
+                        ({section.tasks.filter(t => t.completed).length}/{section.tasks.length})
+                      </span>
+                    </div>
+                    {onMarkAll && section.tasks.length > 0 && (() => {
+                      const allDone = section.tasks.every(t => t.completed);
+                      return (
+                        <button
+                          onClick={() => onMarkAll(section.tasks, !allDone)}
+                          disabled={markingDisabled}
+                          className="text-[10px] px-2 py-0.5 rounded border border-green-500/30 text-green-400 hover:bg-green-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 normal-case"
+                        >
+                          {markingDisabled ? (
+                            <><Loader2 className="w-3 h-3 animate-spin" />Processando...</>
+                          ) : (
+                            allDone ? 'Desmarcar' : 'Marcar todos'
+                          )}
+                        </button>
+                      );
+                    })()}
+                  </div>
                 </td>
               </tr>
               {/* Linhas das tarefas */}
