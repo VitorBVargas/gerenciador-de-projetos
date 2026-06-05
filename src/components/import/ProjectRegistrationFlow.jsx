@@ -183,8 +183,9 @@ function StepOverview({ data, onChange }) {
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
-          <Label className="text-slate-300">Assinatura do Contrato</Label>
+          <Label className="text-slate-300">Assinatura do Contrato *</Label>
           <Input type="date" value={data.contract_signature_date || ''} onChange={e => handleSignatureChange(e.target.value)}
+            required
             className="bg-slate-700 border-slate-600 text-white" />
         </div>
         <div className="space-y-1.5">
@@ -649,7 +650,7 @@ export default function ProjectRegistrationFlow({ open, onOpenChange, parsedData
   };
 
   const canNext = () => {
-    if (step === 0) return projectInfo.name.trim().length > 0 && projectInfo.portfolio;
+    if (step === 0) return projectInfo.name.trim().length > 0 && projectInfo.portfolio && !!projectInfo.contract_signature_date && !!projectInfo.deadline;
     if (step === 1) return cronogramas.length > 0;
     return true;
   };
@@ -727,6 +728,13 @@ export default function ProjectRegistrationFlow({ open, onOpenChange, parsedData
               <Button onClick={() => setStep(s => s + 1)} disabled={!canNext()} className="bg-blue-600 hover:bg-blue-700">
                 Próximo <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
+              {step === 0 && !canNext() && (
+                <span className="text-xs text-amber-400">
+                  {!projectInfo.name.trim() || !projectInfo.portfolio
+                    ? 'Preencha Nome e Portfólio'
+                    : 'Informe a Assinatura do Contrato e o Prazo Contratual'}
+                </span>
+              )}
               {step === 1 && !canNext() && (
                 <span className="text-xs text-amber-400">Adicione pelo menos 1 cronograma com datas</span>
               )}
