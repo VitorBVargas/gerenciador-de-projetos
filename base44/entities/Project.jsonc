@@ -54,10 +54,15 @@
       "default": 0,
       "description": "Or\u00e7amento Estimado Implanta\u00e7\u00e3o"
     },
+    "contract_signature_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de assinatura do contrato"
+    },
     "deadline": {
       "type": "string",
       "format": "date",
-      "description": "Prazo final"
+      "description": "Prazo contratual final"
     },
     "contract_link": {
       "type": "string",
