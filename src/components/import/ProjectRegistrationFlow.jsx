@@ -13,8 +13,6 @@ import { ptBR } from 'date-fns/locale';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import StepCronograma from './StepCronograma';
-
-const IMPLEMENTATION_OPTIONS = [60, 90, 120, 180];
 // useQuery still used by StepTeam
 
 const PORTFOLIOS = [
@@ -231,28 +229,25 @@ function StepOverview({ data, onChange }) {
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-2">
-              {IMPLEMENTATION_OPTIONS.map((days) => {
-                const selected = String(days) === implantationDays;
-                return (
-                  <button
-                    key={days}
-                    type="button"
-                    onClick={() => setImplantationDays(String(days))}
-                    className={`rounded-lg border p-3 text-left transition-all ${
-                      selected
-                        ? 'border-blue-500 bg-blue-500/10 text-white'
-                        : 'border-slate-600 bg-slate-900/40 text-slate-300 hover:border-slate-500'
-                    }`}
-                  >
-                    <div className="text-lg font-bold">{days} dias</div>
-                    <div className="text-xs text-slate-400">corridos</div>
-                  </button>
-                );
-              })}
+            <div className="space-y-1.5">
+              <Label className="text-slate-300 text-xs">Quantidade de dias corridos</Label>
+              <div className="relative">
+                <Input
+                  type="number"
+                  min={1}
+                  value={implantationDays}
+                  onChange={e => setImplantationDays(e.target.value)}
+                  placeholder="Ex: 90"
+                  className="bg-slate-700 border-slate-600 text-white pr-14"
+                  autoFocus
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none">
+                  dias
+                </span>
+              </div>
             </div>
 
-            {pendingSignatureDate && implantationDays && (
+            {pendingSignatureDate && implantationDays && parseInt(implantationDays, 10) > 0 && (
               <div className="rounded-lg bg-blue-500/10 border border-blue-500/30 p-3 text-sm">
                 <div className="text-blue-300">Prazo Contratual calculado</div>
                 <div className="text-white font-semibold">
@@ -267,7 +262,9 @@ function StepOverview({ data, onChange }) {
               className="border-slate-600 text-slate-300 hover:bg-slate-700">
               Cancelar
             </Button>
-            <Button type="button" onClick={handleConfirmImplantation} className="bg-blue-600 hover:bg-blue-700">
+            <Button type="button" onClick={handleConfirmImplantation}
+              disabled={!implantationDays || parseInt(implantationDays, 10) <= 0}
+              className="bg-blue-600 hover:bg-blue-700">
               Confirmar
             </Button>
           </SubDialogFooter>
