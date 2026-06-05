@@ -149,26 +149,39 @@ export default function ProjectModal({ open, onOpenChange, project, onSave }) {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="contract_signature_date">Assinatura do Contrato</Label>
+                <Label htmlFor="contract_signature_date" className="text-sm">Assinatura do Contrato</Label>
                 <Input
                   id="contract_signature_date"
                   type="date"
                   value={formData.contract_signature_date}
                   onChange={(e) => handleSignatureChange(e.target.value)}
-                  className="bg-slate-700 border-slate-600 text-white"
+                  className="bg-slate-700 border-slate-600 text-white w-full"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="deadline">Prazo Contratual</Label>
+                <Label htmlFor="deadline" className="text-sm">Prazo Contratual</Label>
                 <Input
                   id="deadline"
                   type="date"
                   value={formData.deadline}
                   onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
-                  className="bg-slate-700 border-slate-600 text-white"
+                  className="bg-slate-700 border-slate-600 text-white w-full"
+                  readOnly
                 />
               </div>
             </div>
+            {formData.contract_signature_date && formData.deadline && (
+              <button
+                type="button"
+                onClick={() => {
+                  setPendingSignatureDate(formData.contract_signature_date);
+                  setShowImplantationModal(true);
+                }}
+                className="text-xs text-blue-400 hover:text-blue-300 underline"
+              >
+                Recalcular Prazo Contratual
+              </button>
+            )}
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
               <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
@@ -233,7 +246,7 @@ export default function ProjectModal({ open, onOpenChange, project, onSave }) {
       </Dialog>
 
       <Dialog open={showImplantationModal} onOpenChange={setShowImplantationModal}>
-        <DialogContent className="bg-slate-800 border-slate-700 text-slate-100 max-w-md">
+        <DialogContent className="bg-slate-800 border-slate-700 text-slate-100 max-w-md z-[60]">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold text-white flex items-center gap-2">
               <CalendarClock className="w-5 h-5 text-blue-400" />
