@@ -6,10 +6,15 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ChevronLeft, ChevronRight, Check, X, Plus, Search, Loader2, Crown } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Check, X, Plus, Search, Loader2, Crown, CalendarClock } from 'lucide-react';
+import { Dialog as SubDialog, DialogContent as SubDialogContent, DialogHeader as SubDialogHeader, DialogTitle as SubDialogTitle, DialogDescription as SubDialogDescription, DialogFooter as SubDialogFooter } from "@/components/ui/dialog";
+import { format, addDays, parseISO } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import StepCronograma from './StepCronograma';
+
+const IMPLEMENTATION_OPTIONS = [60, 90, 120, 180];
 // useQuery still used by StepTeam
 
 const PORTFOLIOS = [
@@ -69,6 +74,31 @@ function RangeSlider({ value, onChange, label, color = 'blue' }) {
 // ─── STEP 1: Visão Geral ───────────────────────────────────────────────────
 function StepOverview({ data, onChange }) {
   const [managerInput, setManagerInput] = useState('');
+  const [showImplantationModal, setShowImplantationModal] = useState(false);
+  const [implantationDays, setImplantationDays] = useState('90');
+  const [pendingSignatureDate, setPendingSignatureDate] = useState('');
+
+  const handleSignatureChange = (value) => {
+    onChange({ ...data, contract_signature_date: value });
+    if (value) {
+      setPendingSignatureDate(value);
+      setShowImplantationModal(true);
+    }
+  };
+
+  const handleConfirmImplantation = () => {
+    const days = parseInt(implantationDays, 10);
+    if (pendingSignatureDate && days) {
+      const signature = parseISO(pendingSignatureDate);
+      const deadline = addDays(signature, days);
+      onChange({
+        ...data,
+        contract_signature_date: pendingSignatureDate,
+        deadline: format(deadline, 'yyyy-MM-dd')
+      });
+    }
+    setShowImplantationModal(false);
+  };
 
   const addManager = () => {
     const name = managerInput.trim();
@@ -153,16 +183,95 @@ function StepOverview({ data, onChange }) {
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
-          <Label className="text-slate-300">Prazo Contratual</Label>
-          <Input type="date" value={data.deadline} onChange={e => onChange({ ...data, deadline: e.target.value })}
+          <Label className="text-slate-300">Assinatura do Contrato</Label>
+          <Input type="date" value={data.contract_signature_date || ''} onChange={e => handleSignatureChange(e.target.value)}
             className="bg-slate-700 border-slate-600 text-white" />
         </div>
         <div className="space-y-1.5">
-          <Label className="text-slate-300">Orçamento do Projeto (R$)</Label>
-          <Input type="number" value={data.budget} onChange={e => onChange({ ...data, budget: e.target.value })}
-            placeholder="0,00" className="bg-slate-700 border-slate-600 text-white" />
+          <Label className="text-slate-300">Prazo Contratual</Label>
+          <Input type="date" value={data.deadline} readOnly
+            className="bg-slate-700 border-slate-600 text-white cursor-not-allowed" />
+          {data.contract_signature_date && data.deadline && (
+            <button type="button"
+              onClick={() => { setPendingSignatureDate(data.contract_signature_date); setShowImplantationModal(true); }}
+              className="text-xs text-blue-400 hover:text-blue-300 underline">
+              Recalcular Prazo Contratual
+            </button>
+          )}
         </div>
       </div>
+
+      <div className="space-y-1.5">
+        <Label className="text-slate-300">Orçamento do Projeto (R$)</Label>
+        <Input type="number" value={data.budget} onChange={e => onChange({ ...data, budget: e.target.value })}
+          placeholder="0,00" className="bg-slate-700 border-slate-600 text-white" />
+      </div>
+
+      {/* Modal: Tempo de Implantação */}
+      <SubDialog open={showImplantationModal} onOpenChange={setShowImplantationModal}>
+        <SubDialogContent className="bg-slate-800 border-slate-700 text-slate-100 max-w-md z-[60]">
+          <SubDialogHeader>
+            <SubDialogTitle className="text-xl font-bold text-white flex items-center gap-2">
+              <CalendarClock className="w-5 h-5 text-blue-400" />
+              Tempo de Implantação
+            </SubDialogTitle>
+            <SubDialogDescription className="text-slate-400">
+              Escolha o prazo de implantação previsto em contrato. O Prazo Contratual será calculado automaticamente a partir da data de assinatura.
+            </SubDialogDescription>
+          </SubDialogHeader>
+
+          <div className="space-y-4 py-2">
+            {pendingSignatureDate && (
+              <div className="rounded-lg bg-slate-900/60 border border-slate-700 p-3 text-sm">
+                <div className="text-slate-400">Assinatura do Contrato</div>
+                <div className="text-white font-semibold">
+                  {format(parseISO(pendingSignatureDate), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-2">
+              {IMPLEMENTATION_OPTIONS.map((days) => {
+                const selected = String(days) === implantationDays;
+                return (
+                  <button
+                    key={days}
+                    type="button"
+                    onClick={() => setImplantationDays(String(days))}
+                    className={`rounded-lg border p-3 text-left transition-all ${
+                      selected
+                        ? 'border-blue-500 bg-blue-500/10 text-white'
+                        : 'border-slate-600 bg-slate-900/40 text-slate-300 hover:border-slate-500'
+                    }`}
+                  >
+                    <div className="text-lg font-bold">{days} dias</div>
+                    <div className="text-xs text-slate-400">corridos</div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {pendingSignatureDate && implantationDays && (
+              <div className="rounded-lg bg-blue-500/10 border border-blue-500/30 p-3 text-sm">
+                <div className="text-blue-300">Prazo Contratual calculado</div>
+                <div className="text-white font-semibold">
+                  {format(addDays(parseISO(pendingSignatureDate), parseInt(implantationDays, 10)), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <SubDialogFooter>
+            <Button type="button" variant="outline" onClick={() => setShowImplantationModal(false)}
+              className="border-slate-600 text-slate-300 hover:bg-slate-700">
+              Cancelar
+            </Button>
+            <Button type="button" onClick={handleConfirmImplantation} className="bg-blue-600 hover:bg-blue-700">
+              Confirmar
+            </Button>
+          </SubDialogFooter>
+        </SubDialogContent>
+      </SubDialog>
 
       <div className="space-y-1.5">
         <Label className="text-slate-300">Link do Contrato</Label>
@@ -492,7 +601,7 @@ export default function ProjectRegistrationFlow({ open, onOpenChange, parsedData
 
   const [projectInfo, setProjectInfo] = useState({
     name: '', managers: [], coordinator: '', portfolio_manager: '',
-    portfolio: '', deadline: '', budget: '', contract_link: '',
+    portfolio: '', contract_signature_date: '', deadline: '', budget: '', contract_link: '',
   });
   const [cronogramas, setCronogramas] = useState([]);
   const [team, setTeam] = useState([]);
