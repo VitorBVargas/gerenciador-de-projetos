@@ -26,13 +26,18 @@ export default function FecharChamadosImporter({ items, portfolio, onDone }) {
   const [result, setResult] = useState(null); // { updated, notFound, skipped }
   const inputRef = useRef(null);
 
+  const norm = (s) => String(s || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase();
+
   const findHeaderRow = (rows) => {
-    // Procura a linha com cabeçalhos "Chave" e "Situação"
-    for (let i = 0; i < Math.min(rows.length, 10); i++) {
+    // Procura a linha com cabeçalhos "Chave" e "Situação" (sem acento, case-insensitive)
+    for (let i = 0; i < Math.min(rows.length, 15); i++) {
       const row = rows[i] || [];
-      const hasChave = row.some(c => String(c).trim().toLowerCase() === 'chave');
-      const hasSituacao = row.some(c => String(c).trim().toLowerCase() === 'situação' || String(c).trim().toLowerCase() === 'situacao');
-      if (hasChave && hasSituacao) return i;
+      const cells = row.map(norm);
+      if (cells.includes('chave') && cells.includes('situacao')) return i;
     }
     return -1;
   };
@@ -45,10 +50,19 @@ export default function FecharChamadosImporter({ items, portfolio, onDone }) {
     setResult(null);
 
     try {
-      const buffer = await file.arrayBuffer();
-      const wb = XLSX.read(buffer, { type: 'array' });
-      const sheet = wb.Sheets[wb.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+      const isCsv = file.name.toLowerCase().endsWith('.csv');
+      let rows;
+      if (isCsv) {
+        const text = await file.text();
+        const wb = XLSX.read(text, { type: 'string' });
+        const sheet = wb.Sheets[wb.SheetNames[0]];
+        rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+      } else {
+        const buffer = await file.arrayBuffer();
+        const wb = XLSX.read(buffer, { type: 'array' });
+        const sheet = wb.Sheets[wb.SheetNames[0]];
+        rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+      }
 
       const headerIdx = findHeaderRow(rows);
       if (headerIdx === -1) {
@@ -58,9 +72,9 @@ export default function FecharChamadosImporter({ items, portfolio, onDone }) {
         return;
       }
 
-      const headers = rows[headerIdx].map(c => String(c).trim().toLowerCase());
+      const headers = rows[headerIdx].map(norm);
       const chaveIdx = headers.findIndex(h => h === 'chave');
-      const situacaoIdx = headers.findIndex(h => h === 'situação' || h === 'situacao');
+      const situacaoIdx = headers.findIndex(h => h === 'situacao');
 
       // Monta pares chave → situação a partir das linhas de dados
       const planilhaItens = [];
