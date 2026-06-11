@@ -41,7 +41,51 @@
     },
     "mitigation": {
       "type": "string",
-      "description": "Plano de mitiga\u00e7\u00e3o"
+      "description": "Plano de mitiga\u00e7\u00e3o / a\u00e7\u00e3o preventiva"
+    },
+    "corrective_action": {
+      "type": "string",
+      "description": "A\u00e7\u00e3o corretiva sugerida"
+    },
+    "suggested_owner": {
+      "type": "string",
+      "description": "Respons\u00e1vel sugerido pela IA"
+    },
+    "phase": {
+      "type": "string",
+      "description": "Fase do projeto associada ao risco (kickoff, diagnostico, migracao, homologacao, treinamento, go_live, etc.)"
+    },
+    "gut_g": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "GUT - Gravidade"
+    },
+    "gut_u": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "GUT - Urg\u00eancia"
+    },
+    "gut_t": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "GUT - Tend\u00eancia"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "ia",
+        "ia_dinamico"
+      ],
+      "default": "manual",
+      "description": "Origem do risco (manual ou gerado pela IA)"
+    },
+    "ai_rationale": {
+      "type": "string",
+      "description": "Justificativa da IA para sugerir este risco"
     },
     "status": {
       "type": "string",

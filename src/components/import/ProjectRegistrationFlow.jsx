@@ -47,7 +47,13 @@ const STEPS = [
   { id: 'cronograma', label: 'Cronograma', icon: '📅' },
   { id: 'team', label: 'Equipe', icon: '👥' },
   { id: 'stakeholders', label: 'Stakeholders', icon: '🤝' },
-  { id: 'risks', label: 'Riscos', icon: '⚠️' },
+];
+
+const MUNICIPALITY_SIZES = [
+  { value: 'pequeno', label: 'Pequeno (< 50k hab)' },
+  { value: 'medio', label: 'Médio (50k – 200k)' },
+  { value: 'grande', label: 'Grande (200k – 1M)' },
+  { value: 'metropole', label: 'Metrópole (> 1M)' },
 ];
 
 function RangeSlider({ value, onChange, label, color = 'blue' }) {
@@ -204,6 +210,32 @@ function StepOverview({ data, onChange }) {
         <Label className="text-slate-300">Orçamento do Projeto (R$)</Label>
         <Input type="number" value={data.budget} onChange={e => onChange({ ...data, budget: e.target.value })}
           placeholder="0,00" className="bg-slate-700 border-slate-600 text-white" />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <Label className="text-slate-300">
+            Quantidade de Habitantes
+            <span className="text-slate-500 text-xs ml-1">(usado pela IA de Riscos)</span>
+          </Label>
+          <Input type="number" value={data.population || ''}
+            onChange={e => onChange({ ...data, population: e.target.value })}
+            placeholder="Ex: 75000"
+            className="bg-slate-700 border-slate-600 text-white" />
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-slate-300">Porte do Município</Label>
+          <Select value={data.municipality_size || ''} onValueChange={v => onChange({ ...data, municipality_size: v })}>
+            <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+              <SelectValue placeholder="Selecione..." />
+            </SelectTrigger>
+            <SelectContent className="bg-slate-800 border-slate-700">
+              {MUNICIPALITY_SIZES.map(s => (
+                <SelectItem key={s.value} value={s.value} className="text-white">{s.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Modal: Tempo de Implantação */}
@@ -499,8 +531,9 @@ function StepStakeholders({ stakeholders, setStakeholders }) {
   );
 }
 
-// ─── STEP 4: Riscos ────────────────────────────────────────────────────────
-function StepRisks({ risks, setRisks }) {
+// ─── STEP 4: Riscos (REMOVIDO — Agente "Gerente de Riscos IA" gera automaticamente) ──
+// eslint-disable-next-line no-unused-vars
+function StepRisks_DEPRECATED({ risks, setRisks }) {
   const empty = { title: '', description: '', category: 'tecnico', probability: 3, impact: 3, mitigation: '' };
   const [form, setForm] = useState(empty);
   const [adding, setAdding] = useState(false);
@@ -600,12 +633,12 @@ export default function ProjectRegistrationFlow({ open, onOpenChange, parsedData
   const [projectInfo, setProjectInfo] = useState({
     name: '', managers: [], coordinator: '', portfolio_manager: '',
     portfolio: '', contract_signature_date: '', deadline: '', budget: '', contract_link: '',
+    population: '', municipality_size: '',
   });
   const [cronogramas, setCronogramas] = useState([]);
   const [team, setTeam] = useState([]);
   const [teamLeaders, setTeamLeaders] = useState([]); // array of collab ids
   const [stakeholders, setStakeholders] = useState([]);
-  const [risks, setRisks] = useState([]);
 
   // Build product list from parsedData for StepCronograma
   const parsedProducts = React.useMemo(() => {
@@ -659,11 +692,13 @@ export default function ProjectRegistrationFlow({ open, onOpenChange, parsedData
         projectInfo: {
           ...projectInfo,
           manager: projectInfo.managers.join(', '),
+          population: projectInfo.population ? parseInt(projectInfo.population, 10) : undefined,
+          municipality_size: projectInfo.municipality_size || undefined,
         },
         cronogramas,
         team: team.map(m => ({ ...m, is_leader: teamLeaders.includes(m.id) })),
         stakeholders,
-        risks,
+        risks: [], // Riscos agora são gerados automaticamente pelo Gerente de Riscos IA
       });
     } catch (err) {
       console.error(err);
@@ -710,7 +745,6 @@ export default function ProjectRegistrationFlow({ open, onOpenChange, parsedData
           {step === 1 && <StepCronograma cronogramas={cronogramas} setCronogramas={setCronogramas} availableProducts={parsedProducts} />}
           {step === 2 && <StepTeam selected={team} onToggle={toggleTeam} leaders={teamLeaders} onToggleLeader={toggleLeader} portfolio={projectInfo.portfolio} />}
           {step === 3 && <StepStakeholders stakeholders={stakeholders} setStakeholders={setStakeholders} />}
-          {step === 4 && <StepRisks risks={risks} setRisks={setRisks} />}
         </div>
 
         {/* Footer */}

@@ -91,6 +91,40 @@
       "type": "boolean",
       "default": false,
       "description": "Ocultar este projeto do Status Executivo (n\u00e3o envia dados para o portf\u00f3lio)"
+    },
+    "population": {
+      "type": "number",
+      "description": "Quantidade de habitantes do munic\u00edpio"
+    },
+    "municipality_size": {
+      "type": "string",
+      "enum": [
+        "pequeno",
+        "medio",
+        "grande",
+        "metropole"
+      ],
+      "description": "Porte do munic\u00edpio (pequeno < 50k, m\u00e9dio 50-200k, grande 200k-1M, metr\u00f3pole > 1M)"
+    },
+    "risk_score": {
+      "type": "number",
+      "description": "Score geral de risco do projeto calculado pela IA (0-100)"
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": [
+        "muito_baixo",
+        "baixo",
+        "medio",
+        "alto",
+        "critico"
+      ],
+      "description": "Classifica\u00e7\u00e3o geral de risco do projeto"
+    },
+    "last_risk_analysis_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u00daltima an\u00e1lise autom\u00e1tica de riscos pela IA"
     }
   },
   "required": [

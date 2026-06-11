@@ -228,11 +228,15 @@ export default function CrmImporter({ open, onOpenChange, portfolioFilter = 'gra
       implementation_value: totalImpl,
       recurring_value: totalIncl,
       budget: formData.projectInfo.budget ? parseFloat(formData.projectInfo.budget) : 0,
+      contract_signature_date: formData.projectInfo.contract_signature_date || null,
       deadline: formData.projectInfo.deadline || null,
       contract_link: formData.projectInfo.contract_link || '',
+      documents_folder_link: formData.projectInfo.documents_folder_link || '',
       status: 'em_andamento',
       scheduling_type: formData.schedulingType || 'por_vertical',
-      portfolio: formData.projectInfo.portfolio
+      portfolio: formData.projectInfo.portfolio,
+      population: formData.projectInfo.population || undefined,
+      municipality_size: formData.projectInfo.municipality_size || undefined,
     });
 
     // 2. Criar produtos
@@ -395,22 +399,11 @@ export default function CrmImporter({ open, onOpenChange, portfolioFilter = 'gra
       );
     }
 
-    // 6. Criar riscos
-    if (formData.risks?.length > 0) {
-      await base44.entities.Risk.bulkCreate(
-        formData.risks.map(r => ({
-          project_id: project.id,
-          title: r.title,
-          category: r.category,
-          probability: r.probability,
-          impact: r.impact,
-          mitigation: r.mitigation || '',
-          status: 'em_monitoramento'
-        }))
-      );
-    }
+    // 6. Riscos agora são gerados pelo Gerente de Riscos IA (não há entrada manual)
 
-    // 7. Não precisa mais atualizar cache - ProductFinancialDates já foi populado
+    // 7. Disparar análise inicial de riscos com IA (não bloqueia o redirecionamento)
+    base44.functions.invoke('generateProjectRisksAI', { project_id: project.id, replace: true })
+      .catch(err => console.warn('Falha ao gerar riscos iniciais com IA:', err));
 
     // 8. Redirecionar
     window.location.href = `/dashboard?project_id=${project.id}`;

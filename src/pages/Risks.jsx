@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, AlertTriangle, Shield, Pencil, Trash2, X } from 'lucide-react';
+import { Plus, AlertTriangle, Shield, Pencil, Trash2, X, Sparkles, Loader2, Brain } from 'lucide-react';
+import { toast } from 'sonner';
 import { cn } from "@/lib/utils";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -296,6 +297,23 @@ export default function Risks() {
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['risks', projectId] }); setDeleteDialogOpen(false); setRiskToDelete(null); }
   });
 
+  const aiAnalysisMutation = useMutation({
+    mutationFn: async () => {
+      const res = await base44.functions.invoke('generateProjectRisksAI', { project_id: projectId, replace: true });
+      return res.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['risks', projectId] });
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      toast.success(`IA gerou ${data?.risks_created || 0} riscos`, {
+        description: data?.executive_summary || 'Análise concluída.',
+      });
+    },
+    onError: (err) => {
+      toast.error('Falha na análise de riscos', { description: err.message });
+    },
+  });
+
   const handleSave = (data) => {
     if (selectedRisk) updateMutation.mutate({ id: selectedRisk.id, data });
     else createMutation.mutate(data);
@@ -321,12 +339,59 @@ export default function Risks() {
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-white">Riscos do Projeto</h1>
-          <p className="text-slate-400 mt-1">Gerencie e monitore os riscos identificados</p>
+          <p className="text-slate-400 mt-1 flex items-center gap-2">
+            <Brain className="w-4 h-4 text-purple-400" />
+            Gerenciado pelo <span className="text-purple-300 font-medium">Gerente de Riscos IA</span>
+            {activeProject?.last_risk_analysis_at && (
+              <span className="text-xs text-slate-500">
+                · Última análise: {new Date(activeProject.last_risk_analysis_at).toLocaleString('pt-BR')}
+              </span>
+            )}
+          </p>
         </div>
-        <Button onClick={() => { setSelectedRisk(null); setModalOpen(true); }} className="bg-blue-600 hover:bg-blue-700">
-          <Plus className="w-4 h-4 mr-2" /> Adicionar Risco
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => aiAnalysisMutation.mutate()}
+            disabled={aiAnalysisMutation.isPending}
+            className="bg-purple-600 hover:bg-purple-700"
+          >
+            {aiAnalysisMutation.isPending
+              ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Analisando...</>
+              : <><Sparkles className="w-4 h-4 mr-2" /> Analisar com IA</>}
+          </Button>
+          <Button onClick={() => { setSelectedRisk(null); setModalOpen(true); }} className="bg-blue-600 hover:bg-blue-700">
+            <Plus className="w-4 h-4 mr-2" /> Adicionar Risco
+          </Button>
+        </div>
       </div>
+
+      {/* Score geral do projeto (IA) */}
+      {activeProject?.risk_level && (
+        <Card className="bg-gradient-to-br from-purple-500/10 to-slate-800/50 border-purple-500/30">
+          <CardContent className="p-5 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center">
+                <Brain className="w-6 h-6 text-purple-300" />
+              </div>
+              <div>
+                <p className="text-xs text-slate-400 uppercase tracking-wide">Score Geral de Risco (IA)</p>
+                <p className="text-2xl font-bold text-white">
+                  {activeProject.risk_score ?? '—'}
+                  <span className="text-sm text-slate-400 font-normal">/100</span>
+                </p>
+              </div>
+            </div>
+            <Badge className={cn('text-white text-sm px-3 py-1', {
+              'bg-green-600': activeProject.risk_level === 'muito_baixo' || activeProject.risk_level === 'baixo',
+              'bg-yellow-500': activeProject.risk_level === 'medio',
+              'bg-orange-500': activeProject.risk_level === 'alto',
+              'bg-red-600': activeProject.risk_level === 'critico',
+            })}>
+              {{ muito_baixo: 'Muito Baixo', baixo: 'Baixo', medio: 'Médio', alto: 'Alto', critico: 'Crítico' }[activeProject.risk_level]}
+            </Badge>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
@@ -377,6 +442,11 @@ export default function Risks() {
                                   <Badge className={cn('text-white text-xs', getSeverityColor(score))}>
                                     {getSeverityLabel(score)} ({score})
                                   </Badge>
+                                  {(risk.source === 'ia' || risk.source === 'ia_dinamico') && (
+                                    <Badge className="bg-purple-500/20 text-purple-300 border border-purple-500/30 text-xs gap-1">
+                                      <Sparkles className="w-2.5 h-2.5" /> IA
+                                    </Badge>
+                                  )}
                                 </div>
                                 <h3 className="font-semibold text-white text-sm">{risk.title}</h3>
                                 {risk.description && <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">{risk.description}</p>}
@@ -435,12 +505,23 @@ export default function Risks() {
         </div>
       ) : (
         <div className="text-center py-16">
-          <AlertTriangle className="w-12 h-12 mx-auto text-slate-600 mb-3" />
-          <h3 className="text-white font-semibold mb-1">Nenhum risco cadastrado</h3>
-          <p className="text-slate-400 text-sm mb-4">Identifique e registre os riscos do projeto</p>
-          <Button onClick={() => setModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
-            <Plus className="w-4 h-4 mr-2" /> Adicionar Risco
-          </Button>
+          <Brain className="w-12 h-12 mx-auto text-purple-400 mb-3" />
+          <h3 className="text-white font-semibold mb-1">Nenhum risco analisado ainda</h3>
+          <p className="text-slate-400 text-sm mb-4">Deixe o Gerente de Riscos IA analisar o projeto e gerar a matriz inicial</p>
+          <div className="flex gap-2 justify-center">
+            <Button
+              onClick={() => aiAnalysisMutation.mutate()}
+              disabled={aiAnalysisMutation.isPending}
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              {aiAnalysisMutation.isPending
+                ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Analisando...</>
+                : <><Sparkles className="w-4 h-4 mr-2" /> Analisar com IA</>}
+            </Button>
+            <Button onClick={() => setModalOpen(true)} variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-700">
+              <Plus className="w-4 h-4 mr-2" /> Adicionar Manual
+            </Button>
+          </div>
         </div>
       )}
 
