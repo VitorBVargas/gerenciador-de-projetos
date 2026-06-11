@@ -136,10 +136,14 @@ export const calculateHealthScore = ({ timeline, budget, spent, migrationTasks, 
 
   // --- 2. RISKS (35 pts) ---
   if (risks.length > 0) {
-    // Riscos críticos: probability >= 4 em atividade
-    const criticalRisks = risks.filter(r => r.probability >= 4 && (r.status === 'em_monitoramento' || r.status === 'em_andamento'));
-    // Riscos altos: probability === 3 em atividade
-    const highRisks = risks.filter(r => r.probability === 3 && (r.status === 'em_monitoramento' || r.status === 'em_andamento'));
+    // Considera ativos: identificado, em_monitoramento, em_andamento (mitigado fica de fora)
+    const isActive = (r) => r.status === 'identificado' || r.status === 'em_monitoramento' || r.status === 'em_andamento';
+    // Critério severidade: usa score = probability * impact quando disponível, senão probability
+    const severityOf = (r) => (r.probability || 0) * (r.impact || 1);
+    // Críticos: score >= 16 (ex: 4x4) OU probability >= 4
+    const criticalRisks = risks.filter(r => isActive(r) && (severityOf(r) >= 16 || r.probability >= 4));
+    // Altos: score entre 9 e 15 OU probability === 3
+    const highRisks = risks.filter(r => isActive(r) && !(severityOf(r) >= 16 || r.probability >= 4) && (severityOf(r) >= 9 || r.probability === 3));
     
     const riskDeduction = Math.min(35, criticalRisks.length * 8 + highRisks.length * 3);
     score -= riskDeduction;
