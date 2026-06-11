@@ -24,7 +24,12 @@ const STATUS_COLORS = {
 
 const isDone = (s = '') => {
   const sl = s.toLowerCase();
-  return sl.includes('conclu') || sl.includes('entregue') || sl.includes('aprovad') || sl.includes('finaliz') || sl.includes('cancel') || sl.includes('recusad');
+  return sl.includes('conclu') || sl.includes('entregue') || sl.includes('aprovad') || sl.includes('finaliz') || sl.includes('cancel') || sl.includes('recusad') || sl.includes('atendid');
+};
+
+const isReprovado = (s = '') => {
+  const sl = s.toLowerCase();
+  return sl.includes('reprov');
 };
 
 const getSemaforo = (items, today, soon) => {
@@ -114,6 +119,7 @@ export default function EditalDashboard({ items }) {
         total: projectItems.length,
         atrasados: active.filter(i => i.data_prevista < today).length,
         concluidos: projectItems.filter(i => isDone(i.status)).length,
+        reprovados: projectItems.filter(i => isReprovado(i.status)).length,
         pendentes: projectItems.filter(i => !isDone(i.status)).length,
       };
     }).sort((a, b) => a.name.localeCompare(b.name));
@@ -186,6 +192,7 @@ export default function EditalDashboard({ items }) {
                   <p className="text-xs text-slate-300">{p.total} itens</p>
                   {p.atrasados > 0 && <p className="text-xs text-red-400 font-medium">{p.atrasados} atrasados</p>}
                   <p className="text-xs text-green-400">{p.concluidos} concluídos</p>
+                  {p.reprovados > 0 && <p className="text-xs text-orange-400">{p.reprovados} reprovados</p>}
                 </div>
               </div>
             ))}
