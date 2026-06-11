@@ -14,13 +14,20 @@ import {
 import { Button } from '@/components/ui/button';
 
 /**
- * Lê uma planilha do Service Desk (Jira) e atualiza o STATUS dos itens
- * já existentes no dashboard com base nas colunas:
- *   - B "Chave"    → casa com EditalItem.chamado OU EditalItem.chamado_link (contém)
- *   - J "Situação" → vira o novo status do item
+ * Lê uma planilha do Service Desk (Jira) com chamados FECHADOS e marca os
+ * itens correspondentes do dashboard como "Concluído".
  *
- * Não cria nada. Apenas atualiza itens existentes.
+ *   - Coluna "Chave" → casa com EditalItem.chamado OU EditalItem.chamado_link (contém)
+ *   - Coluna "Situação" → apenas usada como filtro: só fecha o item se a situação
+ *     na planilha indicar fechamento (Concluído / Resolvido / Fechado / Encerrado / Cancelado).
+ *
+ * Nunca muda o status para nada diferente de "Concluído".
+ * Itens não encontrados na planilha permanecem inalterados.
  */
+const STATUS_FECHADO = 'Concluído';
+const SITUACOES_QUE_FECHAM = [
+  'concluido', 'resolvido', 'fechado', 'encerrado', 'cancelado', 'done', 'closed', 'resolved'
+];
 export default function FecharChamadosImporter({ items, portfolio, onDone }) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState(null); // { updated, notFound, skipped }
@@ -102,17 +109,26 @@ export default function FecharChamadosImporter({ items, portfolio, onDone }) {
           return;
         }
 
-        if ((match.status || '').trim() === situacao) {
+        // Só fecha se a situação na planilha indicar fechamento
+        const situacaoNorm = norm(situacao);
+        const isFechado = SITUACOES_QUE_FECHAM.includes(situacaoNorm);
+        if (!isFechado) {
           skipped.push(chave);
           return;
         }
 
-        updates.push({ id: match.id, chave, novoStatus: situacao });
+        // Já estava concluído → não mexe
+        if (norm(match.status) === norm(STATUS_FECHADO)) {
+          skipped.push(chave);
+          return;
+        }
+
+        updates.push({ id: match.id, chave });
       });
 
-      // Aplica updates
+      // Aplica updates — sempre para "Concluído"
       for (const u of updates) {
-        await base44.entities.EditalItem.update(u.id, { status: u.novoStatus });
+        await base44.entities.EditalItem.update(u.id, { status: STATUS_FECHADO });
       }
 
       setResult({
