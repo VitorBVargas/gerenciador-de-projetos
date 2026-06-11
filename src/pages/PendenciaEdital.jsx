@@ -9,6 +9,7 @@ import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
 import EditalDashboard from '@/components/edital/EditalDashboard';
 import EditalTable from '@/components/edital/EditalTable';
+import FecharChamadosImporter from '@/components/edital/FecharChamadosImporter';
 
 const PORTFOLIO_LABELS = {
   grandes_contas_sc_mg: 'Grandes Contas SC/MG',
@@ -192,6 +193,13 @@ export default function PendenciaEdital() {
           <div className="flex items-center gap-3">
             {items.length > 0 && (
               <span className="text-xs text-slate-400">{items.length} itens</span>
+            )}
+            {items.length > 0 && (
+              <FecharChamadosImporter
+                items={items}
+                portfolio={portfolio}
+                onDone={() => queryClient.invalidateQueries({ queryKey: ['editalItems', portfolio] })}
+              />
             )}
             <label className={`cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-orange-600 hover:bg-orange-700 text-white transition-colors ${isImporting ? 'opacity-50 pointer-events-none' : ''}`}>
               {isImporting
