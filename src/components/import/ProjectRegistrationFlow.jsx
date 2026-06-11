@@ -212,30 +212,28 @@ function StepOverview({ data, onChange }) {
           placeholder="0,00" className="bg-slate-700 border-slate-600 text-white" />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-1.5">
-          <Label className="text-slate-300">
-            Quantidade de Habitantes
-            <span className="text-slate-500 text-xs ml-1">(usado pela IA de Riscos)</span>
-          </Label>
-          <Input type="number" value={data.population || ''}
-            onChange={e => onChange({ ...data, population: e.target.value })}
-            placeholder="Ex: 75000"
-            className="bg-slate-700 border-slate-600 text-white" />
-        </div>
-        <div className="space-y-1.5">
-          <Label className="text-slate-300">Porte do Município</Label>
-          <Select value={data.municipality_size || ''} onValueChange={v => onChange({ ...data, municipality_size: v })}>
-            <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-              <SelectValue placeholder="Selecione..." />
-            </SelectTrigger>
-            <SelectContent className="bg-slate-800 border-slate-700">
-              {MUNICIPALITY_SIZES.map(s => (
-                <SelectItem key={s.value} value={s.value} className="text-white">{s.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      <div className="space-y-1.5">
+        <Label className="text-slate-300">
+          Quantidade de Habitantes
+          <span className="text-slate-500 text-xs ml-1">(usado pela IA de Riscos — porte é calculado automaticamente)</span>
+        </Label>
+        <Input type="number" value={data.population || ''}
+          onChange={e => onChange({ ...data, population: e.target.value })}
+          placeholder="Ex: 75000"
+          className="bg-slate-700 border-slate-600 text-white" />
+        {data.population && (
+          <p className="text-xs text-slate-500">
+            Porte: <span className="text-slate-300 font-medium">
+              {(() => {
+                const p = parseInt(data.population, 10);
+                if (p < 50000) return 'Pequeno (< 50k)';
+                if (p < 200000) return 'Médio (50k – 200k)';
+                if (p < 1000000) return 'Grande (200k – 1M)';
+                return 'Metrópole (> 1M)';
+              })()}
+            </span>
+          </p>
+        )}
       </div>
 
       {/* Modal: Tempo de Implantação */}
@@ -688,12 +686,16 @@ export default function ProjectRegistrationFlow({ open, onOpenChange, parsedData
   const handleFinish = async () => {
     setSaving(true);
     try {
+      const pop = projectInfo.population ? parseInt(projectInfo.population, 10) : undefined;
+      const derivedSize = pop
+        ? (pop < 50000 ? 'pequeno' : pop < 200000 ? 'medio' : pop < 1000000 ? 'grande' : 'metropole')
+        : undefined;
       await onComplete({
         projectInfo: {
           ...projectInfo,
           manager: projectInfo.managers.join(', '),
-          population: projectInfo.population ? parseInt(projectInfo.population, 10) : undefined,
-          municipality_size: projectInfo.municipality_size || undefined,
+          population: pop,
+          municipality_size: derivedSize,
         },
         cronogramas,
         team: team.map(m => ({ ...m, is_leader: teamLeaders.includes(m.id) })),
