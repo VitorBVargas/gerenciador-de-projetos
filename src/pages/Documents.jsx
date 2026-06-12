@@ -190,22 +190,23 @@ export default function Documents() {
   const [bulkLoadingVertical, setBulkLoadingVertical] = useState(null);
   const [bulkProgress, setBulkProgress] = useState({ current: 0, total: 0 });
 
-  const handleMarkAllSentForVertical = async (vertical, verticalProducts) => {
-    setBulkLoadingVertical(vertical);
+  const handleBulkMarkForVertical = async (vertical, verticalProducts, mode /* 'sent' | 'signed' */) => {
+    setBulkLoadingVertical(`${vertical}__${mode}`);
     const today = new Date().toISOString().split('T')[0];
 
-    // Monta a fila apenas com o que ainda não está enviado
+    // Monta a fila apenas com o que ainda não está marcado
     const queue = [];
     verticalProducts.forEach(product => {
       DOCUMENTS.forEach(doc => {
         const ctrl = getControl(doc.key, product.id);
-        if (ctrl?.sent) return;
+        if (mode === 'sent' && ctrl?.sent) return;
+        if (mode === 'signed' && ctrl?.signed) return;
         queue.push({ doc, product, ctrl });
       });
     });
 
     if (queue.length === 0) {
-      toast.info('Todos já estavam marcados como enviados.');
+      toast.info(mode === 'sent' ? 'Todos já estavam enviados.' : 'Todos já estavam assinados.');
       setBulkLoadingVertical(null);
       return;
     }
@@ -215,14 +216,16 @@ export default function Documents() {
     // Processa sequencialmente (com retry) para não estourar rate limit
     for (let i = 0; i < queue.length; i++) {
       const { doc, product, ctrl } = queue[i];
+      const payload = mode === 'sent'
+        ? { sent: true, sent_date: today }
+        : { signed: true };
       const exec = () => ctrl
-        ? base44.entities.ProjectDocumentControl.update(ctrl.id, { sent: true, sent_date: today })
+        ? base44.entities.ProjectDocumentControl.update(ctrl.id, payload)
         : base44.entities.ProjectDocumentControl.create({
             project_id: projectId,
             document_type: doc.key,
             product_id: product.id,
-            sent: true,
-            sent_date: today,
+            ...payload,
           });
       try {
         await exec();
@@ -233,7 +236,7 @@ export default function Documents() {
       setBulkProgress({ current: i + 1, total: queue.length });
     }
 
-    toast.success(`${queue.length} documento(s) marcados como enviados.`);
+    toast.success(`${queue.length} documento(s) marcados como ${mode === 'sent' ? 'enviados' : 'assinados'}.`);
     queryClient.invalidateQueries({ queryKey: ['documentControls', projectId] });
     setBulkLoadingVertical(null);
     setBulkProgress({ current: 0, total: 0 });
@@ -501,24 +504,44 @@ export default function Documents() {
                               <span className={`text-xs ml-2 ${
                                 allSent ? 'text-green-400 font-semibold' : 'text-slate-500'
                               }`}>({verticalProducts.length})</span>
-                              {!allSent && (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (window.confirm(`Marcar todos os documentos da vertical "${vertical}" como Enviados?`)) {
-                                      handleMarkAllSentForVertical(vertical, verticalProducts);
-                                    }
-                                  }}
-                                  disabled={!!bulkLoadingVertical}
-                                  className="ml-auto text-[11px] flex items-center gap-1 px-2 py-1 rounded border border-blue-500/40 text-blue-300 hover:bg-blue-500/10 disabled:opacity-50"
-                                  title="Marcar todos os documentos desta vertical como Enviados"
-                                >
-                                  {bulkLoadingVertical === vertical ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
-                                  {bulkLoadingVertical === vertical
-                                    ? `Marcando ${bulkProgress.current}/${bulkProgress.total}...`
-                                    : 'Marcar tudo como enviado'}
-                                </button>
-                              )}
+                              {(() => {
+                                const sentKey = `${vertical}__sent`;
+                                const signedKey = `${vertical}__signed`;
+                                const isBusySent = bulkLoadingVertical === sentKey;
+                                const isBusySigned = bulkLoadingVertical === signedKey;
+                                return (
+                                  <div className="ml-auto flex items-center gap-1">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (window.confirm(`Marcar todos como Enviados em "${vertical}"?`)) {
+                                          handleBulkMarkForVertical(vertical, verticalProducts, 'sent');
+                                        }
+                                      }}
+                                      disabled={!!bulkLoadingVertical}
+                                      className="text-[10px] flex items-center gap-1 px-1.5 py-0.5 rounded border border-blue-500/40 text-blue-300 hover:bg-blue-500/10 disabled:opacity-50"
+                                      title="Marcar todos como Enviados"
+                                    >
+                                      {isBusySent ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : <Check className="w-2.5 h-2.5" />}
+                                      {isBusySent ? `${bulkProgress.current}/${bulkProgress.total}` : 'Enviado'}
+                                    </button>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (window.confirm(`Marcar todos como Assinados em "${vertical}"?`)) {
+                                          handleBulkMarkForVertical(vertical, verticalProducts, 'signed');
+                                        }
+                                      }}
+                                      disabled={!!bulkLoadingVertical}
+                                      className="text-[10px] flex items-center gap-1 px-1.5 py-0.5 rounded border border-green-500/40 text-green-300 hover:bg-green-500/10 disabled:opacity-50"
+                                      title="Marcar todos como Assinados"
+                                    >
+                                      {isBusySigned ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : <Check className="w-2.5 h-2.5" />}
+                                      {isBusySigned ? `${bulkProgress.current}/${bulkProgress.total}` : 'Assinado'}
+                                    </button>
+                                  </div>
+                                );
+                              })()}
                             </div>
                           </td>
                           {DOCUMENTS.map(doc => {
