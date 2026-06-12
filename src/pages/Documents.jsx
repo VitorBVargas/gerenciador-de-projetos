@@ -187,6 +187,48 @@ export default function Documents() {
     });
   };
 
+  const [bulkLoadingVertical, setBulkLoadingVertical] = useState(null);
+
+  const handleMarkAllSentForVertical = async (vertical, verticalProducts) => {
+    setBulkLoadingVertical(vertical);
+    const today = new Date().toISOString().split('T')[0];
+    try {
+      const tasks = [];
+      verticalProducts.forEach(product => {
+        DOCUMENTS.forEach(doc => {
+          const ctrl = getControl(doc.key, product.id);
+          if (ctrl?.sent) return; // já está enviado — não toca
+          if (ctrl) {
+            tasks.push(base44.entities.ProjectDocumentControl.update(ctrl.id, { sent: true, sent_date: today }));
+          } else {
+            tasks.push(base44.entities.ProjectDocumentControl.create({
+              project_id: projectId,
+              document_type: doc.key,
+              product_id: product.id,
+              sent: true,
+              sent_date: today,
+            }));
+          }
+        });
+      });
+      if (tasks.length === 0) {
+        toast.info('Todos já estavam marcados como enviados.');
+        return;
+      }
+      // Limita concorrência simples (lotes de 8) para não pesar
+      const CONCURRENCY = 8;
+      for (let i = 0; i < tasks.length; i += CONCURRENCY) {
+        await Promise.all(tasks.slice(i, i + CONCURRENCY));
+      }
+      toast.success(`${tasks.length} documento(s) marcados como enviados.`);
+      queryClient.invalidateQueries({ queryKey: ['documentControls', projectId] });
+    } catch (e) {
+      toast.error('Erro ao marcar em lote: ' + e.message);
+    } finally {
+      setBulkLoadingVertical(null);
+    }
+  };
+
   const handleToggleSigned = async (docType, productId = null) => {
     const ctrl = getControl(docType, productId);
     const newSigned = !(ctrl?.signed);
@@ -449,6 +491,22 @@ export default function Documents() {
                               <span className={`text-xs ml-2 ${
                                 allSent ? 'text-green-400 font-semibold' : 'text-slate-500'
                               }`}>({verticalProducts.length})</span>
+                              {!allSent && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (window.confirm(`Marcar todos os documentos da vertical "${vertical}" como Enviados?`)) {
+                                      handleMarkAllSentForVertical(vertical, verticalProducts);
+                                    }
+                                  }}
+                                  disabled={bulkLoadingVertical === vertical}
+                                  className="ml-auto text-[11px] flex items-center gap-1 px-2 py-1 rounded border border-blue-500/40 text-blue-300 hover:bg-blue-500/10 disabled:opacity-50"
+                                  title="Marcar todos os documentos desta vertical como Enviados"
+                                >
+                                  {bulkLoadingVertical === vertical ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                                  Marcar tudo como enviado
+                                </button>
+                              )}
                             </div>
                           </td>
                           {DOCUMENTS.map(doc => {
