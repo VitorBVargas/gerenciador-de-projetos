@@ -421,7 +421,7 @@ export async function generateClosureReportPDF({
   sectionCounter = 0;
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
 
-  const city = extractCityFromProjectName(project.name);
+  const city = (project.city && project.city.trim()) || extractCityFromProjectName(project.name);
 
   // === Datas-chave do projeto ===
   // Data de Início = primeira start_date das etapas de "planejamento_contrato" (fallback: assinatura do contrato, depois menor start_date qualquer)

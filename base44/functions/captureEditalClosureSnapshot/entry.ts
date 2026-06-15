@@ -58,8 +58,8 @@ Deno.serve(async (req) => {
     // Buscar itens de edital do portfólio
     const editalItems = await base44.asServiceRole.entities.EditalItem.filter({ portfolio: project.portfolio }).catch(() => []);
 
-    // Correlacionar por nome do projeto / cidade
-    const city = extractCity(project.name);
+    // Correlacionar por nome do projeto / cidade (usa city preenchida quando disponível)
+    const city = (project.city && project.city.trim()) || extractCity(project.name);
     const projectNameNorm = normalize(project.name);
     const cityNorm = normalize(city);
     const projectTokens = projectNameNorm.split(' ').filter(t => t.length >= 3 && !STOPWORDS.has(t));

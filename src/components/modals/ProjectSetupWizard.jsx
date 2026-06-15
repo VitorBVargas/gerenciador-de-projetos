@@ -25,6 +25,7 @@ export default function ProjectSetupWizard({ open, onOpenChange, project, onComp
   // Step 0 - Project
   const [projectData, setProjectData] = useState({
     name: project?.name || '',
+    city: project?.city || '',
     manager: project?.manager || '',
     coordinator: project?.coordinator || '',
     portfolio_manager: project?.portfolio_manager || '',
@@ -61,6 +62,7 @@ export default function ProjectSetupWizard({ open, onOpenChange, project, onComp
     if (project) {
       setProjectData({
         name: project.name || '',
+        city: project.city || '',
         manager: project.manager || '',
         coordinator: project.coordinator || '',
         portfolio_manager: project.portfolio_manager || '',
@@ -106,6 +108,7 @@ export default function ProjectSetupWizard({ open, onOpenChange, project, onComp
       // Update project
       await base44.entities.Project.update(project.id, {
         name: projectData.name,
+        city: projectData.city,
         manager: projectData.manager,
         coordinator: projectData.coordinator,
         portfolio_manager: projectData.portfolio_manager,
@@ -216,14 +219,25 @@ export default function ProjectSetupWizard({ open, onOpenChange, project, onComp
           {/* Step 0: Project Info */}
           {step === 0 && (
             <div className="space-y-4">
-              <div className="space-y-2">
-                <Label className="text-slate-300">Nome do Projeto *</Label>
-                <Input
-                  value={projectData.name}
-                  onChange={e => setProjectData(p => ({ ...p, name: e.target.value }))}
-                  placeholder="Ex: Altamira - Implantação Betha"
-                  className="bg-slate-700 border-slate-600 text-white"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-slate-300">Nome do Projeto *</Label>
+                  <Input
+                    value={projectData.name}
+                    onChange={e => setProjectData(p => ({ ...p, name: e.target.value }))}
+                    placeholder="Ex: Altamira - Implantação Betha"
+                    className="bg-slate-700 border-slate-600 text-white"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-300">Cidade</Label>
+                  <Input
+                    value={projectData.city}
+                    onChange={e => setProjectData(p => ({ ...p, city: e.target.value }))}
+                    placeholder="Ex: Ibirité/MG"
+                    className="bg-slate-700 border-slate-600 text-white"
+                  />
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">

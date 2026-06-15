@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 export default function ProjectModal({ open, onOpenChange, project, onSave }) {
   const [formData, setFormData] = useState({
     name: '',
+    city: '',
     manager: '',
     implementation_value: '',
     recurring_value: '',
@@ -22,6 +23,7 @@ export default function ProjectModal({ open, onOpenChange, project, onSave }) {
     if (project) {
       setFormData({
         name: project.name || '',
+        city: project.city || '',
         manager: project.manager || '',
         implementation_value: project.implementation_value || '',
         recurring_value: project.recurring_value || '',
@@ -34,6 +36,7 @@ export default function ProjectModal({ open, onOpenChange, project, onSave }) {
     } else {
       setFormData({
         name: '',
+        city: '',
         manager: '',
         implementation_value: '',
         recurring_value: '',
@@ -74,6 +77,16 @@ export default function ProjectModal({ open, onOpenChange, project, onSave }) {
               className="bg-slate-700 border-slate-600 text-white"
               placeholder="Nome do projeto"
               required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="city">Cidade</Label>
+            <Input
+              id="city"
+              value={formData.city}
+              onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+              className="bg-slate-700 border-slate-600 text-white"
+              placeholder="Ex: Ibirité/MG"
             />
           </div>
           <div className="space-y-2">

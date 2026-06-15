@@ -6,6 +6,10 @@
       "type": "string",
       "description": "Nome do projeto"
     },
+    "city": {
+      "type": "string",
+      "description": "Cidade do projeto (ex: Ibirit\u00e9/MG)"
+    },
     "portfolio": {
       "type": "string",
       "enum": [
