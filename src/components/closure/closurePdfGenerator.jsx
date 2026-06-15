@@ -287,7 +287,8 @@ export async function generateClosureReportPDF({
   licoes = [],
   cronogramas = [],
   migrationTasks = [],
-  homologationTasks = []
+  homologationTasks = [],
+  aiAnalysis = ''
 }) {
   pageCounter = 1;
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
@@ -745,6 +746,83 @@ export async function generateClosureReportPDF({
   doc.line(PAGE_W - MARGIN - 70, y + 10, PAGE_W - MARGIN, y + 10);
   doc.text('PMO', PAGE_W - MARGIN - 70, y + 14);
   doc.text('Aprovação Executiva', PAGE_W - MARGIN - 70, y + 18);
+
+  // ============ SEÇÃO 12: ANÁLISE EXECUTIVA IA ============
+  if (aiAnalysis && aiAnalysis.trim().length > 0) {
+    newPage(doc, project.name);
+    y = 20;
+    y = sectionTitle(doc, '12. Análise Executiva IA', y);
+
+    doc.setTextColor(...COLORS.textMuted);
+    doc.setFontSize(8);
+    doc.text('Parecer gerado pelo Agente de Encerramento Executivo (PMBOK • ERP • CS • Gestão Pública)', MARGIN, y);
+    y += 6;
+
+    // Renderiza o markdown como texto formatado simples
+    const lines = aiAnalysis.split('\n');
+    const contentW = PAGE_W - 2 * MARGIN;
+
+    for (const rawLine of lines) {
+      const line = rawLine.replace(/\r/g, '');
+
+      // H3 (### Título)
+      if (/^###\s+/.test(line)) {
+        const text = line.replace(/^###\s+/, '').replace(/\*\*/g, '');
+        y = ensureSpace(doc, y + 2, 10, project.name);
+        doc.setTextColor(...COLORS.primary);
+        doc.setFontSize(11);
+        doc.setFont(undefined, 'bold');
+        const wrapped = doc.splitTextToSize(text, contentW);
+        doc.text(wrapped, MARGIN, y);
+        y += wrapped.length * 5 + 2;
+        doc.setFont(undefined, 'normal');
+        continue;
+      }
+
+      // H2 (## Título)
+      if (/^##\s+/.test(line)) {
+        const text = line.replace(/^##\s+/, '').replace(/\*\*/g, '');
+        y = ensureSpace(doc, y + 3, 10, project.name);
+        doc.setTextColor(...COLORS.text);
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'bold');
+        const wrapped = doc.splitTextToSize(text, contentW);
+        doc.text(wrapped, MARGIN, y);
+        y += wrapped.length * 5.5 + 2;
+        doc.setFont(undefined, 'normal');
+        continue;
+      }
+
+      // Lista (- item ou * item)
+      if (/^\s*[-*]\s+/.test(line)) {
+        const text = line.replace(/^\s*[-*]\s+/, '').replace(/\*\*(.+?)\*\*/g, '$1');
+        y = ensureSpace(doc, y, 8, project.name);
+        doc.setTextColor(...COLORS.primary);
+        doc.setFontSize(9);
+        doc.text('•', MARGIN + 2, y + 3.5);
+        doc.setTextColor(...COLORS.text);
+        const wrapped = doc.splitTextToSize(text, contentW - 8);
+        doc.text(wrapped, MARGIN + 6, y + 3.5);
+        y += wrapped.length * 4.5 + 1;
+        continue;
+      }
+
+      // Linha vazia
+      if (line.trim() === '') {
+        y += 2;
+        continue;
+      }
+
+      // Parágrafo normal (com **bold** simples)
+      y = ensureSpace(doc, y, 8, project.name);
+      doc.setTextColor(...COLORS.text);
+      doc.setFontSize(9);
+      const cleanText = line.replace(/\*\*(.+?)\*\*/g, '$1');
+      const wrapped = doc.splitTextToSize(cleanText, contentW);
+      doc.text(wrapped, MARGIN, y + 3.5);
+      y += wrapped.length * 4.5 + 1;
+    }
+  }
 
   // Salvar
   const safeName = project.name.replace(/[^a-zA-Z0-9-_]/g, '_');
