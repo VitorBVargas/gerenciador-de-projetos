@@ -415,11 +415,31 @@ export async function generateClosureReportPDF({
     }
   }
 
-  // Edital items (filtrado pela cidade)
-  const cityNorm = (city || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  // Edital items — correlação por nome do projeto e cidade (match flexível)
+  const STOPWORDS = new Set([
+    'de','da','do','das','dos','e','a','o','as','os','em','para','com','por',
+    'prefeitura','municipal','municipio','município','camara','câmara','cm','pm',
+    'ipasi','sas','grp','govview','cloud','contas','grandes','medias','médias','sc','mg','sp'
+  ]);
+  const normalize = (s) => (s || '').toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ').trim();
+
+  const projectNameNorm = normalize(project.name);
+  const cityNorm = normalize(city);
+  const projectTokens = projectNameNorm.split(' ')
+    .filter(t => t.length >= 3 && !STOPWORDS.has(t));
+
   const relatedEdital = editalItems.filter(item => {
-    const proj = (item.projeto || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    return cityNorm && proj.includes(cityNorm);
+    const proj = normalize(item.projeto);
+    if (!proj) return false;
+    // 1) match direto pela cidade extraída
+    if (cityNorm && cityNorm.length >= 3 && proj.includes(cityNorm)) return true;
+    // 2) match por nome completo (qualquer direção)
+    if (projectNameNorm && (proj.includes(projectNameNorm) || projectNameNorm.includes(proj))) return true;
+    // 3) match por token significativo (ex.: "Ibirité" presente em ambos os lados)
+    return projectTokens.some(t => proj.includes(t));
   });
   const editalOpen = relatedEdital.filter(i => {
     const s = (i.status || '').toLowerCase();
