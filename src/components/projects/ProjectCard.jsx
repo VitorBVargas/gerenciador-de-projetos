@@ -8,6 +8,7 @@ import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../../utils';
 import ClosureReportButton from '../closure/ClosureReportButton';
+import AIAnalysisButton from '../closure/AIAnalysisButton';
 
 export default function ProjectCard({ project, deletingProjectId, onDelete }) {
   const [projectProducts, setProjectProducts] = useState([]);
@@ -88,6 +89,7 @@ export default function ProjectCard({ project, deletingProjectId, onDelete }) {
           </Button>
         </Link>
         <ClosureReportButton project={project} />
+        <AIAnalysisButton project={project} />
       </CardContent>
     </Card>
   );

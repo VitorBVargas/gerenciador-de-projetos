@@ -17,6 +17,7 @@ import CrmImporter from '../components/import/CrmImporter';
 import ProjectSetupWizard from '../components/modals/ProjectSetupWizard';
 import ProjectCard from '../components/projects/ProjectCard';
 import ClosureReportButton from '../components/closure/ClosureReportButton';
+import AIAnalysisButton from '../components/closure/AIAnalysisButton';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { deleteProjectCronogramas, completeProjectCronogramas } from '../functions/syncProjectCronogramas';
 import {
@@ -407,6 +408,7 @@ export default function ProjectsList() {
                     </Button>
                   </Link>
                   <ClosureReportButton project={project} />
+                  <AIAnalysisButton project={project} />
                 </CardContent>
               </Card>
                             </div>
