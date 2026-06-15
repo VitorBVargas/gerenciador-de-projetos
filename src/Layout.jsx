@@ -80,7 +80,8 @@ export default function Layout({ children, currentPageName }) {
     currentPageName === 'InternalDashboard' ||
     currentPageName === 'ExecutiveStatus' ||
     currentPageName === 'BackupManagement' ||
-    currentPageName === 'PendenciaEdital'
+    currentPageName === 'PendenciaEdital' ||
+    currentPageName === 'UserManagement'
   ) {
     return children;
   }

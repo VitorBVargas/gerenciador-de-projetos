@@ -16,6 +16,7 @@ import HorasApontamento from './pages/HorasApontamento';
 import Documents from './pages/Documents';
 import LicoesAprendidasPage from './pages/LicoesAprendidas';
 import KnowledgeBase from './pages/KnowledgeBase';
+import UserManagement from './pages/UserManagement';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -82,6 +83,11 @@ const AuthenticatedApp = () => {
         </LayoutWrapper>
       } />
       <Route path="/KnowledgeBase" element={<KnowledgeBase />} />
+      <Route path="/UserManagement" element={
+        <LayoutWrapper currentPageName="UserManagement">
+          <UserManagement />
+        </LayoutWrapper>
+      } />
       {Object.entries(Pages).map(([path, Page]) => (
         <Route
           key={path}
