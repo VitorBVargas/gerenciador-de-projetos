@@ -252,11 +252,13 @@ export function renderPostProjectViewSection(doc, indicators, helpers, COLORS) {
     doc.setTextColor(...colorByCategory(c.color, COLORS));
     doc.setFontSize(26);
     doc.setFont(undefined, 'bold');
-    doc.text(String(c.score), x + 5, cy + 32);
+    const scoreStr = String(c.score);
+    doc.text(scoreStr, x + 5, cy + 32);
+    const scoreWidth = doc.getTextWidth(scoreStr);
     doc.setFontSize(8);
     doc.setFont(undefined, 'normal');
     doc.setTextColor(...COLORS.textMuted);
-    doc.text(c.suffix, x + 5 + doc.getTextWidth(String(c.score)) + 1, cy + 32);
+    doc.text(c.suffix, x + 5 + scoreWidth + 2, cy + 32);
 
     // Classificação + semáforo
     doc.setTextColor(...COLORS.text);
