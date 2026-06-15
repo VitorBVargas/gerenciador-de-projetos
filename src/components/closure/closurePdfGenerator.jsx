@@ -25,6 +25,8 @@ import {
   renderRecommendationsSection,
   renderConsolidatedConclusionSection
 } from './accountHealthSections';
+import { evaluateHighlightProject, buildCommercialSummary, calculateBenchmark } from './executiveExtras';
+import { base44 } from '@/api/base44Client';
 
 // Paleta dark mode corporativa
 const COLORS = {
@@ -78,6 +80,7 @@ function drawFooter(doc) {
 }
 
 let pageCounter = 1;
+let sectionCounter = 0;
 
 function newPage(doc, projectName) {
   doc.addPage();
@@ -87,15 +90,62 @@ function newPage(doc, projectName) {
   drawFooter(doc);
 }
 
-function sectionTitle(doc, title, y) {
+function nextSection() {
+  sectionCounter += 1;
+  return sectionCounter;
+}
+
+function sectionTitle(doc, title, y, autoNumber = true) {
+  const finalTitle = autoNumber ? `${nextSection()}. ${title}` : title;
   doc.setFillColor(...COLORS.primary);
   doc.rect(MARGIN, y, 1.5, 8, 'F');
   doc.setTextColor(...COLORS.text);
   doc.setFontSize(14);
   doc.setFont(undefined, 'bold');
-  doc.text(title, MARGIN + 4, y + 6);
+  doc.text(finalTitle, MARGIN + 4, y + 6);
   doc.setFont(undefined, 'normal');
   return y + 12;
+}
+
+// Gauge semicircular para indicadores 0-100
+function drawGauge(doc, cx, cy, radius, value, label, colors = COLORS) {
+  const v = Math.max(0, Math.min(100, value));
+  // Arco de fundo (semicírculo)
+  doc.setDrawColor(...colors.bgAlt);
+  doc.setLineWidth(3);
+  const steps = 40;
+  for (let i = 0; i < steps; i++) {
+    const a1 = Math.PI + (i / steps) * Math.PI;
+    const a2 = Math.PI + ((i + 1) / steps) * Math.PI;
+    doc.line(
+      cx + radius * Math.cos(a1), cy + radius * Math.sin(a1),
+      cx + radius * Math.cos(a2), cy + radius * Math.sin(a2)
+    );
+  }
+  // Arco do valor
+  const valSteps = Math.round((v / 100) * steps);
+  const color = v >= 75 ? colors.success : v >= 50 ? colors.warning : colors.danger;
+  doc.setDrawColor(...color);
+  doc.setLineWidth(3);
+  for (let i = 0; i < valSteps; i++) {
+    const a1 = Math.PI + (i / steps) * Math.PI;
+    const a2 = Math.PI + ((i + 1) / steps) * Math.PI;
+    doc.line(
+      cx + radius * Math.cos(a1), cy + radius * Math.sin(a1),
+      cx + radius * Math.cos(a2), cy + radius * Math.sin(a2)
+    );
+  }
+  // Valor central
+  doc.setTextColor(...color);
+  doc.setFontSize(14);
+  doc.setFont(undefined, 'bold');
+  doc.text(String(v), cx, cy - 2, { align: 'center' });
+  doc.setFont(undefined, 'normal');
+  if (label) {
+    doc.setTextColor(...colors.textMuted);
+    doc.setFontSize(7);
+    doc.text(label, cx, cy + 5, { align: 'center' });
+  }
 }
 
 function kpiCard(doc, x, y, w, h, label, value, valueColor = COLORS.text) {
@@ -306,6 +356,7 @@ export async function generateClosureReportPDF({
   aiAnalysis = ''
 }) {
   pageCounter = 1;
+  sectionCounter = 0;
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
 
   const city = extractCityFromProjectName(project.name);
@@ -469,8 +520,8 @@ export async function generateClosureReportPDF({
     baselinesCount: baselines.length || 1
   });
 
-  // === Seção 1: Resumo Executivo ===
-  y = sectionTitle(doc, '1. Resumo Executivo', y);
+  // === Resumo Executivo ===
+  y = sectionTitle(doc, 'Resumo Executivo', y);
 
   const kpiW = (PAGE_W - 2 * MARGIN - 12) / 4;
   const kpiH = 18;
@@ -500,9 +551,9 @@ export async function generateClosureReportPDF({
     isi.color === 'green' ? COLORS.success : isi.color === 'lime' ? COLORS.success : isi.color === 'yellow' ? COLORS.warning : COLORS.danger);
   y += kpiH + 8;
 
-  // === Seção 2: Dados Gerais ===
+  // === Dados Gerais ===
   y = ensureSpace(doc, y, 60, project.name);
-  y = sectionTitle(doc, '2. Dados Gerais', y);
+  y = sectionTitle(doc, 'Dados Gerais', y);
   y = autoTable(doc,
     ['Campo', 'Valor'],
     [
@@ -521,10 +572,10 @@ export async function generateClosureReportPDF({
     y
   );
 
-  // === Seção 3: Cronograma Executivo ===
+  // === Cronograma Executivo ===
   if (timelineEvents.some(e => ['go_live', 'operacao_assistida', 'encerramento_bastao'].includes(e.phase))) {
     y = ensureSpace(doc, y, 70, project.name);
-    y = sectionTitle(doc, '3. Cronograma Executivo', y);
+    y = sectionTitle(doc, 'Cronograma Executivo', y);
 
     const phaseLabels = {
       go_live: 'Go Live',
@@ -564,10 +615,10 @@ export async function generateClosureReportPDF({
     }
   }
 
-  // === Seção 4: Histórico de Baselines ===
+  // === Histórico de Baselines ===
   if (baselines.length > 0) {
     y = ensureSpace(doc, y, 60, project.name);
-    y = sectionTitle(doc, '4. Histórico de Baselines', y);
+    y = sectionTitle(doc, 'Histórico de Baselines', y);
     const sorted = [...baselines].sort((a, b) => (a.version || 0) - (b.version || 0));
     const rows = sorted.map(b => [
       `V${b.version}`,
@@ -585,10 +636,10 @@ export async function generateClosureReportPDF({
     y += 8;
   }
 
-  // === Seção 5: Health Score ===
+  // === Health Score ===
   if (healthValues.length > 0) {
     y = ensureSpace(doc, y, 70, project.name);
-    y = sectionTitle(doc, '5. Health Score', y);
+    y = sectionTitle(doc, 'Health Score', y);
 
     const greenCount = healthValues.filter(v => v >= 80).length;
     const yellowCount = healthValues.filter(v => v >= 60 && v < 80).length;
@@ -608,12 +659,14 @@ export async function generateClosureReportPDF({
     kpiCard(doc, MARGIN + 2 * (periodW + 4), y, periodW, kpiH, 'Períodos vermelhos', redCount, COLORS.danger);
     y += kpiH + 6;
 
-    // Gráfico temporal (se houver pelo menos 2 snapshots)
+    // Gráfico temporal
+    y = ensureSpace(doc, y, 50, project.name);
+    doc.setTextColor(...COLORS.textMuted);
+    doc.setFontSize(9);
+    doc.text('Evolução temporal do Health Score:', MARGIN, y);
+    y += 2;
+
     if (healthSnapshots.length >= 2) {
-      y = ensureSpace(doc, y, 50, project.name);
-      doc.setTextColor(...COLORS.textMuted);
-      doc.setFontSize(9);
-      doc.text('Evolução temporal:', MARGIN, y);
       const sortedSnaps = [...healthSnapshots].sort((a, b) =>
         new Date(a.captured_at || a.created_date) - new Date(b.captured_at || b.created_date));
       const points = sortedSnaps.map(s => ({
@@ -622,13 +675,22 @@ export async function generateClosureReportPDF({
       }));
       drawLineChart(doc, MARGIN, y + 2, PAGE_W - 2 * MARGIN, 40, points);
       y += 46;
+    } else {
+      // Histórico insuficiente — mensagem informativa
+      doc.setFillColor(...COLORS.bgCard);
+      doc.roundedRect(MARGIN, y + 2, PAGE_W - 2 * MARGIN, 18, 2, 2, 'F');
+      doc.setTextColor(...COLORS.textMuted);
+      doc.setFontSize(9);
+      doc.text('Histórico insuficiente para geração da evolução.',
+        PAGE_W / 2, y + 13, { align: 'center' });
+      y += 24;
     }
   }
 
-  // === Seção 6: Riscos ===
+  // === Riscos ===
   if (risks.length > 0) {
     y = ensureSpace(doc, y, 60, project.name);
-    y = sectionTitle(doc, '6. Riscos', y);
+    y = sectionTitle(doc, 'Riscos', y);
 
     const w = (PAGE_W - 2 * MARGIN - 8) / 3;
     kpiCard(doc, MARGIN, y, w, kpiH, 'Total previstos', risks.length, COLORS.text);
@@ -651,10 +713,10 @@ export async function generateClosureReportPDF({
     y = autoTable(doc, ['Risco', 'Categoria', 'Score', 'Status'], rows, y);
   }
 
-  // === Seção 7: Pendências de Edital ===
+  // === Pendências de Edital ===
   if (relatedEdital.length > 0) {
     y = ensureSpace(doc, y, 60, project.name);
-    y = sectionTitle(doc, '7. Pendências de Edital', y);
+    y = sectionTitle(doc, 'Pendências de Edital', y);
     doc.setTextColor(...COLORS.textMuted);
     doc.setFontSize(8);
     doc.text(`Correlação por cidade: "${city}" — ${relatedEdital.length} item(ns) encontrado(s)`, MARGIN, y);
@@ -686,10 +748,10 @@ export async function generateClosureReportPDF({
     }
   }
 
-  // === Seção 8: Lições Aprendidas ===
+  // === Lições Aprendidas ===
   if (licoes.length > 0) {
     y = ensureSpace(doc, y, 60, project.name);
-    y = sectionTitle(doc, '8. Lições Aprendidas', y);
+    y = sectionTitle(doc, 'Lições Aprendidas', y);
     licoes.slice(0, 8).forEach(l => {
       y = ensureSpace(doc, y, 22, project.name);
       doc.setFillColor(...COLORS.bgCard);
