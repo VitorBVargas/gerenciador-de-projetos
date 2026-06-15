@@ -300,15 +300,16 @@ function drawCover(doc, data) {
   doc.line(MARGIN, 115, MARGIN + 40, 115);
 
   // Card central com dados
-  const cardY = 125;
+  const cardY = 122;
+  const cardH = 125;
   doc.setFillColor(...COLORS.bgCard);
-  doc.roundedRect(MARGIN, cardY, PAGE_W - 2 * MARGIN, 110, 3, 3, 'F');
+  doc.roundedRect(MARGIN, cardY, PAGE_W - 2 * MARGIN, cardH, 3, 3, 'F');
   doc.setDrawColor(...COLORS.border);
-  doc.roundedRect(MARGIN, cardY, PAGE_W - 2 * MARGIN, 110, 3, 3, 'S');
+  doc.roundedRect(MARGIN, cardY, PAGE_W - 2 * MARGIN, cardH, 3, 3, 'S');
 
   const labelX = MARGIN + 6;
   const valueX = MARGIN + 55;
-  let row = cardY + 12;
+  let row = cardY + 10;
   const rowH = 11;
 
   const lines = [
@@ -610,27 +611,6 @@ export async function generateClosureReportPDF({
   kpiCard(doc, MARGIN + (kpiW * 2 + 4) + 4, y, kpiW * 2 + 4, kpiH, 'Índice de Sucesso (ISI)', `${isi.score} • ${isi.classification}`,
     isi.color === 'green' ? COLORS.success : isi.color === 'lime' ? COLORS.success : isi.color === 'yellow' ? COLORS.warning : COLORS.danger);
   y += kpiH + 8;
-
-  // === Dados Gerais ===
-  y = ensureSpace(doc, y, 60, project.name);
-  y = sectionTitle(doc, 'Dados Gerais', y);
-  y = autoTable(doc,
-    ['Campo', 'Valor'],
-    [
-      ['Projeto', project.name],
-      ['Cidade', city || '—'],
-      ['Portfólio', PORTFOLIO_LABELS[project.portfolio] || '—'],
-      ['Gerente', project.manager || '—'],
-      ['Coordenador Técnico', project.coordinator || '—'],
-      ['Data de Início (Planejamento/Contrato)', formatDateBR(projectStartDate)],
-      ['Prazo Estimado (cronograma)', formatDateBR(estimatedEndDate)],
-      ['Data Real de Conclusão', formatDateBR(actualEndDate)],
-      ['Prazo Contratual', formatDateBR(project.deadline)],
-      ['Valor Contratado', formatCurrencyBR(project.implementation_value)],
-      ['Quantidade de Produtos', String(products.length)]
-    ],
-    y
-  );
 
   // === Cronograma Executivo ===
   if (timelineEvents.some(e => ['go_live', 'operacao_assistida', 'encerramento_bastao'].includes(e.phase))) {
