@@ -9,7 +9,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '../../utils';
 import ClosureReportButton from '../closure/ClosureReportButton';
 
-export default function ProjectCard({ project, deletingProjectId, onDelete }) {
+export default function ProjectCard({ project, deletingProjectId, onDelete, canDelete = true }) {
   const [projectProducts, setProjectProducts] = useState([]);
 
   useEffect(() => {
@@ -33,7 +33,7 @@ export default function ProjectCard({ project, deletingProjectId, onDelete }) {
             <CardTitle className="text-white text-lg mb-2">
               {deletingProjectId === project.id ? 'Excluindo...' : project.name}
             </CardTitle>
-            {deletingProjectId !== project.id && (
+            {deletingProjectId !== project.id && canDelete && (
               <Button
                 size="icon"
                 variant="ghost"

@@ -36,10 +36,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Sparkles } from 'lucide-react';
 import EntityFilter from '../components/filters/EntityFilter';
 import KeyDocuments from '../components/dashboard/KeyDocuments.jsx';
+import { useCurrentUser, canEditProject } from '@/lib/permissions';
 
 export default function Dashboard() {
   const queryClient = useQueryClient();
-  
+  const { user: currentUser } = useCurrentUser();
+  const canEdit = canEditProject(currentUser);
+
   // Get project_id from URL
   const urlParams = new URLSearchParams(window.location.search);
   const projectId = urlParams.get('project_id');
@@ -617,12 +620,14 @@ export default function Dashboard() {
             >
               🗺️ Bug / Melhoria
             </a>
-            <Button 
-              onClick={handleEditProject}
-              className="bg-slate-700 hover:bg-slate-600"
-            >
-              Editar Projeto
-            </Button>
+            {canEdit && (
+              <Button 
+                onClick={handleEditProject}
+                className="bg-slate-700 hover:bg-slate-600"
+              >
+                Editar Projeto
+              </Button>
+            )}
             <Button 
               onClick={() => setInsightsModalOpen(true)}
               className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"

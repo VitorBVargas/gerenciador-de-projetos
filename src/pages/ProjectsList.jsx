@@ -17,6 +17,7 @@ import CrmImporter from '../components/import/CrmImporter';
 import ProjectSetupWizard from '../components/modals/ProjectSetupWizard';
 import ProjectCard from '../components/projects/ProjectCard';
 import ClosureReportButton from '../components/closure/ClosureReportButton';
+import { useCurrentUser, canCreateProject, canDeleteProject } from '@/lib/permissions';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { deleteProjectCronogramas, completeProjectCronogramas } from '../functions/syncProjectCronogramas';
 import {
@@ -52,6 +53,9 @@ const portfolioLabels = {
 
 export default function ProjectsList() {
   const queryClient = useQueryClient();
+  const { user: currentUser } = useCurrentUser();
+  const canCreate = canCreateProject(currentUser);
+  const canDelete = canDeleteProject(currentUser);
   const urlParams = new URLSearchParams(window.location.search);
   const portfolioFilter = urlParams.get('portfolio') || 'grandes_contas_sc_mg';
   const [importModalOpen, setImportModalOpen] = useState(false);
@@ -173,7 +177,7 @@ export default function ProjectsList() {
   };
 
   const renderProjectCard = (project, index, isDraggable = false) => {
-    const cardEl = <ProjectCard project={project} deletingProjectId={deletingProjectId} onDelete={handleDelete} />;
+    const cardEl = <ProjectCard project={project} deletingProjectId={deletingProjectId} onDelete={handleDelete} canDelete={canDelete} />;
 
     if (isDraggable) {
       return (
@@ -239,20 +243,24 @@ export default function ProjectsList() {
                 Status Executivo
               </Button>
             </Link>
-            <Button
-              onClick={() => setCrmImportModalOpen(true)}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              <Upload className="w-4 h-4 mr-2" />
-              Cadastrar Novo Projeto
-            </Button>
-            <Button
-              onClick={() => setRecognitionImporterOpen(true)}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <BarChart2 className="w-4 h-4 mr-2" />
-              Reconhecimento
-            </Button>
+            {canCreate && (
+              <Button
+                onClick={() => setCrmImportModalOpen(true)}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Cadastrar Novo Projeto
+              </Button>
+            )}
+            {canCreate && (
+              <Button
+                onClick={() => setRecognitionImporterOpen(true)}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <BarChart2 className="w-4 h-4 mr-2" />
+                Reconhecimento
+              </Button>
+            )}
           </div>
         </div>
 
@@ -292,10 +300,12 @@ export default function ProjectsList() {
                    <Upload className="w-16 h-16 mx-auto mb-4 text-slate-600" />
                    <h3 className="text-xl font-semibold text-white mb-2">Nenhum projeto ativo</h3>
                    <p className="text-slate-400 mb-6">Importe um projeto do Excel para começar</p>
-                   <Button onClick={() => setCrmImportModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
-                     <Upload className="w-4 h-4 mr-2" />
-                     Importar Primeiro Projeto
-                   </Button>
+                   {canCreate && (
+                     <Button onClick={() => setCrmImportModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+                       <Upload className="w-4 h-4 mr-2" />
+                       Importar Primeiro Projeto
+                     </Button>
+                   )}
                  </CardContent>
                </Card>
              )}
@@ -359,7 +369,7 @@ export default function ProjectsList() {
                       <CardTitle className="text-white text-lg mb-2">
                         {deletingProjectId === project.id ? 'Excluindo...' : project.name}
                       </CardTitle>
-                      {deletingProjectId !== project.id && (
+                      {deletingProjectId !== project.id && canDelete && (
                         <Button
                           size="icon"
                           variant="ghost"
