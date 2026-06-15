@@ -421,7 +421,7 @@ export async function generateClosureReportPDF({
   sectionCounter = 0;
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
 
-  const city = (project.city && project.city.trim()) || extractCityFromProjectName(project.name);
+  const city = (project.city && project.city.trim()) || '';
 
   // === Datas-chave do projeto ===
   // Data de Início = primeira start_date das etapas de "planejamento_contrato" (fallback: assinatura do contrato, depois menor start_date qualquer)
@@ -771,16 +771,15 @@ export async function generateClosureReportPDF({
     kpiCard(doc, MARGIN + 3 * (w + 4), y, w, kpiH, 'Atrasados', editalOverdue.length, editalOverdue.length > 0 ? COLORS.danger : COLORS.success);
     y += kpiH + 6;
 
-    // --- Bloco 1: Itens em aberto NA DATA DE ENCERRAMENTO (snapshot) ---
-    const snapshotOpen = editalClosureSnapshot?.open_items || [];
-    const snapshotCount = editalClosureSnapshot?.open_count ?? (snapshotOpen.length || null);
+    // --- Bloco 1: Itens em aberto NA DATA DE ENCERRAMENTO (snapshot) — só quantidade ---
+    const snapshotCount = editalClosureSnapshot?.open_count ?? null;
 
-    y = ensureSpace(doc, y, 20, project.name);
+    y = ensureSpace(doc, y, 14, project.name);
     doc.setTextColor(...COLORS.text);
     doc.setFontSize(10);
     doc.setFont(undefined, 'bold');
     doc.text(
-      `Itens em aberto na data de encerramento${snapshotCount !== null ? ` — ${snapshotCount}` : ''}`,
+      `Itens em aberto na data de encerramento: ${snapshotCount !== null ? snapshotCount : '—'}`,
       MARGIN, y
     );
     doc.setFont(undefined, 'normal');
@@ -791,35 +790,28 @@ export async function generateClosureReportPDF({
       doc.setFontSize(7.5);
       doc.text(`Capturado em ${formatDateBR(editalClosureSnapshot.captured_at)}`, MARGIN, y);
       y += 4;
-    }
-
-    if (snapshotOpen.length > 0) {
-      const rows = snapshotOpen.slice(0, 20).map(i => [
-        i.numero_item || '—',
-        i.chamado || '—',
-        (i.item_edital || '—').substring(0, 55),
-        i.status || '—',
-        formatDateBR(i.data_prevista)
-      ]);
-      y = autoTable(doc, ['Nº Item', 'Chamado', 'Descrição', 'Status', 'Data Prevista'], rows, y);
-    } else {
+    } else if (snapshotCount === null) {
       doc.setTextColor(...COLORS.textMuted);
-      doc.setFontSize(8);
-      doc.text(
-        editalClosureSnapshot
-          ? 'Nenhum item em aberto no momento da conclusão.'
-          : 'Snapshot indisponível (projeto concluído antes do registro automático).',
-        MARGIN, y + 2
-      );
-      y += 8;
+      doc.setFontSize(7.5);
+      doc.text('Snapshot indisponível (projeto concluído antes do registro automático).', MARGIN, y);
+      y += 4;
     }
 
-    // --- Bloco 2: Itens em aberto ATUALMENTE ---
+    // --- Bloco 2: Itens em aberto ATUALMENTE — só quantidade ---
+    y = ensureSpace(doc, y, 10, project.name);
+    doc.setTextColor(...COLORS.text);
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'bold');
+    doc.text(`Número de chamados em aberto atualmente: ${editalOpen.length}`, MARGIN, y);
+    doc.setFont(undefined, 'normal');
+    y += 6;
+
+    // --- Lista única: Lista Atual de chamados ---
     y = ensureSpace(doc, y, 20, project.name);
     doc.setTextColor(...COLORS.text);
     doc.setFontSize(10);
     doc.setFont(undefined, 'bold');
-    doc.text(`Itens em aberto atualmente — ${editalOpen.length}`, MARGIN, y);
+    doc.text('Lista Atual de chamados', MARGIN, y);
     doc.setFont(undefined, 'normal');
     y += 4;
 
@@ -835,7 +827,7 @@ export async function generateClosureReportPDF({
     } else {
       doc.setTextColor(...COLORS.textMuted);
       doc.setFontSize(8);
-      doc.text('Nenhum item em aberto atualmente.', MARGIN, y + 2);
+      doc.text('Nenhum chamado em aberto atualmente.', MARGIN, y + 2);
       y += 8;
     }
   }
