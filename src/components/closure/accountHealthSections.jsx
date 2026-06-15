@@ -124,22 +124,7 @@ export function renderIRCSection(doc, irc, helpers, COLORS) {
     color: irc.color,
     subtitle: 'Mede a probabilidade de desgaste da relação contratual após o encerramento. Quanto maior, maior o risco.'
   }, COLORS);
-  y += 40;
-
-  // Tabela de composição
-  y = autoTable(doc,
-    ['Componente', 'Peso', 'Risco'],
-    [
-      ['Pendências de Edital', '30%', String(irc.components.edital)],
-      ['Health Score Médio', '20%', String(irc.components.health)],
-      ['Baselines / Replanejamentos', '15%', String(irc.components.baseline)],
-      ['Desvio de Cronograma', '15%', String(irc.components.prazo)],
-      ['Riscos Materializados', '10%', String(irc.components.riscos)],
-      ['Aceite da Implantação', '10%', String(irc.components.aceite)]
-    ],
-    y,
-    projectName
-  );
+  y += 42;
 
   // Faixas
   doc.setTextColor(...COLORS.textMuted);
