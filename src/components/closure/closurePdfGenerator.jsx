@@ -151,7 +151,7 @@ function autoTable(doc, head, body, startY) {
 }
 
 function drawCover(doc, data) {
-  const { project, city, products, manager } = data;
+  const { project, city, products, manager, projectStartDate, estimatedEndDate, actualEndDate } = data;
   fillBackground(doc);
 
   // Decoração superior
@@ -206,9 +206,10 @@ function drawCover(doc, data) {
     ['Cidade', city || '—'],
     ['Portfólio', PORTFOLIO_LABELS[project.portfolio] || '—'],
     ['Gerente Responsável', manager],
-    ['Data de Início', formatDateBR(project.contract_signature_date)],
-    ['Data de Encerramento', formatDateBR(project.deadline)],
-    ['Data de Emissão', formatDateBR(new Date())],
+    ['Data de Início', formatDateBR(projectStartDate)],
+    ['Prazo Estimado', formatDateBR(estimatedEndDate)],
+    ['Data Real de Conclusão', formatDateBR(actualEndDate)],
+    ['Prazo Contratual', formatDateBR(project.deadline)],
     ['Valor do Projeto', formatCurrencyBR(project.implementation_value)],
     ['Produtos Implantados', String(products.length)]
   ];
@@ -309,12 +310,52 @@ export async function generateClosureReportPDF({
 
   const city = extractCityFromProjectName(project.name);
 
+  // === Datas-chave do projeto ===
+  // Data de Início = primeira start_date das etapas de "planejamento_contrato" (fallback: assinatura do contrato, depois menor start_date qualquer)
+  const planningEvents = timelineEvents.filter(e => e.phase === 'planejamento_contrato' && e.start_date);
+  let projectStartDate = null;
+  if (planningEvents.length > 0) {
+    projectStartDate = planningEvents.reduce((min, e) =>
+      !min || new Date(e.start_date) < new Date(min) ? e.start_date : min, null);
+  } else if (project.contract_signature_date) {
+    projectStartDate = project.contract_signature_date;
+  } else {
+    const anyStart = timelineEvents.filter(e => e.start_date);
+    if (anyStart.length > 0) {
+      projectStartDate = anyStart.reduce((min, e) =>
+        !min || new Date(e.start_date) < new Date(min) ? e.start_date : min, null);
+    }
+  }
+
+  // Prazo Estimado = última end_date prevista no cronograma (qualquer fase)
+  const allEnds = timelineEvents.filter(e => e.end_date);
+  const estimatedEndDate = allEnds.length > 0
+    ? allEnds.reduce((max, e) => !max || new Date(e.end_date) > new Date(max) ? e.end_date : max, null)
+    : null;
+
+  // Data Real de Conclusão = última updated_date entre etapas "concluido" (fallback: última end_date das concluídas)
+  const concludedEvents = timelineEvents.filter(e => e.status === 'concluido');
+  let actualEndDate = null;
+  if (concludedEvents.length > 0) {
+    const withUpdated = concludedEvents.filter(e => e.updated_date);
+    if (withUpdated.length > 0) {
+      actualEndDate = withUpdated.reduce((max, e) =>
+        !max || new Date(e.updated_date) > new Date(max) ? e.updated_date : max, null);
+    } else {
+      actualEndDate = concludedEvents.reduce((max, e) =>
+        !max || (e.end_date && new Date(e.end_date) > new Date(max)) ? e.end_date : max, null);
+    }
+  }
+
   // ============ CAPA ============
   drawCover(doc, {
     project,
     city,
     products,
-    manager: project.manager || '—'
+    manager: project.manager || '—',
+    projectStartDate,
+    estimatedEndDate,
+    actualEndDate
   });
 
   // ============ PÁGINA 2: RESUMO EXECUTIVO ============
@@ -322,8 +363,8 @@ export async function generateClosureReportPDF({
   let y = 20;
 
   // Calcular indicadores
-  const durationDays = project.contract_signature_date && project.deadline
-    ? diffInDays(project.contract_signature_date, project.deadline)
+  const durationDays = projectStartDate && (actualEndDate || estimatedEndDate || project.deadline)
+    ? diffInDays(projectStartDate, actualEndDate || estimatedEndDate || project.deadline)
     : 0;
 
   const risksMaterialized = risks.filter(r => r.status === 'em_andamento' || r.status === 'identificado').length;
@@ -450,8 +491,10 @@ export async function generateClosureReportPDF({
       ['Portfólio', PORTFOLIO_LABELS[project.portfolio] || '—'],
       ['Gerente', project.manager || '—'],
       ['Coordenador Técnico', project.coordinator || '—'],
-      ['Data Início', formatDateBR(project.contract_signature_date)],
-      ['Data Encerramento', formatDateBR(project.deadline)],
+      ['Data de Início (Planejamento/Contrato)', formatDateBR(projectStartDate)],
+      ['Prazo Estimado (cronograma)', formatDateBR(estimatedEndDate)],
+      ['Data Real de Conclusão', formatDateBR(actualEndDate)],
+      ['Prazo Contratual', formatDateBR(project.deadline)],
       ['Valor Contratado', formatCurrencyBR(project.implementation_value)],
       ['Quantidade de Produtos', String(products.length)]
     ],
