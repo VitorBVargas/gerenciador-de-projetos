@@ -7,6 +7,7 @@ import { ptBR } from 'date-fns/locale';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../../utils';
+import ClosureReportButton from '../closure/ClosureReportButton';
 
 export default function ProjectCard({ project, deletingProjectId, onDelete }) {
   const [projectProducts, setProjectProducts] = useState([]);
@@ -86,6 +87,7 @@ export default function ProjectCard({ project, deletingProjectId, onDelete }) {
             Abrir Projeto
           </Button>
         </Link>
+        <ClosureReportButton project={project} />
       </CardContent>
     </Card>
   );

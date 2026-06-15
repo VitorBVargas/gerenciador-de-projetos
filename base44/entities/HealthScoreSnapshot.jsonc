@@ -1,0 +1,33 @@
+{
+  "name": "HealthScoreSnapshot",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "ID do projeto"
+    },
+    "score": {
+      "type": "number",
+      "description": "Health Score capturado (0-100)"
+    },
+    "captured_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data/hora da captura do snapshot"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "auto",
+        "manual",
+        "closure"
+      ],
+      "default": "auto",
+      "description": "Origem do snapshot"
+    }
+  },
+  "required": [
+    "project_id",
+    "score"
+  ]
+}
