@@ -137,7 +137,8 @@ export function renderIRCSection(doc, irc, helpers, COLORS) {
       ['Riscos Materializados', '10%', String(irc.components.riscos)],
       ['Aceite da Implantação', '10%', String(irc.components.aceite)]
     ],
-    y
+    y,
+    projectName
   );
 
   // Faixas

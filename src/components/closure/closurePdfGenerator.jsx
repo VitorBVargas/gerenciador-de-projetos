@@ -232,7 +232,8 @@ function ensureSpace(doc, currentY, neededHeight, projectName) {
   return currentY;
 }
 
-function autoTable(doc, head, body, startY) {
+function autoTable(doc, head, body, startY, projectName = '') {
+  let firstPage = true;
   doc.autoTable({
     startY,
     head: [head],
@@ -255,7 +256,18 @@ function autoTable(doc, head, body, startY) {
     alternateRowStyles: {
       fillColor: [22, 32, 50]
     },
-    margin: { left: MARGIN, right: MARGIN }
+    margin: { left: MARGIN, right: MARGIN, top: 20, bottom: 15 },
+    // Pinta fundo escuro + header/footer ANTES da tabela desenhar em cada nova página criada pelo autoTable
+    willDrawPage: (data) => {
+      if (firstPage) {
+        firstPage = false;
+        return; // primeira página já tem fundo desenhado por quem chamou
+      }
+      pageCounter++;
+      fillBackground(doc);
+      drawHeader(doc, projectName, pageCounter);
+      drawFooter(doc);
+    }
   });
   return doc.lastAutoTable.finalY + 4;
 }
@@ -644,7 +656,7 @@ export async function generateClosureReportPDF({
       chartItems.push({ label: phaseLabels[phase], value: dev, color: colorByDeviation(dev) });
     });
     if (rows.length > 0) {
-      y = autoTable(doc, ['Marco', 'Planejado', 'Realizado', 'Desvio'], rows, y);
+      y = autoTable(doc, ['Marco', 'Planejado', 'Realizado', 'Desvio'], rows, y, project.name);
       if (chartItems.length > 0) {
         y = ensureSpace(doc, y, 55, project.name);
         doc.setTextColor(...COLORS.textMuted);
@@ -668,7 +680,7 @@ export async function generateClosureReportPDF({
       b.reason || '—',
       (b.observation || '—').substring(0, 60)
     ]);
-    y = autoTable(doc, ['Versão', 'Data', 'Usuário', 'Motivo', 'Observação'], rows, y);
+    y = autoTable(doc, ['Versão', 'Data', 'Usuário', 'Motivo', 'Observação'], rows, y, project.name);
 
     doc.setTextColor(...COLORS.textMuted);
     doc.setFontSize(8);
@@ -751,7 +763,7 @@ export async function generateClosureReportPDF({
       `P${r.probability || '-'} × I${r.impact || '-'} = ${r.severity}`,
       r.status || '—'
     ]);
-    y = autoTable(doc, ['Risco', 'Categoria', 'Score', 'Status'], rows, y);
+    y = autoTable(doc, ['Risco', 'Categoria', 'Score', 'Status'], rows, y, project.name);
   }
 
   // === Pendências de Edital ===
@@ -823,7 +835,7 @@ export async function generateClosureReportPDF({
         i.status || '—',
         formatDateBR(i.data_prevista)
       ]);
-      y = autoTable(doc, ['Nº Item', 'Chamado', 'Descrição', 'Status', 'Data Prevista'], rows, y);
+      y = autoTable(doc, ['Nº Item', 'Chamado', 'Descrição', 'Status', 'Data Prevista'], rows, y, project.name);
     } else {
       doc.setTextColor(...COLORS.textMuted);
       doc.setFontSize(8);
@@ -932,7 +944,8 @@ export async function generateClosureReportPDF({
       ['Pendências de Edital', '15%', `${isi.components.edital}`],
       ['Baselines / Replanejamentos', '15%', `${isi.components.baseline}`]
     ],
-    y
+    y,
+    project.name
   );
 
   // ============ NOVAS SEÇÕES EXECUTIVAS (11 a 16) ============
