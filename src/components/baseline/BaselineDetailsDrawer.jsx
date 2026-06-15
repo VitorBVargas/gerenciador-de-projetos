@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -24,6 +24,7 @@ const deviationColor = (days) => {
 };
 
 export default function BaselineDetailsDrawer({ open, onOpenChange, baselines = [], timelineEvents = [], products = [] }) {
+  const [expandedObs, setExpandedObs] = useState({});
   const sorted = useMemo(() => [...baselines].sort((a, b) => (a.version || 0) - (b.version || 0)), [baselines]);
   const v1 = sorted[0];
   const last = sorted[sorted.length - 1];
@@ -186,7 +187,22 @@ export default function BaselineDetailsDrawer({ open, onOpenChange, baselines = 
                       <td className="px-3 py-2 text-slate-300">{b.created_date ? formatDateBR(b.created_date) : '—'}</td>
                       <td className="px-3 py-2 text-slate-300">{b.user_name || b.user_email || '—'}</td>
                       <td className="px-3 py-2 text-slate-300">{REASON_LABELS[b.reason] || b.reason || '—'}</td>
-                      <td className="px-3 py-2 text-slate-400 max-w-xs truncate" title={b.observation}>{b.observation || '—'}</td>
+                      <td className="px-3 py-2 text-slate-400 max-w-xs align-top">
+                        {b.observation ? (
+                          <button
+                            type="button"
+                            onClick={() => setExpandedObs(prev => ({ ...prev, [b.id]: !prev[b.id] }))}
+                            className={cn(
+                              "text-left w-full hover:text-slate-200 transition-colors",
+                              !expandedObs[b.id] && "truncate"
+                            )}
+                            style={expandedObs[b.id] ? { whiteSpace: 'pre-wrap', wordBreak: 'break-word' } : undefined}
+                            title={expandedObs[b.id] ? 'Clique para recolher' : 'Clique para expandir'}
+                          >
+                            {b.observation}
+                          </button>
+                        ) : '—'}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
