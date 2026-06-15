@@ -902,7 +902,8 @@ export async function generateClosureReportPDF({
     const ky = y + row * (kpiH + 4);
     kpiCard(doc, kx, ky, kpiW, kpiH, k.label, k.value, k.color || COLORS.text);
   });
-  y += 2 * (kpiH + 4) + 4;
+  const kpiRows = Math.ceil(kpiExec.length / 4);
+  y += kpiRows * (kpiH + 4) + 4;
 
   // === Seção 10: ISI ===
   y = ensureSpace(doc, y, 75, project.name);
