@@ -233,15 +233,6 @@ export function renderPostProjectViewSection(doc, indicators, helpers, COLORS) {
       classification: indicators.accountHealth.classification,
       color: indicators.accountHealth.color,
       explanation: 'Qualidade do relacionamento construído.'
-    },
-    {
-      icon: '↻',
-      label: 'Probabilidade de Renovação',
-      score: indicators.renewal.score,
-      suffix: '%',
-      classification: indicators.renewal.classification,
-      color: indicators.renewal.color,
-      explanation: 'Chance estimada de continuidade contratual.'
     }
   ];
 
@@ -294,7 +285,8 @@ export function renderPostProjectViewSection(doc, indicators, helpers, COLORS) {
     const lines = doc.splitTextToSize(c.explanation, cardW - 10);
     doc.text(lines, x + 5, cy + 54);
   });
-  y += 2 * (cardH + 6);
+  const rowsUsed = Math.ceil(cards.length / 2);
+  y += rowsUsed * (cardH + 6);
 
   return y;
 }
@@ -351,13 +343,13 @@ export function renderConsolidatedConclusionSection(doc, data, helpers, COLORS) 
   y = sectionTitle(doc, '16. Conclusão Executiva Consolidada', y);
 
   const {
-    project, isi, irc, accountHealth, renewal,
+    project, isi, irc, accountHealth,
     healthAvg, delayDays, risksMaterialized, baselinesCount,
     editalPendingOpen, productsCount
   } = data;
 
   // Mini-resumo no topo
-  const indicatorLine = `ISI ${isi.score} • IRC ${irc.score} • Saúde ${accountHealth.score} • Renovação ${renewal.score}%`;
+  const indicatorLine = `ISI ${isi.score} • IRC ${irc.score} • Saúde ${accountHealth.score}`;
   doc.setTextColor(...COLORS.textMuted);
   doc.setFontSize(9);
   doc.text(indicatorLine, MARGIN, y);
@@ -394,14 +386,11 @@ export function renderConsolidatedConclusionSection(doc, data, helpers, COLORS) 
   // 4. Situação atual + 5. Risco futuro
   paragraphs.push(`A Saúde da Conta encontra-se classificada como ${accountHealth.classification.toUpperCase()} (${accountHealth.score}/100), enquanto o Índice de Risco Contratual (IRC) registra ${irc.score} pontos — risco ${irc.classification.toUpperCase()}.`);
 
-  // 6. Potencial de renovação
-  paragraphs.push(`A probabilidade estimada de renovação do contrato é de ${renewal.score}%, classificando o cenário como ${renewal.classification.toUpperCase()}.`);
-
-  // 7. Recomendações executivas
+  // 6. Recomendações executivas
   let recomendacaoExec;
-  if (renewal.score >= 75 && irc.score <= 40) {
+  if (accountHealth.score >= 75 && irc.score <= 40) {
     recomendacaoExec = 'Recomenda-se manter a cadência regular de relacionamento e explorar oportunidades de expansão com o cliente.';
-  } else if (renewal.score >= 60 || irc.score <= 60) {
+  } else if (accountHealth.score >= 60 || irc.score <= 60) {
     recomendacaoExec = 'Recomenda-se ativar plano de acompanhamento próximo do Customer Success, com revisão executiva nos próximos 30 dias.';
   } else {
     recomendacaoExec = 'Recomenda-se tratar a conta como prioridade de retenção, com engajamento direto da Diretoria Comercial, plano de recuperação estruturado e SLA preferencial de suporte.';

@@ -948,21 +948,6 @@ export async function generateClosureReportPDF({
 
   y += 40;
 
-  // Composição dos componentes
-  y = ensureSpace(doc, y, 30, project.name);
-  y = autoTable(doc,
-    ['Componente', 'Peso', 'Pontuação'],
-    [
-      ['Health Score Médio', '30%', `${isi.components.health}`],
-      ['Prazo (atraso)', '25%', `${isi.components.prazo}`],
-      ['Riscos Materializados', '15%', `${isi.components.risco}`],
-      ['Pendências de Edital', '15%', `${isi.components.edital}`],
-      ['Baselines / Replanejamentos', '15%', `${isi.components.baseline}`]
-    ],
-    y,
-    project.name
-  );
-
   // ============ NOVAS SEÇÕES EXECUTIVAS (11 a 16) ============
   const redCount = healthValues.filter(v => v < 60).length;
 
@@ -1042,9 +1027,6 @@ export async function generateClosureReportPDF({
 
   // Seção 13 — IRC
   y = renderIRCSection(doc, irc, { ...baseHelpers, y }, COLORS);
-
-  // Seção 14 — Probabilidade de Renovação
-  y = renderRenewalSection(doc, renewal, { ...baseHelpers, y }, COLORS);
 
   // Seção 15 — Visão da Conta Pós-Projeto (sempre em nova página)
   y = renderPostProjectViewSection(doc, { isi, irc, accountHealth, renewal }, { ...baseHelpers, y }, COLORS);
