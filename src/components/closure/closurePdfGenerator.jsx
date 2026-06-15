@@ -726,43 +726,7 @@ export async function generateClosureReportPDF({
     y
   );
 
-  // === Seção 11: Conclusão ===
-  y = ensureSpace(doc, y, 60, project.name);
-  y = sectionTitle(doc, '11. Conclusão do Projeto', y);
-
-  const conclusion = generateAutoConclusion({
-    isi,
-    healthAvg,
-    delayDays,
-    risksMaterialized,
-    baselinesCount: baselines.length,
-    productsCount: products.length,
-    projectName: project.name
-  });
-
-  doc.setFillColor(...COLORS.bgCard);
-  const textLines = doc.splitTextToSize(conclusion, PAGE_W - 2 * MARGIN - 8);
-  const boxH = textLines.length * 5 + 8;
-  doc.roundedRect(MARGIN, y, PAGE_W - 2 * MARGIN, boxH, 2, 2, 'F');
-  doc.setTextColor(...COLORS.text);
-  doc.setFontSize(9);
-  doc.text(textLines, MARGIN + 4, y + 6);
-  y += boxH + 6;
-
-  // Assinatura
-  doc.setDrawColor(...COLORS.border);
-  doc.line(MARGIN, y + 10, MARGIN + 70, y + 10);
-  doc.setTextColor(...COLORS.textMuted);
-  doc.setFontSize(8);
-  doc.text(project.manager || 'Gerente do Projeto', MARGIN, y + 14);
-  doc.text('Gerente Responsável', MARGIN, y + 18);
-
-  doc.line(PAGE_W - MARGIN - 70, y + 10, PAGE_W - MARGIN, y + 10);
-  doc.text('PMO', PAGE_W - MARGIN - 70, y + 14);
-  doc.text('Aprovação Executiva', PAGE_W - MARGIN - 70, y + 18);
-  y += 22;
-
-  // ============ NOVAS SEÇÕES EXECUTIVAS (12 a 17) ============
+  // ============ NOVAS SEÇÕES EXECUTIVAS (11 a 16) ============
   const redCount = healthValues.filter(v => v < 60).length;
 
   // Aceite da implantação: considera-se aceito se TODOS os produtos têm implementation_accepted=true
@@ -858,11 +822,11 @@ export async function generateClosureReportPDF({
     productsCount: products.length
   }, { ...baseHelpers, y }, COLORS);
 
-  // ============ SEÇÃO 18: ANÁLISE EXECUTIVA IA ============
+  // ============ SEÇÃO 17: ANÁLISE EXECUTIVA IA ============
   if (aiAnalysis && aiAnalysis.trim().length > 0) {
     newPage(doc, project.name);
     y = 20;
-    y = sectionTitle(doc, '18. Análise Executiva IA', y);
+    y = sectionTitle(doc, '17. Análise Executiva IA', y);
 
     doc.setTextColor(...COLORS.textMuted);
     doc.setFontSize(8);

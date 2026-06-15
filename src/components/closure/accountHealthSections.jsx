@@ -55,7 +55,7 @@ export function renderAccountHealthSection(doc, accountHealth, helpers, COLORS) 
   let y = helpers.y;
 
   y = ensureSpace(doc, y, 90, projectName);
-  y = sectionTitle(doc, '12. Saúde da Conta', y);
+  y = sectionTitle(doc, '11. Saúde da Conta', y);
 
   // Card principal
   drawBigScoreCard(doc, MARGIN, y, PAGE_W - 2 * MARGIN, 36, {
@@ -116,7 +116,7 @@ export function renderIRCSection(doc, irc, helpers, COLORS) {
   let y = helpers.y;
 
   y = ensureSpace(doc, y, 95, projectName);
-  y = sectionTitle(doc, '13. Índice de Risco Contratual (IRC)', y);
+  y = sectionTitle(doc, '12. Índice de Risco Contratual (IRC)', y);
 
   drawBigScoreCard(doc, MARGIN, y, PAGE_W - 2 * MARGIN, 36, {
     score: irc.score,
@@ -173,7 +173,7 @@ export function renderRenewalSection(doc, renewal, helpers, COLORS) {
   let y = helpers.y;
 
   y = ensureSpace(doc, y, 60, projectName);
-  y = sectionTitle(doc, '14. Probabilidade de Renovação', y);
+  y = sectionTitle(doc, '13. Probabilidade de Renovação', y);
 
   drawBigScoreCard(doc, MARGIN, y, PAGE_W - 2 * MARGIN, 36, {
     score: renewal.score,
@@ -198,7 +198,7 @@ export function renderPostProjectViewSection(doc, indicators, helpers, COLORS) {
   newPage(doc, projectName);
   let y = 20;
 
-  y = sectionTitle(doc, '15. Visão da Conta Pós-Projeto', y);
+  y = sectionTitle(doc, '14. Visão da Conta Pós-Projeto', y);
 
   doc.setTextColor(...COLORS.textMuted);
   doc.setFontSize(8);
@@ -303,7 +303,7 @@ export function renderRecommendationsSection(doc, recs, helpers, COLORS) {
   let y = helpers.y;
 
   y = ensureSpace(doc, y, 80, projectName);
-  y = sectionTitle(doc, '16. Recomendações Pós-Projeto', y);
+  y = sectionTitle(doc, '15. Recomendações Pós-Projeto', y);
 
   const groups = [
     { title: 'Para Customer Success', items: recs.cs, color: COLORS.primary },
@@ -347,7 +347,7 @@ export function renderConsolidatedConclusionSection(doc, data, helpers, COLORS) 
   newPage(doc, projectName);
   let y = 20;
 
-  y = sectionTitle(doc, '17. Conclusão Executiva Consolidada', y);
+  y = sectionTitle(doc, '16. Conclusão Executiva Consolidada', y);
 
   const {
     project, isi, irc, accountHealth, renewal,
