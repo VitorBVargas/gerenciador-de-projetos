@@ -414,6 +414,7 @@ export async function generateClosureReportPDF({
   cronogramas = [],
   migrationTasks = [],
   homologationTasks = [],
+  editalClosureSnapshot = null,
   aiAnalysis = ''
 }) {
   pageCounter = 1;
@@ -770,21 +771,72 @@ export async function generateClosureReportPDF({
     kpiCard(doc, MARGIN + 3 * (w + 4), y, w, kpiH, 'Atrasados', editalOverdue.length, editalOverdue.length > 0 ? COLORS.danger : COLORS.success);
     y += kpiH + 6;
 
-    // Itens críticos: abertos na data de encerramento
-    if (editalOpen.length > 0) {
-      doc.setTextColor(...COLORS.text);
-      doc.setFontSize(10);
-      doc.setFont(undefined, 'bold');
-      doc.text('Itens críticos em aberto na data de encerramento', MARGIN, y);
-      doc.setFont(undefined, 'normal');
+    // --- Bloco 1: Itens em aberto NA DATA DE ENCERRAMENTO (snapshot) ---
+    const snapshotOpen = editalClosureSnapshot?.open_items || [];
+    const snapshotCount = editalClosureSnapshot?.open_count ?? (snapshotOpen.length || null);
+
+    y = ensureSpace(doc, y, 20, project.name);
+    doc.setTextColor(...COLORS.text);
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'bold');
+    doc.text(
+      `Itens em aberto na data de encerramento${snapshotCount !== null ? ` — ${snapshotCount}` : ''}`,
+      MARGIN, y
+    );
+    doc.setFont(undefined, 'normal');
+    y += 4;
+
+    if (editalClosureSnapshot?.captured_at) {
+      doc.setTextColor(...COLORS.textMuted);
+      doc.setFontSize(7.5);
+      doc.text(`Capturado em ${formatDateBR(editalClosureSnapshot.captured_at)}`, MARGIN, y);
       y += 4;
-      const rows = editalOpen.slice(0, 12).map(i => [
+    }
+
+    if (snapshotOpen.length > 0) {
+      const rows = snapshotOpen.slice(0, 20).map(i => [
         i.numero_item || '—',
-        (i.item_edital || '—').substring(0, 70),
+        i.chamado || '—',
+        (i.item_edital || '—').substring(0, 55),
         i.status || '—',
         formatDateBR(i.data_prevista)
       ]);
-      y = autoTable(doc, ['Nº Item', 'Descrição', 'Status', 'Data Prevista'], rows, y);
+      y = autoTable(doc, ['Nº Item', 'Chamado', 'Descrição', 'Status', 'Data Prevista'], rows, y);
+    } else {
+      doc.setTextColor(...COLORS.textMuted);
+      doc.setFontSize(8);
+      doc.text(
+        editalClosureSnapshot
+          ? 'Nenhum item em aberto no momento da conclusão.'
+          : 'Snapshot indisponível (projeto concluído antes do registro automático).',
+        MARGIN, y + 2
+      );
+      y += 8;
+    }
+
+    // --- Bloco 2: Itens em aberto ATUALMENTE ---
+    y = ensureSpace(doc, y, 20, project.name);
+    doc.setTextColor(...COLORS.text);
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'bold');
+    doc.text(`Itens em aberto atualmente — ${editalOpen.length}`, MARGIN, y);
+    doc.setFont(undefined, 'normal');
+    y += 4;
+
+    if (editalOpen.length > 0) {
+      const rows = editalOpen.slice(0, 20).map(i => [
+        i.numero_item || '—',
+        i.chamado || '—',
+        (i.item_edital || '—').substring(0, 55),
+        i.status || '—',
+        formatDateBR(i.data_prevista)
+      ]);
+      y = autoTable(doc, ['Nº Item', 'Chamado', 'Descrição', 'Status', 'Data Prevista'], rows, y);
+    } else {
+      doc.setTextColor(...COLORS.textMuted);
+      doc.setFontSize(8);
+      doc.text('Nenhum item em aberto atualmente.', MARGIN, y + 2);
+      y += 8;
     }
   }
 

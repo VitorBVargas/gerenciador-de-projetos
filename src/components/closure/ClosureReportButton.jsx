@@ -25,7 +25,8 @@ export default function ClosureReportButton({ project }) {
       const [
         products, timelineEvents, baselines, risks,
         healthSnapshots, editalItems, licoes,
-        cronogramas, migrationTasks, homologationTasks
+        cronogramas, migrationTasks, homologationTasks,
+        editalClosureSnapshots
       ] = await Promise.all([
         base44.entities.Product.filter({ project_id: pid }),
         base44.entities.TimelineEvent.filter({ project_id: pid }),
@@ -36,13 +37,25 @@ export default function ClosureReportButton({ project }) {
         base44.entities.LicaoAprendida.filter({ project_id: pid }).catch(() => []),
         base44.entities.Cronograma.filter({ project_id: pid }).catch(() => []),
         base44.entities.MigrationTask.filter({ project_id: pid }).catch(() => []),
-        base44.entities.HomologationTask.filter({ project_id: pid }).catch(() => [])
+        base44.entities.HomologationTask.filter({ project_id: pid }).catch(() => []),
+        base44.entities.EditalClosureSnapshot.filter({ project_id: pid }).catch(() => [])
       ]);
+
+      // Se não existe snapshot ainda (projeto concluído antes da automação ser criada), gera agora
+      let editalClosureSnapshot = editalClosureSnapshots[0] || null;
+      if (!editalClosureSnapshot) {
+        try {
+          const res = await base44.functions.invoke('captureEditalClosureSnapshot', { project_id: pid });
+          editalClosureSnapshot = res?.data?.snapshot || null;
+        } catch (err) {
+          console.warn('Não foi possível gerar snapshot de edital:', err);
+        }
+      }
 
       const datasets = {
         project, products, timelineEvents, baselines, risks,
         healthSnapshots, editalItems, licoes, cronogramas,
-        migrationTasks, homologationTasks
+        migrationTasks, homologationTasks, editalClosureSnapshot
       };
 
       setStage('Analisando com IA...');
