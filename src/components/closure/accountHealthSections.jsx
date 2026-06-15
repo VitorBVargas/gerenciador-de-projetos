@@ -27,12 +27,14 @@ function drawBigScoreCard(doc, x, y, w, h, { score, classification, color, suffi
   doc.setTextColor(...valueColor);
   doc.setFontSize(34);
   doc.setFont(undefined, 'bold');
-  doc.text(String(score), x + 8, y + h / 2 + 5);
+  const scoreStr = String(score);
+  doc.text(scoreStr, x + 8, y + h / 2 + 5);
+  const scoreWidth = doc.getTextWidth(scoreStr);
 
   doc.setFont(undefined, 'normal');
   doc.setTextColor(...COLORS.textMuted);
   doc.setFontSize(9);
-  doc.text(suffix, x + 8 + doc.getTextWidth(String(score)) + 2, y + h / 2 + 5);
+  doc.text(suffix, x + 8 + scoreWidth + 3, y + h / 2 + 5);
 
   doc.setTextColor(...COLORS.text);
   doc.setFontSize(13);
