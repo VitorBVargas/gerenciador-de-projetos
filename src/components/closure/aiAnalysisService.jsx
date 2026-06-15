@@ -8,6 +8,11 @@ import {
   diffInDays
 } from './closureUtils';
 import { calculateHealthScore } from '@/components/dashboard/ProjectHealthScore';
+import {
+  calculateAccountHealth,
+  calculateIRC,
+  calculateRenewalProbability
+} from './accountHealthCalculations';
 
 const AGENT_NAME = 'encerramento_executivo_ia';
 
@@ -85,6 +90,31 @@ export function buildAnalysisPayload({
     risksMaterialized, totalRisks: risks.length,
     editalPendingOpen: editalOpen.length, editalTotal: relatedEdital.length,
     baselinesCount: baselines.length || 1
+  });
+
+  // Indicadores executivos da gestão da conta
+  const redPeriods = healthValues.filter(v => v < 60).length;
+  const implementationAccepted = products.length > 0 && products.every(p => p.implementation_accepted === true);
+  const healthFinal = healthSnapshots.length > 0
+    ? [...healthSnapshots].sort((a, b) => new Date(a.captured_at || a.created_date) - new Date(b.captured_at || b.created_date)).slice(-1)[0].score
+    : healthAvg;
+
+  const accountHealth = calculateAccountHealth({
+    healthAvg, healthWorst, redPeriods,
+    risksMaterialized, editalPendingOpen: editalOpen.length,
+    baselinesCount: baselines.length || 1, delayDays, implementationAccepted
+  });
+  const irc = calculateIRC({
+    editalPendingOpen: editalOpen.length, editalTotal: relatedEdital.length,
+    healthAvg, baselinesCount: baselines.length || 1, delayDays,
+    risksMaterialized, totalRisks: risks.length, implementationAccepted
+  });
+  const renewal = calculateRenewalProbability({
+    healthAvg, healthFinal,
+    editalPendingOpen: editalOpen.length, editalTotal: relatedEdital.length,
+    risksMaterialized, totalRisks: risks.length,
+    baselinesCount: baselines.length || 1, delayDays,
+    implementationAccepted, productsCount: products.length, isiScore: isi.score
   });
 
   return {
@@ -181,7 +211,27 @@ export function buildAnalysisPayload({
       score: isi.score,
       classificacao: isi.classification,
       componentes: isi.components
-    }
+    },
+    saude_da_conta: {
+      score: accountHealth.score,
+      classificacao: accountHealth.classification,
+      semaforo: accountHealth.semaforo,
+      fatores_positivos: accountHealth.positives,
+      fatores_negativos: accountHealth.negatives
+    },
+    irc: {
+      score: irc.score,
+      classificacao: irc.classification,
+      semaforo: irc.semaforo,
+      componentes: irc.components,
+      principais_fatores: irc.topFactors
+    },
+    probabilidade_renovacao: {
+      percentual: renewal.score,
+      classificacao: renewal.classification,
+      semaforo: renewal.semaforo
+    },
+    aceite_implantacao: implementationAccepted
   };
 }
 

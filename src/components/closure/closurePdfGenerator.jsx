@@ -11,6 +11,20 @@ import {
   diffInDays
 } from './closureUtils';
 import { calculateHealthScore } from '@/components/dashboard/ProjectHealthScore';
+import {
+  calculateAccountHealth,
+  calculateIRC,
+  calculateRenewalProbability,
+  generatePostProjectRecommendations
+} from './accountHealthCalculations';
+import {
+  renderAccountHealthSection,
+  renderIRCSection,
+  renderRenewalSection,
+  renderPostProjectViewSection,
+  renderRecommendationsSection,
+  renderConsolidatedConclusionSection
+} from './accountHealthSections';
 
 // Paleta dark mode corporativa
 const COLORS = {
@@ -746,12 +760,109 @@ export async function generateClosureReportPDF({
   doc.line(PAGE_W - MARGIN - 70, y + 10, PAGE_W - MARGIN, y + 10);
   doc.text('PMO', PAGE_W - MARGIN - 70, y + 14);
   doc.text('Aprovação Executiva', PAGE_W - MARGIN - 70, y + 18);
+  y += 22;
 
-  // ============ SEÇÃO 12: ANÁLISE EXECUTIVA IA ============
+  // ============ NOVAS SEÇÕES EXECUTIVAS (12 a 17) ============
+  const redCount = healthValues.filter(v => v < 60).length;
+
+  // Aceite da implantação: considera-se aceito se TODOS os produtos têm implementation_accepted=true
+  const implementationAccepted = products.length > 0 && products.every(p => p.implementation_accepted === true);
+
+  // Health Score Final = último snapshot ou o atual
+  let healthFinal = healthAvg;
+  if (healthSnapshots.length > 0) {
+    const sortedSnaps = [...healthSnapshots].sort((a, b) =>
+      new Date(a.captured_at || a.created_date) - new Date(b.captured_at || b.created_date));
+    healthFinal = sortedSnaps[sortedSnaps.length - 1].score;
+  }
+
+  const accountHealth = calculateAccountHealth({
+    healthAvg,
+    healthWorst,
+    redPeriods: redCount,
+    risksMaterialized,
+    editalPendingOpen: editalOpen.length,
+    baselinesCount: baselines.length || 1,
+    delayDays,
+    implementationAccepted
+  });
+
+  const irc = calculateIRC({
+    editalPendingOpen: editalOpen.length,
+    editalTotal: relatedEdital.length,
+    healthAvg,
+    baselinesCount: baselines.length || 1,
+    delayDays,
+    risksMaterialized,
+    totalRisks: risks.length,
+    implementationAccepted
+  });
+
+  const renewal = calculateRenewalProbability({
+    healthAvg,
+    healthFinal,
+    editalPendingOpen: editalOpen.length,
+    editalTotal: relatedEdital.length,
+    risksMaterialized,
+    totalRisks: risks.length,
+    baselinesCount: baselines.length || 1,
+    delayDays,
+    implementationAccepted,
+    productsCount: products.length,
+    isiScore: isi.score
+  });
+
+  const recs = generatePostProjectRecommendations({
+    accountHealth,
+    irc,
+    renewal,
+    editalPendingOpen: editalOpen.length,
+    risksMaterialized
+  });
+
+  // Helpers para os renderers (passa funções/constantes já definidas)
+  const baseHelpers = {
+    newPage,
+    sectionTitle,
+    ensureSpace,
+    autoTable,
+    MARGIN,
+    PAGE_W,
+    projectName: project.name
+  };
+
+  // Seção 12 — Saúde da Conta (começa em nova página para garantir espaço)
+  newPage(doc, project.name);
+  y = 20;
+  y = renderAccountHealthSection(doc, accountHealth, { ...baseHelpers, y }, COLORS);
+
+  // Seção 13 — IRC
+  y = renderIRCSection(doc, irc, { ...baseHelpers, y }, COLORS);
+
+  // Seção 14 — Probabilidade de Renovação
+  y = renderRenewalSection(doc, renewal, { ...baseHelpers, y }, COLORS);
+
+  // Seção 15 — Visão da Conta Pós-Projeto (sempre em nova página)
+  y = renderPostProjectViewSection(doc, { isi, irc, accountHealth, renewal }, { ...baseHelpers, y }, COLORS);
+
+  // Seção 16 — Recomendações Pós-Projeto
+  y = renderRecommendationsSection(doc, recs, { ...baseHelpers, y }, COLORS);
+
+  // Seção 17 — Conclusão Executiva Consolidada (nova página)
+  y = renderConsolidatedConclusionSection(doc, {
+    project,
+    isi, irc, accountHealth, renewal,
+    healthAvg, delayDays, risksMaterialized,
+    baselinesCount: baselines.length || 1,
+    editalPendingOpen: editalOpen.length,
+    productsCount: products.length
+  }, { ...baseHelpers, y }, COLORS);
+
+  // ============ SEÇÃO 18: ANÁLISE EXECUTIVA IA ============
   if (aiAnalysis && aiAnalysis.trim().length > 0) {
     newPage(doc, project.name);
     y = 20;
-    y = sectionTitle(doc, '12. Análise Executiva IA', y);
+    y = sectionTitle(doc, '18. Análise Executiva IA', y);
 
     doc.setTextColor(...COLORS.textMuted);
     doc.setFontSize(8);
