@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, FolderOpen, Trash2, Upload, Calendar, DollarSign, TrendingUp, GripVertical, ArrowLeft, BarChart2 } from 'lucide-react';
+import { Plus, FolderOpen, Trash2, Upload, Calendar, DollarSign, TrendingUp, GripVertical, ArrowLeft, BarChart2, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { format } from 'date-fns';
@@ -17,7 +17,7 @@ import CrmImporter from '../components/import/CrmImporter';
 import ProjectSetupWizard from '../components/modals/ProjectSetupWizard';
 import ProjectCard from '../components/projects/ProjectCard';
 import ClosureReportButton from '../components/closure/ClosureReportButton';
-import { useCurrentUser, canCreateProject, canDeleteProject } from '@/lib/permissions';
+import { useCurrentUser, canCreateProject, canDeleteProject, canManageUsers } from '@/lib/permissions';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { deleteProjectCronogramas, completeProjectCronogramas } from '../functions/syncProjectCronogramas';
 import {
@@ -56,6 +56,7 @@ export default function ProjectsList() {
   const { user: currentUser } = useCurrentUser();
   const canCreate = canCreateProject(currentUser);
   const canDelete = canDeleteProject(currentUser);
+  const canManageUsersFlag = canManageUsers(currentUser);
   const urlParams = new URLSearchParams(window.location.search);
   const portfolioFilter = urlParams.get('portfolio') || 'grandes_contas_sc_mg';
   const [importModalOpen, setImportModalOpen] = useState(false);
@@ -243,6 +244,15 @@ export default function ProjectsList() {
                 Status Executivo
               </Button>
             </Link>
+            {canManageUsersFlag && (
+              <Button
+                onClick={() => window.location.href = createPageUrl('UserManagement')}
+                className="bg-slate-700 hover:bg-slate-600"
+              >
+                <ShieldCheck className="w-4 h-4 mr-2" />
+                Usuários
+              </Button>
+            )}
             {canCreate && (
               <Button
                 onClick={() => setCrmImportModalOpen(true)}
