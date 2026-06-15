@@ -10,6 +10,7 @@ import BulkEditDatesModal from '../components/modals/BulkEditDatesModal';
 import EmptyState from '../components/ui/EmptyState';
 import EntityFilter from '../components/filters/EntityFilter';
 import BaselineButton from '../components/baseline/BaselineButton';
+import { useCurrentUser, canEditStructure } from '@/lib/permissions';
 
 import { phaseLabels } from '../components/timeline/phaseLabels';
 import TimelineByProduct from '../components/timeline/TimelineByProduct';
@@ -26,6 +27,8 @@ import {
 
 export default function Timeline() {
   const queryClient = useQueryClient();
+  const { user: currentUser } = useCurrentUser();
+  const canEdit = canEditStructure(currentUser);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [selectedProductId, setSelectedProductId] = useState(null);
@@ -231,21 +234,23 @@ export default function Timeline() {
              Cronograma do Projeto
            </TabsTrigger>
          </TabsList>
-         <div className="flex items-center gap-2">
-           <BaselineButton
-             projectId={projectId}
-             timelineEvents={timelineEvents}
-             products={products}
-           />
-           <Button
-             size="sm"
-             onClick={() => setEditDatesOpen(true)}
-             className="bg-blue-600 hover:bg-blue-700 gap-2"
-           >
-             <Edit3 className="w-4 h-4" />
-             Editar datas
-           </Button>
-         </div>
+         {canEdit && (
+           <div className="flex items-center gap-2">
+             <BaselineButton
+               projectId={projectId}
+               timelineEvents={timelineEvents}
+               products={products}
+             />
+             <Button
+               size="sm"
+               onClick={() => setEditDatesOpen(true)}
+               className="bg-blue-600 hover:bg-blue-700 gap-2"
+             >
+               <Edit3 className="w-4 h-4" />
+               Editar datas
+             </Button>
+           </div>
+         )}
        </div>
 
         <TabsContent value="timeline" className="space-y-6">
@@ -265,9 +270,10 @@ export default function Timeline() {
               verticals={verticals}
               entityProducts={entityProducts}
               timelineEvents={timelineEvents}
-              onStatusChange={handleStatusChange}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
+              onStatusChange={canEdit ? handleStatusChange : undefined}
+              onEdit={canEdit ? handleEdit : undefined}
+              onDelete={canEdit ? handleDelete : undefined}
+              readOnly={!canEdit}
             />
           )}
         </TabsContent>
