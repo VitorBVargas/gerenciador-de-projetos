@@ -2,13 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { ArrowRight, FolderOpen, BarChart3, Database, ClipboardList, BookOpen } from 'lucide-react';
-import { useCurrentUser, isPrivileged } from '@/lib/permissions';
-
 export default function Home() {
   const navigate = useNavigate();
   const [activeButton, setActiveButton] = useState(null);
-  const { user: currentUser } = useCurrentUser();
-  const canSeeEdital = isPrivileged(currentUser);
 
   const handleNavigation = (page) => {
     navigate(createPageUrl(page));
@@ -97,21 +93,19 @@ export default function Home() {
           </button>
 
           {/* Pendência Edital */}
-          {canSeeEdital && (
-            <button
-              onClick={() => handleNavigation('PortfolioSelect?mode=edital')}
-              onMouseEnter={() => setActiveButton(3)}
-              onMouseLeave={() => setActiveButton(null)}
-              className="group relative h-32 rounded-2xl overflow-hidden transition-all duration-300 transform hover:scale-105"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-orange-600 to-orange-700 group-hover:from-orange-500 group-hover:to-orange-600 transition-all duration-300"></div>
-              <div className="relative h-full flex flex-col items-center justify-center p-4">
-                <ClipboardList className="w-9 h-9 text-orange-200 mb-2 group-hover:scale-110 transition-transform duration-300" />
-                <h3 className="text-sm font-bold text-white text-center">Pendência Edital</h3>
-              </div>
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
-            </button>
-          )}
+          <button
+            onClick={() => handleNavigation('PortfolioSelect?mode=edital')}
+            onMouseEnter={() => setActiveButton(3)}
+            onMouseLeave={() => setActiveButton(null)}
+            className="group relative h-32 rounded-2xl overflow-hidden transition-all duration-300 transform hover:scale-105"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-orange-600 to-orange-700 group-hover:from-orange-500 group-hover:to-orange-600 transition-all duration-300"></div>
+            <div className="relative h-full flex flex-col items-center justify-center p-4">
+              <ClipboardList className="w-9 h-9 text-orange-200 mb-2 group-hover:scale-110 transition-transform duration-300" />
+              <h3 className="text-sm font-bold text-white text-center">Pendência Edital</h3>
+            </div>
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
+          </button>
 
           {/* Lições Aprendidas / FAQ */}
           <button

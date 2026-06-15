@@ -10,7 +10,6 @@ import { toast } from 'sonner';
 import EditalDashboard from '@/components/edital/EditalDashboard';
 import EditalTable from '@/components/edital/EditalTable';
 import FecharChamadosImporter from '@/components/edital/FecharChamadosImporter';
-import { useCurrentUser, isPrivileged } from '@/lib/permissions';
 
 const PORTFOLIO_LABELS = {
   grandes_contas_sc_mg: 'Grandes Contas SC/MG',
@@ -25,13 +24,11 @@ export default function PendenciaEdital() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isImporting, setIsImporting] = useState(false);
   const queryClient = useQueryClient();
-  const { user: currentUser, loading: loadingUser } = useCurrentUser();
-  const allowed = isPrivileged(currentUser);
 
   const { data: items = [], isLoading } = useQuery({
     queryKey: ['editalItems', portfolio],
     queryFn: () => base44.entities.EditalItem.filter({ portfolio }),
-    enabled: !!portfolio && allowed,
+    enabled: !!portfolio,
     staleTime: 60 * 1000,
   });
 
@@ -172,34 +169,6 @@ export default function PendenciaEdital() {
       e.target.value = '';
     }
   };
-
-  if (loadingUser) {
-    return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-orange-400" />
-      </div>
-    );
-  }
-
-  if (!allowed) {
-    return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6">
-        <div className="max-w-md text-center bg-slate-800 border border-slate-700 rounded-xl p-8">
-          <ClipboardList className="w-12 h-12 text-orange-400 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-white mb-2">Acesso restrito</h2>
-          <p className="text-sm text-slate-400 mb-6">
-            Esta área está disponível apenas para administradores, gerentes e coordenadores.
-          </p>
-          <Link
-            to={createPageUrl('Home')}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" /> Voltar para o início
-          </Link>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-slate-900">
