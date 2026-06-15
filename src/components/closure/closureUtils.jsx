@@ -61,18 +61,22 @@ export function classifyHealthScore(score) {
  */
 export function calculateISI({
   healthScoreAvg = 0,
-  delayDays = 0,         // atraso acumulado em dias
-  risksMaterialized = 0, // qtd
+  delayDays = 0,                  // atraso acumulado em dias (cronograma interno)
+  contractDeviationDays = 0,      // desvio vs prazo contratual: + atrasado, - adiantado
+  risksMaterialized = 0,          // qtd
   totalRisks = 0,
   editalPendingOpen = 0,
   editalTotal = 0,
-  baselinesCount = 1     // V1 conta como 1 (não é replanejamento)
+  baselinesCount = 1              // V1 conta como 1 (não é replanejamento)
 }) {
   // 1. Health Score (0-100) -> direto
   const healthComponent = Math.max(0, Math.min(100, healthScoreAvg));
 
-  // 2. Prazo: 100 se sem atraso; perde 2 pontos por dia, mín 0
-  const prazoComponent = Math.max(0, 100 - delayDays * 2);
+  // 2. Prazo: combina atraso acumulado interno + desvio do prazo contratual.
+  //    Desvio contratual positivo (atrasado) penaliza; negativo (adiantado) bonifica.
+  const contractPenalty = contractDeviationDays > 0 ? contractDeviationDays * 2 : 0;
+  const contractBonus = contractDeviationDays < 0 ? Math.min(10, Math.abs(contractDeviationDays) * 0.5) : 0;
+  const prazoComponent = Math.max(0, Math.min(100, 100 - delayDays * 2 - contractPenalty + contractBonus));
 
   // 3. Riscos materializados: razão sobre total; 100 se 0
   const riskRatio = totalRisks > 0 ? (risksMaterialized / totalRisks) : 0;

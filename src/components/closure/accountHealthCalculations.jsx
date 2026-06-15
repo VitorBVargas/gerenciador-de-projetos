@@ -13,6 +13,7 @@ export function calculateAccountHealth({
   editalPendingOpen = 0,
   baselinesCount = 1,
   delayDays = 0,
+  contractDeviationDays = 0,
   implementationAccepted = false
 }) {
   let score = 100;
@@ -57,6 +58,20 @@ export function calculateAccountHealth({
   else if (delayDays <= 45) { score -= 12; negatives.push(`Atraso acumulado de ${delayDays} dias`); }
   else { score -= 18; negatives.push(`Atraso acumulado significativo (${delayDays} dias)`); }
 
+  // Desvio vs prazo contratual
+  if (contractDeviationDays < 0) {
+    positives.push(`Entrega antecipada em ${Math.abs(contractDeviationDays)} dia(s) vs prazo contratual`);
+    score += 3;
+  } else if (contractDeviationDays === 0) {
+    positives.push('Entrega no prazo contratual exato');
+  } else if (contractDeviationDays <= 15) {
+    score -= 5; negatives.push(`Entrega ${contractDeviationDays} dia(s) após o prazo contratual`);
+  } else if (contractDeviationDays <= 45) {
+    score -= 12; negatives.push(`Atraso contratual relevante (${contractDeviationDays} dias)`);
+  } else {
+    score -= 20; negatives.push(`Atraso contratual significativo (${contractDeviationDays} dias)`);
+  }
+
   // Aceite da implantação
   if (implementationAccepted) { positives.push('Aceite da implantação registrado'); }
   else { score -= 8; negatives.push('Aceite da implantação não registrado'); }
@@ -97,6 +112,7 @@ export function calculateIRC({
   healthAvg = 0,
   baselinesCount = 1,
   delayDays = 0,
+  contractDeviationDays = 0,
   risksMaterialized = 0,
   totalRisks = 0,
   implementationAccepted = false
@@ -116,8 +132,12 @@ export function calculateIRC({
   const replan = Math.max(0, baselinesCount - 1);
   const baselineRisk = Math.min(100, replan * 25); // 4+ revisões = 100
 
-  // 4. Desvio de cronograma
-  const delayRisk = Math.min(100, Math.max(0, delayDays) * 2); // 50 dias = 100
+  // 4. Desvio de cronograma (interno + contratual).
+  //    Adiantamento contratual reduz risco; atraso aumenta.
+  const internalDelayRisk = Math.max(0, delayDays) * 2;
+  const contractPenalty = contractDeviationDays > 0 ? contractDeviationDays * 2 : 0;
+  const contractBonus = contractDeviationDays < 0 ? Math.min(20, Math.abs(contractDeviationDays)) : 0;
+  const delayRisk = Math.max(0, Math.min(100, internalDelayRisk + contractPenalty - contractBonus));
 
   // 5. Riscos materializados
   let riskMatRisk;
@@ -185,6 +205,7 @@ export function calculateRenewalProbability({
   totalRisks = 0,
   baselinesCount = 1,
   delayDays = 0,
+  contractDeviationDays = 0,
   implementationAccepted = false,
   productsCount = 0,
   isiScore = 0
@@ -224,6 +245,12 @@ export function calculateRenewalProbability({
   // Atrasos
   if (delayDays > 45) prob -= 10;
   else if (delayDays > 15) prob -= 5;
+
+  // Desvio do prazo contratual
+  if (contractDeviationDays < 0) prob += 3;
+  else if (contractDeviationDays > 45) prob -= 12;
+  else if (contractDeviationDays > 15) prob -= 6;
+  else if (contractDeviationDays > 0) prob -= 2;
 
   // Aceite implantação
   if (!implementationAccepted) prob -= 8;

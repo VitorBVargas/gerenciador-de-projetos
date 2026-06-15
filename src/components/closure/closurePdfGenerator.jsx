@@ -583,10 +583,17 @@ export async function generateClosureReportPDF({
     return days !== null && days < 0;
   });
 
+  // Desvio do prazo contratual: positivo = atrasado, negativo = adiantado
+  let contractDeviationDays = 0;
+  if (project.deadline && actualEndDate) {
+    contractDeviationDays = diffInDays(project.deadline, actualEndDate) || 0;
+  }
+
   // ISI
   const isi = calculateISI({
     healthScoreAvg: healthAvg,
     delayDays,
+    contractDeviationDays,
     risksMaterialized,
     totalRisks: risks.length,
     editalPendingOpen: editalOpen.length,
@@ -870,6 +877,13 @@ export async function generateClosureReportPDF({
   // === Seção 9: KPI Executivo (Dashboard consolidado) ===
   y = ensureSpace(doc, y, 60, project.name);
   y = sectionTitle(doc, '9. KPI Executivo', y);
+  const contractDevLabel = contractDeviationDays === 0
+    ? 'No prazo'
+    : `${contractDeviationDays > 0 ? '+' : ''}${contractDeviationDays}d`;
+  const contractDevColor = contractDeviationDays <= 0
+    ? COLORS.success
+    : colorByDeviation(contractDeviationDays);
+
   const kpiExec = [
     { label: 'Produtos implantados', value: products.length },
     { label: 'Duração total', value: `${durationDays}d` },
@@ -878,7 +892,8 @@ export async function generateClosureReportPDF({
     { label: 'Baselines', value: baselines.length },
     { label: 'Pendências edital', value: editalOpen.length, color: editalOpen.length > 0 ? COLORS.warning : COLORS.success },
     { label: 'Health Score médio', value: healthAvg, color: healthAvg >= 80 ? COLORS.success : healthAvg >= 60 ? COLORS.warning : COLORS.danger },
-    { label: 'Atraso acumulado', value: `${delayDays}d`, color: colorByDeviation(delayDays) }
+    { label: 'Atraso acumulado', value: `${delayDays}d`, color: colorByDeviation(delayDays) },
+    { label: 'Desvio prazo contratual', value: contractDevLabel, color: contractDevColor }
   ];
   kpiExec.forEach((k, idx) => {
     const col = idx % 4;
@@ -970,6 +985,7 @@ export async function generateClosureReportPDF({
     editalPendingOpen: editalOpen.length,
     baselinesCount: baselines.length || 1,
     delayDays,
+    contractDeviationDays,
     implementationAccepted
   });
 
@@ -979,6 +995,7 @@ export async function generateClosureReportPDF({
     healthAvg,
     baselinesCount: baselines.length || 1,
     delayDays,
+    contractDeviationDays,
     risksMaterialized,
     totalRisks: risks.length,
     implementationAccepted
@@ -993,6 +1010,7 @@ export async function generateClosureReportPDF({
     totalRisks: risks.length,
     baselinesCount: baselines.length || 1,
     delayDays,
+    contractDeviationDays,
     implementationAccepted,
     productsCount: products.length,
     isiScore: isi.score
