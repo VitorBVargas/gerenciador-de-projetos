@@ -301,10 +301,17 @@ function StepOverview({ data, onChange }) {
         </SubDialogContent>
       </SubDialog>
 
-      <div className="space-y-1.5">
-        <Label className="text-slate-300">Link do Contrato</Label>
-        <Input value={data.contract_link} onChange={e => onChange({ ...data, contract_link: e.target.value })}
-          placeholder="https://..." className="bg-slate-700 border-slate-600 text-white" />
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <Label className="text-slate-300">Número do Contrato *</Label>
+          <Input value={data.contract_number || ''} onChange={e => onChange({ ...data, contract_number: e.target.value })}
+            placeholder="Ex: 2025/001" className="bg-slate-700 border-slate-600 text-white" />
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-slate-300">Link do Contrato</Label>
+          <Input value={data.contract_link} onChange={e => onChange({ ...data, contract_link: e.target.value })}
+            placeholder="https://..." className="bg-slate-700 border-slate-600 text-white" />
+        </div>
       </div>
 
       <div className="space-y-1.5">
@@ -630,7 +637,8 @@ export default function ProjectRegistrationFlow({ open, onOpenChange, parsedData
 
   const [projectInfo, setProjectInfo] = useState({
     name: '', managers: [], coordinator: '', portfolio_manager: '',
-    portfolio: '', contract_signature_date: '', deadline: '', budget: '', contract_link: '',
+    portfolio: '', contract_signature_date: '', deadline: '', budget: '',
+    contract_number: '', contract_link: '',
     population: '', municipality_size: '',
   });
   const [cronogramas, setCronogramas] = useState([]);
@@ -678,7 +686,7 @@ export default function ProjectRegistrationFlow({ open, onOpenChange, parsedData
   };
 
   const canNext = () => {
-    if (step === 0) return projectInfo.name.trim().length > 0 && projectInfo.portfolio && !!projectInfo.contract_signature_date && !!projectInfo.deadline;
+    if (step === 0) return projectInfo.name.trim().length > 0 && projectInfo.portfolio && !!projectInfo.contract_signature_date && !!projectInfo.deadline && (projectInfo.contract_number || '').trim().length > 0;
     if (step === 1) return cronogramas.length > 0;
     return true;
   };
@@ -765,7 +773,9 @@ export default function ProjectRegistrationFlow({ open, onOpenChange, parsedData
                 <span className="text-xs text-amber-400">
                   {!projectInfo.name.trim() || !projectInfo.portfolio
                     ? 'Preencha Nome e Portfólio'
-                    : 'Informe a Assinatura do Contrato e o Prazo Contratual'}
+                    : !(projectInfo.contract_number || '').trim()
+                      ? 'Informe o Número do Contrato'
+                      : 'Informe a Assinatura do Contrato e o Prazo Contratual'}
                 </span>
               )}
               {step === 1 && !canNext() && (
