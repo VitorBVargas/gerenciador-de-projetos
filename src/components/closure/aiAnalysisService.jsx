@@ -68,14 +68,14 @@ export function buildAnalysisPayload({
     }
   }
 
-  // Correlação PRIMÁRIA: nº do contrato do projeto. Fallback: nome da cidade.
+  // Correlação por nº do contrato do projeto. Se houver contrato cadastrado,
+  // SÓ vincula pelo contrato. Fallback por cidade só quando não há contrato.
   const contractNumber = (project.contract_number || '').trim();
   let relatedEdital = [];
   if (contractNumber) {
     const cn = contractNumber.toLowerCase();
     relatedEdital = editalItems.filter(i => (i.numero_contrato || '').trim().toLowerCase() === cn);
-  }
-  if (relatedEdital.length === 0) {
+  } else {
     const cityNorm = (city || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     relatedEdital = editalItems.filter(item => {
       const proj = (item.projeto || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');

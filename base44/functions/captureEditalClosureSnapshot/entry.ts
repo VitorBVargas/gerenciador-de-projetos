@@ -58,19 +58,18 @@ Deno.serve(async (req) => {
     // Buscar itens de edital do portfólio
     const editalItems = await base44.asServiceRole.entities.EditalItem.filter({ portfolio: project.portfolio }).catch(() => []);
 
-    // Correlação PRIMÁRIA: nº do contrato do projeto = numero_contrato do item de edital.
-    // Fallback (quando o projeto não tem contrato cadastrado): nome/cidade como antes.
+    // Correlação por nº do contrato do projeto = numero_contrato do item de edital.
+    // REGRA: se o projeto tem contrato cadastrado, SÓ vincula pelo contrato (sem fallback).
+    // Fallback por nome/cidade só ocorre quando o projeto não tem contract_number.
     const contractNumber = (project.contract_number || '').trim();
     let related = [];
-    let matchedBy = 'none';
+    let matchedBy;
 
     if (contractNumber) {
       const cnNorm = contractNumber.toLowerCase();
       related = editalItems.filter(item => (item.numero_contrato || '').trim().toLowerCase() === cnNorm);
       matchedBy = 'contract_number';
-    }
-
-    if (related.length === 0) {
+    } else {
       const city = (project.city && project.city.trim()) || extractCity(project.name);
       const projectNameNorm = normalize(project.name);
       const cityNorm = normalize(city);
@@ -83,7 +82,7 @@ Deno.serve(async (req) => {
         if (projectNameNorm && (proj.includes(projectNameNorm) || projectNameNorm.includes(proj))) return true;
         return projectTokens.some(t => proj.includes(t));
       });
-      if (related.length > 0) matchedBy = 'name_fallback';
+      matchedBy = 'name_fallback';
     }
 
     const open = related.filter(i => {
