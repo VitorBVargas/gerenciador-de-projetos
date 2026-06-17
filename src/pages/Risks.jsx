@@ -210,7 +210,7 @@ function RiskFormModal({ open, onOpenChange, risk, onSave, projectId }) {
           <div className="space-y-2">
             <Label>Descrição</Label>
             <Textarea value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
-              className="bg-slate-700 border-slate-600 text-white h-16 resize-none" />
+              className="bg-slate-700 border-slate-600 text-white min-h-40 resize-y" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
