@@ -54,6 +54,7 @@ export default function PendenciaEdital() {
       Object.keys(grouped).sort().forEach(proj => {
         const rows = grouped[proj].map(i => ({
           'PROJETO': i.projeto || '',
+          'Nº DO CONTRATO': i.numero_contrato || '',
           'CHAMADO': i.chamado || '',
           'LINK CHAMADO': i.chamado_link || '',
           'TIPO': i.tipo || '',
@@ -178,9 +179,15 @@ export default function PendenciaEdital() {
             dataPrevista = '';
           }
 
+          const numeroContrato = String(
+            row['Nº DO CONTRATO'] ?? row['N° DO CONTRATO'] ?? row['NUMERO DO CONTRATO'] ??
+            row['NÚMERO DO CONTRATO'] ?? row['Nº do Contrato'] ?? row['Número do Contrato'] ?? ''
+          ).trim();
+
           const itemData = {
             portfolio,
             projeto,
+            numero_contrato: numeroContrato,
             chamado: chamadoText,
             chamado_link: chamadoLink,
             tipo: String(row['TIPO'] || row['Tipo'] || '').trim(),
@@ -285,7 +292,7 @@ export default function PendenciaEdital() {
             <p className="text-xs mt-2 text-slate-500">Cada aba da planilha representa um projeto/cidade.</p>
             <div className="mt-4 text-xs text-slate-500 bg-slate-800 rounded-lg p-4 max-w-md text-left space-y-1">
               <p className="font-medium text-slate-400 mb-2">Colunas esperadas:</p>
-              <p>• Projeto, Chamado, Vertical, Sistema</p>
+              <p>• Projeto, Nº do Contrato, Chamado, Vertical, Sistema</p>
               <p>• Número do Item, Item do Edital</p>
               <p>• Status, Data Prevista (DD/MM/AAAA)</p>
             </div>

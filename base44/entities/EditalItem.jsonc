@@ -10,6 +10,10 @@
       "type": "string",
       "description": "Nome do projeto/cidade"
     },
+    "numero_contrato": {
+      "type": "string",
+      "description": "N\u00famero do contrato associado ao projeto"
+    },
     "chamado": {
       "type": "string",
       "description": "N\u00famero ou texto do chamado"

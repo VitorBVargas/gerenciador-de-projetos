@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 
 const FIELDS = [
   { key: 'projeto', label: 'Projeto', type: 'text' },
+  { key: 'numero_contrato', label: 'Nº do Contrato', type: 'text' },
   { key: 'chamado', label: 'Chamado', type: 'text' },
   { key: 'chamado_link', label: 'Link do Chamado', type: 'text' },
   { key: 'tipo', label: 'Tipo', type: 'text' },

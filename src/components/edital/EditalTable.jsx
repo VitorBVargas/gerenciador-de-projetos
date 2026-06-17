@@ -132,6 +132,15 @@ export default function EditalTable({ items, portfolio, showProject = true, proj
       {projectName && (
         <div className="flex items-center gap-4 flex-wrap pb-1">
           <h2 className="text-lg font-bold text-white">{projectName}</h2>
+          {(() => {
+            const contracts = [...new Set(items.map(i => i.numero_contrato).filter(Boolean))];
+            if (contracts.length === 0) return null;
+            return (
+              <span className="text-xs text-slate-300 bg-slate-700/60 border border-slate-600 rounded-md px-2 py-0.5">
+                Contrato: <b className="text-white">{contracts.join(', ')}</b>
+              </span>
+            );
+          })()}
           <span className={`text-sm font-semibold ${semaforoColor}`}>{semaforoText}</span>
           <div className="flex items-center gap-4 ml-auto text-xs text-slate-400">
             <span>Total: <b className="text-white">{items.length}</b></span>

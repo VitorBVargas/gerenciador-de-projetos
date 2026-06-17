@@ -113,8 +113,10 @@ export default function EditalDashboard({ items }) {
     });
     return Object.entries(map).map(([name, projectItems]) => {
       const active = projectItems.filter(i => !isDone(i.status) && i.data_prevista && i.data_prevista.length >= 10);
+      const contracts = [...new Set(projectItems.map(i => i.numero_contrato).filter(Boolean))];
       return {
         name,
+        contrato: contracts.join(', '),
         semaforo: getSemaforo(projectItems, today, soon),
         total: projectItems.length,
         atrasados: active.filter(i => i.data_prevista < today).length,
@@ -184,6 +186,9 @@ export default function EditalDashboard({ items }) {
                   <span className="text-xl flex-shrink-0">{p.semaforo.dot}</span>
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-white truncate">{p.name}</p>
+                    {p.contrato && (
+                      <p className="text-[11px] text-slate-300 truncate">Contrato: <b className="text-white">{p.contrato}</b></p>
+                    )}
                     <p className="text-xs text-slate-400">{p.semaforo.label}</p>
                     {p.semaforo.note && <p className="text-[11px] text-yellow-300 truncate">{p.semaforo.note}</p>}
                   </div>
