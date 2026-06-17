@@ -104,17 +104,67 @@ export default function ExportProjectButton({
         return (a.name || '').localeCompare(b.name || '');
       });
 
-      // ===== Aba 1: Implantação (1 linha por produto) =====
-      const implantacaoRows = sortedProducts.map(p => ({
-        'N° Contrato': contractNumber,
-        'Coordenador': coordinator,
-        'Prazo de entrega': prazoEntrega,
-        'Vertical': verticalLabels[p.vertical] || p.vertical || '',
-        'Lista de Produto': p.name || '',
-      }));
+      // Cálculo de progresso por vertical e geral
+      const verticais = [...new Set(products.map(p => p.vertical).filter(Boolean))];
+      const verticaisLabel = verticais.map(v => verticalLabels[v] || v).join(', ');
 
-      const wsImpl = XLSX.utils.json_to_sheet(implantacaoRows);
-      wsImpl['!cols'] = [{ wch: 16 }, { wch: 22 }, { wch: 18 }, { wch: 22 }, { wch: 32 }];
+      const verticalProgress = {};
+      verticais.forEach(v => {
+        const prods = products.filter(p => p.vertical === v);
+        const progPerProd = prods.map(prod => {
+          const evs = timelineEvents.filter(e => e.product_id === prod.id);
+          if (evs.length === 0) return 0;
+          return evs.reduce((s, e) => s + calcEventProgress(e), 0) / evs.length;
+        });
+        verticalProgress[v] = progPerProd.length > 0
+          ? Math.round(progPerProd.reduce((a, b) => a + b, 0) / progPerProd.length)
+          : 0;
+      });
+
+      const allProductsProgress = products.map(prod => {
+        const evs = timelineEvents.filter(e => e.product_id === prod.id);
+        if (evs.length === 0) return 0;
+        return evs.reduce((s, e) => s + calcEventProgress(e), 0) / evs.length;
+      });
+      const progressoGeral = allProductsProgress.length > 0
+        ? Math.round(allProductsProgress.reduce((a, b) => a + b, 0) / allProductsProgress.length)
+        : 0;
+
+      // ===== Aba 1: Implantação (cabeçalho de resumo + tabela de produtos) =====
+      const implantacaoAoA = [
+        ['Projeto', project.name || ''],
+        ['Número do Contrato', contractNumber],
+        ['Coordenador', coordinator],
+        ['Gerente', project.manager || ''],
+        ['Gerente de Portfólio', project.portfolio_manager || ''],
+        ['Prazo Contratual', fmtDate(project.deadline)],
+        ['Prazo de Entrega Estimado', prazoEntrega],
+        ['Verticais', verticaisLabel],
+        ['Progresso Geral do Projeto', `${progressoGeral}%`],
+        [],
+        ['PROGRESSO POR VERTICAL', ''],
+      ];
+
+      verticais
+        .sort((a, b) => (verticalLabels[a] || a).localeCompare(verticalLabels[b] || b))
+        .forEach(v => {
+          implantacaoAoA.push([verticalLabels[v] || v, `${verticalProgress[v]}%`]);
+        });
+
+      implantacaoAoA.push([]);
+      implantacaoAoA.push(['N° Contrato', 'Coordenador', 'Prazo de entrega', 'Vertical', 'Lista de Produto']);
+      sortedProducts.forEach(p => {
+        implantacaoAoA.push([
+          contractNumber,
+          coordinator,
+          prazoEntrega,
+          verticalLabels[p.vertical] || p.vertical || '',
+          p.name || '',
+        ]);
+      });
+
+      const wsImpl = XLSX.utils.aoa_to_sheet(implantacaoAoA);
+      wsImpl['!cols'] = [{ wch: 28 }, { wch: 24 }, { wch: 18 }, { wch: 22 }, { wch: 32 }];
       XLSX.utils.book_append_sheet(wb, wsImpl, safeSheetName('Implantação', usedNames));
 
       // ===== Aba 2: Detalhado (1 linha por etapa do cronograma) =====
