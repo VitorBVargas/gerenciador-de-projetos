@@ -556,16 +556,28 @@ export async function generateClosureReportPDF({
   const projectTokens = projectNameNorm.split(' ')
     .filter(t => t.length >= 3 && !STOPWORDS.has(t));
 
-  const relatedEdital = editalItems.filter(item => {
-    const proj = normalize(item.projeto);
-    if (!proj) return false;
-    // 1) match direto pela cidade extraída
-    if (cityNorm && cityNorm.length >= 3 && proj.includes(cityNorm)) return true;
-    // 2) match por nome completo (qualquer direção)
-    if (projectNameNorm && (proj.includes(projectNameNorm) || projectNameNorm.includes(proj))) return true;
-    // 3) match por token significativo (ex.: "Ibirité" presente em ambos os lados)
-    return projectTokens.some(t => proj.includes(t));
-  });
+  // Correlação PRIMÁRIA: nº do contrato do projeto = numero_contrato do item de edital.
+  // Fallback (quando o projeto não tem contrato cadastrado): cidade/nome.
+  const projectContractNumber = (project.contract_number || '').trim();
+  let relatedEdital = [];
+  let editalMatchedBy = 'cidade';
+  if (projectContractNumber) {
+    const cn = projectContractNumber.toLowerCase();
+    relatedEdital = editalItems.filter(i => (i.numero_contrato || '').trim().toLowerCase() === cn);
+    if (relatedEdital.length > 0) editalMatchedBy = 'contrato';
+  }
+  if (relatedEdital.length === 0) {
+    relatedEdital = editalItems.filter(item => {
+      const proj = normalize(item.projeto);
+      if (!proj) return false;
+      // 1) match direto pela cidade extraída
+      if (cityNorm && cityNorm.length >= 3 && proj.includes(cityNorm)) return true;
+      // 2) match por nome completo (qualquer direção)
+      if (projectNameNorm && (proj.includes(projectNameNorm) || projectNameNorm.includes(proj))) return true;
+      // 3) match por token significativo (ex.: "Ibirité" presente em ambos os lados)
+      return projectTokens.some(t => proj.includes(t));
+    });
+  }
   const editalOpen = relatedEdital.filter(i => {
     const s = (i.status || '').toLowerCase();
     return !s.includes('concl') && !s.includes('atend');
@@ -779,7 +791,10 @@ export async function generateClosureReportPDF({
     y = sectionTitle(doc, 'Pendências de Edital', y);
     doc.setTextColor(...COLORS.textMuted);
     doc.setFontSize(8);
-    doc.text(`Correlação por cidade: "${city}" — ${relatedEdital.length} item(ns) encontrado(s)`, MARGIN, y);
+    const corrLabel = editalMatchedBy === 'contrato'
+      ? `Correlação por nº do contrato: "${projectContractNumber}" — ${relatedEdital.length} item(ns) encontrado(s)`
+      : `Correlação por cidade: "${city}" — ${relatedEdital.length} item(ns) encontrado(s)`;
+    doc.text(corrLabel, MARGIN, y);
     y += 5;
 
     const w = (PAGE_W - 2 * MARGIN - 12) / 4;

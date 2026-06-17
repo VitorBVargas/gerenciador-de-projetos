@@ -68,11 +68,20 @@ export function buildAnalysisPayload({
     }
   }
 
-  const cityNorm = (city || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  const relatedEdital = editalItems.filter(item => {
-    const proj = (item.projeto || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    return cityNorm && proj.includes(cityNorm);
-  });
+  // Correlação PRIMÁRIA: nº do contrato do projeto. Fallback: nome da cidade.
+  const contractNumber = (project.contract_number || '').trim();
+  let relatedEdital = [];
+  if (contractNumber) {
+    const cn = contractNumber.toLowerCase();
+    relatedEdital = editalItems.filter(i => (i.numero_contrato || '').trim().toLowerCase() === cn);
+  }
+  if (relatedEdital.length === 0) {
+    const cityNorm = (city || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    relatedEdital = editalItems.filter(item => {
+      const proj = (item.projeto || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      return cityNorm && proj.includes(cityNorm);
+    });
+  }
   const editalOpen = relatedEdital.filter(i => {
     const s = (i.status || '').toLowerCase();
     return !s.includes('concl') && !s.includes('atend');
@@ -195,6 +204,8 @@ export function buildAnalysisPayload({
       titulo: l.title, tipo: l.tipo, problema: l.problema, solucao: l.solucao
     })),
     pendencias_edital: {
+      correlacionado_por: contractNumber ? 'numero_contrato' : 'cidade',
+      numero_contrato: contractNumber || null,
       cidade_correlacionada: city,
       total: relatedEdital.length,
       concluidos: relatedEdital.length - editalOpen.length,

@@ -58,19 +58,33 @@ Deno.serve(async (req) => {
     // Buscar itens de edital do portfólio
     const editalItems = await base44.asServiceRole.entities.EditalItem.filter({ portfolio: project.portfolio }).catch(() => []);
 
-    // Correlacionar por nome do projeto / cidade (usa city preenchida quando disponível)
-    const city = (project.city && project.city.trim()) || extractCity(project.name);
-    const projectNameNorm = normalize(project.name);
-    const cityNorm = normalize(city);
-    const projectTokens = projectNameNorm.split(' ').filter(t => t.length >= 3 && !STOPWORDS.has(t));
+    // Correlação PRIMÁRIA: nº do contrato do projeto = numero_contrato do item de edital.
+    // Fallback (quando o projeto não tem contrato cadastrado): nome/cidade como antes.
+    const contractNumber = (project.contract_number || '').trim();
+    let related = [];
+    let matchedBy = 'none';
 
-    const related = editalItems.filter(item => {
-      const proj = normalize(item.projeto);
-      if (!proj) return false;
-      if (cityNorm && cityNorm.length >= 3 && proj.includes(cityNorm)) return true;
-      if (projectNameNorm && (proj.includes(projectNameNorm) || projectNameNorm.includes(proj))) return true;
-      return projectTokens.some(t => proj.includes(t));
-    });
+    if (contractNumber) {
+      const cnNorm = contractNumber.toLowerCase();
+      related = editalItems.filter(item => (item.numero_contrato || '').trim().toLowerCase() === cnNorm);
+      matchedBy = 'contract_number';
+    }
+
+    if (related.length === 0) {
+      const city = (project.city && project.city.trim()) || extractCity(project.name);
+      const projectNameNorm = normalize(project.name);
+      const cityNorm = normalize(city);
+      const projectTokens = projectNameNorm.split(' ').filter(t => t.length >= 3 && !STOPWORDS.has(t));
+
+      related = editalItems.filter(item => {
+        const proj = normalize(item.projeto);
+        if (!proj) return false;
+        if (cityNorm && cityNorm.length >= 3 && proj.includes(cityNorm)) return true;
+        if (projectNameNorm && (proj.includes(projectNameNorm) || projectNameNorm.includes(proj))) return true;
+        return projectTokens.some(t => proj.includes(t));
+      });
+      if (related.length > 0) matchedBy = 'name_fallback';
+    }
 
     const open = related.filter(i => {
       const s = (i.status || '').toLowerCase();
@@ -102,7 +116,9 @@ Deno.serve(async (req) => {
       total_count: related.length,
       open_count: open.length,
       overdue_count: overdue.length,
-      open_items: openItems
+      open_items: openItems,
+      matched_by: matchedBy,
+      contract_number: contractNumber
     };
 
     let snapshot;
