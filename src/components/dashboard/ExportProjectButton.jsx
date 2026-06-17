@@ -127,6 +127,7 @@ export default function ExportProjectButton({
         productEvents.forEach(e => {
           detalhadoRows.push({
             'N° Contrato': contractNumber,
+            'Produto': product.name || '',
             'Atividade': phaseLabels[e.phase] || e.title || '-',
             'Status': statusLabels[e.status] || e.status || '',
             'Data Inicio': fmtDate(e.start_date),
@@ -137,7 +138,7 @@ export default function ExportProjectButton({
       });
 
       const wsDet = XLSX.utils.json_to_sheet(detalhadoRows);
-      wsDet['!cols'] = [{ wch: 16 }, { wch: 38 }, { wch: 22 }, { wch: 14 }, { wch: 14 }, { wch: 12 }];
+      wsDet['!cols'] = [{ wch: 16 }, { wch: 32 }, { wch: 38 }, { wch: 22 }, { wch: 14 }, { wch: 14 }, { wch: 12 }];
       XLSX.utils.book_append_sheet(wb, wsDet, safeSheetName('Detalhado', usedNames));
 
       const today = new Date().toISOString().slice(0, 10);
