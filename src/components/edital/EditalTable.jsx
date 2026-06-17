@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import StatusCell from '@/components/edital/StatusCell';
 import { base44 } from '@/api/base44Client';
-import { ExternalLink, AlertTriangle, Clock, X, Search, Pencil } from 'lucide-react';
+import { ExternalLink, AlertTriangle, Clock, X, Search, Pencil, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import EditalPagination from '@/components/edital/EditalPagination';
 import EditEditalItemModal from '@/components/edital/EditEditalItemModal';
@@ -100,7 +100,38 @@ export default function EditalTable({ items, portfolio, showProject = true, proj
 
   const [itemModal, setItemModal] = useState(null);
   const [editItem, setEditItem] = useState(null);
+  const [contractModalOpen, setContractModalOpen] = useState(false);
+  const [contractInput, setContractInput] = useState('');
+  const [savingContract, setSavingContract] = useState(false);
   const queryClient = useQueryClient();
+
+  const currentContract = useMemo(() => {
+    const list = [...new Set(items.map(i => i.numero_contrato).filter(Boolean))];
+    return list.join(', ');
+  }, [items]);
+
+  const openContractModal = () => {
+    setContractInput(currentContract);
+    setContractModalOpen(true);
+  };
+
+  const saveContractForProject = async () => {
+    if (!projectName) return;
+    setSavingContract(true);
+    try {
+      const value = contractInput.trim();
+      await Promise.all(
+        items.map(i => base44.entities.EditalItem.update(i.id, { numero_contrato: value }))
+      );
+      await queryClient.invalidateQueries({ queryKey: ['editalItems', portfolio] });
+      toast.success('Número do contrato atualizado para todos os itens do projeto.');
+      setContractModalOpen(false);
+    } catch (err) {
+      toast.error('Erro ao salvar: ' + err.message);
+    } finally {
+      setSavingContract(false);
+    }
+  };
 
   const today = new Date().toISOString().split('T')[0];
   const soon = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -132,15 +163,18 @@ export default function EditalTable({ items, portfolio, showProject = true, proj
       {projectName && (
         <div className="flex items-center gap-4 flex-wrap pb-1">
           <h2 className="text-lg font-bold text-white">{projectName}</h2>
-          {(() => {
-            const contracts = [...new Set(items.map(i => i.numero_contrato).filter(Boolean))];
-            if (contracts.length === 0) return null;
-            return (
-              <span className="text-xs text-slate-300 bg-slate-700/60 border border-slate-600 rounded-md px-2 py-0.5">
-                Contrato: <b className="text-white">{contracts.join(', ')}</b>
-              </span>
-            );
-          })()}
+          <button
+            onClick={openContractModal}
+            className="text-xs text-slate-200 bg-slate-700/60 hover:bg-slate-700 border border-slate-600 hover:border-orange-500 rounded-md px-2 py-1 flex items-center gap-1.5 transition-colors"
+            title="Clique para editar o número do contrato"
+          >
+            <FileText className="w-3 h-3 text-orange-400" />
+            Contrato:{' '}
+            <b className="text-white">
+              {currentContract || <span className="text-slate-400 font-normal italic">cadastrar</span>}
+            </b>
+            <Pencil className="w-3 h-3 text-slate-400" />
+          </button>
           <span className={`text-sm font-semibold ${semaforoColor}`}>{semaforoText}</span>
           <div className="flex items-center gap-4 ml-auto text-xs text-slate-400">
             <span>Total: <b className="text-white">{items.length}</b></span>
@@ -380,6 +414,52 @@ export default function EditalTable({ items, portfolio, showProject = true, proj
             );
           }}
         />
+      )}
+
+      {/* Contract number modal */}
+      {contractModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => !savingContract && setContractModalOpen(false)}>
+          <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-orange-400" />
+                  Número do Contrato
+                </h3>
+                <p className="text-xs text-slate-400 mt-1">{projectName} · {items.length} itens</p>
+              </div>
+              <button onClick={() => setContractModalOpen(false)} className="text-slate-400 hover:text-white" disabled={savingContract}>
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <label className="text-xs text-slate-300 mb-1 block">Nº do Contrato</label>
+            <input
+              type="text"
+              value={contractInput}
+              onChange={e => setContractInput(e.target.value)}
+              placeholder="Ex: 123/2025"
+              className="w-full h-9 px-3 rounded bg-slate-900 border border-slate-600 text-slate-200 text-sm focus:border-orange-500 focus:outline-none"
+              autoFocus
+            />
+            <p className="text-[11px] text-slate-500 mt-2">Será aplicado a todos os itens deste projeto.</p>
+            <div className="flex items-center justify-end gap-2 mt-5">
+              <button
+                onClick={() => setContractModalOpen(false)}
+                disabled={savingContract}
+                className="px-3 py-1.5 rounded text-sm border border-slate-600 text-slate-200 hover:bg-slate-700"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={saveContractForProject}
+                disabled={savingContract}
+                className="px-3 py-1.5 rounded text-sm bg-orange-600 hover:bg-orange-700 text-white disabled:opacity-50"
+              >
+                {savingContract ? 'Salvando...' : 'Salvar'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Item description modal */}
