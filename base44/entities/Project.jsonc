@@ -68,6 +68,10 @@
       "format": "date",
       "description": "Prazo contratual final"
     },
+    "contract_number": {
+      "type": "string",
+      "description": "N\u00famero do contrato"
+    },
     "contract_link": {
       "type": "string",
       "description": "Link do contrato"

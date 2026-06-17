@@ -13,6 +13,7 @@ export default function ProjectModal({ open, onOpenChange, project, onSave }) {
     implementation_value: '',
     recurring_value: '',
     deadline: '',
+    contract_number: '',
     contract_link: '',
     documents_folder_link: '',
     status: 'planejamento',
@@ -28,6 +29,7 @@ export default function ProjectModal({ open, onOpenChange, project, onSave }) {
         implementation_value: project.implementation_value || '',
         recurring_value: project.recurring_value || '',
         deadline: project.deadline || '',
+        contract_number: project.contract_number || '',
         contract_link: project.contract_link || '',
         documents_folder_link: project.documents_folder_link || '',
         status: project.status || 'planejamento',
@@ -41,6 +43,7 @@ export default function ProjectModal({ open, onOpenChange, project, onSave }) {
         implementation_value: '',
         recurring_value: '',
         deadline: '',
+        contract_number: '',
         contract_link: '',
         documents_folder_link: '',
         status: 'planejamento',
@@ -149,15 +152,28 @@ export default function ProjectModal({ open, onOpenChange, project, onSave }) {
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="contract_link">Link do Contrato</Label>
-            <Input
-              id="contract_link"
-              value={formData.contract_link}
-              onChange={(e) => setFormData({ ...formData, contract_link: e.target.value })}
-              className="bg-slate-700 border-slate-600 text-white"
-              placeholder="https://..."
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="contract_number">Número do Contrato *</Label>
+              <Input
+                id="contract_number"
+                value={formData.contract_number}
+                onChange={(e) => setFormData({ ...formData, contract_number: e.target.value })}
+                className="bg-slate-700 border-slate-600 text-white"
+                placeholder="Ex: 2025/001"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="contract_link">Link do Contrato</Label>
+              <Input
+                id="contract_link"
+                value={formData.contract_link}
+                onChange={(e) => setFormData({ ...formData, contract_link: e.target.value })}
+                className="bg-slate-700 border-slate-600 text-white"
+                placeholder="https://..."
+              />
+            </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="documents_folder_link">Diretório Geral de Documentos</Label>

@@ -30,6 +30,7 @@ export default function ProjectSetupWizard({ open, onOpenChange, project, onComp
     coordinator: project?.coordinator || '',
     portfolio_manager: project?.portfolio_manager || '',
     deadline: project?.deadline || '',
+    contract_number: project?.contract_number || '',
     contract_link: project?.contract_link || '',
   });
 
@@ -67,6 +68,7 @@ export default function ProjectSetupWizard({ open, onOpenChange, project, onComp
         coordinator: project.coordinator || '',
         portfolio_manager: project.portfolio_manager || '',
         deadline: project.deadline || '',
+        contract_number: project.contract_number || '',
         contract_link: project.contract_link || '',
       });
     }
@@ -113,6 +115,7 @@ export default function ProjectSetupWizard({ open, onOpenChange, project, onComp
         coordinator: projectData.coordinator,
         portfolio_manager: projectData.portfolio_manager,
         deadline: projectData.deadline || null,
+        contract_number: projectData.contract_number,
         contract_link: projectData.contract_link,
         status: 'em_andamento'
       });
@@ -178,7 +181,7 @@ export default function ProjectSetupWizard({ open, onOpenChange, project, onComp
   };
 
   const canProceed = () => {
-    if (step === 0) return projectData.name.trim().length > 0;
+    if (step === 0) return projectData.name.trim().length > 0 && projectData.contract_number.trim().length > 0;
     return true;
   };
 
@@ -259,9 +262,20 @@ export default function ProjectSetupWizard({ open, onOpenChange, project, onComp
                   <Input type="date" value={projectData.deadline} onChange={e => setProjectData(p => ({ ...p, deadline: e.target.value }))} className="bg-slate-700 border-slate-600 text-white" />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label className="text-slate-300">Link do Contrato</Label>
-                <Input value={projectData.contract_link} onChange={e => setProjectData(p => ({ ...p, contract_link: e.target.value }))} placeholder="https://..." className="bg-slate-700 border-slate-600 text-white" />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-slate-300">Número do Contrato *</Label>
+                  <Input
+                    value={projectData.contract_number}
+                    onChange={e => setProjectData(p => ({ ...p, contract_number: e.target.value }))}
+                    placeholder="Ex: 2025/001"
+                    className="bg-slate-700 border-slate-600 text-white"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-300">Link do Contrato</Label>
+                  <Input value={projectData.contract_link} onChange={e => setProjectData(p => ({ ...p, contract_link: e.target.value }))} placeholder="https://..." className="bg-slate-700 border-slate-600 text-white" />
+                </div>
               </div>
             </div>
           )}
