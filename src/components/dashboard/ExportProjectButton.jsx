@@ -98,17 +98,54 @@ export default function ExportProjectButton({
       const verticais = [...new Set(products.map(p => p.vertical).filter(Boolean))];
       const verticaisLabel = verticais.map(v => verticalLabels[v] || v).join(', ');
 
+      // Calcula progresso médio por vertical e progresso geral
+      const verticalProgress = {};
+      verticais.forEach(v => {
+        const prods = products.filter(p => p.vertical === v);
+        const progPerProd = prods.map(prod => {
+          const evs = timelineEvents.filter(e => e.product_id === prod.id);
+          if (evs.length === 0) return 0;
+          return evs.reduce((s, e) => s + calcEventProgress(e), 0) / evs.length;
+        });
+        verticalProgress[v] = progPerProd.length > 0
+          ? Math.round(progPerProd.reduce((a, b) => a + b, 0) / progPerProd.length)
+          : 0;
+      });
+
+      const allProductsProgress = products.map(prod => {
+        const evs = timelineEvents.filter(e => e.product_id === prod.id);
+        if (evs.length === 0) return 0;
+        return evs.reduce((s, e) => s + calcEventProgress(e), 0) / evs.length;
+      });
+      const progressoGeral = allProductsProgress.length > 0
+        ? Math.round(allProductsProgress.reduce((a, b) => a + b, 0) / allProductsProgress.length)
+        : 0;
+
       const resumoRows = [
         { 'Campo': 'Projeto', 'Valor': project.name || '' },
+        { 'Campo': 'Número do Contrato', 'Valor': project.contract_number || '' },
         { 'Campo': 'Coordenador', 'Valor': project.coordinator || '' },
         { 'Campo': 'Gerente', 'Valor': project.manager || '' },
         { 'Campo': 'Gerente de Portfólio', 'Valor': project.portfolio_manager || '' },
         { 'Campo': 'Prazo Contratual', 'Valor': fmtDate(project.deadline) },
         { 'Campo': 'Prazo de Entrega Estimado', 'Valor': fmtDate(estimatedDeadline) },
         { 'Campo': 'Verticais', 'Valor': verticaisLabel },
+        { 'Campo': 'Progresso Geral do Projeto', 'Valor': `${progressoGeral}%` },
         { 'Campo': '', 'Valor': '' },
-        { 'Campo': 'LISTA DE PRODUTOS', 'Valor': '' },
+        { 'Campo': 'PROGRESSO POR VERTICAL', 'Valor': '' },
       ];
+
+      verticais
+        .sort((a, b) => (verticalLabels[a] || a).localeCompare(verticalLabels[b] || b))
+        .forEach(v => {
+          resumoRows.push({
+            'Campo': verticalLabels[v] || v,
+            'Valor': `${verticalProgress[v]}%`,
+          });
+        });
+
+      resumoRows.push({ 'Campo': '', 'Valor': '' });
+      resumoRows.push({ 'Campo': 'LISTA DE PRODUTOS', 'Valor': '' });
 
       const sortedProducts = [...products].sort((a, b) => {
         const va = (a.vertical || '').localeCompare(b.vertical || '');
@@ -142,6 +179,21 @@ export default function ExportProjectButton({
       sortedVerticals.forEach(vertical => {
         const verticalProducts = productsByVertical[vertical];
         const rows = [];
+
+        // Cabeçalho da vertical com % geral
+        rows.push({
+          'Produto': `■ VERTICAL: ${verticalLabels[vertical] || vertical}`,
+          'Entidade': '',
+          'Etapa': `Progresso da vertical: ${verticalProgress[vertical] ?? 0}%`,
+          'Início': '',
+          'Fim': '',
+          'Status': '',
+          'Progresso (%)': '',
+        });
+        rows.push({
+          'Produto': '', 'Entidade': '', 'Etapa': '',
+          'Início': '', 'Fim': '', 'Status': '', 'Progresso (%)': '',
+        });
 
         verticalProducts.forEach(product => {
           const productEvents = timelineEvents
