@@ -36,6 +36,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Sparkles } from 'lucide-react';
 import EntityFilter from '../components/filters/EntityFilter';
 import KeyDocuments from '../components/dashboard/KeyDocuments.jsx';
+import ExportProjectButton from '../components/dashboard/ExportProjectButton.jsx';
 import { useCurrentUser, canEditProject } from '@/lib/permissions';
 
 export default function Dashboard() {
@@ -620,6 +621,12 @@ export default function Dashboard() {
             >
               🗺️ Bug / Melhoria
             </a>
+            <ExportProjectButton
+              project={activeProject}
+              products={products}
+              timelineEvents={timelineEvents}
+              estimatedDeadline={estimatedDeadline}
+            />
             {canEdit && (
               <Button 
                 onClick={handleEditProject}
