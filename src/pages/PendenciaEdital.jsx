@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Upload, ArrowLeft, Loader2, ClipboardList } from 'lucide-react';
+import { Upload, ArrowLeft, Loader2, ClipboardList, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import * as XLSX from 'xlsx';
@@ -36,6 +36,57 @@ export default function PendenciaEdital() {
     [...new Set(items.map(i => i.projeto).filter(Boolean))].sort(),
     [items]
   );
+
+  const handleExport = () => {
+    if (items.length === 0) return;
+    try {
+      const wb = XLSX.utils.book_new();
+      const usedSheetNames = new Set();
+
+      // Group items by project
+      const grouped = {};
+      items.forEach(i => {
+        const proj = i.projeto || 'Sem Projeto';
+        if (!grouped[proj]) grouped[proj] = [];
+        grouped[proj].push(i);
+      });
+
+      Object.keys(grouped).sort().forEach(proj => {
+        const rows = grouped[proj].map(i => ({
+          'PROJETO': i.projeto || '',
+          'CHAMADO': i.chamado || '',
+          'LINK CHAMADO': i.chamado_link || '',
+          'TIPO': i.tipo || '',
+          'VERTICAL': i.vertical || '',
+          'SISTEMA': i.sistema || '',
+          'NÚMERO DO ITEM': i.numero_item || '',
+          'ITEM DO EDITAL': i.item_edital || '',
+          'STATUS': i.status || '',
+          'DATA PREVISTA': i.data_prevista || '',
+          'OBSERVAÇÕES': i.observacoes || '',
+        }));
+        const ws = XLSX.utils.json_to_sheet(rows);
+
+        // Excel sheet name: max 31 chars, no : \ / ? * [ ]
+        let sheetName = proj.replace(/[:\\/?*[\]]/g, '-').slice(0, 31);
+        let suffix = 1;
+        let finalName = sheetName;
+        while (usedSheetNames.has(finalName)) {
+          const base = sheetName.slice(0, 31 - String(suffix).length - 1);
+          finalName = `${base}_${suffix}`;
+          suffix++;
+        }
+        usedSheetNames.add(finalName);
+        XLSX.utils.book_append_sheet(wb, ws, finalName);
+      });
+
+      const today = new Date().toISOString().slice(0, 10);
+      XLSX.writeFile(wb, `pendencias_edital_${portfolio}_${today}.xlsx`);
+      toast.success(`Planilha exportada com ${Object.keys(grouped).length} aba(s).`);
+    } catch (err) {
+      toast.error('Erro ao exportar: ' + err.message);
+    }
+  };
 
   const handleImport = async (e) => {
     const file = e.target.files[0];
@@ -193,6 +244,15 @@ export default function PendenciaEdital() {
           <div className="flex items-center gap-3">
             {items.length > 0 && (
               <span className="text-xs text-slate-400">{items.length} itens</span>
+            )}
+            {items.length > 0 && (
+              <button
+                onClick={handleExport}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-emerald-600 hover:bg-emerald-700 text-white transition-colors"
+              >
+                <Download className="w-4 h-4" />
+                Exportar Excel
+              </button>
             )}
             {items.length > 0 && (
               <FecharChamadosImporter
