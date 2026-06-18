@@ -78,7 +78,7 @@ export default function ProjectCard({ project, deletingProjectId, onDelete, canD
           </div>
         )}
 
-        <Link to={createPageUrl(`Dashboard?project_id=${project.id}`)}>
+        <Link to={createPageUrl(`${project.project_type === 'sustentacao' ? 'SustentacaoDashboard' : 'Dashboard'}?project_id=${project.id}`)}>
           <Button 
             className="w-full bg-blue-600 hover:bg-blue-700 mt-4"
             disabled={deletingProjectId === project.id}
