@@ -92,7 +92,7 @@ function ImportModal({ projects, onClose, onSuccess }) {
       // ── Sheet: Dinâmica Custos Gerais (or "Base custos gerais ajustada") ──
       // Format: tabular rows, columns: Mês/Ano, Descrição Conta Financeira, Valor Centro Custo
       const geralSheetName = workbook.SheetNames.find(n =>
-        /custos gerais/i.test(n) || /base custos gerais/i.test(n)
+        /dinamica custos gerais/i.test(n) || /base custos gerais/i.test(n)
       );
       if (geralSheetName) {
         const sheet = workbook.Sheets[geralSheetName];
@@ -147,7 +147,7 @@ function ImportModal({ projects, onClose, onSuccess }) {
       // ── Sheet: Dinamica Custo Pessoal (or "Base Pessoal") ──
       // Format: tabular rows, columns: Mês ajustado (date), Tipo Ticket Pai, Custo total
       const pessoalSheetName = workbook.SheetNames.find(n =>
-        /custo pessoal/i.test(n) || /base pessoal/i.test(n)
+        /dinamica custo pessoal/i.test(n) || /base pessoal/i.test(n)
       );
       if (pessoalSheetName) {
         const sheet = workbook.Sheets[pessoalSheetName];
