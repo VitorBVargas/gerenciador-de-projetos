@@ -36,6 +36,7 @@ import RecognizeAllVerticalModal from '../components/modals/RecognizeAllVertical
 import ProjectRecognitionsModal from '../components/modals/ProjectRecognitionsModal';
 import EditProjectRecurringModal from '../components/modals/EditProjectRecurringModal';
 import { toast } from 'sonner';
+import OperationalCostsTab from '../components/executive/OperationalCostsTab';
 
 const statusLabels = {
   nao_iniciado: 'Não Iniciado',
@@ -66,6 +67,8 @@ const statusColors = {
 
 export default function ExecutiveStatus() {
   const [activeTab, setActiveTab] = useState('overview');
+  const [currentUser, setCurrentUser] = useState(null);
+  React.useEffect(() => { base44.auth.me().then(setCurrentUser).catch(() => {}); }, []);
   const [selectedStatusFilter, setSelectedStatusFilter] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
   const [isRevenueModalOpen, setIsRevenueModalOpen] = useState(false);
@@ -626,6 +629,9 @@ export default function ExecutiveStatus() {
           <TabsTrigger value="overview" className="data-[state=active]:bg-blue-600">Visão Geral</TabsTrigger>
           <TabsTrigger value="financeiro" className="data-[state=active]:bg-blue-600">Financeiro</TabsTrigger>
           <TabsTrigger value="timeline" className="data-[state=active]:bg-blue-600">Timeline de Projetos</TabsTrigger>
+          {currentUser?.role === 'admin' && (
+            <TabsTrigger value="custos_operacionais" className="data-[state=active]:bg-blue-600">Custos Operacionais</TabsTrigger>
+          )}
         </TabsList>
 
         {/* Overview Tab */}
@@ -1152,6 +1158,14 @@ export default function ExecutiveStatus() {
           })()}
         </TabsContent>
         
+        {/* Custos Operacionais Tab */}
+        <TabsContent value="custos_operacionais" className="space-y-6">
+          <OperationalCostsTab
+            projects={allProjectsData}
+            isAdmin={currentUser?.role === 'admin'}
+          />
+        </TabsContent>
+
         {/* Timeline Tab */}
         <TabsContent value="timeline" className="space-y-4">
           <div>
