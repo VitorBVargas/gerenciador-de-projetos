@@ -1,0 +1,46 @@
+{
+  "name": "Decisao",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string"
+    },
+    "reuniao_id": {
+      "type": "string"
+    },
+    "descricao": {
+      "type": "string"
+    },
+    "data": {
+      "type": "string",
+      "format": "date"
+    },
+    "responsavel": {
+      "type": "string"
+    },
+    "impacto": {
+      "type": "string",
+      "enum": [
+        "baixo",
+        "medio",
+        "alto"
+      ],
+      "default": "medio"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pendente",
+        "em_andamento",
+        "concluida",
+        "cancelada"
+      ],
+      "default": "pendente"
+    }
+  },
+  "required": [
+    "project_id",
+    "descricao",
+    "data"
+  ]
+}
