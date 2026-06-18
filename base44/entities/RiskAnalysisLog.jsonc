@@ -1,0 +1,56 @@
+{
+  "name": "RiskAnalysisLog",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string"
+    },
+    "executed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "risks_analyzed": {
+      "type": "number",
+      "default": 0
+    },
+    "risks_created": {
+      "type": "number",
+      "default": 0
+    },
+    "risks_updated": {
+      "type": "number",
+      "default": 0
+    },
+    "risks_mitigated": {
+      "type": "number",
+      "default": 0
+    },
+    "risks_closed": {
+      "type": "number",
+      "default": 0
+    },
+    "risk_score": {
+      "type": "number"
+    },
+    "risk_level": {
+      "type": "string"
+    },
+    "executive_summary": {
+      "type": "string",
+      "description": "Resumo executivo da an\u00e1lise"
+    },
+    "trigger": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "auto",
+        "initial"
+      ],
+      "default": "manual"
+    }
+  },
+  "required": [
+    "project_id",
+    "executed_at"
+  ]
+}

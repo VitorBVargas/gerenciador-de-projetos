@@ -1,0 +1,46 @@
+{
+  "name": "RoadmapCiclo",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "ID do projeto"
+    },
+    "name": {
+      "type": "string",
+      "description": "Nome do ciclo"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ativo",
+        "encerrado"
+      ],
+      "default": "ativo"
+    },
+    "licoes_aprendidas": {
+      "type": "string"
+    },
+    "resultado_final": {
+      "type": "string"
+    },
+    "percent_concluded": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "project_id",
+    "name",
+    "start_date",
+    "end_date"
+  ]
+}

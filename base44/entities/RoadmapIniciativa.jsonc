@@ -1,0 +1,40 @@
+{
+  "name": "RoadmapIniciativa",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string"
+    },
+    "ciclo_id": {
+      "type": "string"
+    },
+    "objetivo_id": {
+      "type": "string",
+      "description": "ID do objetivo relacionado"
+    },
+    "titulo": {
+      "type": "string"
+    },
+    "responsavel": {
+      "type": "string"
+    },
+    "prazo": {
+      "type": "string",
+      "format": "date"
+    },
+    "concluido": {
+      "type": "boolean",
+      "default": false
+    },
+    "activity_id": {
+      "type": "string",
+      "description": "ID da atividade kanban vinculada (opcional)"
+    }
+  },
+  "required": [
+    "project_id",
+    "ciclo_id",
+    "objetivo_id",
+    "titulo"
+  ]
+}

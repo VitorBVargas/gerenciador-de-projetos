@@ -1,0 +1,43 @@
+{
+  "name": "RoadmapObjetivo",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string"
+    },
+    "ciclo_id": {
+      "type": "string",
+      "description": "ID do ciclo"
+    },
+    "titulo": {
+      "type": "string"
+    },
+    "periodo": {
+      "type": "string",
+      "enum": [
+        "30dias",
+        "60dias",
+        "90dias"
+      ],
+      "description": "Janela do objetivo"
+    },
+    "responsavel": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pendente",
+        "em_andamento",
+        "concluido"
+      ],
+      "default": "pendente"
+    }
+  },
+  "required": [
+    "project_id",
+    "ciclo_id",
+    "titulo",
+    "periodo"
+  ]
+}
