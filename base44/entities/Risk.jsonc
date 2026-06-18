@@ -8,7 +8,7 @@
     },
     "title": {
       "type": "string",
-      "description": "Nome do risco"
+      "description": "T\u00edtulo do risco"
     },
     "description": {
       "type": "string",
@@ -21,9 +21,20 @@
         "cronograma",
         "recurso",
         "cliente",
-        "externo"
+        "externo",
+        "operacional",
+        "produto",
+        "legal",
+        "governanca",
+        "comunicacao",
+        "capacitacao",
+        "financeiro"
       ],
       "default": "tecnico"
+    },
+    "origem": {
+      "type": "string",
+      "description": "Fonte de identifica\u00e7\u00e3o: roadmap, atividades, chamados, obrigacoes_legais, reunioes, indicadores, manual"
     },
     "probability": {
       "type": "number",
@@ -39,13 +50,26 @@
       "default": 3,
       "description": "Impacto se acontecer (1 a 5)"
     },
+    "criticidade": {
+      "type": "string",
+      "enum": [
+        "baixo",
+        "moderado",
+        "alto",
+        "critico"
+      ],
+      "description": "Calculada automaticamente pela IA"
+    },
     "mitigation": {
       "type": "string",
-      "description": "Plano de mitiga\u00e7\u00e3o / a\u00e7\u00e3o preventiva"
+      "description": "Plano de mitiga\u00e7\u00e3o sugerido"
     },
     "corrective_action": {
       "type": "string",
       "description": "A\u00e7\u00e3o corretiva sugerida"
+    },
+    "responsavel": {
+      "type": "string"
     },
     "suggested_owner": {
       "type": "string",
@@ -78,24 +102,55 @@
       "enum": [
         "manual",
         "ia",
-        "ia_dinamico"
+        "ia_dinamico",
+        "ia_sustentacao"
       ],
       "default": "manual",
       "description": "Origem do risco (manual ou gerado pela IA)"
     },
     "ai_rationale": {
       "type": "string",
-      "description": "Justificativa da IA para sugerir este risco"
+      "description": "Justificativa da IA para cria\u00e7\u00e3o/atualiza\u00e7\u00e3o"
+    },
+    "ai_evidence": {
+      "type": "string",
+      "description": "Evid\u00eancias utilizadas pela IA"
     },
     "status": {
       "type": "string",
       "enum": [
+        "aberto",
+        "em_tratamento",
+        "mitigado",
+        "encerrado",
         "identificado",
-        "em_monitoramento",
-        "em_andamento",
-        "mitigado"
+        "em_monitoramento"
       ],
-      "default": "identificado"
+      "default": "aberto"
+    },
+    "history": {
+      "type": "array",
+      "description": "Hist\u00f3rico de altera\u00e7\u00f5es do risco",
+      "items": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string"
+          },
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          },
+          "rationale": {
+            "type": "string"
+          }
+        }
+      }
     }
   },
   "required": [
