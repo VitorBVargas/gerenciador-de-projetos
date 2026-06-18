@@ -1,0 +1,39 @@
+{
+  "name": "ProjectBudgetForecast",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "ID do projeto"
+    },
+    "project_name": {
+      "type": "string",
+      "description": "Nome do projeto"
+    },
+    "year": {
+      "type": "number",
+      "description": "Ano do or\u00e7amento"
+    },
+    "cost_pessoal": {
+      "type": "number",
+      "default": 0,
+      "description": "Custo pessoal previsto (anual)"
+    },
+    "cost_geral": {
+      "type": "number",
+      "default": 0,
+      "description": "Custo geral previsto (anual)"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es"
+    },
+    "created_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "project_id",
+    "year"
+  ]
+}

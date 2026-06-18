@@ -1,0 +1,78 @@
+{
+  "name": "ProjectOperationalCosts",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "ID do projeto"
+    },
+    "project_name": {
+      "type": "string",
+      "description": "Nome do projeto"
+    },
+    "portfolio_name": {
+      "type": "string",
+      "description": "Nome do portf\u00f3lio"
+    },
+    "city": {
+      "type": "string",
+      "description": "Cidade do projeto"
+    },
+    "category": {
+      "type": "string",
+      "description": "Categoria (ex: Hospedagem, Implanta\u00e7\u00e3o)"
+    },
+    "ticket_parent": {
+      "type": "string",
+      "description": "Tipo Ticket Pai (ex: Implanta\u00e7\u00e3o, Incidente)"
+    },
+    "month": {
+      "type": "number",
+      "description": "M\u00eas (1-12)"
+    },
+    "year": {
+      "type": "number",
+      "description": "Ano (ex: 2025)"
+    },
+    "month_year": {
+      "type": "string",
+      "description": "M\u00eas/Ano formatado (ex: 11/2025)"
+    },
+    "value": {
+      "type": "number",
+      "description": "Valor monet\u00e1rio",
+      "default": 0
+    },
+    "import_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data da importa\u00e7\u00e3o"
+    },
+    "import_version": {
+      "type": "number",
+      "description": "Vers\u00e3o da importa\u00e7\u00e3o",
+      "default": 1
+    },
+    "import_user": {
+      "type": "string",
+      "description": "Usu\u00e1rio que importou"
+    },
+    "cost_type": {
+      "type": "string",
+      "enum": [
+        "operacional",
+        "geral"
+      ],
+      "default": "operacional",
+      "description": "Tipo: operacional (tickets) ou geral (hospedagem, viagem, etc)"
+    }
+  },
+  "required": [
+    "project_id",
+    "project_name",
+    "category",
+    "month",
+    "year",
+    "value"
+  ]
+}
