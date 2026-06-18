@@ -1,0 +1,90 @@
+{
+  "name": "HorasLancamento",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string"
+    },
+    "colaborador": {
+      "type": "string",
+      "description": "Nome do colaborador"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "ID do usu\u00e1rio (se autenticado)"
+    },
+    "data": {
+      "type": "string",
+      "format": "date"
+    },
+    "hora_inicio": {
+      "type": "string",
+      "description": "HH:MM"
+    },
+    "hora_fim": {
+      "type": "string",
+      "description": "HH:MM"
+    },
+    "total_horas": {
+      "type": "number",
+      "description": "Total em horas decimais"
+    },
+    "produto": {
+      "type": "string",
+      "description": "Produto/vertical relacionado"
+    },
+    "objetivo": {
+      "type": "string",
+      "description": "Objetivo do roadmap relacionado"
+    },
+    "atividade_id": {
+      "type": "string",
+      "description": "ID da atividade Kanban vinculada"
+    },
+    "atividade_titulo": {
+      "type": "string",
+      "description": "T\u00edtulo da atividade"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "atendimento",
+        "reuniao",
+        "treinamento",
+        "configuracao",
+        "analise",
+        "documentacao",
+        "suporte",
+        "implantacao",
+        "sustentacao",
+        "administrativo"
+      ],
+      "default": "sustentacao"
+    },
+    "descricao": {
+      "type": "string"
+    },
+    "observacoes": {
+      "type": "string"
+    },
+    "origem": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "tracker",
+        "importacao"
+      ],
+      "default": "manual"
+    },
+    "reference_month": {
+      "type": "string",
+      "description": "YYYY-MM para agrupamento"
+    }
+  },
+  "required": [
+    "project_id",
+    "colaborador",
+    "data",
+    "total_horas"
+  ]
+}
