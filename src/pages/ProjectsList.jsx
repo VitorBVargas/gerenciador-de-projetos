@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +15,8 @@ import ExcelImporter from '../components/import/ExcelImporter';
 import RecognitionImporter from '../components/import/RecognitionImporter';
 import CrmImporter from '../components/import/CrmImporter';
 import ProjectSetupWizard from '../components/modals/ProjectSetupWizard';
+import ProjectTypeSelector from '../components/modals/ProjectTypeSelector';
+import SustentacaoWizard from '../components/modals/SustentacaoWizard';
 import ProjectCard from '../components/projects/ProjectCard';
 import ClosureReportButton from '../components/closure/ClosureReportButton';
 import { useCurrentUser, canCreateProject, canDeleteProject, canManageUsers } from '@/lib/permissions';
@@ -35,7 +37,8 @@ const statusColors = {
   planejamento: 'bg-slate-500',
   em_andamento: 'bg-blue-500',
   pausado: 'bg-yellow-500',
-  concluido: 'bg-green-500'
+  concluido: 'bg-green-500',
+  sustentacao: 'bg-purple-500'
 };
 
 const statusLabels = {
@@ -61,7 +64,9 @@ export default function ProjectsList() {
   const portfolioFilter = urlParams.get('portfolio') || 'grandes_contas_sc_mg';
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [recognitionImporterOpen, setRecognitionImporterOpen] = useState(false);
+  const [typeSelectorOpen, setTypeSelectorOpen] = useState(false);
   const [crmImportModalOpen, setCrmImportModalOpen] = useState(false);
+  const [sustentacaoWizardOpen, setSustentacaoWizardOpen] = useState(false);
   const [setupWizardOpen, setSetupWizardOpen] = useState(false);
   const [wizardProject, setWizardProject] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -153,10 +158,20 @@ export default function ProjectsList() {
     }
   }, []);
 
+  const handleTypeSelect = (type) => {
+    setTypeSelectorOpen(false);
+    if (type === 'implantacao') {
+      setCrmImportModalOpen(true);
+    } else {
+      setSustentacaoWizardOpen(true);
+    }
+  };
+
   // Filter projects by status
-  const activeProjects = projects.filter(p => p.status !== 'concluido' && p.status !== 'pausado');
+  const activeProjects = projects.filter(p => p.status !== 'concluido' && p.status !== 'pausado' && p.status !== 'sustentacao');
   const pausedProjects = projects.filter(p => p.status === 'pausado');
   const completedProjects = projects.filter(p => p.status === 'concluido');
+  const sustentacaoProjects = projects.filter(p => p.status === 'sustentacao' || p.project_type === 'sustentacao');
 
   const handleDragEnd = async (result, projectsList) => {
     if (!result.destination) return;
@@ -255,7 +270,7 @@ export default function ProjectsList() {
             )}
             {canCreate && (
               <Button
-                onClick={() => setCrmImportModalOpen(true)}
+                onClick={() => setTypeSelectorOpen(true)}
                 className="bg-green-600 hover:bg-green-700"
               >
                 <Upload className="w-4 h-4 mr-2" />
@@ -285,6 +300,9 @@ export default function ProjectsList() {
             </TabsTrigger>
             <TabsTrigger value="completed" className="data-[state=active]:bg-slate-700">
               Concluídos ({completedProjects.length})
+            </TabsTrigger>
+            <TabsTrigger value="sustentacao" className="data-[state=active]:bg-slate-700">
+              Sustentação ({sustentacaoProjects.length})
             </TabsTrigger>
           </TabsList>
 
@@ -447,8 +465,38 @@ export default function ProjectsList() {
               </Card>
             )}
           </TabsContent>
+
+          <TabsContent value="sustentacao" className="mt-6">
+            {sustentacaoProjects.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {sustentacaoProjects.map((project) => renderProjectCard(project, 0, false))}
+              </div>
+            ) : (
+              <Card className="bg-slate-800/50 border-slate-700">
+                <CardContent className="py-16 text-center">
+                  <h3 className="text-xl font-semibold text-white mb-2">Nenhum projeto de sustentação</h3>
+                  <p className="text-slate-400">Projetos de sustentação aparecerão aqui</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
         </Tabs>
       </div>
+
+      {/* Type Selector */}
+      <ProjectTypeSelector
+        open={typeSelectorOpen}
+        onOpenChange={setTypeSelectorOpen}
+        onSelect={handleTypeSelect}
+      />
+
+      {/* Sustentacao Wizard */}
+      <SustentacaoWizard
+        open={sustentacaoWizardOpen}
+        onOpenChange={setSustentacaoWizardOpen}
+        portfolioFilter={portfolioFilter}
+        onComplete={() => queryClient.invalidateQueries({ queryKey: ['projects'] })}
+      />
 
       {/* CRM Import */}
       <CrmImporter
