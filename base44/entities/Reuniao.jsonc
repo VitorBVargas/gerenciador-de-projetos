@@ -1,0 +1,89 @@
+{
+  "name": "Reuniao",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string"
+    },
+    "titulo": {
+      "type": "string"
+    },
+    "cliente": {
+      "type": "string"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "alinhamento",
+        "revisao",
+        "apresentacao",
+        "emergencial",
+        "kickoff",
+        "outro"
+      ],
+      "default": "alinhamento"
+    },
+    "data": {
+      "type": "string",
+      "format": "date"
+    },
+    "horario": {
+      "type": "string"
+    },
+    "participantes": {
+      "type": "string",
+      "description": "Nomes separados por v\u00edrgula"
+    },
+    "responsavel": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "agendada",
+        "realizada",
+        "cancelada",
+        "reagendada"
+      ],
+      "default": "agendada"
+    },
+    "objetivo": {
+      "type": "string"
+    },
+    "anotacoes": {
+      "type": "object",
+      "properties": {
+        "temas": {
+          "type": "string"
+        },
+        "decisoes": {
+          "type": "string"
+        },
+        "pendencias": {
+          "type": "string"
+        },
+        "proximos_passos": {
+          "type": "string"
+        },
+        "observacoes": {
+          "type": "string"
+        }
+      }
+    },
+    "link_gravacao": {
+      "type": "string"
+    },
+    "last_edited_by": {
+      "type": "string"
+    },
+    "last_edited_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "project_id",
+    "titulo",
+    "data"
+  ]
+}
