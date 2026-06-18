@@ -1,0 +1,66 @@
+{
+  "name": "RelatorioOperacional",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string"
+    },
+    "nome": {
+      "type": "string"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "relatorio",
+        "apresentacao",
+        "ata",
+        "evidencia",
+        "apoio"
+      ],
+      "default": "relatorio"
+    },
+    "data_envio": {
+      "type": "string",
+      "format": "date"
+    },
+    "responsavel": {
+      "type": "string"
+    },
+    "versao": {
+      "type": "string",
+      "default": "1.0"
+    },
+    "file_url": {
+      "type": "string"
+    },
+    "drive_link": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pendente",
+        "enviado",
+        "aprovado"
+      ],
+      "default": "pendente"
+    },
+    "reuniao_id": {
+      "type": "string",
+      "description": "Reuni\u00e3o relacionada (opcional)"
+    },
+    "observacoes": {
+      "type": "string"
+    },
+    "ano": {
+      "type": "number"
+    },
+    "mes": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "project_id",
+    "nome"
+  ]
+}
