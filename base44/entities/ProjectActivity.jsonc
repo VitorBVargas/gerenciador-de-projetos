@@ -26,16 +26,25 @@
     "end_date": {
       "type": "string",
       "format": "date",
-      "description": "Data de fim"
+      "description": "Data de fim prevista"
+    },
+    "completed_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data real de conclus\u00e3o"
     },
     "assignee": {
       "type": "string",
-      "description": "Respons\u00e1vel"
+      "description": "Respons\u00e1vel principal"
+    },
+    "participants": {
+      "type": "string",
+      "description": "Participantes (nomes separados por v\u00edrgula)"
     },
     "status": {
       "type": "string",
-      "default": "todo",
-      "description": "Status da atividade (ID da coluna ou chave)"
+      "default": "backlog",
+      "description": "Status / coluna do Kanban"
     },
     "vertical": {
       "type": "string",
@@ -45,11 +54,90 @@
       "type": "number",
       "default": 0,
       "description": "Ordem no Kanban"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "baixa",
+        "media",
+        "alta"
+      ],
+      "default": "media",
+      "description": "Prioridade"
+    },
+    "activity_type": {
+      "type": "string",
+      "enum": [
+        "melhoria",
+        "treinamento",
+        "configuracao",
+        "processo",
+        "correcao",
+        "indicador",
+        "documentacao",
+        "acompanhamento",
+        "integracao",
+        "reuniao"
+      ],
+      "description": "Tipo de atividade"
+    },
+    "related_product_id": {
+      "type": "string",
+      "description": "ID do produto/chamado relacionado"
+    },
+    "related_product_name": {
+      "type": "string",
+      "description": "Nome do produto relacionado"
+    },
+    "related_chamado": {
+      "type": "string",
+      "description": "N\u00famero do chamado relacionado"
+    },
+    "objective": {
+      "type": "string",
+      "description": "Objetivo estrat\u00e9gico relacionado"
+    },
+    "estimated_hours": {
+      "type": "number",
+      "default": 0,
+      "description": "Horas previstas"
+    },
+    "actual_hours": {
+      "type": "number",
+      "default": 0,
+      "description": "Horas realizadas"
+    },
+    "attachment_urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "URLs de anexos (documentos, evid\u00eancias, etc)"
+    },
+    "history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string"
+          },
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          },
+          "user": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Hist\u00f3rico de movimenta\u00e7\u00f5es"
     }
   },
   "required": [
     "title",
-    "project_id",
-    "vertical"
+    "project_id"
   ]
 }
