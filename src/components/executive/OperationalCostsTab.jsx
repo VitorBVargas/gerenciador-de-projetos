@@ -31,16 +31,27 @@ const fmtMonth = (m, y) => {
 function parseDateValue(val) {
   if (!val) return null;
   if (val instanceof Date) return { month: val.getMonth() + 1, year: val.getFullYear() };
+  
   const s = String(val).trim();
+  
+  // Formato ISO: YYYY-MM-DD
   const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (iso) return { month: parseInt(iso[2]), year: parseInt(iso[1]) };
+  if (iso) return { month: parseInt(iso[2], 10), year: parseInt(iso[1], 10) };
+  
+  // Formato BR Completo: DD/MM/YYYY
+  const dmy = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (dmy) return { month: parseInt(dmy[2], 10), year: parseInt(dmy[3], 10) };
+
+  // Formato BR Curto: MM/YYYY
   const my = s.match(/^(\d{1,2})\/(\d{4})$/);
-  if (my) return { month: parseInt(my[1]), year: parseInt(my[2]) };
+  if (my) return { month: parseInt(my[1], 10), year: parseInt(my[2], 10) };
+  
+  // Formato Extenso: jan/23, fev/2024
   const mNames = { jan: 1, fev: 2, mar: 3, abr: 4, mai: 5, jun: 6, jul: 7, ago: 8, set: 9, out: 10, nov: 11, dez: 12 };
   const named = s.match(/^([a-záàâãéêíóôõúç]{3})[^\d]*(\d{2,4})/i);
   if (named) {
     const m = mNames[named[1].toLowerCase()];
-    const y = named[2].length === 2 ? 2000 + parseInt(named[2]) : parseInt(named[2]);
+    const y = named[2].length === 2 ? 2000 + parseInt(named[2], 10) : parseInt(named[2], 10);
     if (m) return { month: m, year: y };
   }
   return null;
@@ -49,14 +60,24 @@ function parseDateValue(val) {
 function parseNumber(val) {
   if (val === null || val === undefined || val === '') return null;
   if (typeof val === 'number') return val;
-  const s = String(val).trim();
-  let numStr;
-  if (/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)) {
-    numStr = s.replace(/\./g, '').replace(',', '.');
-  } else {
-    numStr = s.replace(/[^\d.-]/g, '');
+  
+  // Limpa R$, espaços e caracteres invisíveis
+  let s = String(val).replace(/[R$\s]/ig, '').trim();
+  
+  // Se for padrão BR com ponto de milhar (ex: 1.500,00 ou -1.500,00)
+  if (/^-?\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)) {
+    s = s.replace(/\./g, '').replace(',', '.');
+  } 
+  // Se tiver só vírgula separando decimais (ex: 1500,50)
+  else if (s.includes(',') && !s.includes('.')) {
+    s = s.replace(',', '.');
   }
-  const n = parseFloat(numStr);
+  // Se for algo muito sujo, remove o que não for dígito, ponto ou sinal negativo
+  else {
+    s = s.replace(/[^\d.-]/g, '');
+  }
+
+  const n = parseFloat(s);
   return isNaN(n) ? null : n;
 }
 
@@ -100,7 +121,7 @@ function ImportModal({ projects, onClose, onSuccess }) {
       );
       if (geralSheetName) {
         const sheet = workbook.Sheets[geralSheetName];
-        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null, raw: false });
+        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null, raw: true });
         // find header row
         let headerRow = null, headerIdx = -1;
         for (let i = 0; i < Math.min(rows.length, 15); i++) {
@@ -155,7 +176,7 @@ function ImportModal({ projects, onClose, onSuccess }) {
       );
       if (pessoalSheetName) {
         const sheet = workbook.Sheets[pessoalSheetName];
-        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null, raw: false });
+        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null, raw: true });
         let headerRow = null, headerIdx = -1;
         for (let i = 0; i < Math.min(rows.length, 15); i++) {
           const r = rows[i];
