@@ -4,8 +4,12 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Upload, TrendingUp, TrendingDown, Minus, DollarSign, AlertCircle, X, Target } from 'lucide-react';
+import { Upload, TrendingUp, TrendingDown, Minus, DollarSign, AlertCircle, X, Target, Trash2 } from 'lucide-react';
 import BudgetForecastModal from './BudgetForecastModal';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 import { cn } from "@/lib/utils";
 import { toast } from 'sonner';
@@ -710,7 +714,28 @@ export default function OperationalCostsTab({ projects, isAdmin }) {
   const [importOpen, setImportOpen] = useState(false);
   const [forecastOpen, setForecastOpen] = useState(false);
   const [expandedProject, setExpandedProject] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
   const queryClient = useQueryClient();
+
+  const handleDeleteCosts = useCallback(async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      const records = allCosts.filter(c => c.project_id === deleteTarget.project_id);
+      for (const r of records) {
+        await base44.entities.ProjectOperationalCosts.delete(r.id);
+      }
+      toast.success(`Custos de "${deleteTarget.project_name}" removidos (${records.length} registros)`);
+      queryClient.invalidateQueries({ queryKey: ['operational_costs'] });
+      setDeleteTarget(null);
+    } catch (err) {
+      console.error(err);
+      toast.error('Erro ao remover custos: ' + err.message);
+    } finally {
+      setDeleting(false);
+    }
+  }, [deleteTarget, allCosts, queryClient]);
 
   const { data: allCosts = [], isLoading } = useQuery({
     queryKey: ['operational_costs'],
@@ -842,6 +867,13 @@ export default function OperationalCostsTab({ projects, isAdmin }) {
                         <div className="text-xs text-slate-400">Média Mensal</div>
                         <div className="text-xs text-blue-400">{fmtBRL(p.avgMonthly)}</div>
                       </div>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setDeleteTarget(p); }}
+                        className="p-1.5 rounded-md text-red-400 hover:text-red-300 hover:bg-red-500/20 transition-colors flex-shrink-0"
+                        title="Remover custos deste projeto"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                       <div className={cn("transition-transform duration-200", isExpanded ? "rotate-180" : "rotate-0")}>
                         <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -888,6 +920,23 @@ export default function OperationalCostsTab({ projects, isAdmin }) {
           onSuccess={() => queryClient.invalidateQueries({ queryKey: ['budget_forecasts'] })}
         />
       )}
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open && !deleting) setDeleteTarget(null); }}>
+        <AlertDialogContent className="bg-slate-800 border-slate-700">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">Remover custos operacionais</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-400">
+              Tem certeza que deseja remover todos os custos operacionais de "{deleteTarget?.project_name}" ({deleteTarget?.records} registros)? Esta operação é irreversível e não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting} className="border-slate-600 text-slate-300 hover:bg-slate-700">Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={(e) => { e.preventDefault(); handleDeleteCosts(); }} disabled={deleting} className="bg-red-600 hover:bg-red-700">
+              {deleting ? 'Removendo...' : 'Remover'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
