@@ -1,0 +1,85 @@
+{
+  "name": "ObrigacaoLegal",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "ID do projeto"
+    },
+    "nome": {
+      "type": "string",
+      "description": "Nome da obriga\u00e7\u00e3o (ex: SICOM, SIOPE)"
+    },
+    "competencia": {
+      "type": "string",
+      "description": "M\u00eas/Ano da compet\u00eancia (ex: 05/2026)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "nao_iniciado",
+        "em_elaboracao",
+        "enviado",
+        "aceito",
+        "rejeitado"
+      ],
+      "default": "nao_iniciado"
+    },
+    "responsavel": {
+      "type": "string",
+      "description": "Respons\u00e1vel pela entrega"
+    },
+    "data_limite": {
+      "type": "string",
+      "format": "date",
+      "description": "Prazo legal da obriga\u00e7\u00e3o"
+    },
+    "data_envio": {
+      "type": "string",
+      "format": "date",
+      "description": "Data efetiva do envio"
+    },
+    "observacoes": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es, justificativas ou ocorr\u00eancias"
+    },
+    "history": {
+      "type": "array",
+      "description": "Hist\u00f3rico de altera\u00e7\u00f5es",
+      "items": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string"
+          },
+          "field": {
+            "type": "string"
+          },
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          },
+          "user": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "motivo_rejeicao": {
+      "type": "string",
+      "description": "Motivo da rejei\u00e7\u00e3o (para an\u00e1lise futura)"
+    },
+    "is_padrao": {
+      "type": "boolean",
+      "default": false,
+      "description": "Obriga\u00e7\u00e3o padr\u00e3o do sistema"
+    }
+  },
+  "required": [
+    "project_id",
+    "nome",
+    "competencia"
+  ]
+}
