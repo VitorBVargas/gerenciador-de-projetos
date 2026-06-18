@@ -86,6 +86,7 @@ export default function SustentacaoReunioes() {
     if (editingReu) {
       await base44.entities.Reuniao.update(editingReu.id, data);
     } else {
+      if (!projectId) { alert('Selecione um projeto para criar uma reunião.'); return; }
       await base44.entities.Reuniao.create({ ...data, project_id: projectId });
     }
     queryClient.invalidateQueries(['reunioes', projectId]);
