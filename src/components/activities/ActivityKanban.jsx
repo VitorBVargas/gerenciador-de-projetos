@@ -1,35 +1,51 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { format } from 'date-fns';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { CalendarIcon, Plus, MoreHorizontal, Pencil, Trash2, GripHorizontal } from 'lucide-react';
+import { Plus, MoreHorizontal, Pencil, Trash2, GripHorizontal, Calendar } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { phaseLabels } from '@/components/timeline/phaseLabels';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import ActivityCard from './ActivityCard';
 
 const COLOR_OPTIONS = [
-  { id: 'slate', name: 'Cinza', border: 'border-slate-500', bg: 'bg-slate-500/10' },
-  { id: 'blue', name: 'Azul', border: 'border-blue-500', bg: 'bg-blue-500/10' },
-  { id: 'green', name: 'Verde', border: 'border-green-500', bg: 'bg-green-500/10' },
-  { id: 'red', name: 'Vermelho', border: 'border-red-500', bg: 'bg-red-500/10' },
-  { id: 'purple', name: 'Roxo', border: 'border-purple-500', bg: 'bg-purple-500/10' },
-  { id: 'orange', name: 'Laranja', border: 'border-orange-500', bg: 'bg-orange-500/10' },
+  { id: 'slate',  name: 'Cinza',    border: 'border-slate-500',  bg: 'bg-slate-500/10' },
+  { id: 'blue',   name: 'Azul',     border: 'border-blue-500',   bg: 'bg-blue-500/10' },
+  { id: 'green',  name: 'Verde',    border: 'border-green-500',  bg: 'bg-green-500/10' },
+  { id: 'red',    name: 'Vermelho', border: 'border-red-500',    bg: 'bg-red-500/10' },
+  { id: 'purple', name: 'Roxo',     border: 'border-purple-500', bg: 'bg-purple-500/10' },
+  { id: 'orange', name: 'Laranja',  border: 'border-orange-500', bg: 'bg-orange-500/10' },
+  { id: 'yellow', name: 'Amarelo',  border: 'border-yellow-500', bg: 'bg-yellow-500/10' },
 ];
 
-export default function ActivityKanban({ activities, verticals, onEdit, projectId, isInternal = false }) {
+const SUSTENTACAO_DEFAULTS = [
+  { key: 'backlog',           title: 'Backlog',             color: 'border-slate-500',  bg: 'bg-slate-500/10',  order: 0 },
+  { key: 'priorizado',        title: 'Priorizado',          color: 'border-blue-500',   bg: 'bg-blue-500/10',   order: 1 },
+  { key: 'in_progress',       title: 'Em Andamento',        color: 'border-yellow-500', bg: 'bg-yellow-500/10', order: 2 },
+  { key: 'aguardando_cliente',title: 'Aguardando Cliente',  color: 'border-orange-500', bg: 'bg-orange-500/10', order: 3 },
+  { key: 'validacao',         title: 'Validação',           color: 'border-purple-500', bg: 'bg-purple-500/10', order: 4 },
+  { key: 'done',              title: 'Concluído',           color: 'border-green-500',  bg: 'bg-green-500/10',  order: 5 },
+];
+
+const IMPLANTACAO_DEFAULTS = [
+  { key: 'todo',        title: 'A Fazer',      color: 'border-slate-500', bg: 'bg-slate-500/10', order: 0 },
+  { key: 'in_progress', title: 'Em Andamento', color: 'border-blue-500',  bg: 'bg-blue-500/10',  order: 1 },
+  { key: 'done',        title: 'Concluído',    color: 'border-green-500', bg: 'bg-green-500/10', order: 2 },
+];
+
+export default function ActivityKanban({ activities, verticals, onEdit, projectId, isInternal = false, isSustentacao = false }) {
   const queryClient = useQueryClient();
   const [selectedVertical, setSelectedVertical] = useState(verticals[0] || null);
-
   const [colModalOpen, setColModalOpen] = useState(false);
   const [editingCol, setEditingCol] = useState(null);
   const [colTitle, setColTitle] = useState('');
   const [colColor, setColColor] = useState('blue');
+  const initRef = useRef(false);
+  // Modal para data prevista ao mover para "em andamento"
+  const [endDateModal, setEndDateModal] = useState({ open: false, pendingMove: null, endDate: '' });
 
   const { data: dbColumns = [], isLoading: isLoadingCols } = useQuery({
     queryKey: ['kanbanColumns', projectId],
@@ -37,51 +53,60 @@ export default function ActivityKanban({ activities, verticals, onEdit, projectI
     enabled: !!projectId
   });
 
-  // Flag para impedir múltiplas execuções simultâneas de inicialização/limpeza
-  const initRef = useRef(false);
-
   useEffect(() => {
     if (isLoadingCols || !projectId || initRef.current) return;
 
-    // 1) Caso vazio: criar as colunas padrão UMA única vez
+    const existingKeys = dbColumns.map(c => c.key || c.id || '');
+    const sustentacaoKeys = SUSTENTACAO_DEFAULTS.map(d => d.key);
+    const isOldImplantacaoBoard = isSustentacao &&
+      dbColumns.length > 0 &&
+      existingKeys.every(k => ['todo', 'in_progress', 'done'].includes(k)) &&
+      !existingKeys.some(k => sustentacaoKeys.includes(k));
+
+    // Se for sustentação mas tem colunas antigas de implantação: apaga e recria
+    if (isOldImplantacaoBoard) {
+      initRef.current = true;
+      Promise.all(dbColumns.map(c => base44.entities.KanbanColumn.delete(c.id)))
+        .then(() => {
+          const defaults = SUSTENTACAO_DEFAULTS.map(d => ({ ...d, project_id: projectId }));
+          return Promise.all(defaults.map(c => base44.entities.KanbanColumn.create(c)));
+        })
+        .then(() => queryClient.invalidateQueries({ queryKey: ['kanbanColumns', projectId] }))
+        .catch(() => { initRef.current = false; });
+      return;
+    }
+
     if (dbColumns.length === 0) {
       initRef.current = true;
-      const defaults = [
-        { project_id: projectId, key: 'todo', title: 'A Fazer', color: 'border-slate-500', bg: 'bg-slate-500/10', order: 0 },
-        { project_id: projectId, key: 'in_progress', title: 'Em Andamento', color: 'border-blue-500', bg: 'bg-blue-500/10', order: 1 },
-        { project_id: projectId, key: 'done', title: 'Concluído', color: 'border-green-500', bg: 'bg-green-500/10', order: 2 }
-      ];
+      const defaults = (isSustentacao ? SUSTENTACAO_DEFAULTS : IMPLANTACAO_DEFAULTS)
+        .map(d => ({ ...d, project_id: projectId }));
       Promise.all(defaults.map(c => base44.entities.KanbanColumn.create(c)))
         .then(() => queryClient.invalidateQueries({ queryKey: ['kanbanColumns', projectId] }))
         .catch(() => { initRef.current = false; });
       return;
     }
 
-    // 2) Limpeza automática de duplicatas (mesmo key/title repetidos)
+    // Dedup
     const seen = new Map();
-    const duplicates = [];
+    const dups = [];
     for (const col of dbColumns) {
-      const dedupKey = (col.key || col.title || '').toLowerCase().trim();
-      if (!dedupKey) continue;
-      if (seen.has(dedupKey)) {
-        duplicates.push(col.id);
-      } else {
-        seen.set(dedupKey, col.id);
-      }
+      const k = (col.key || col.title || '').toLowerCase().trim();
+      if (!k) continue;
+      if (seen.has(k)) dups.push(col.id);
+      else seen.set(k, col.id);
     }
-    if (duplicates.length > 0) {
+    if (dups.length > 0) {
       initRef.current = true;
-      Promise.all(duplicates.map(id => base44.entities.KanbanColumn.delete(id)))
+      Promise.all(dups.map(id => base44.entities.KanbanColumn.delete(id)))
         .then(() => queryClient.invalidateQueries({ queryKey: ['kanbanColumns', projectId] }))
         .catch(() => { initRef.current = false; });
     }
-  }, [isLoadingCols, dbColumns, projectId, queryClient]);
+  }, [isLoadingCols, dbColumns, projectId, queryClient, isSustentacao]);
 
-  const columns = dbColumns.length > 0 ? [...dbColumns].sort((a,b) => a.order - b.order) : [
-    { id: 'todo', key: 'todo', title: 'A Fazer', color: 'border-slate-500', bg: 'bg-slate-500/10', order: 0 },
-    { id: 'in_progress', key: 'in_progress', title: 'Em Andamento', color: 'border-blue-500', bg: 'bg-blue-500/10', order: 1 },
-    { id: 'done', key: 'done', title: 'Concluído', color: 'border-green-500', bg: 'bg-green-500/10', order: 2 }
-  ];
+  const fallback = isSustentacao ? SUSTENTACAO_DEFAULTS : IMPLANTACAO_DEFAULTS;
+  const columns = dbColumns.length > 0
+    ? [...dbColumns].sort((a, b) => a.order - b.order)
+    : fallback.map((d, i) => ({ ...d, id: d.key }));
 
   const updateActivityStatus = useMutation({
     mutationFn: ({ id, status, order }) => base44.entities.ProjectActivity.update(id, { status, order }),
@@ -89,12 +114,12 @@ export default function ActivityKanban({ activities, verticals, onEdit, projectI
   });
 
   const updateColumnOrder = useMutation({
-    mutationFn: async (cols) => Promise.all(cols.map((col, idx) => base44.entities.KanbanColumn.update(col.id, { order: idx }))),
+    mutationFn: (cols) => Promise.all(cols.map((col, idx) => base44.entities.KanbanColumn.update(col.id, { order: idx }))),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['kanbanColumns', projectId] })
   });
 
   const saveColumnMutation = useMutation({
-    mutationFn: (data) => editingCol?.id 
+    mutationFn: (data) => editingCol?.id
       ? base44.entities.KanbanColumn.update(editingCol.id, data)
       : base44.entities.KanbanColumn.create({ ...data, project_id: projectId, order: columns.length }),
     onSuccess: () => {
@@ -108,6 +133,12 @@ export default function ActivityKanban({ activities, verticals, onEdit, projectI
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['kanbanColumns', projectId] })
   });
 
+  const IN_PROGRESS_KEYS = ['in_progress', 'em_andamento'];
+
+  const doMove = (activityId, saveStatus, destIndex, extra = {}) => {
+    updateActivityStatus.mutate({ id: activityId, status: saveStatus, order: destIndex, ...extra });
+  };
+
   const onDragEnd = (result) => {
     if (!result.destination) return;
     const { source, destination, type } = result;
@@ -117,217 +148,154 @@ export default function ActivityKanban({ activities, verticals, onEdit, projectI
       const newCols = Array.from(columns);
       const [removed] = newCols.splice(source.index, 1);
       newCols.splice(destination.index, 0, removed);
-      
       queryClient.setQueryData(['kanbanColumns', projectId], newCols.map((c, i) => ({ ...c, order: i })));
       updateColumnOrder.mutate(newCols);
       return;
     }
 
-    const sourceStatusId = source.droppableId;
-    const destStatusId = destination.droppableId;
+    const sourceId = source.droppableId;
+    const destId = destination.droppableId;
     const activityId = result.draggableId;
+    if (sourceId === destId && source.index === destination.index) return;
 
-    if (sourceStatusId === destStatusId && source.index === destination.index) return;
+    const destCol = columns.find(c => c.id === destId);
+    const saveStatus = destCol?.key || destCol?.id || destId;
+    const isDone = saveStatus === 'done';
+    const isInProgress = IN_PROGRESS_KEYS.includes(saveStatus);
 
-    const destCol = columns.find(c => c.id === destStatusId);
-    const saveStatus = destCol?.key || destCol?.id || destStatusId;
+    const extra = {};
+    if (isDone) extra.completed_date = new Date().toISOString().split('T')[0];
 
-    updateActivityStatus.mutate({ 
-      id: activityId, 
-      status: saveStatus, 
-      order: destination.index 
-    });
+    // Append history
+    const act = activities.find(a => a.id === activityId);
+    if (act && act.status !== saveStatus) {
+      extra.history = [...(act.history || []), { date: new Date().toISOString(), from: act.status, to: saveStatus }];
+    }
+
+    // Auto start_date + pedir data prevista ao mover para em andamento
+    if (isInProgress) {
+      extra.start_date = new Date().toISOString().split('T')[0];
+      setEndDateModal({ open: true, pendingMove: { activityId, saveStatus, destIndex: destination.index, extra }, endDate: act?.end_date || '' });
+      return;
+    }
+
+    doMove(activityId, saveStatus, destination.index, extra);
   };
 
   const openColumnModal = (col = null) => {
     setEditingCol(col);
     if (col) {
       setColTitle(col.title);
-      const matchedColor = COLOR_OPTIONS.find(c => c.border === col.color)?.id || 'blue';
-      setColColor(matchedColor);
+      setColColor(COLOR_OPTIONS.find(c => c.border === col.color)?.id || 'blue');
     } else {
-      setColTitle('');
-      setColColor('blue');
+      setColTitle(''); setColColor('blue');
     }
     setColModalOpen(true);
   };
 
   const handleSaveColumn = () => {
     if (!colTitle.trim()) return;
-    const selectedColor = COLOR_OPTIONS.find(c => c.id === colColor) || COLOR_OPTIONS[1];
-    saveColumnMutation.mutate({
-      title: colTitle.trim(),
-      color: selectedColor.border,
-      bg: selectedColor.bg
-    });
+    const sel = COLOR_OPTIONS.find(c => c.id === colColor) || COLOR_OPTIONS[1];
+    saveColumnMutation.mutate({ title: colTitle.trim(), color: sel.border, bg: sel.bg });
   };
 
-  const verticalActivities = isInternal ? activities : activities.filter(a => a.vertical === selectedVertical);
+  const verticalActivities = isInternal || !selectedVertical
+    ? activities
+    : activities.filter(a => !a.vertical || a.vertical === selectedVertical);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         {!isInternal && verticals.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {verticals.map(v => (
-              <button
-                key={v}
-                onClick={() => setSelectedVertical(v)}
+              <button key={v} onClick={() => setSelectedVertical(v)}
                 className={cn(
-                  "px-4 py-2 rounded-full text-sm font-medium transition-colors capitalize",
+                  "px-3 py-1.5 rounded-full text-sm font-medium transition-colors capitalize",
                   selectedVertical === v ? "bg-blue-600 text-white" : "bg-slate-800 text-slate-400 hover:bg-slate-700"
-                )}
-              >
+                )}>
                 {v}
               </button>
             ))}
           </div>
         )}
-        <Button onClick={() => openColumnModal()} variant="outline" className="ml-auto border-slate-700 bg-slate-800/50 hover:bg-slate-800 text-slate-300">
-          <Plus className="w-4 h-4 mr-2" />
+        <Button onClick={() => openColumnModal()} variant="outline"
+          className="ml-auto border-slate-700 bg-slate-800/50 hover:bg-slate-800 text-slate-300 h-8 text-sm">
+          <Plus className="w-3.5 h-3.5 mr-1.5" />
           Nova Coluna
         </Button>
       </div>
 
-      {!isInternal && verticals.length === 0 ? (
-        <div className="text-slate-400 py-4">Nenhuma vertical encontrada para este projeto. Adicione produtos para gerar verticais.</div>
+      {!isInternal && verticals.length === 0 && !isSustentacao ? (
+        <div className="text-slate-400 py-4">Nenhuma vertical encontrada. Adicione produtos para gerar verticais.</div>
       ) : (
         <DragDropContext onDragEnd={onDragEnd}>
           <Droppable droppableId="board" type="column" direction="horizontal">
             {(provided) => (
-              <div 
-                {...provided.droppableProps}
-                ref={provided.innerRef}
-                className="flex gap-4 overflow-x-auto pb-4 items-start min-h-[60vh] scrollbar-thin scrollbar-thumb-slate-600"
-              >
-                {columns.map((status, index) => {
-                  const statusActivities = verticalActivities
-                    .filter(a => a.status === status.id || (status.key && a.status === status.key))
+              <div {...provided.droppableProps} ref={provided.innerRef}
+                className="flex gap-3 overflow-x-auto pb-4 items-start min-h-[65vh]">
+                {columns.map((col, index) => {
+                  const colActivities = verticalActivities
+                    .filter(a => a.status === col.id || (col.key && a.status === col.key))
                     .sort((a, b) => (a.order || 0) - (b.order || 0));
+                  const isDone = col.key === 'done';
 
                   return (
-                    <Draggable key={status.id} draggableId={status.id} index={index}>
+                    <Draggable key={col.id} draggableId={col.id} index={index}>
                       {(provided, snapshot) => (
-                        <div 
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
+                        <div ref={provided.innerRef} {...provided.draggableProps}
                           className={cn(
-                            "flex flex-col flex-shrink-0 w-80 rounded-xl border p-4", 
-                            status.bg, 
-                            status.color,
-                            snapshot.isDragging && "shadow-2xl opacity-90 scale-[1.02]"
-                          )}
-                        >
-                          <div className="flex items-center justify-between mb-4">
+                            "flex flex-col flex-shrink-0 w-72 rounded-xl border p-3",
+                            col.bg, col.color,
+                            snapshot.isDragging && "shadow-2xl opacity-90 scale-[1.01]"
+                          )}>
+                          {/* Column Header */}
+                          <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2 flex-1">
-                              <div {...provided.dragHandleProps} className="text-slate-400 hover:text-slate-300 cursor-grab active:cursor-grabbing">
+                              <div {...provided.dragHandleProps} className="text-slate-400 hover:text-slate-300 cursor-grab">
                                 <GripHorizontal className="w-4 h-4" />
                               </div>
-                              <h3 className="font-semibold text-white truncate flex-1" title={status.title}>
-                                {status.title}
-                              </h3>
-                              <span className="text-xs bg-slate-800/80 px-2 py-1 rounded-full text-slate-300">
-                                {statusActivities.length}
+                              <h3 className="font-semibold text-white text-sm truncate flex-1">{col.title}</h3>
+                              <span className="text-xs bg-slate-800/80 px-2 py-0.5 rounded-full text-slate-300 flex-shrink-0">
+                                {colActivities.length}
                               </span>
                             </div>
-
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800/50">
+                                <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-400 hover:text-white">
                                   <MoreHorizontal className="w-4 h-4" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-40 border-slate-700 bg-slate-800 text-slate-300">
-                                <DropdownMenuItem onClick={() => openColumnModal(status)} className="hover:bg-slate-700 cursor-pointer">
-                                  <Pencil className="w-4 h-4 mr-2" />
-                                  Editar
+                              <DropdownMenuContent align="end" className="w-36 border-slate-700 bg-slate-800 text-slate-300">
+                                <DropdownMenuItem onClick={() => openColumnModal(col)} className="hover:bg-slate-700 cursor-pointer">
+                                  <Pencil className="w-4 h-4 mr-2" />Editar
                                 </DropdownMenuItem>
-                                <DropdownMenuItem 
-                                  onClick={() => {
-                                    if(window.confirm(`Tem certeza que deseja deletar a coluna "${status.title}"?`)) {
-                                      deleteColumnMutation.mutate(status.id);
-                                    }
-                                  }} 
-                                  className="text-red-400 hover:bg-red-400/10 cursor-pointer focus:text-red-400"
-                                >
-                                  <Trash2 className="w-4 h-4 mr-2" />
-                                  Deletar
+                                <DropdownMenuItem
+                                  onClick={() => window.confirm(`Deletar "${col.title}"?`) && deleteColumnMutation.mutate(col.id)}
+                                  className="text-red-400 hover:bg-red-400/10 cursor-pointer">
+                                  <Trash2 className="w-4 h-4 mr-2" />Deletar
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </div>
-                          
-                          <Droppable droppableId={status.id} type="task">
+
+                          {/* Cards */}
+                          <Droppable droppableId={col.id} type="task">
                             {(provided) => (
-                              <div
-                                {...provided.droppableProps}
-                                ref={provided.innerRef}
-                                className="flex-1 space-y-3 min-h-[150px]"
-                              >
-                                {statusActivities.map((activity, tIndex) => (
+                              <div {...provided.droppableProps} ref={provided.innerRef}
+                                className="flex-1 space-y-2 min-h-[120px]">
+                                {colActivities.map((activity, tIndex) => (
                                   <Draggable key={activity.id} draggableId={activity.id} index={tIndex}>
-                                    {(provided, snapshot) => {
-                                      let cardColors = "bg-slate-800 border-slate-700";
-                                      if (status.key === 'done') {
-                                        cardColors = "bg-slate-800/50 border-slate-700/50 opacity-70";
-                                      } else if (activity.end_date) {
-                                        const endDate = new Date(activity.end_date);
-                                        endDate.setHours(23, 59, 59, 999);
-                                        const now = new Date();
-                                        if (endDate < now) {
-                                          cardColors = "bg-red-900/40 border-red-500/50";
-                                        } else {
-                                          const diffTime = endDate.getTime() - now.getTime();
-                                          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                                          if (diffDays <= 2) {
-                                            cardColors = "bg-yellow-900/40 border-yellow-500/50";
-                                          }
-                                        }
-                                      }
-
-                                      const phaseLabel = activity.phase ? phaseLabels[activity.phase] : null;
-
-                                      return (
-                                        <div
-                                          ref={provided.innerRef}
-                                          {...provided.draggableProps}
-                                          {...provided.dragHandleProps}
+                                    {(provided, snapshot) => (
+                                      <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
+                                        <ActivityCard
+                                          activity={activity}
+                                          isDragging={snapshot.isDragging}
+                                          isDone={isDone}
                                           onClick={() => onEdit(activity)}
-                                          className={cn(
-                                            "border rounded-lg p-4 cursor-pointer hover:border-blue-500/50 transition-colors shadow-sm flex flex-col gap-3",
-                                            cardColors,
-                                            snapshot.isDragging && "shadow-xl shadow-blue-900/20 border-blue-500 z-50"
-                                          )}
-                                        >
-                                          {phaseLabel && (
-                                            <div className="text-[10px] font-medium bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded w-fit max-w-full truncate border border-blue-500/30">
-                                              {phaseLabel}
-                                            </div>
-                                          )}
-                                          <div className="font-medium text-white text-sm leading-tight">{activity.title}</div>
-                                          
-                                          <div className="flex flex-col gap-2 mt-auto pt-2 border-t border-slate-700/50">
-                                            {activity.assignee && (
-                                              <div className="flex items-center gap-2">
-                                                <Avatar className="w-5 h-5 border border-slate-600">
-                                                  <AvatarFallback className="bg-slate-700 text-[9px] text-white">
-                                                    {activity.assignee.substring(0, 2).toUpperCase()}
-                                                  </AvatarFallback>
-                                                </Avatar>
-                                                <span className="text-xs font-medium text-slate-300 truncate" title={activity.assignee}>
-                                                  {activity.assignee}
-                                                </span>
-                                              </div>
-                                            )}
-                                            
-                                            <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                                              <CalendarIcon className="w-3.5 h-3.5" />
-                                              {activity.start_date ? format(new Date(activity.start_date), 'dd/MM') : '--'} a {activity.end_date ? format(new Date(activity.end_date), 'dd/MM') : '--'}
-                                            </div>
-                                          </div>
-                                        </div>
-                                      );
-                                    }}
+                                        />
+                                      </div>
+                                    )}
                                   </Draggable>
                                 ))}
                                 {provided.placeholder}
@@ -346,47 +314,71 @@ export default function ActivityKanban({ activities, verticals, onEdit, projectI
         </DragDropContext>
       )}
 
-      <Dialog open={colModalOpen} onOpenChange={setColModalOpen}>
-        <DialogContent className="sm:max-w-[425px] border-slate-800 bg-slate-900 text-slate-200">
+      {/* Modal data prevista ao mover para Em Andamento */}
+      <Dialog open={endDateModal.open} onOpenChange={(v) => {
+        if (!v) {
+          // Confirmar sem data
+          const { activityId, saveStatus, destIndex, extra } = endDateModal.pendingMove || {};
+          if (activityId) doMove(activityId, saveStatus, destIndex, extra);
+          setEndDateModal({ open: false, pendingMove: null, endDate: '' });
+        }
+      }}>
+        <DialogContent className="sm:max-w-[360px] border-slate-800 bg-slate-900 text-slate-200">
           <DialogHeader>
-            <DialogTitle>{editingCol ? 'Editar Coluna' : 'Nova Coluna'}</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-blue-400" />
+              Data Prevista de Conclusão
+            </DialogTitle>
           </DialogHeader>
+          <div className="py-3 space-y-2">
+            <p className="text-sm text-slate-400">Atividade movida para <span className="text-yellow-400 font-medium">Em Andamento</span>. Informe a data prevista de conclusão (opcional).</p>
+            <Input
+              type="date"
+              value={endDateModal.endDate}
+              onChange={e => setEndDateModal(prev => ({ ...prev, endDate: e.target.value }))}
+              className="bg-slate-800 border-slate-700 text-white"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" className="text-slate-400" onClick={() => {
+              const { activityId, saveStatus, destIndex, extra } = endDateModal.pendingMove || {};
+              if (activityId) doMove(activityId, saveStatus, destIndex, extra);
+              setEndDateModal({ open: false, pendingMove: null, endDate: '' });
+            }}>Pular</Button>
+            <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => {
+              const { activityId, saveStatus, destIndex, extra } = endDateModal.pendingMove || {};
+              if (activityId) doMove(activityId, saveStatus, destIndex, { ...extra, end_date: endDateModal.endDate || undefined });
+              setEndDateModal({ open: false, pendingMove: null, endDate: '' });
+            }}>Confirmar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Column edit modal */}
+      <Dialog open={colModalOpen} onOpenChange={setColModalOpen}>
+        <DialogContent className="sm:max-w-[400px] border-slate-800 bg-slate-900 text-slate-200">
+          <DialogHeader><DialogTitle>{editingCol ? 'Editar Coluna' : 'Nova Coluna'}</DialogTitle></DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="title" className="text-slate-400">Nome da Coluna</Label>
-              <Input
-                id="title"
-                value={colTitle}
-                onChange={(e) => setColTitle(e.target.value)}
-                className="bg-slate-800 border-slate-700 text-white"
-                placeholder="Ex: Em Análise"
-                autoFocus
-              />
+              <Label className="text-slate-400">Nome da Coluna</Label>
+              <Input value={colTitle} onChange={e => setColTitle(e.target.value)}
+                className="bg-slate-800 border-slate-700 text-white" placeholder="Ex: Em Análise" autoFocus />
             </div>
             <div className="grid gap-2">
-              <Label className="text-slate-400 mb-2">Cor de Destaque</Label>
+              <Label className="text-slate-400 mb-1">Cor</Label>
               <div className="flex flex-wrap gap-3">
-                {COLOR_OPTIONS.map(color => (
-                  <button
-                    key={color.id}
-                    onClick={() => setColColor(color.id)}
-                    className={cn(
-                      "w-8 h-8 rounded-full border-2 transition-transform",
-                      color.bg,
-                      color.border,
-                      colColor === color.id ? "scale-110 ring-2 ring-blue-500 ring-offset-2 ring-offset-slate-900" : "hover:scale-105"
-                    )}
-                    title={color.name}
-                  />
+                {COLOR_OPTIONS.map(c => (
+                  <button key={c.id} onClick={() => setColColor(c.id)}
+                    className={cn("w-8 h-8 rounded-full border-2 transition-transform", c.bg, c.border,
+                      colColor === c.id ? "scale-110 ring-2 ring-blue-500 ring-offset-2 ring-offset-slate-900" : "hover:scale-105"
+                    )} title={c.name} />
                 ))}
               </div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setColModalOpen(false)} className="border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800 hover:text-white">
-              Cancelar
-            </Button>
-            <Button onClick={handleSaveColumn} disabled={saveColumnMutation.isPending || !colTitle.trim()} className="bg-blue-600 hover:bg-blue-700 text-white">
+            <Button variant="outline" onClick={() => setColModalOpen(false)} className="border-slate-700 bg-transparent text-slate-300">Cancelar</Button>
+            <Button onClick={handleSaveColumn} disabled={saveColumnMutation.isPending || !colTitle.trim()} className="bg-blue-600 hover:bg-blue-700">
               {saveColumnMutation.isPending ? 'Salvando...' : 'Salvar'}
             </Button>
           </DialogFooter>
