@@ -17,6 +17,12 @@ import Documents from './pages/Documents';
 import LicoesAprendidasPage from './pages/LicoesAprendidas';
 import KnowledgeBase from './pages/KnowledgeBase';
 import UserManagement from './pages/UserManagement';
+import SustentacaoDashboard from './pages/SustentacaoDashboard';
+import SustentacaoKPIs from './pages/SustentacaoKPIs';
+import SustentacaoPrestacaoContas from './pages/SustentacaoPrestacaoContas';
+import SustentacaoProdutos from './pages/SustentacaoProdutos';
+import SustentacaoReunioes from './pages/SustentacaoReunioes';
+import SustentacaoRoadmap from './pages/SustentacaoRoadmap';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -86,6 +92,36 @@ const AuthenticatedApp = () => {
       <Route path="/UserManagement" element={
         <LayoutWrapper currentPageName="UserManagement">
           <UserManagement />
+        </LayoutWrapper>
+      } />
+      <Route path="/SustentacaoDashboard" element={
+        <LayoutWrapper currentPageName="SustentacaoDashboard">
+          <SustentacaoDashboard />
+        </LayoutWrapper>
+      } />
+      <Route path="/SustentacaoKPIs" element={
+        <LayoutWrapper currentPageName="SustentacaoKPIs">
+          <SustentacaoKPIs />
+        </LayoutWrapper>
+      } />
+      <Route path="/SustentacaoPrestacaoContas" element={
+        <LayoutWrapper currentPageName="SustentacaoPrestacaoContas">
+          <SustentacaoPrestacaoContas />
+        </LayoutWrapper>
+      } />
+      <Route path="/SustentacaoProdutos" element={
+        <LayoutWrapper currentPageName="SustentacaoProdutos">
+          <SustentacaoProdutos />
+        </LayoutWrapper>
+      } />
+      <Route path="/SustentacaoReunioes" element={
+        <LayoutWrapper currentPageName="SustentacaoReunioes">
+          <SustentacaoReunioes />
+        </LayoutWrapper>
+      } />
+      <Route path="/SustentacaoRoadmap" element={
+        <LayoutWrapper currentPageName="SustentacaoRoadmap">
+          <SustentacaoRoadmap />
         </LayoutWrapper>
       } />
       {Object.entries(Pages).map(([path, Page]) => (
