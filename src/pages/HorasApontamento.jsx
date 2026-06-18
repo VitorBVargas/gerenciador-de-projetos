@@ -3,618 +3,633 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import {
-  Upload, Users, BarChart2, Clock, TrendingUp,
-  CheckCircle2, ChevronDown, ChevronUp, X, Loader2, Pencil, Check
+  Upload, Users, BarChart2, Clock, TrendingUp, Plus, Pencil, Trash2,
+  CheckCircle2, ChevronDown, ChevronUp, X, Loader2, Check, Calendar,
+  Filter, Download, Timer, Activity
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  LineChart, Line
+  LineChart, Line, PieChart, Pie, Cell
 } from 'recharts';
 import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, startOfMonth, endOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import GlobalTracker from '@/components/horas/GlobalTracker.jsx';
+import LancamentoModal from '@/components/horas/LancamentoModal.jsx';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
-const VERTICAL_LABELS = {
-  gerenciamento: 'Gerenciamento',
-  arrecadacao: 'Arrecadação',
-  compras: 'Compras',
-  contabil: 'Contábil',
-  pessoal: 'Pessoal',
-  educacao: 'Educação',
-  iss: 'ISS',
-  parceiros: 'Parceiros',
-  plataforma: 'Plataforma',
-  saude: 'Saúde',
-  atendimento: 'Atendimento',
-  outros: 'Outros',
-};
+const TIPO_LABEL = { atendimento:'Atendimento', reuniao:'Reunião', treinamento:'Treinamento', configuracao:'Configuração', analise:'Análise', documentacao:'Documentação', suporte:'Suporte', implantacao:'Implantação', sustentacao:'Sustentação', administrativo:'Administrativo' };
+const TIPO_COLORS = ['#3b82f6','#8b5cf6','#f59e0b','#10b981','#ef4444','#06b6d4','#f97316','#84cc16','#ec4899','#6366f1'];
+const CHART_COLORS = ['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#06b6d4','#f97316','#84cc16','#ec4899','#6366f1','#14b8a6','#a78bfa'];
 
-const VERTICAL_COLORS = {
-  gerenciamento: 'bg-blue-500/20 border-blue-500/40 text-blue-300',
-  arrecadacao: 'bg-green-500/20 border-green-500/40 text-green-300',
-  compras: 'bg-yellow-500/20 border-yellow-500/40 text-yellow-300',
-  contabil: 'bg-purple-500/20 border-purple-500/40 text-purple-300',
-  pessoal: 'bg-pink-500/20 border-pink-500/40 text-pink-300',
-  educacao: 'bg-orange-500/20 border-orange-500/40 text-orange-300',
-  iss: 'bg-red-500/20 border-red-500/40 text-red-300',
-  parceiros: 'bg-cyan-500/20 border-cyan-500/40 text-cyan-300',
-  plataforma: 'bg-indigo-500/20 border-indigo-500/40 text-indigo-300',
-  saude: 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300',
-  atendimento: 'bg-teal-500/20 border-teal-500/40 text-teal-300',
-  outros: 'bg-slate-500/20 border-slate-500/40 text-slate-300',
-};
+const fh = (h) => h % 1 === 0 ? `${h}h` : `${h.toFixed(1)}h`;
+const today = () => format(new Date(), 'yyyy-MM-dd');
+const thisWeekStart = () => format(startOfWeek(new Date(), { locale: ptBR }), 'yyyy-MM-dd');
+const thisMonthStr = () => format(new Date(), 'yyyy-MM');
 
 export default function HorasApontamento() {
   const urlParams = new URLSearchParams(window.location.search);
   const projectId = urlParams.get('project_id') || null;
-
-  const [activeTab, setActiveTab] = useState('pessoas');
-  const [showImportModal, setShowImportModal] = useState(false);
-  const [selectedMonth, setSelectedMonth] = useState(''); // '' = Geral (todos os meses)
-  const [importMonth, setImportMonth] = useState('');
-  const [isImporting, setIsImporting] = useState(false);
-  const [selectedPerson, setSelectedPerson] = useState(null);
-  const [selectedVerticals, setSelectedVerticals] = useState([]); // [] = todas
-  const [verticalDropdownOpen, setVerticalDropdownOpen] = useState(false);
-  const [editingVertical, setEditingVertical] = useState(null); // person_name being edited
-  const [editVerticalValue, setEditVerticalValue] = useState('');
-  const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
 
-  const { data: allHoras = [], isLoading } = useQuery({
-    queryKey: ['horasApontamento', projectId],
-    queryFn: () => projectId
-      ? base44.entities.HorasApontamento.filter({ project_id: projectId })
-      : base44.entities.HorasApontamento.list('-reference_month', 10000),
-    staleTime: 2 * 60 * 1000,
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [lancamentoModal, setLancamentoModal] = useState(false);
+  const [editingLancamento, setEditingLancamento] = useState(null);
+  const [deleteDialog, setDeleteDialog] = useState(null);
+  const [filterColaborador, setFilterColaborador] = useState('');
+  const [filterMes, setFilterMes] = useState('');
+  const [filterTipo, setFilterTipo] = useState('');
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importMonth, setImportMonth] = useState('');
+  const [isImporting, setIsImporting] = useState(false);
+  const fileInputRef = useRef(null);
+
+  // Data
+  const { data: lancamentos = [], isLoading } = useQuery({
+    queryKey: ['horasLancamentos', projectId],
+    queryFn: () => projectId ? base44.entities.HorasLancamento.filter({ project_id: projectId }) : [],
+    enabled: !!projectId,
+    staleTime: 60_000,
   });
 
-  const availableMonths = useMemo(() => {
-    return [...new Set(allHoras.map(h => h.reference_month))].sort().reverse();
-  }, [allHoras]);
+  const { data: teamMembers = [] } = useQuery({
+    queryKey: ['teamMembers', projectId],
+    queryFn: () => projectId ? base44.entities.TeamMember.filter({ project_id: projectId }) : [],
+    enabled: !!projectId,
+  });
 
-  // Remove legacy activeMonth — now using selectedMonth ('' = Geral)
+  const { data: activities = [] } = useQuery({
+    queryKey: ['activities', projectId],
+    queryFn: () => projectId ? base44.entities.ProjectActivity.filter({ project_id: projectId }) : [],
+    enabled: !!projectId,
+  });
 
-  // Vertical map: person_name -> vertical (from any record, most recent)
-  const personVerticalMap = useMemo(() => {
-    const map = {};
-    allHoras.forEach(h => {
-      if (h.vertical) map[h.person_name] = h.vertical;
-    });
-    return map;
-  }, [allHoras]);
+  const { data: objectives = [] } = useQuery({
+    queryKey: ['roadmapObjetivos', projectId],
+    queryFn: () => projectId ? base44.entities.RoadmapObjetivo.filter({ project_id: projectId }) : [],
+    enabled: !!projectId,
+  });
 
-  // Filter records by selected month ('' = all)
-  const filteredHoras = useMemo(() => {
-    if (!selectedMonth) return allHoras;
-    return allHoras.filter(h => h.reference_month === selectedMonth);
-  }, [allHoras, selectedMonth]);
+  const { data: products = [] } = useQuery({
+    queryKey: ['products', projectId],
+    queryFn: () => projectId ? base44.entities.Product.filter({ project_id: projectId }) : [],
+    enabled: !!projectId,
+  });
 
-  // Aggregate hours per person for current filter (month or all)
-  const personMonthMap = useMemo(() => {
-    const map = {};
-    filteredHoras.forEach(h => {
-      if (!map[h.person_name]) map[h.person_name] = 0;
-      map[h.person_name] += h.hours_worked;
-    });
-    return map;
-  }, [filteredHoras]);
+  // Mutations
+  const createMutation = useMutation({
+    mutationFn: (d) => base44.entities.HorasLancamento.create({ ...d, project_id: projectId }),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['horasLancamentos', projectId] }); setLancamentoModal(false); toast.success('Lançamento salvo!'); },
+  });
 
-  // Aggregate total accumulated per person
-  const personTotalMap = useMemo(() => {
-    const map = {};
-    allHoras.forEach(h => {
-      if (!map[h.person_name]) map[h.person_name] = 0;
-      map[h.person_name] += h.hours_worked;
-    });
-    return map;
-  }, [allHoras]);
-
-  // Group by vertical for "Pessoas" tab (with vertical filter)
-  const byVertical = useMemo(() => {
-    const groups = {};
-    Object.entries(personMonthMap).forEach(([name, hours]) => {
-      const vertical = personVerticalMap[name] || 'sem_vertical';
-      if (selectedVerticals.length > 0 && !selectedVerticals.includes(vertical)) return;
-      if (!groups[vertical]) groups[vertical] = [];
-      groups[vertical].push({ name, hours, total: personTotalMap[name] || 0 });
-    });
-    Object.values(groups).forEach(arr => arr.sort((a, b) => a.name.localeCompare(b.name)));
-    return groups;
-  }, [personMonthMap, personTotalMap, personVerticalMap, selectedVerticals]);
-
-  // Ranking sorted by month hours (for Dashboard)
-  const ranking = useMemo(() => {
-    return Object.entries(personMonthMap)
-      .map(([name, hours]) => ({ name, hours, total: personTotalMap[name] || 0 }))
-      .sort((a, b) => b.hours - a.hours);
-  }, [personMonthMap, personTotalMap]);
-
-  // Person history
-  const personHistory = useMemo(() => {
-    if (!selectedPerson) return [];
-    const history = {};
-    allHoras.filter(h => h.person_name === selectedPerson).forEach(h => {
-      if (!history[h.reference_month]) history[h.reference_month] = 0;
-      history[h.reference_month] += h.hours_worked;
-    });
-    return Object.entries(history)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([month, hours]) => ({ month, hours }));
-  }, [selectedPerson, allHoras]);
-
-  // Monthly evolution
-  const monthlyEvolution = useMemo(() => {
-    const map = {};
-    allHoras.forEach(h => {
-      if (!map[h.reference_month]) map[h.reference_month] = 0;
-      map[h.reference_month] += h.hours_worked;
-    });
-    return Object.entries(map)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([month, total]) => ({
-        month: format(parseISO(month + '-01'), 'MMM/yy', { locale: ptBR }),
-        total: Math.round(total * 10) / 10
-      }));
-  }, [allHoras]);
-
-  // KPIs
-  const kpis = useMemo(() => {
-    const totalMonth = Object.values(personMonthMap).reduce((s, h) => s + h, 0);
-    const people = Object.keys(personMonthMap).length;
-    const avg = people > 0 ? totalMonth / people : 0;
-    return { totalMonth, avg, people };
-  }, [personMonthMap]);
-
-  // Bar chart data (top 20, sorted highest → lowest)
-  const barData = useMemo(() => {
-    return ranking.slice(0, 20).map(p => ({
-      name: p.name.split(' ').slice(0, 2).join(' '),
-      horas: Math.round(p.hours * 10) / 10,
-    }));
-  }, [ranking]);
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.HorasLancamento.update(id, data),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['horasLancamentos', projectId] }); setLancamentoModal(false); setEditingLancamento(null); toast.success('Lançamento atualizado!'); },
+  });
 
   const deleteMutation = useMutation({
-    mutationFn: async (month) => {
-      const toDelete = allHoras.filter(h => h.reference_month === month);
-      for (const h of toDelete) await base44.entities.HorasApontamento.delete(h.id);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['horasApontamento'] });
-      toast.success('Dados do mês removidos!');
-    }
+    mutationFn: (id) => base44.entities.HorasLancamento.delete(id),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['horasLancamentos', projectId] }); setDeleteDialog(null); toast.success('Lançamento removido.'); },
   });
 
-  const saveVerticalMutation = useMutation({
-    mutationFn: async ({ personName, vertical }) => {
-      const records = allHoras.filter(h => h.person_name === personName);
-      for (const r of records) {
-        await base44.entities.HorasApontamento.update(r.id, { vertical });
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['horasApontamento'] });
-      setEditingVertical(null);
-      toast.success('Vertical atualizada!');
-    }
+  const handleSave = (data) => {
+    if (editingLancamento) updateMutation.mutate({ id: editingLancamento.id, data });
+    else createMutation.mutate(data);
+  };
+
+  // ── KPIs ──────────────────────────────────────────────────────────────────
+  const todayStr = today();
+  const weekStart = thisWeekStart();
+  const monthStr = thisMonthStr();
+
+  const horasHoje = useMemo(() => lancamentos.filter(l => l.data === todayStr).reduce((s, l) => s + (l.total_horas || 0), 0), [lancamentos, todayStr]);
+  const horasSemana = useMemo(() => lancamentos.filter(l => l.data >= weekStart && l.data <= todayStr).reduce((s, l) => s + (l.total_horas || 0), 0), [lancamentos, weekStart, todayStr]);
+  const horasMes = useMemo(() => lancamentos.filter(l => l.reference_month === monthStr).reduce((s, l) => s + (l.total_horas || 0), 0), [lancamentos, monthStr]);
+
+  const byColaborador = useMemo(() => {
+    const m = {};
+    lancamentos.forEach(l => { m[l.colaborador] = (m[l.colaborador] || 0) + (l.total_horas || 0); });
+    return Object.entries(m).map(([name, horas]) => ({ name: name.split(' ').slice(0, 2).join(' '), horas: Math.round(horas * 10) / 10 })).sort((a, b) => b.horas - a.horas);
+  }, [lancamentos]);
+
+  const byProduto = useMemo(() => {
+    const m = {};
+    lancamentos.forEach(l => { if (l.produto) m[l.produto] = (m[l.produto] || 0) + (l.total_horas || 0); });
+    return Object.entries(m).map(([name, value]) => ({ name, value: Math.round(value * 10) / 10 })).sort((a, b) => b.value - a.value);
+  }, [lancamentos]);
+
+  const byObjetivo = useMemo(() => {
+    const m = {};
+    lancamentos.forEach(l => { if (l.objetivo) m[l.objetivo] = (m[l.objetivo] || 0) + (l.total_horas || 0); });
+    return Object.entries(m).map(([name, value]) => ({ name, value: Math.round(value * 10) / 10 })).sort((a, b) => b.value - a.value);
+  }, [lancamentos]);
+
+  const byTipo = useMemo(() => {
+    const m = {};
+    lancamentos.forEach(l => { const t = l.tipo || 'sustentacao'; m[t] = (m[t] || 0) + (l.total_horas || 0); });
+    return Object.entries(m).map(([name, value]) => ({ name: TIPO_LABEL[name] || name, value: Math.round(value * 10) / 10 }));
+  }, [lancamentos]);
+
+  const monthlyEvolution = useMemo(() => {
+    const m = {};
+    lancamentos.forEach(l => { if (l.reference_month) m[l.reference_month] = (m[l.reference_month] || 0) + (l.total_horas || 0); });
+    return Object.entries(m).sort(([a],[b]) => a.localeCompare(b)).map(([month, total]) => ({
+      month: format(parseISO(month + '-01'), 'MMM/yy', { locale: ptBR }),
+      total: Math.round(total * 10) / 10,
+    }));
+  }, [lancamentos]);
+
+  // ── Filtered list ─────────────────────────────────────────────────────────
+  const filteredLancamentos = useMemo(() => {
+    return lancamentos.filter(l => {
+      if (filterColaborador && l.colaborador !== filterColaborador) return false;
+      if (filterMes && l.reference_month !== filterMes) return false;
+      if (filterTipo && l.tipo !== filterTipo) return false;
+      return true;
+    }).sort((a, b) => b.data.localeCompare(a.data));
+  }, [lancamentos, filterColaborador, filterMes, filterTipo]);
+
+  // ── Timesheet semanal ─────────────────────────────────────────────────────
+  const [timesheetWeekOffset, setTimesheetWeekOffset] = useState(0);
+  const weekDays = useMemo(() => {
+    const base = new Date();
+    base.setDate(base.getDate() + timesheetWeekOffset * 7);
+    const start = startOfWeek(base, { weekStartsOn: 1 });
+    return eachDayOfInterval({ start, end: new Date(start.getTime() + 6 * 86400000) });
+  }, [timesheetWeekOffset]);
+
+  const timesheetColabs = useMemo(() => [...new Set(lancamentos.map(l => l.colaborador))], [lancamentos]);
+
+  // ── Available months for filter ───────────────────────────────────────────
+  const availableMonths = useMemo(() => [...new Set(lancamentos.map(l => l.reference_month).filter(Boolean))].sort().reverse(), [lancamentos]);
+  const availableColabs = useMemo(() => [...new Set(lancamentos.map(l => l.colaborador))].sort(), [lancamentos]);
+
+  // ── Import Excel ──────────────────────────────────────────────────────────
+  const { data: allHorasLegacy = [] } = useQuery({
+    queryKey: ['horasApontamento', projectId],
+    queryFn: () => projectId ? base44.entities.HorasApontamento.filter({ project_id: projectId }) : [],
+    enabled: !!projectId,
   });
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
-    if (!file || !importMonth) {
-      toast.error('Selecione o mês de referência antes de importar.');
-      return;
-    }
+    if (!file || !importMonth) { toast.error('Selecione o mês antes de importar.'); return; }
     setIsImporting(true);
     try {
       const buffer = await file.arrayBuffer();
       const wb = XLSX.read(buffer, { type: 'array' });
       const sheet = wb.Sheets['People'];
-      if (!sheet) throw new Error('Aba "People" não encontrada na planilha.');
+      if (!sheet) throw new Error('Aba "People" não encontrada.');
       const rows = XLSX.utils.sheet_to_json(sheet);
-      if (!rows.length) throw new Error('Nenhum dado encontrado na aba People.');
-
-      const existingThisMonth = allHoras.filter(h => h.reference_month === importMonth);
-      if (existingThisMonth.length > 0) {
-        const ok = window.confirm(`Já existem ${existingThisMonth.length} registros para ${importMonth}. Deseja substituir?`);
-        if (!ok) { setIsImporting(false); return; }
-        for (const h of existingThisMonth) await base44.entities.HorasApontamento.delete(h.id);
-      }
-
-      const records = rows
-        .filter(r => r['Name'] && r['Worked'] > 0)
-        .map(r => ({
-          person_name: String(r['Name']).trim(),
-          person_username: r['Username'] ? String(r['Username']).trim() : '',
-          hours_worked: Number(r['Worked']) || 0,
-          reference_month: importMonth,
-          vertical: personVerticalMap[String(r['Name']).trim()] || '',
-          ...(projectId ? { project_id: projectId } : {}),
-        }));
-
-      if (!records.length) throw new Error('Nenhum registro válido encontrado.');
-      await base44.entities.HorasApontamento.bulkCreate(records);
-      queryClient.invalidateQueries({ queryKey: ['horasApontamento'] });
-      setSelectedMonth(importMonth);
+      const records = rows.filter(r => r['Name'] && r['Worked'] > 0).map(r => ({
+        project_id: projectId,
+        colaborador: String(r['Name']).trim(),
+        data: importMonth + '-01',
+        total_horas: Number(r['Worked']) || 0,
+        tipo: 'sustentacao',
+        origem: 'importacao',
+        reference_month: importMonth,
+      }));
+      if (!records.length) throw new Error('Nenhum registro válido.');
+      await base44.entities.HorasLancamento.bulkCreate(records);
+      queryClient.invalidateQueries({ queryKey: ['horasLancamentos', projectId] });
       setShowImportModal(false);
       toast.success(`${records.length} registros importados!`);
-    } catch (err) {
-      toast.error('Erro ao importar: ' + err.message);
-    } finally {
-      setIsImporting(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
+    } catch (err) { toast.error('Erro: ' + err.message); }
+    finally { setIsImporting(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
   };
 
-  const formatHours = (h) => `${h.toFixed(1)}h`;
-  const formatMonth = (m) => m ? format(parseISO(m + '-01'), 'MMMM/yyyy', { locale: ptBR }) : '';
-
-  const verticalOrder = Object.keys(VERTICAL_LABELS);
-  const sortedVerticals = [
-    ...verticalOrder.filter(v => byVertical[v]),
-    ...(byVertical['sem_vertical'] ? ['sem_vertical'] : [])
+  const TABS = [
+    { key: 'dashboard', label: 'Dashboard', icon: BarChart2 },
+    { key: 'lancamentos', label: 'Lançamentos', icon: Clock },
+    { key: 'timesheet', label: 'Timesheet', icon: Calendar },
+    { key: 'indicadores', label: 'Indicadores', icon: Activity },
   ];
 
+  if (!projectId) return (
+    <div className="p-8 text-center text-slate-400">Selecione um projeto para ver o apontamento de horas.</div>
+  );
+
   return (
-    <div className="min-h-screen bg-slate-900 p-6 space-y-6">
+    <div className="min-h-screen bg-slate-900 p-6 space-y-6 pb-24">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-white">Apontamento de Horas</h1>
-          <p className="text-sm text-slate-400 mt-1">Controle de horas trabalhadas por pessoa</p>
+          <p className="text-sm text-slate-400 mt-0.5">Controle de esforço da equipe</p>
         </div>
-        <div className="flex items-center gap-3 flex-wrap">
-          <Button onClick={() => setShowImportModal(true)} className="bg-blue-600 hover:bg-blue-700 gap-2">
-            <Upload className="w-4 h-4" />
-            Importar Planilha
+        <div className="flex gap-2 flex-wrap">
+          <Button onClick={() => setShowImportModal(true)} variant="outline" className="border-slate-700 text-slate-300 hover:bg-slate-800 gap-1.5">
+            <Upload className="w-4 h-4" /> Importar Excel
           </Button>
-          <input ref={fileInputRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={handleFileUpload} />
+          <Button onClick={() => { setEditingLancamento(null); setLancamentoModal(true); }} className="bg-blue-600 hover:bg-blue-700 gap-1.5">
+            <Plus className="w-4 h-4" /> Novo Lançamento
+          </Button>
         </div>
       </div>
 
-      {/* Filters */}
-      {availableMonths.length > 0 && (
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs text-slate-500 uppercase tracking-wider">Mês:</span>
-            <button onClick={() => setSelectedMonth('')}
-              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${!selectedMonth ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white'}`}>
-              Geral
-            </button>
-            {availableMonths.map(m => (
-              <button key={m} onClick={() => setSelectedMonth(m)}
-                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${selectedMonth === m ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white'}`}>
-                {formatMonth(m)}
-              </button>
-            ))}
-            {selectedMonth && (
-              <button onClick={() => deleteMutation.mutate(selectedMonth)}
-                className="px-2 py-1 rounded-full text-xs text-red-400 hover:text-red-300 hover:bg-red-900/20 transition-colors">
-                🗑 Remover mês
-              </button>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-500 uppercase tracking-wider">Vertical:</span>
-            <div className="relative">
-              <button
-                onClick={() => setVerticalDropdownOpen(o => !o)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 text-xs font-medium transition-colors"
-              >
-                {selectedVerticals.length === 0 ? 'Todas as verticais' : `${selectedVerticals.length} selecionada(s)`}
-                <ChevronDown className="w-3.5 h-3.5" />
-              </button>
-              {verticalDropdownOpen && (
-                <div className="absolute z-50 mt-1 w-52 bg-slate-800 border border-slate-700 rounded-lg shadow-xl py-1">
-                  <label className="flex items-center gap-2 px-3 py-2 hover:bg-slate-700 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={selectedVerticals.length === 0}
-                      onChange={() => setSelectedVerticals([])}
-                      className="w-3.5 h-3.5 rounded"
-                    />
-                    <span className="text-xs text-slate-200 font-medium">Todas</span>
-                  </label>
-                  <div className="border-t border-slate-700 my-1" />
-                  {Object.entries(VERTICAL_LABELS).map(([k, v]) => (
-                    <label key={k} className="flex items-center gap-2 px-3 py-1.5 hover:bg-slate-700 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={selectedVerticals.includes(k)}
-                        onChange={() => setSelectedVerticals(prev =>
-                          prev.includes(k) ? prev.filter(x => x !== k) : [...prev, k]
-                        )}
-                        className="w-3.5 h-3.5 rounded"
-                      />
-                      <span className="text-xs text-slate-300">{v}</span>
-                    </label>
-                  ))}
+      {/* Tabs */}
+      <div className="flex gap-1 bg-slate-800/60 rounded-lg p-1 w-fit flex-wrap">
+        {TABS.map(t => (
+          <button key={t.key} onClick={() => setActiveTab(t.key)}
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${activeTab === t.key ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'}`}>
+            <t.icon className="w-3.5 h-3.5" /> {t.label}
+          </button>
+        ))}
+      </div>
+
+      {isLoading ? (
+        <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-blue-400" /></div>
+      ) : (
+        <>
+          {/* ── DASHBOARD ── */}
+          {activeTab === 'dashboard' && (
+            <div className="space-y-5">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                {[
+                  { label: 'Horas Hoje', value: fh(horasHoje), color: 'text-blue-400' },
+                  { label: 'Horas Semana', value: fh(horasSemana), color: 'text-purple-400' },
+                  { label: 'Horas Mês', value: fh(horasMes), color: 'text-emerald-400' },
+                  { label: 'Colaboradores', value: byColaborador.length, color: 'text-yellow-400' },
+                  { label: 'Produtos', value: byProduto.length, color: 'text-pink-400' },
+                  { label: 'Lançamentos', value: lancamentos.length, color: 'text-slate-300' },
+                ].map(k => (
+                  <Card key={k.label} className="bg-slate-800/60 border-slate-700/50">
+                    <CardContent className="p-4">
+                      <p className="text-xs text-slate-400">{k.label}</p>
+                      <p className={`text-2xl font-bold mt-1 ${k.color}`}>{k.value}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                {/* By Colaborador */}
+                <Card className="bg-slate-800/60 border-slate-700/50">
+                  <CardHeader className="pb-2"><CardTitle className="text-white text-sm">Horas por Colaborador</CardTitle></CardHeader>
+                  <CardContent>
+                    {byColaborador.length === 0 ? <p className="text-slate-500 text-sm text-center py-8">Sem dados</p> : (
+                      <ResponsiveContainer width="100%" height={200}>
+                        <BarChart data={byColaborador.slice(0, 10)} layout="vertical">
+                          <CartesianGrid strokeDasharray="3 3" stroke="#334155" horizontal={false} />
+                          <XAxis type="number" stroke="#64748b" style={{ fontSize: 10 }} tickFormatter={v => `${v}h`} />
+                          <YAxis type="category" dataKey="name" stroke="#64748b" style={{ fontSize: 10 }} width={80} />
+                          <Tooltip contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8 }} formatter={v => [`${v}h`, 'Horas']} />
+                          <Bar dataKey="horas" fill="#3b82f6" radius={[0,4,4,0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* By Produto */}
+                <Card className="bg-slate-800/60 border-slate-700/50">
+                  <CardHeader className="pb-2"><CardTitle className="text-white text-sm">Horas por Produto</CardTitle></CardHeader>
+                  <CardContent>
+                    {byProduto.length === 0 ? <p className="text-slate-500 text-sm text-center py-8">Sem dados</p> : (
+                      <ResponsiveContainer width="100%" height={200}>
+                        <PieChart>
+                          <Pie data={byProduto.slice(0, 8)} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={75} label={({ name, percent }) => `${name.slice(0,10)} ${(percent*100).toFixed(0)}%`} labelLine={false}>
+                            {byProduto.slice(0,8).map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                          </Pie>
+                          <Tooltip contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8 }} formatter={v => [`${v}h`, 'Horas']} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Evolução */}
+                <Card className="bg-slate-800/60 border-slate-700/50">
+                  <CardHeader className="pb-2"><CardTitle className="text-white text-sm">Evolução Mensal</CardTitle></CardHeader>
+                  <CardContent>
+                    {monthlyEvolution.length < 2 ? <p className="text-slate-500 text-sm text-center py-8">Precisa de 2+ meses</p> : (
+                      <ResponsiveContainer width="100%" height={200}>
+                        <LineChart data={monthlyEvolution}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                          <XAxis dataKey="month" stroke="#64748b" style={{ fontSize: 10 }} />
+                          <YAxis stroke="#64748b" style={{ fontSize: 10 }} tickFormatter={v => `${v}h`} />
+                          <Tooltip contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8 }} formatter={v => [`${v}h`, 'Total']} />
+                          <Line type="monotone" dataKey="total" stroke="#3b82f6" strokeWidth={2} dot={{ fill: '#3b82f6', r: 3 }} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* By Tipo */}
+                <Card className="bg-slate-800/60 border-slate-700/50">
+                  <CardHeader className="pb-2"><CardTitle className="text-white text-sm">Horas por Tipo</CardTitle></CardHeader>
+                  <CardContent>
+                    {byTipo.length === 0 ? <p className="text-slate-500 text-sm text-center py-8">Sem dados</p> : (
+                      <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                        {byTipo.sort((a,b) => b.value - a.value).map((t, i) => (
+                          <div key={t.name} className="flex items-center gap-2">
+                            <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: TIPO_COLORS[i % TIPO_COLORS.length] }} />
+                            <span className="text-xs text-slate-300 flex-1">{t.name}</span>
+                            <span className="text-xs font-semibold text-white">{fh(t.value)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          )}
+
+          {/* ── LANÇAMENTOS ── */}
+          {activeTab === 'lancamentos' && (
+            <div className="space-y-4">
+              {/* Filters */}
+              <div className="flex gap-2 flex-wrap items-center">
+                <select value={filterColaborador} onChange={e => setFilterColaborador(e.target.value)}
+                  className="bg-slate-800 border border-slate-700 rounded-md px-3 py-1.5 text-sm text-white">
+                  <option value="">Todos colaboradores</option>
+                  {availableColabs.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+                <select value={filterMes} onChange={e => setFilterMes(e.target.value)}
+                  className="bg-slate-800 border border-slate-700 rounded-md px-3 py-1.5 text-sm text-white">
+                  <option value="">Todos os meses</option>
+                  {availableMonths.map(m => <option key={m} value={m}>{format(parseISO(m + '-01'), 'MMMM/yyyy', { locale: ptBR })}</option>)}
+                </select>
+                <select value={filterTipo} onChange={e => setFilterTipo(e.target.value)}
+                  className="bg-slate-800 border border-slate-700 rounded-md px-3 py-1.5 text-sm text-white">
+                  <option value="">Todos os tipos</option>
+                  {Object.entries(TIPO_LABEL).map(([k,v]) => <option key={k} value={k}>{v}</option>)}
+                </select>
+                {(filterColaborador || filterMes || filterTipo) && (
+                  <button onClick={() => { setFilterColaborador(''); setFilterMes(''); setFilterTipo(''); }}
+                    className="text-xs text-slate-400 hover:text-white px-2 py-1 rounded-md hover:bg-slate-800 transition-colors">
+                    ✕ Limpar
+                  </button>
+                )}
+                <span className="text-xs text-slate-500 ml-auto">{filteredLancamentos.length} registros · {fh(filteredLancamentos.reduce((s,l)=>s+(l.total_horas||0),0))} total</span>
+              </div>
+
+              {filteredLancamentos.length === 0 ? (
+                <div className="text-center py-16 bg-slate-800/40 rounded-xl border border-slate-700/40">
+                  <Timer className="w-12 h-12 mx-auto text-slate-600 mb-3" />
+                  <p className="text-slate-300 font-medium mb-1">Nenhum lançamento encontrado</p>
+                  <p className="text-slate-500 text-sm mb-4">Use o tracker global ou adicione manualmente.</p>
+                  <Button onClick={() => setLancamentoModal(true)} className="bg-blue-600 hover:bg-blue-700"><Plus className="w-4 h-4 mr-1" /> Novo Lançamento</Button>
+                </div>
+              ) : (
+                <div className="overflow-x-auto rounded-xl border border-slate-700/50">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-slate-800 border-b border-slate-700 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                        <th className="text-left px-4 py-3">Data</th>
+                        <th className="text-left px-4 py-3">Colaborador</th>
+                        <th className="text-left px-4 py-3">Produto</th>
+                        <th className="text-left px-4 py-3">Atividade</th>
+                        <th className="text-left px-3 py-3">Tipo</th>
+                        <th className="text-left px-3 py-3">Início–Fim</th>
+                        <th className="text-right px-4 py-3">Horas</th>
+                        <th className="px-3 py-3 w-16"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredLancamentos.map(l => (
+                        <tr key={l.id} className="border-t border-slate-700/40 hover:bg-slate-800/60 transition-colors group">
+                          <td className="px-4 py-2.5 text-slate-300 text-xs">{l.data ? format(parseISO(l.data), 'dd/MM/yyyy') : '—'}</td>
+                          <td className="px-4 py-2.5 text-white font-medium text-xs">{l.colaborador}</td>
+                          <td className="px-4 py-2.5 text-slate-400 text-xs">{l.produto || '—'}</td>
+                          <td className="px-4 py-2.5 text-slate-400 text-xs max-w-[160px] truncate">{l.atividade_titulo || l.objetivo || '—'}</td>
+                          <td className="px-3 py-2.5">
+                            <Badge className="text-xs bg-slate-700 text-slate-300">{TIPO_LABEL[l.tipo] || l.tipo || '—'}</Badge>
+                          </td>
+                          <td className="px-3 py-2.5 text-slate-500 text-xs">{l.hora_inicio && l.hora_fim ? `${l.hora_inicio}–${l.hora_fim}` : '—'}</td>
+                          <td className="px-4 py-2.5 text-right font-bold text-blue-400 text-sm">{fh(l.total_horas || 0)}</td>
+                          <td className="px-3 py-2.5">
+                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button onClick={() => { setEditingLancamento(l); setLancamentoModal(true); }} className="p-1 text-slate-400 hover:text-white hover:bg-slate-700 rounded-md"><Pencil className="w-3 h-3" /></button>
+                              <button onClick={() => setDeleteDialog(l)} className="p-1 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-md"><Trash2 className="w-3 h-3" /></button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
-              {verticalDropdownOpen && <div className="fixed inset-0 z-40" onClick={() => setVerticalDropdownOpen(false)} />}
             </div>
-            {selectedVerticals.length > 0 && (
-              <button onClick={() => setSelectedVerticals([])} className="text-xs text-slate-400 hover:text-white transition-colors">✕ Limpar</button>
-            )}
-          </div>
-        </div>
+          )}
+
+          {/* ── TIMESHEET ── */}
+          {activeTab === 'timesheet' && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <button onClick={() => setTimesheetWeekOffset(o => o - 1)} className="p-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-slate-300 transition-colors">
+                  <ChevronDown className="w-4 h-4 rotate-90" />
+                </button>
+                <span className="text-sm font-medium text-white">
+                  {format(weekDays[0], 'dd/MM', { locale: ptBR })} – {format(weekDays[6], 'dd/MM/yyyy', { locale: ptBR })}
+                </span>
+                <button onClick={() => setTimesheetWeekOffset(o => o + 1)} className="p-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-slate-300 transition-colors">
+                  <ChevronDown className="w-4 h-4 -rotate-90" />
+                </button>
+                {timesheetWeekOffset !== 0 && (
+                  <button onClick={() => setTimesheetWeekOffset(0)} className="text-xs text-blue-400 hover:text-blue-300 px-2 py-1 rounded-md hover:bg-blue-500/10 transition-colors">Hoje</button>
+                )}
+              </div>
+
+              <div className="overflow-x-auto rounded-xl border border-slate-700/50">
+                <table className="w-full text-sm min-w-[700px]">
+                  <thead>
+                    <tr className="bg-slate-800 border-b border-slate-700">
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider w-32">Colaborador</th>
+                      {weekDays.map(d => (
+                        <th key={d.toISOString()} className={`text-center px-2 py-3 text-xs font-semibold uppercase tracking-wider ${isSameDay(d, new Date()) ? 'text-blue-400' : 'text-slate-400'}`}>
+                          <div>{format(d, 'EEE', { locale: ptBR })}</div>
+                          <div className={`text-sm font-bold mt-0.5 ${isSameDay(d, new Date()) ? 'text-blue-400' : 'text-white'}`}>{format(d, 'dd')}</div>
+                        </th>
+                      ))}
+                      <th className="text-right px-4 py-3 text-xs font-semibold text-slate-400 uppercase">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {timesheetColabs.length === 0 ? (
+                      <tr><td colSpan={9} className="px-4 py-8 text-center text-slate-500">Nenhum colaborador nesta semana.</td></tr>
+                    ) : (
+                      timesheetColabs.map(colab => {
+                        const weekTotal = weekDays.reduce((s, d) => {
+                          const ds = format(d, 'yyyy-MM-dd');
+                          return s + lancamentos.filter(l => l.colaborador === colab && l.data === ds).reduce((ss, l) => ss + (l.total_horas || 0), 0);
+                        }, 0);
+                        return (
+                          <tr key={colab} className="border-t border-slate-700/40 hover:bg-slate-800/40 transition-colors">
+                            <td className="px-4 py-3 text-white text-xs font-medium">{colab.split(' ').slice(0,2).join(' ')}</td>
+                            {weekDays.map(d => {
+                              const ds = format(d, 'yyyy-MM-dd');
+                              const dayHours = lancamentos.filter(l => l.colaborador === colab && l.data === ds).reduce((s, l) => s + (l.total_horas || 0), 0);
+                              return (
+                                <td key={ds} className={`text-center px-2 py-3 ${isSameDay(d, new Date()) ? 'bg-blue-500/5' : ''}`}>
+                                  {dayHours > 0 ? (
+                                    <span className="text-xs font-bold text-blue-400">{fh(dayHours)}</span>
+                                  ) : (
+                                    <span className="text-xs text-slate-700">—</span>
+                                  )}
+                                </td>
+                              );
+                            })}
+                            <td className="px-4 py-3 text-right">
+                              <span className={`text-sm font-bold ${weekTotal > 0 ? 'text-emerald-400' : 'text-slate-600'}`}>{weekTotal > 0 ? fh(weekTotal) : '—'}</span>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                    {/* Totals row */}
+                    {timesheetColabs.length > 0 && (
+                      <tr className="border-t-2 border-slate-600 bg-slate-800/60">
+                        <td className="px-4 py-2.5 text-xs font-semibold text-slate-400 uppercase">Total</td>
+                        {weekDays.map(d => {
+                          const ds = format(d, 'yyyy-MM-dd');
+                          const total = lancamentos.filter(l => l.data === ds).reduce((s, l) => s + (l.total_horas || 0), 0);
+                          return (
+                            <td key={ds} className={`text-center px-2 py-2.5 ${isSameDay(d, new Date()) ? 'bg-blue-500/5' : ''}`}>
+                              <span className={`text-xs font-bold ${total > 0 ? 'text-white' : 'text-slate-700'}`}>{total > 0 ? fh(total) : '—'}</span>
+                            </td>
+                          );
+                        })}
+                        <td className="px-4 py-2.5 text-right">
+                          <span className="text-sm font-bold text-white">
+                            {fh(weekDays.reduce((s, d) => s + lancamentos.filter(l => l.data === format(d, 'yyyy-MM-dd')).reduce((ss, l) => ss + (l.total_horas || 0), 0), 0))}
+                          </span>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* ── INDICADORES ── */}
+          {activeTab === 'indicadores' && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              {/* Horas por Objetivo */}
+              <Card className="bg-slate-800/60 border-slate-700/50">
+                <CardHeader className="pb-2"><CardTitle className="text-white text-sm">Horas por Objetivo</CardTitle></CardHeader>
+                <CardContent>
+                  {byObjetivo.length === 0 ? <p className="text-slate-500 text-sm text-center py-8">Sem dados com objetivo vinculado</p> : (
+                    <div className="space-y-2">
+                      {byObjetivo.slice(0, 10).map((o, i) => (
+                        <div key={o.name} className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: CHART_COLORS[i % CHART_COLORS.length] }} />
+                          <span className="text-xs text-slate-300 flex-1 truncate">{o.name}</span>
+                          <span className="text-xs font-bold text-white">{fh(o.value)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Horas por Tipo (bar) */}
+              <Card className="bg-slate-800/60 border-slate-700/50">
+                <CardHeader className="pb-2"><CardTitle className="text-white text-sm">Distribuição por Tipo</CardTitle></CardHeader>
+                <CardContent>
+                  {byTipo.length === 0 ? <p className="text-slate-500 text-sm text-center py-8">Sem dados</p> : (
+                    <ResponsiveContainer width="100%" height={220}>
+                      <BarChart data={byTipo.sort((a,b)=>b.value-a.value)}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                        <XAxis dataKey="name" stroke="#64748b" style={{ fontSize: 9 }} />
+                        <YAxis stroke="#64748b" style={{ fontSize: 10 }} tickFormatter={v => `${v}h`} />
+                        <Tooltip contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8 }} formatter={v => [`${v}h`, 'Horas']} />
+                        <Bar dataKey="value" radius={[4,4,0,0]}>
+                          {byTipo.map((_, i) => <Cell key={i} fill={TIPO_COLORS[i % TIPO_COLORS.length]} />)}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Top colaboradores */}
+              <Card className="bg-slate-800/60 border-slate-700/50 lg:col-span-2">
+                <CardHeader className="pb-2"><CardTitle className="text-white text-sm flex items-center gap-2"><TrendingUp className="w-4 h-4 text-blue-400" /> Ranking de Colaboradores</CardTitle></CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {byColaborador.slice(0, 10).map((c, i) => {
+                      const max = byColaborador[0]?.horas || 1;
+                      return (
+                        <div key={c.name} className="flex items-center gap-3">
+                          <span className={`text-xs font-bold w-5 text-center ${i === 0 ? 'text-yellow-400' : i === 1 ? 'text-slate-300' : i === 2 ? 'text-amber-600' : 'text-slate-600'}`}>{i+1}</span>
+                          <span className="text-sm text-white w-36 truncate">{c.name}</span>
+                          <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
+                            <div className="h-full rounded-full bg-blue-500 transition-all" style={{ width: `${(c.horas / max) * 100}%` }} />
+                          </div>
+                          <span className="text-sm font-bold text-blue-400 w-14 text-right">{fh(c.horas)}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </>
       )}
 
       {/* Import Modal */}
       {showImportModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setShowImportModal(false)}>
-          <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl w-full max-w-sm mx-4 p-6 space-y-5" onClick={e => e.stopPropagation()}>
+          <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl w-full max-w-sm mx-4 p-6 space-y-4" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between">
-              <h3 className="text-white font-semibold text-base">Importar Planilha</h3>
+              <h3 className="text-white font-semibold">Importar Planilha Excel</h3>
               <button onClick={() => setShowImportModal(false)} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button>
             </div>
-            <div className="space-y-2">
-              <label className="text-sm text-slate-300 font-medium">Qual mês quer importar?</label>
-              <input
-                type="month"
-                value={importMonth}
-                onChange={e => setImportMonth(e.target.value)}
-                className="w-full h-10 px-3 rounded-md bg-slate-900 border border-slate-600 text-slate-200 text-sm"
-              />
+            <div>
+              <label className="text-sm text-slate-300">Mês de referência</label>
+              <input type="month" value={importMonth} onChange={e => setImportMonth(e.target.value)}
+                className="w-full mt-1 h-10 px-3 rounded-md bg-slate-900 border border-slate-600 text-slate-200 text-sm" />
             </div>
-            <Button
-              onClick={() => {
-                if (!importMonth) { toast.error('Selecione o mês antes de continuar.'); return; }
-                fileInputRef.current?.click();
-              }}
-              disabled={isImporting}
-              className="w-full bg-blue-600 hover:bg-blue-700 gap-2"
-            >
+            <Button onClick={() => { if (!importMonth) { toast.error('Selecione o mês.'); return; } fileInputRef.current?.click(); }}
+              disabled={isImporting} className="w-full bg-blue-600 hover:bg-blue-700 gap-2">
               {isImporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
               Selecionar Arquivo
             </Button>
+            <p className="text-xs text-slate-500">A planilha deve conter uma aba "People" com colunas Name e Worked.</p>
           </div>
         </div>
       )}
+      <input ref={fileInputRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={handleFileUpload} />
 
-      {isLoading ? (
-        <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-blue-400" /></div>
-      ) : allHoras.length === 0 ? (
-        <Card className="bg-slate-800 border-slate-700">
-          <CardContent className="py-16 text-center">
-            <Clock className="w-12 h-12 text-slate-500 mx-auto mb-3" />
-            <p className="text-slate-300 font-medium mb-1">Nenhum dado importado ainda</p>
-            <p className="text-slate-500 text-sm">Selecione o mês e importe uma planilha Excel com a aba "People"</p>
-          </CardContent>
-        </Card>
-      ) : (
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="bg-slate-800 border border-slate-700">
-            <TabsTrigger value="pessoas" className="data-[state=active]:bg-blue-600">
-              <Users className="w-4 h-4 mr-1.5" /> Pessoas / Horas
-            </TabsTrigger>
-            <TabsTrigger value="dashboard" className="data-[state=active]:bg-blue-600">
-              <BarChart2 className="w-4 h-4 mr-1.5" /> Dashboard
-            </TabsTrigger>
-          </TabsList>
+      {/* Modals */}
+      <LancamentoModal
+        open={lancamentoModal}
+        onOpenChange={setLancamentoModal}
+        lancamento={editingLancamento}
+        onSave={handleSave}
+        teamMembers={teamMembers}
+        activities={activities}
+        objectives={objectives}
+        products={products}
+      />
 
-          {/* ===== PESSOAS / HORAS ===== */}
-          <TabsContent value="pessoas" className="space-y-4 mt-4">
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <p className="text-slate-400 text-sm">
-                {selectedMonth ? formatMonth(selectedMonth) : 'Geral (todos os meses)'} — <span className="text-white font-medium">{Object.values(byVertical).flat().length} pessoas</span>
-              </p>
-              <span className="text-xs text-slate-500">Clique em ✏️ para editar a vertical · Clique no nome para ver histórico</span>
-            </div>
+      <AlertDialog open={!!deleteDialog} onOpenChange={() => setDeleteDialog(null)}>
+        <AlertDialogContent className="bg-slate-800 border-slate-700">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">Remover lançamento?</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-400">Esta ação não pode ser desfeita.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-slate-600 text-slate-300 hover:bg-slate-700">Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => deleteMutation.mutate(deleteDialog?.id)} className="bg-red-600 hover:bg-red-700">Remover</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
-            <div className="flex gap-6">
-              {/* Table */}
-              <div className="flex-1 overflow-x-auto rounded-lg border border-slate-700">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-slate-800 border-b border-slate-700 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                      <th className="text-left px-4 py-2.5">Pessoa</th>
-                      <th className="text-left px-3 py-2.5">Vertical</th>
-                      <th className="text-right px-4 py-2.5 w-28">{selectedMonth ? 'Horas mês' : 'Total horas'}</th>
-                      <th className="text-right px-4 py-2.5 w-28">Acumulado</th>
-                      <th className="px-3 py-2.5 w-10"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sortedVerticals.map(vertical => {
-                      const people = byVertical[vertical] || [];
-                      const label = VERTICAL_LABELS[vertical] || 'Sem Vertical';
-                      const colorClass = VERTICAL_COLORS[vertical] || VERTICAL_COLORS.outros;
-                      const verticalTotal = people.reduce((s, p) => s + p.hours, 0);
-                      return (
-                        <React.Fragment key={vertical}>
-                          {/* Vertical header row */}
-                          <tr className="bg-slate-700/40 border-t-2 border-slate-600">
-                            <td colSpan={5} className="px-4 py-2">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${colorClass}`}>{label}</span>
-                                  <span className="text-xs text-slate-500">{people.length} pessoa(s)</span>
-                                </div>
-                                <span className="text-sm font-semibold text-slate-300">{formatHours(verticalTotal)}</span>
-                              </div>
-                            </td>
-                          </tr>
-                          {/* People rows */}
-                          {people.map(person => (
-                            <tr
-                              key={person.name}
-                              className={`border-t border-slate-700/40 hover:bg-slate-700/30 transition-colors cursor-pointer ${selectedPerson === person.name ? 'bg-slate-700/40' : ''}`}
-                              onClick={() => setSelectedPerson(selectedPerson === person.name ? null : person.name)}
-                            >
-                              <td className="px-4 py-2.5">
-                                <p className="text-sm text-white">{person.name}</p>
-                              </td>
-                              <td className="px-3 py-2.5">
-                                {editingVertical === person.name ? (
-                                  <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
-                                    <select
-                                      value={editVerticalValue}
-                                      onChange={e => setEditVerticalValue(e.target.value)}
-                                      className="text-xs bg-slate-700 border border-slate-600 text-white rounded px-1 py-0.5"
-                                      autoFocus
-                                    >
-                                      <option value="">Sem vertical</option>
-                                      {Object.entries(VERTICAL_LABELS).map(([k, v]) => (
-                                        <option key={k} value={k}>{v}</option>
-                                      ))}
-                                    </select>
-                                    <button onClick={() => saveVerticalMutation.mutate({ personName: person.name, vertical: editVerticalValue })} className="p-1 text-green-400 hover:text-green-300"><Check className="w-3.5 h-3.5" /></button>
-                                    <button onClick={() => setEditingVertical(null)} className="p-1 text-slate-400 hover:text-white"><X className="w-3.5 h-3.5" /></button>
-                                  </div>
-                                ) : (
-                                  <span className="text-xs text-slate-400">{VERTICAL_LABELS[personVerticalMap[person.name]] || '—'}</span>
-                                )}
-                              </td>
-                              <td className="px-4 py-2.5 text-right">
-                                <span className="text-sm font-semibold text-blue-300">{formatHours(person.hours)}</span>
-                              </td>
-                              <td className="px-4 py-2.5 text-right">
-                                <span className="text-xs text-slate-500">{formatHours(person.total)}</span>
-                              </td>
-                              <td className="px-3 py-2.5" onClick={e => e.stopPropagation()}>
-                                <button
-                                  onClick={() => { setEditingVertical(person.name); setEditVerticalValue(personVerticalMap[person.name] || ''); }}
-                                  className="p-1 text-slate-500 hover:text-slate-300 transition-colors"
-                                  title="Editar vertical"
-                                >
-                                  <Pencil className="w-3.5 h-3.5" />
-                                </button>
-                              </td>
-                            </tr>
-                          ))}
-                        </React.Fragment>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Person history panel */}
-              {selectedPerson && (
-                <div className="w-72 flex-shrink-0">
-                  <Card className="bg-slate-800 border-slate-700 sticky top-4">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-white text-sm truncate">{selectedPerson}</CardTitle>
-                        <button onClick={() => setSelectedPerson(null)} className="text-slate-400 hover:text-white flex-shrink-0"><X className="w-4 h-4" /></button>
-                      </div>
-                      <p className="text-xs text-slate-400">Total acumulado: <span className="text-white font-semibold">{formatHours(personTotalMap[selectedPerson] || 0)}</span></p>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-xs text-slate-500 uppercase tracking-wider mb-3">Histórico mensal</p>
-                      <div className="space-y-2">
-                        {personHistory.map(({ month, hours }) => (
-                          <div key={month} className="flex items-center gap-2">
-                            <span className="text-xs text-slate-400 w-20 flex-shrink-0">{formatMonth(month)}</span>
-                            <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
-                              <div className="h-full rounded-full bg-blue-500 transition-all" style={{ width: `${Math.min(100, (hours / 200) * 100)}%` }} />
-                            </div>
-                            <span className="text-xs font-semibold text-white w-12 text-right">{formatHours(hours)}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
-            </div>
-          </TabsContent>
-
-          {/* ===== DASHBOARD ===== */}
-          <TabsContent value="dashboard" className="space-y-6 mt-4">
-            {/* KPIs */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {[
-                { label: 'Total no Mês', value: formatHours(kpis.totalMonth), icon: Clock, color: 'text-blue-400' },
-                { label: 'Média por Pessoa', value: formatHours(kpis.avg), icon: CheckCircle2, color: 'text-green-400' },
-                { label: 'Pessoas Ativas', value: kpis.people, icon: Users, color: 'text-purple-400' },
-              ].map(({ label, value, icon: Icon, color }) => (
-                <Card key={label} className="bg-slate-800 border-slate-700">
-                  <CardContent className="p-4 flex items-center gap-3">
-                    <Icon className={`w-8 h-8 ${color} flex-shrink-0`} />
-                    <div>
-                      <div className={`text-xl font-bold ${color}`}>{value}</div>
-                      <div className="text-xs text-slate-400">{label}</div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {/* Ranking */}
-            <Card className="bg-slate-800 border-slate-700">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-white text-base flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-blue-400" /> Ranking — {selectedMonth ? formatMonth(selectedMonth) : 'Geral'}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="divide-y divide-slate-700 max-h-[400px] overflow-y-auto">
-                  {ranking.map((person, idx) => (
-                    <div key={person.name} className="flex items-center gap-3 px-4 py-3">
-                      <span className={`text-xs font-bold w-6 text-center ${idx === 0 ? 'text-yellow-400' : idx === 1 ? 'text-slate-300' : idx === 2 ? 'text-amber-600' : 'text-slate-500'}`}>
-                        {idx + 1}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-white truncate">{person.name}</p>
-                        <p className="text-xs text-slate-500">Acumulado: {formatHours(person.total)}</p>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm font-bold text-blue-300">{formatHours(person.hours)}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="bg-slate-800 border-slate-700">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-white text-sm">Horas por Pessoa</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={320}>
-                    <BarChart data={barData} layout="vertical" margin={{ left: 10, right: 20 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" horizontal={false} />
-                      <XAxis type="number" stroke="#94a3b8" style={{ fontSize: '11px' }} tickFormatter={v => `${v}h`} />
-                      <YAxis type="category" dataKey="name" stroke="#94a3b8" style={{ fontSize: '10px' }} width={90} />
-                      <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', color: '#fff' }} formatter={(v) => [`${v}h`, 'Horas']} />
-                      <Bar dataKey="horas" fill="#3b82f6" radius={[0, 4, 4, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-slate-800 border-slate-700">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-white text-sm">Evolução Mensal</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {monthlyEvolution.length < 2 ? (
-                    <div className="flex items-center justify-center h-[320px] text-slate-500 text-sm">Importe mais de 1 mês para ver a evolução</div>
-                  ) : (
-                    <ResponsiveContainer width="100%" height={320}>
-                      <LineChart data={monthlyEvolution}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                        <XAxis dataKey="month" stroke="#94a3b8" style={{ fontSize: '11px' }} />
-                        <YAxis stroke="#94a3b8" style={{ fontSize: '11px' }} tickFormatter={v => `${v}h`} />
-                        <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', color: '#fff' }} formatter={(v) => [`${v}h`, 'Total']} />
-                        <Line type="monotone" dataKey="total" stroke="#3b82f6" strokeWidth={2} dot={{ fill: '#3b82f6', r: 4 }} />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
-      )}
+      {/* Global Tracker */}
+      {projectId && <GlobalTracker projectId={projectId} onSaved={() => queryClient.invalidateQueries({ queryKey: ['horasLancamentos', projectId] })} />}
     </div>
   );
 }
