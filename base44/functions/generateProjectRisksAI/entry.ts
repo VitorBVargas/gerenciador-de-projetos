@@ -11,7 +11,7 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { project_id, replace = true } = await req.json();
+    const { project_id, replace = true, trigger = 'manual' } = await req.json();
     if (!project_id) return Response.json({ error: 'project_id é obrigatório' }, { status: 400 });
 
     // ── 1. Coleta o contexto do projeto ───────────────────────────────────
@@ -165,10 +165,27 @@ Responda APENAS com JSON válido seguindo o schema.`;
     }
 
     // ── 6. Atualiza score geral do projeto ───────────────────────────────
+    const executedAt = new Date().toISOString();
     await base44.asServiceRole.entities.Project.update(project_id, {
       risk_score: llmResponse.risk_score,
       risk_level: llmResponse.risk_level,
-      last_risk_analysis_at: new Date().toISOString(),
+      last_risk_analysis_at: executedAt,
+    });
+
+    // ── 7. Registra o log da análise (histórico de Monitoramento IA) ──────
+    const totalRisks = await base44.asServiceRole.entities.Risk.filter({ project_id });
+    await base44.asServiceRole.entities.RiskAnalysisLog.create({
+      project_id,
+      executed_at: executedAt,
+      risks_analyzed: totalRisks.length,
+      risks_created: created.length,
+      risks_updated: 0,
+      risks_mitigated: 0,
+      risks_closed: 0,
+      risk_score: llmResponse.risk_score,
+      risk_level: llmResponse.risk_level,
+      executive_summary: llmResponse.executive_summary || '',
+      trigger,
     });
 
     return Response.json({
