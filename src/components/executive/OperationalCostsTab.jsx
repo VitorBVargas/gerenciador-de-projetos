@@ -718,6 +718,12 @@ export default function OperationalCostsTab({ projects, isAdmin }) {
   const [deleting, setDeleting] = useState(false);
   const queryClient = useQueryClient();
 
+  const { data: allCosts = [], isLoading } = useQuery({
+    queryKey: ['operational_costs'],
+    queryFn: () => base44.entities.ProjectOperationalCosts.list('-import_date', 50000),
+    staleTime: 2 * 60 * 1000,
+  });
+
   const handleDeleteCosts = useCallback(async () => {
     if (!deleteTarget) return;
     setDeleting(true);
@@ -736,12 +742,6 @@ export default function OperationalCostsTab({ projects, isAdmin }) {
       setDeleting(false);
     }
   }, [deleteTarget, allCosts, queryClient]);
-
-  const { data: allCosts = [], isLoading } = useQuery({
-    queryKey: ['operational_costs'],
-    queryFn: () => base44.entities.ProjectOperationalCosts.list('-import_date', 50000),
-    staleTime: 2 * 60 * 1000,
-  });
 
   const { data: allForecasts = [] } = useQuery({
     queryKey: ['budget_forecasts'],
