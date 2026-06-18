@@ -1,0 +1,79 @@
+{
+  "name": "Chamado",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "ID do projeto"
+    },
+    "numero": {
+      "type": "string",
+      "description": "N\u00famero do chamado"
+    },
+    "descricao": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o do chamado"
+    },
+    "product_id": {
+      "type": "string",
+      "description": "ID do produto relacionado"
+    },
+    "product_name": {
+      "type": "string",
+      "description": "Nome do produto (desnormalizado)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "aberto",
+        "em_andamento",
+        "aguardando_cliente",
+        "resolvido",
+        "fechado"
+      ],
+      "default": "aberto"
+    },
+    "prioridade": {
+      "type": "string",
+      "enum": [
+        "baixa",
+        "media",
+        "alta",
+        "critica"
+      ],
+      "default": "media"
+    },
+    "responsavel": {
+      "type": "string",
+      "description": "Respons\u00e1vel pelo chamado"
+    },
+    "data_abertura": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de abertura"
+    },
+    "data_resolucao": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de resolu\u00e7\u00e3o"
+    },
+    "is_bloqueador": {
+      "type": "boolean",
+      "default": false,
+      "description": "\u00c9 um chamado cr\u00edtico/bloqueador"
+    },
+    "vertical": {
+      "type": "string",
+      "description": "Vertical relacionada"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es adicionais"
+    }
+  },
+  "required": [
+    "project_id",
+    "numero",
+    "descricao"
+  ]
+}
