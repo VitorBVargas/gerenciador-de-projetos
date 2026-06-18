@@ -20,6 +20,15 @@
       "default": "grandes_contas_sc_mg",
       "description": "Portf\u00f3lio ao qual o projeto pertence"
     },
+    "project_type": {
+      "type": "string",
+      "enum": [
+        "implantacao",
+        "sustentacao"
+      ],
+      "default": "implantacao",
+      "description": "Tipo do projeto: Implanta\u00e7\u00e3o ou Sustenta\u00e7\u00e3o"
+    },
     "manager": {
       "type": "string",
       "description": "Gerente(s) do projeto"
@@ -31,6 +40,21 @@
     "portfolio_manager": {
       "type": "string",
       "description": "Gerente do Portf\u00f3lio"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "baixa",
+        "media",
+        "alta",
+        "critica"
+      ],
+      "default": "media",
+      "description": "Prioridade do projeto"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es do projeto"
     },
     "implementation_value": {
       "type": "number",
@@ -86,9 +110,11 @@
         "planejamento",
         "em_andamento",
         "pausado",
-        "concluido"
+        "concluido",
+        "sustentacao"
       ],
-      "default": "planejamento"
+      "default": "planejamento",
+      "description": "Status do projeto"
     },
     "display_order": {
       "type": "number",
@@ -133,6 +159,26 @@
       "type": "string",
       "format": "date-time",
       "description": "\u00daltima an\u00e1lise autom\u00e1tica de riscos pela IA"
+    },
+    "sustentacao_start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de in\u00edcio da sustenta\u00e7\u00e3o"
+    },
+    "last_meeting_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data da \u00faltima reuni\u00e3o (sustenta\u00e7\u00e3o)"
+    },
+    "next_meeting_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data da pr\u00f3xima reuni\u00e3o (sustenta\u00e7\u00e3o)"
+    },
+    "cnd_ativa": {
+      "type": "boolean",
+      "default": true,
+      "description": "Certid\u00e3o Negativa de D\u00e9bitos (CND) est\u00e1 ativa"
     }
   },
   "required": [
