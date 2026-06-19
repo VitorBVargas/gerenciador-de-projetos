@@ -243,7 +243,7 @@ function ImportModal({ projects, onClose, onSuccess }) {
       });
       const finalRecords = Object.values(aggregated);
 
-      const existing = await base44.entities.ProjectOperationalCosts.filter({ project_id: selectedProjectId });
+      /*const existing = await base44.entities.ProjectOperationalCosts.filter({ project_id: selectedProjectId });
       const existingMap = {};
       existing.forEach(e => {
         const key = `${e.cost_type}__${e.category}__${e.month}__${e.year}`;
@@ -266,6 +266,29 @@ function ImportModal({ projects, onClose, onSuccess }) {
       }
 
       toast.success(`Importação concluída: ${created} criados, ${updated} atualizados (${finalRecords.length} registros)`);
+      onSuccess();
+      onClose();*/
+
+      // 1. Busca os registros antigos APENAS deste projeto selecionado
+      const existing = await base44.entities.ProjectOperationalCosts.filter({ project_id: selectedProjectId });
+      
+      // 2. Remove de forma limpa os registros antigos para evitar dados duplicados/órfãos
+      for (const e of existing) {
+        await base44.entities.ProjectOperationalCosts.delete(e.id);
+      }
+
+      // 3. Insere os novos dados consolidados da planilha atual
+      let created = 0;
+      for (const record of finalRecords) {
+        // Garantindo que o valor final inserido preserve as casas decimais corretas
+        record.value = Number(record.value.toFixed(2));
+        record.import_version = 1; // Como limpamos o passado, este lote vira a versão atual estável
+        
+        await base44.entities.ProjectOperationalCosts.create(record);
+        created++;
+      }
+
+      toast.success(`Importação concluída com sucesso! ${created} registros atualizados.`);
       onSuccess();
       onClose();
     } catch (err) {
@@ -356,16 +379,26 @@ function CategoryTable({ costs }) {
     return Object.entries(map).sort((a, b) => b[1] - a[1]).map(([cat, val]) => ({ cat, val }));
   }, [costs]);
 
-  const monthlyData = useMemo(() => {
+const monthlyData = useMemo(() => {
     const map = {};
     costs.forEach(c => {
       const key = `${c.year}-${String(c.month).padStart(2, '0')}`;
-      if (!map[key]) map[key] = { key, label: fmtMonth(c.month, c.year), total: 0 };
-      map[key].total += c.value || 0;
+      if (!map[key]) map[key] = { key, label: fmtMonth(c.month, c.year), total: 0, operacional: 0, geral: 0 };
+      
+      // Armazena e soma tratando floats com precisão de centavos
+      map[key].total = Number((map[key].total + (c.value || 0)).toFixed(2));
+      if (c.cost_type === 'operacional') {
+        map[key].operacional = Number((map[key].operacional + (c.value || 0)).toFixed(2));
+      } else {
+        map[key].geral = Number((map[key].geral + (c.value || 0)).toFixed(2));
+      }
     });
     const sorted = Object.values(map).sort((a, b) => a.key.localeCompare(b.key));
     let accum = 0;
-    return sorted.map(m => { accum += m.total; return { ...m, acumulado: accum }; });
+    return sorted.map(m => { 
+      accum = Number((accum + m.total).toFixed(2)); 
+      return { ...m, acumulado: accum }; 
+    });
   }, [costs]);
 
   if (costs.length === 0) {
