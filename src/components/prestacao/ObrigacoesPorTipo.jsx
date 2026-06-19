@@ -26,6 +26,14 @@ function getSemaforo(o) {
   return 'verde';
 }
 
+// Considera "com registro" apenas competências que tenham algum dado de fato preenchido,
+// e não os registros padrão vazios criados automaticamente (status nao_iniciado e sem dados).
+function temRegistro(o) {
+  if (!o.id) return false;
+  return (o.status && o.status !== 'nao_iniciado')
+    || !!o.responsavel || !!o.data_limite || !!o.data_envio || !!o.observacoes;
+}
+
 function StatusCell({ obrigacao }) {
   const cfg = STATUS_CFG[obrigacao.status] || STATUS_CFG.nao_iniciado;
   const Icon = cfg.icon;
@@ -305,7 +313,7 @@ export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser }
                                <button onClick={() => openEdit(o, nome)} className="p-1 text-slate-500 hover:text-blue-400 hover:bg-blue-500/10 rounded transition-colors" title="Editar competência">
                                  <Edit className="w-3.5 h-3.5" />
                                </button>
-                               {o.id && (
+                               {temRegistro(o) && (
                                  <button onClick={() => { if (confirm(`Remover a competência ${o.competencia} de ${nome}?`)) handleDelete(o.id); }} className="p-1 text-slate-600 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors" title="Remover competência">
                                    <Trash2 className="w-3.5 h-3.5" />
                                  </button>
