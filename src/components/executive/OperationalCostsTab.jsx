@@ -95,6 +95,57 @@ function findCol(headers, ...names) {
   return -1;
 }
 
+// Parse a PIVOT sheet (months across columns, categories down rows).
+// Returns array of { category, month, year, value }.
+// - categoryColHeader: text that identifies the header cell of the category column
+//   (e.g. "Descrição Conta Financeira" or "Tipo Ticket Pai")
+function parsePivotSheet(rows, categoryColHeader) {
+  // 1) Locate the header row: the row whose cells contain the category header label
+  let headerIdx = -1, catCol = -1;
+  for (let i = 0; i < Math.min(rows.length, 20); i++) {
+    const r = rows[i];
+    if (!r) continue;
+    for (let c = 0; c < r.length; c++) {
+      const cell = String(r[c] || '').toLowerCase().trim();
+      if (cell.includes(categoryColHeader.toLowerCase())) {
+        headerIdx = i;
+        catCol = c;
+        break;
+      }
+    }
+    if (headerIdx >= 0) break;
+  }
+  if (headerIdx < 0) return [];
+
+  // 2) Map each column to a {month, year} by parsing the header cells (the date columns)
+  const headerRow = rows[headerIdx];
+  const monthCols = []; // { col, month, year }
+  for (let c = 0; c < headerRow.length; c++) {
+    if (c === catCol) continue;
+    const dateVal = parseDateValue(headerRow[c]);
+    if (dateVal) monthCols.push({ col: c, month: dateVal.month, year: dateVal.year });
+  }
+  if (monthCols.length === 0) return [];
+
+  // 3) Walk data rows, reading each month column's value for the category in catCol.
+  //    The "Total Resultado" column has no parseable date, so it is naturally excluded.
+  const out = [];
+  for (let r = headerIdx + 1; r < rows.length; r++) {
+    const row = rows[r];
+    if (!row) continue;
+    const category = row[catCol] ? String(row[catCol]).trim() : null;
+    if (!category) continue;
+    // Skip total/summary rows
+    if (/^total/i.test(category)) continue;
+    for (const mc of monthCols) {
+      const value = parseNumber(row[mc.col]);
+      if (!value || value === 0) continue;
+      out.push({ category, month: mc.month, year: mc.year, value: Math.abs(value) });
+    }
+  }
+  return out;
+}
+
 // ─── Import Modal ───────────────────────────────────────────────────────────────
 function ImportModal({ projects, onClose, onSuccess }) {
   const [selectedProjectId, setSelectedProjectId] = useState('');
@@ -119,113 +170,52 @@ function ImportModal({ projects, onClose, onSuccess }) {
       const allRecords = [];
       const fmtLabel = (month, year) => `${String(month).padStart(2, '0')}/${year}`;
 
-      // ── Sheet: Dinâmica Custos Gerais (or "Base custos gerais ajustada") ──
-      // Format: tabular rows, columns: Mês/Ano, Descrição Conta Financeira, Valor Centro Custo
-      const geralSheetName = workbook.SheetNames.find(n =>
-        /dinamica custos gerais/i.test(n) || /base custos gerais/i.test(n)
-      );
+      const baseRecord = (extra) => ({
+        project_id: selectedProjectId,
+        project_name: project.name,
+        portfolio_name: project.portfolio || '',
+        city: project.city || '',
+        import_date: new Date().toISOString(),
+        import_user: user?.full_name || user?.email || 'Sistema',
+        ...extra,
+      });
+
+      // ── Sheet: Dinâmica Custos Gerais (PIVOT: meses nas colunas) ──
+      const geralSheetName = workbook.SheetNames.find(n => /din[aâ]mica custos gerais/i.test(n));
       if (geralSheetName) {
         const sheet = workbook.Sheets[geralSheetName];
         const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null, raw: true });
-        // find header row
-        let headerRow = null, headerIdx = -1;
-        for (let i = 0; i < Math.min(rows.length, 15); i++) {
-          const r = rows[i];
-          if (!r) continue;
-          const rowStr = r.map(c => String(c || '').toLowerCase()).join('|');
-          if (rowStr.includes('mês') || rowStr.includes('mes') || rowStr.includes('descrição conta') || rowStr.includes('valor centro')) {
-            headerRow = r;
-            headerIdx = i;
-            break;
-          }
-        }
-        if (headerRow && headerIdx >= 0) {
-          const colMes = findCol(headerRow, 'mês/ano', 'mês', 'mes/ano', 'mes ');
-          const colCat = findCol(headerRow, 'descrição conta financeira', 'descricao conta', 'conta financeira');
-          const colVal = findCol(headerRow, 'valor centro custo', 'valor centro', 'valor');
-          if (colMes >= 0 && colCat >= 0 && colVal >= 0) {
-            for (let r = headerIdx + 1; r < rows.length; r++) {
-              const row = rows[r];
-              if (!row) continue;
-              const dateVal = parseDateValue(row[colMes]);
-              if (!dateVal) continue;
-              const category = row[colCat] ? String(row[colCat]).trim() : null;
-              if (!category) continue;
-              const value = parseNumber(row[colVal]);
-              if (!value || value === 0) continue;
-              const { month, year } = dateVal;
-              allRecords.push({
-                project_id: selectedProjectId,
-                project_name: project.name,
-                portfolio_name: project.portfolio || '',
-                city: project.city || '',
-                category,
-                ticket_parent: null,
-                month,
-                year,
-                month_year: fmtLabel(month, year),
-                value: Math.abs(value),
-                cost_type: 'geral',
-                import_date: new Date().toISOString(),
-                import_user: user?.full_name || user?.email || 'Sistema',
-              });
-            }
-          }
-        }
+        const parsed = parsePivotSheet(rows, 'Descrição Conta Financeira');
+        parsed.forEach(({ category, month, year, value }) => {
+          allRecords.push(baseRecord({
+            category,
+            ticket_parent: null,
+            month,
+            year,
+            month_year: fmtLabel(month, year),
+            value,
+            cost_type: 'geral',
+          }));
+        });
       }
 
-      // ── Sheet: Dinamica Custo Pessoal (or "Base Pessoal") ──
-      // Format: tabular rows, columns: Mês ajustado (date), Tipo Ticket Pai, Custo total
-      const pessoalSheetName = workbook.SheetNames.find(n =>
-        /dinamica custo pessoal/i.test(n) || /base pessoal/i.test(n)
-      );
+      // ── Sheet: Dinâmica Custo Pessoal (PIVOT: meses nas colunas) ──
+      const pessoalSheetName = workbook.SheetNames.find(n => /din[aâ]mica custo pessoal/i.test(n));
       if (pessoalSheetName) {
         const sheet = workbook.Sheets[pessoalSheetName];
         const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null, raw: true });
-        let headerRow = null, headerIdx = -1;
-        for (let i = 0; i < Math.min(rows.length, 15); i++) {
-          const r = rows[i];
-          if (!r) continue;
-          const rowStr = r.map(c => String(c || '').toLowerCase()).join('|');
-          if (rowStr.includes('tipo ticket') || rowStr.includes('custo total') || rowStr.includes('mês ajustado')) {
-            headerRow = r;
-            headerIdx = i;
-            break;
-          }
-        }
-        if (headerRow && headerIdx >= 0) {
-          const colMes = findCol(headerRow, 'mês ajustado', 'mes ajustado', 'mês', 'mês apontamento');
-          const colCat = findCol(headerRow, 'tipo ticket pai', 'tipo ticket');
-          const colVal = findCol(headerRow, 'custo total');
-          if (colMes >= 0 && colCat >= 0 && colVal >= 0) {
-            for (let r = headerIdx + 1; r < rows.length; r++) {
-              const row = rows[r];
-              if (!row) continue;
-              const dateVal = parseDateValue(row[colMes]);
-              if (!dateVal) continue;
-              const category = row[colCat] ? String(row[colCat]).trim() : null;
-              if (!category) continue;
-              const value = parseNumber(row[colVal]);
-              if (!value || value === 0) continue;
-              const { month, year } = dateVal;
-              allRecords.push({
-                project_id: selectedProjectId,
-                project_name: project.name,
-                portfolio_name: project.portfolio || '',
-                city: project.city || '',
-                category,
-                ticket_parent: category,
-                month,
-                year,
-                month_year: fmtLabel(month, year),
-                value: Math.abs(value),
-                cost_type: 'operacional',
-                import_date: new Date().toISOString(),
-                import_user: user?.full_name || user?.email || 'Sistema',
-              });
-            }
-          }
-        }
+        const parsed = parsePivotSheet(rows, 'Tipo Ticket Pai');
+        parsed.forEach(({ category, month, year, value }) => {
+          allRecords.push(baseRecord({
+            category,
+            ticket_parent: category,
+            month,
+            year,
+            month_year: fmtLabel(month, year),
+            value,
+            cost_type: 'operacional',
+          }));
+        });
       }
 
       if (allRecords.length === 0) {
