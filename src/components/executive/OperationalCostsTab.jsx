@@ -739,6 +739,7 @@ function ProjectDetailInline({ costs, forecast, allForecasts }) {
 
       {activeTab === 'gerais' && (
         <div className="space-y-4">
+          <CategoryTable costs={geral} />
           <AccumulatedChart
             monthlyData={monthlyData}
             forecastTotal={forecastGeral}
@@ -747,7 +748,6 @@ function ProjectDetailInline({ costs, forecast, allForecasts }) {
             lineColor="#f59e0b"
             lineName="Acumulado Logísticas"
           />
-          <CategoryTable costs={geral} />
         </div>
       )}
       {activeTab === 'pessoal' && <CategoryTable costs={operacional} />}
