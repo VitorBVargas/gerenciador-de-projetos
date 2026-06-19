@@ -388,8 +388,8 @@ export default function SustentacaoWizard({ open, onOpenChange, portfolioFilter,
                     {VERTICALS.map(v => {
                       const count = collaboratorsByVertical[v.value]?.length || 0;
                       const selectedCount = selectedTeam.filter(m =>
-                        (m.vertical1 || '').toLowerCase() === v.value ||
-                        (m.vertical2 || '').toLowerCase() === v.value
+                        normalizeVertical(m.vertical1) === v.value ||
+                        normalizeVertical(m.vertical2) === v.value
                       ).length;
                       return (
                         <button
@@ -664,9 +664,6 @@ export default function SustentacaoWizard({ open, onOpenChange, portfolioFilter,
                       );
                     })}
                   </div>
-                  <Button variant="outline" onClick={() => setSelectedProductVertical(null)} className="border-slate-600 text-slate-300 hover:bg-slate-700 w-full">
-                    ← Voltar para verticais
-                  </Button>
                 </>
               )}
 
