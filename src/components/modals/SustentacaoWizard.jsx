@@ -206,7 +206,7 @@ export default function SustentacaoWizard({ open, onOpenChange, portfolioFilter,
 
       onComplete?.();
       onOpenChange(false);
-      window.location.href = `/dashboard?project_id=${project.id}`;
+      window.location.href = `/SustentacaoDashboard?project_id=${project.id}`;
     } catch (err) {
       console.error(err);
     } finally {
