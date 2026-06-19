@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, Clock, AlertTriangle, XCircle, FileText, Plus, Calendar, ChevronDown, ChevronUp, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { CheckCircle, Clock, AlertTriangle, XCircle, FileText, Plus, Calendar, ChevronDown, ChevronUp, Trash2, Edit, ChevronLeft, ChevronRight } from 'lucide-react';
 import { differenceInDays, parseISO, format } from 'date-fns';
 import ObrigacaoModal from './ObrigacaoModal';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -158,6 +158,13 @@ export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser }
     setModalOpen(true);
   };
 
+  // Edita uma competência específica. Para placeholders (sem id), garante nome/competência
+  // para que o salvamento crie/atualize apenas o registro daquela competência.
+  const openEdit = (o, nome) => {
+    setEditing({ ...o, nome: o.nome || nome, project_id: projectId });
+    setModalOpen(true);
+  };
+
   // Summary stats per type
   const getTypeSummary = (items) => {
     const aceitos = items.filter(o => o.status === 'aceito').length;
@@ -295,8 +302,11 @@ export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser }
                             </td>
                             <td className="px-4 py-2.5">
                              <div className="flex items-center gap-1">
+                               <button onClick={() => openEdit(o, nome)} className="p-1 text-slate-500 hover:text-blue-400 hover:bg-blue-500/10 rounded transition-colors" title="Editar competência">
+                                 <Edit className="w-3.5 h-3.5" />
+                               </button>
                                {o.id && (
-                                 <button onClick={() => handleDelete(o.id)} className="p-1 text-slate-600 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors" title="Excluir">
+                                 <button onClick={() => { if (confirm(`Remover a competência ${o.competencia} de ${nome}?`)) handleDelete(o.id); }} className="p-1 text-slate-600 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors" title="Remover competência">
                                    <Trash2 className="w-3.5 h-3.5" />
                                  </button>
                                )}
