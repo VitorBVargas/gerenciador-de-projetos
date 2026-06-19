@@ -20,8 +20,13 @@ import {
 } from 'recharts';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#14b8a6', '#f97316', '#6366f1'];
-
-const fmtBRL = (v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(v || 0);
+const fmtBRL = (v) => 
+  new Intl.NumberFormat('pt-BR', { 
+    style: 'currency', 
+    currency: 'BRL', 
+    minimumFractionDigits: 2, 
+    maximumFractionDigits: 2 
+  }).format(v || 0);
 const fmtMonth = (m, y) => {
   const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
   return `${months[m - 1]}/${String(y).slice(2)}`;
