@@ -105,10 +105,12 @@ export default function SustentacaoWizard({ open, onOpenChange, portfolioFilter,
 
   // Group collaborators by vertical (normalizando a grafia livre do banco)
   const collaboratorsByVertical = VERTICALS.reduce((acc, v) => {
-    acc[v.value] = collaborators.filter(c =>
-      normalizeVertical(c.vertical1) === v.value ||
-      normalizeVertical(c.vertical2) === v.value
-    );
+    acc[v.value] = collaborators
+      .filter(c =>
+        normalizeVertical(c.vertical1) === v.value ||
+        normalizeVertical(c.vertical2) === v.value
+      )
+      .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'pt-BR'));
     return acc;
   }, {});
 
@@ -120,7 +122,9 @@ export default function SustentacaoWizard({ open, onOpenChange, portfolioFilter,
 
   // Busca global por nome — ignora a vertical selecionada
   const searchedMembers = memberSearch.trim()
-    ? collaborators.filter(c => (c.name || '').toLowerCase().includes(memberSearch.toLowerCase()))
+    ? collaborators
+        .filter(c => (c.name || '').toLowerCase().includes(memberSearch.toLowerCase()))
+        .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'pt-BR'))
     : [];
 
   const toggleTeamMember = (collab) => {
