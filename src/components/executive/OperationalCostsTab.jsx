@@ -243,32 +243,6 @@ function ImportModal({ projects, onClose, onSuccess }) {
       });
       const finalRecords = Object.values(aggregated);
 
-      /*const existing = await base44.entities.ProjectOperationalCosts.filter({ project_id: selectedProjectId });
-      const existingMap = {};
-      existing.forEach(e => {
-        const key = `${e.cost_type}__${e.category}__${e.month}__${e.year}`;
-        existingMap[key] = e;
-      });
-
-      let created = 0, updated = 0;
-      const importVersion = (Math.max(0, ...existing.map(e => e.import_version || 0)) + 1);
-
-      for (const record of finalRecords) {
-        const key = `${record.cost_type}__${record.category}__${record.month}__${record.year}`;
-        record.import_version = importVersion;
-        if (existingMap[key]) {
-          await base44.entities.ProjectOperationalCosts.update(existingMap[key].id, record);
-          updated++;
-        } else {
-          await base44.entities.ProjectOperationalCosts.create(record);
-          created++;
-        }
-      }
-
-      toast.success(`Importação concluída: ${created} criados, ${updated} atualizados (${finalRecords.length} registros)`);
-      onSuccess();
-      onClose();*/
-
       // 1. Busca os registros antigos APENAS deste projeto selecionado
       const existing = await base44.entities.ProjectOperationalCosts.filter({ project_id: selectedProjectId });
       
