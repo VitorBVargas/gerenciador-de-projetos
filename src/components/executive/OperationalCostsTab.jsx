@@ -331,21 +331,29 @@ function ImportModal({ projects, onClose, onSuccess }) {
   );
 }
 
+// Categorias ocultadas da análise de custos
+const HIDDEN_CATEGORIES = ['avaria', 'pedagio', 'pedágio', 'manuten'];
+const isHiddenCategory = (cat) => {
+  const c = String(cat || '').toLowerCase();
+  return HIDDEN_CATEGORIES.some(h => c.includes(h));
+};
+
 // ─── Category Table (shared by all sub-tabs) ─────────────────────────────────────
-function CategoryTable({ costs }) {
-  const totalCost = costs.reduce((s, c) => s + (c.value || 0), 0);
+function CategoryTable({ costs, headerChart }) {
+  const filteredCosts = useMemo(() => costs.filter(c => !isHiddenCategory(c.category)), [costs]);
+  const totalCost = filteredCosts.reduce((s, c) => s + (c.value || 0), 0);
   const byCategory = useMemo(() => {
     const map = {};
-    costs.forEach(c => {
+    filteredCosts.forEach(c => {
       if (!map[c.category]) map[c.category] = 0;
       map[c.category] += c.value || 0;
     });
     return Object.entries(map).sort((a, b) => b[1] - a[1]).map(([cat, val]) => ({ cat, val }));
-  }, [costs]);
+  }, [filteredCosts]);
 
 const monthlyData = useMemo(() => {
     const map = {};
-    costs.forEach(c => {
+    filteredCosts.forEach(c => {
       const key = `${c.year}-${String(c.month).padStart(2, '0')}`;
       if (!map[key]) map[key] = { key, label: fmtMonth(c.month, c.year), total: 0, operacional: 0, geral: 0 };
       
@@ -363,9 +371,9 @@ const monthlyData = useMemo(() => {
       accum = Number((accum + m.total).toFixed(2)); 
       return { ...m, acumulado: accum }; 
     });
-  }, [costs]);
+  }, [filteredCosts]);
 
-  if (costs.length === 0) {
+  if (filteredCosts.length === 0) {
     return <p className="text-slate-500 text-sm text-center py-8">Nenhum dado nesta categoria.</p>;
   }
 
@@ -386,6 +394,9 @@ const monthlyData = useMemo(() => {
           </ResponsiveContainer>
         </CardContent>
       </Card>
+
+      {/* Optional accumulated chart above the category breakdown */}
+      {headerChart}
 
       {/* Category breakdown */}
       <Card className="bg-slate-800 border-slate-600">
@@ -738,17 +749,19 @@ function ProjectDetailInline({ costs, forecast, allForecasts }) {
       )}
 
       {activeTab === 'gerais' && (
-        <div className="space-y-4">
-          <CategoryTable costs={geral} />
-          <AccumulatedChart
-            monthlyData={monthlyData}
-            forecastTotal={forecastGeral}
-            title="Evolução Acumulada — Custo Logísticas"
-            dataKey="acumuladoGeral"
-            lineColor="#f59e0b"
-            lineName="Acumulado Logísticas"
-          />
-        </div>
+        <CategoryTable
+          costs={geral}
+          headerChart={
+            <AccumulatedChart
+              monthlyData={monthlyData}
+              forecastTotal={forecastGeral}
+              title="Evolução Acumulada — Custo Logísticas"
+              dataKey="acumuladoGeral"
+              lineColor="#f59e0b"
+              lineName="Acumulado Logísticas"
+            />
+          }
+        />
       )}
       {activeTab === 'pessoal' && <CategoryTable costs={operacional} />}
       {activeTab === 'comparativo' && (
