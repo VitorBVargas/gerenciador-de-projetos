@@ -229,7 +229,7 @@ function ImportModal({ projects, onClose, onSuccess }) {
       }
 
       if (allRecords.length === 0) {
-        toast.error('Nenhum dado encontrado. Certifique-se que a planilha tem as abas "Dinâmica Custos Gerais" e "Dinamica Custo Pessoal".');
+        toast.error('Nenhum dado encontrado. Certifique-se que a planilha tem as abas "Dinâmica Custos Gerais" e "Dinâmica Custo Pessoal".');
         setImporting(false);
         return;
       }
@@ -284,7 +284,7 @@ function ImportModal({ projects, onClose, onSuccess }) {
         <div className="bg-slate-700/50 rounded-lg p-3 text-xs text-slate-300 space-y-1">
           <p className="font-medium text-slate-200">Abas esperadas na planilha:</p>
           <p>• <span className="text-amber-300">Dinâmica Custos Gerais</span> — hospedagem, viagens, etc.</p>
-          <p>• <span className="text-emerald-300">Dinamica Custo Pessoal</span> — custo por tipo de ticket</p>
+          <p>• <span className="text-emerald-300">Dinâmica Custo Pessoal</span> — custo por tipo de ticket</p>
         </div>
 
         <div className="space-y-4">
