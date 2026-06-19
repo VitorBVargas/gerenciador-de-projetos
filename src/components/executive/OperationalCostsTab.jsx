@@ -549,13 +549,11 @@ function ComparativeAnalysis({ real, realGeral, realPessoal, allForecasts }) {
 }
 
 // ─── Accumulated Chart with Forecast Reference Line ──────────────────────────────
-function AccumulatedChart({ monthlyData, forecast }) {
-  const forecastTotal = forecast ? (forecast.cost_pessoal || 0) + (forecast.cost_geral || 0) : null;
-
+function AccumulatedChart({ monthlyData, forecastTotal, title = 'Evolução Acumulada', dataKey = 'acumulado', lineColor = '#a78bfa', lineName = 'Acumulado' }) {
   // Find the month when accumulated first exceeded forecast
   let exceededLabel = null;
   if (forecastTotal) {
-    const hit = monthlyData.find(m => m.acumulado >= forecastTotal);
+    const hit = monthlyData.find(m => m[dataKey] >= forecastTotal);
     if (hit) exceededLabel = hit.label;
   }
 
@@ -563,7 +561,7 @@ function AccumulatedChart({ monthlyData, forecast }) {
     <Card className="bg-slate-800 border-slate-600">
       <CardHeader>
         <CardTitle className="text-white text-sm flex items-center gap-2">
-          Evolução Acumulada
+          {title}
           {exceededLabel && (
             <span className="text-xs font-normal text-red-400 bg-red-900/30 px-2 py-0.5 rounded-full">
               Superou previsto em {exceededLabel}
@@ -596,7 +594,7 @@ function AccumulatedChart({ monthlyData, forecast }) {
                 label={{ value: `Previsto: ${new Intl.NumberFormat('pt-BR', { notation: 'compact', maximumFractionDigits: 1 }).format(forecastTotal)}`, fill: '#f43f5e', fontSize: 11, position: 'insideTopRight' }}
               />
             )}
-            <Line type="monotone" dataKey="acumulado" stroke="#a78bfa" strokeWidth={2.5} dot={{ fill: '#a78bfa', r: 3 }} name="Acumulado" />
+            <Line type="monotone" dataKey={dataKey} stroke={lineColor} strokeWidth={2.5} dot={{ fill: lineColor, r: 3 }} name={lineName} />
           </LineChart>
         </ResponsiveContainer>
       </CardContent>
@@ -626,10 +624,13 @@ function ProjectDetailInline({ costs, forecast, allForecasts }) {
     });
     const sorted = Object.values(map).sort((a, b) => a.key.localeCompare(b.key));
     let accum = 0;
-    return sorted.map(m => { accum += m.total; return { ...m, acumulado: accum }; });
+    let accumGeral = 0;
+    return sorted.map(m => { accum += m.total; accumGeral += m.geral; return { ...m, acumulado: accum, acumuladoGeral: accumGeral }; });
   }, [costs]);
 
   const hasForecast = allForecasts && allForecasts.length > 0;
+  const forecastTotal = forecast ? (forecast.cost_pessoal || 0) + (forecast.cost_geral || 0) : null;
+  const forecastGeral = forecast ? (forecast.cost_geral || 0) : null;
 
   const tabs = [
     { id: 'gerais', label: 'Custo Logísticas', count: geral.length, total: totalGeral, color: 'text-amber-400' },
@@ -705,7 +706,17 @@ function ProjectDetailInline({ costs, forecast, allForecasts }) {
           </Card>
 
           {/* Gráfico acumulativo com linha do previsto */}
-          <AccumulatedChart monthlyData={monthlyData} forecast={forecast} />
+          <AccumulatedChart monthlyData={monthlyData} forecastTotal={forecastTotal} />
+
+          {/* Gráfico acumulativo — Custo Logísticas */}
+          <AccumulatedChart
+            monthlyData={monthlyData}
+            forecastTotal={forecastGeral}
+            title="Evolução Acumulada — Custo Logísticas"
+            dataKey="acumuladoGeral"
+            lineColor="#f59e0b"
+            lineName="Acumulado Logísticas"
+          />
 
           {/* Pie split */}
           {totalCost > 0 && (
