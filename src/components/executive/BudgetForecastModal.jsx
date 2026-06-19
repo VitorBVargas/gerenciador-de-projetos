@@ -22,6 +22,8 @@ export default function BudgetForecastModal({ projects, onClose, onSuccess }) {
   const [year, setYear] = useState(new Date().getFullYear());
   const [costPessoal, setCostPessoal] = useState('');
   const [costGeral, setCostGeral] = useState('');
+  const [costPessoalPortfolio, setCostPessoalPortfolio] = useState('');
+  const [costGeralPortfolio, setCostGeralPortfolio] = useState('');
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [existing, setExisting] = useState(null);
@@ -39,11 +41,15 @@ export default function BudgetForecastModal({ projects, onClose, onSuccess }) {
           setExisting(r);
           setCostPessoal(formatInputBRL(r.cost_pessoal || 0));
           setCostGeral(formatInputBRL(r.cost_geral || 0));
+          setCostPessoalPortfolio(formatInputBRL(r.cost_pessoal_portfolio || 0));
+          setCostGeralPortfolio(formatInputBRL(r.cost_geral_portfolio || 0));
           setNotes(r.notes || '');
         } else {
           setExisting(null);
           setCostPessoal('');
           setCostGeral('');
+          setCostPessoalPortfolio('');
+          setCostGeralPortfolio('');
           setNotes('');
         }
       })
@@ -62,6 +68,8 @@ export default function BudgetForecastModal({ projects, onClose, onSuccess }) {
         year: Number(year),
         cost_pessoal: parseBRLInput(costPessoal),
         cost_geral: parseBRLInput(costGeral),
+        cost_pessoal_portfolio: parseBRLInput(costPessoalPortfolio),
+        cost_geral_portfolio: parseBRLInput(costGeralPortfolio),
         notes,
         created_by: user?.full_name || user?.email || '',
       };
@@ -82,6 +90,7 @@ export default function BudgetForecastModal({ projects, onClose, onSuccess }) {
   };
 
   const totalPrevisto = parseBRLInput(costPessoal) + parseBRLInput(costGeral);
+  const totalPortfolio = parseBRLInput(costPessoalPortfolio) + parseBRLInput(costGeralPortfolio);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
@@ -135,37 +144,71 @@ export default function BudgetForecastModal({ projects, onClose, onSuccess }) {
             />
           </div>
 
-          {/* Costs */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm text-slate-300 mb-1.5">Custo Pessoal Previsto (R$)</label>
-              <input
-                type="text"
-                value={costPessoal}
-                onChange={e => setCostPessoal(e.target.value)}
-                placeholder="0,00"
-                className="w-full h-10 rounded-md border border-slate-600 bg-slate-900 px-3 text-sm text-emerald-300"
-              />
+          {/* Estimado Portfólio */}
+          <div className="space-y-2 rounded-lg border border-cyan-700/40 bg-cyan-900/10 p-3">
+            <span className="text-xs font-semibold text-cyan-300 uppercase tracking-wider">Estimado Portfólio</span>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-slate-300 mb-1.5">Custo Pessoal (R$)</label>
+                <input
+                  type="text"
+                  value={costPessoalPortfolio}
+                  onChange={e => setCostPessoalPortfolio(e.target.value)}
+                  placeholder="0,00"
+                  className="w-full h-10 rounded-md border border-slate-600 bg-slate-900 px-3 text-sm text-emerald-300"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-300 mb-1.5">Custo Logísticas (R$)</label>
+                <input
+                  type="text"
+                  value={costGeralPortfolio}
+                  onChange={e => setCostGeralPortfolio(e.target.value)}
+                  placeholder="0,00"
+                  className="w-full h-10 rounded-md border border-slate-600 bg-slate-900 px-3 text-sm text-amber-300"
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm text-slate-300 mb-1.5">Custo Geral Previsto (R$)</label>
-              <input
-                type="text"
-                value={costGeral}
-                onChange={e => setCostGeral(e.target.value)}
-                placeholder="0,00"
-                className="w-full h-10 rounded-md border border-slate-600 bg-slate-900 px-3 text-sm text-amber-300"
-              />
-            </div>
+            {totalPortfolio > 0 && (
+              <div className="flex justify-between items-center pt-1">
+                <span className="text-[11px] text-slate-400">Total Portfólio</span>
+                <span className="text-xs font-bold text-cyan-300">{fmtBRL(totalPortfolio)}</span>
+              </div>
+            )}
           </div>
 
-          {/* Total preview */}
-          {totalPrevisto > 0 && (
-            <div className="bg-slate-700/50 rounded-lg p-3 flex justify-between items-center">
-              <span className="text-xs text-slate-400">Total Previsto</span>
-              <span className="text-sm font-bold text-purple-300">{fmtBRL(totalPrevisto)}</span>
+          {/* Estimado Pré-Vendas */}
+          <div className="space-y-2 rounded-lg border border-purple-700/40 bg-purple-900/10 p-3">
+            <span className="text-xs font-semibold text-purple-300 uppercase tracking-wider">Estimado Pré-Vendas</span>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-slate-300 mb-1.5">Custo Pessoal (R$)</label>
+                <input
+                  type="text"
+                  value={costPessoal}
+                  onChange={e => setCostPessoal(e.target.value)}
+                  placeholder="0,00"
+                  className="w-full h-10 rounded-md border border-slate-600 bg-slate-900 px-3 text-sm text-emerald-300"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-300 mb-1.5">Custo Logísticas (R$)</label>
+                <input
+                  type="text"
+                  value={costGeral}
+                  onChange={e => setCostGeral(e.target.value)}
+                  placeholder="0,00"
+                  className="w-full h-10 rounded-md border border-slate-600 bg-slate-900 px-3 text-sm text-amber-300"
+                />
+              </div>
             </div>
-          )}
+            {totalPrevisto > 0 && (
+              <div className="flex justify-between items-center pt-1">
+                <span className="text-[11px] text-slate-400">Total Pré-Vendas</span>
+                <span className="text-xs font-bold text-purple-300">{fmtBRL(totalPrevisto)}</span>
+              </div>
+            )}
+          </div>
 
           {/* Notes */}
           <div>

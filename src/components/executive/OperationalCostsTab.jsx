@@ -446,38 +446,26 @@ function ForecastBadges({ real, realGeral, realPessoal, forecast }) {
   );
 }
 
-// ─── Comparative Chart ────────────────────────────────────────────────────────────
-function ComparativeAnalysis({ real, realGeral, realPessoal, allForecasts }) {
-  if (!allForecasts || allForecasts.length === 0) return null;
-
-  const rows = allForecasts.map(f => {
-    const prevTotal = (f.cost_pessoal || 0) + (f.cost_geral || 0);
-    return {
-      year: String(f.year),
-      'Real Total': real,
-      'Previsto Total': prevTotal,
-      'Real Pessoal': realPessoal,
-      'Previsto Pessoal': f.cost_pessoal || 0,
-      'Real Geral': realGeral,
-      'Previsto Geral': f.cost_geral || 0,
-    };
-  });
-
-  const latestForecast = allForecasts[allForecasts.length - 1];
-  const prevTotal = (latestForecast.cost_pessoal || 0) + (latestForecast.cost_geral || 0);
+// ─── Comparison block (one estimate set vs real) ────────────────────────────────
+function ComparisonBlock({ title, accentClass, prevGeral, prevPessoal, real, realGeral, realPessoal }) {
+  const prevTotal = (prevPessoal || 0) + (prevGeral || 0);
   const diffTotal = real - prevTotal;
-  const diffGeral = realGeral - (latestForecast.cost_geral || 0);
-  const diffPessoal = realPessoal - (latestForecast.cost_pessoal || 0);
+  const diffGeral = realGeral - (prevGeral || 0);
+  const diffPessoal = realPessoal - (prevPessoal || 0);
+
+  const cards = [
+    { label: 'Custo Logísticas', real: realGeral, prev: prevGeral || 0, diff: diffGeral, colorReal: 'text-amber-400', colorPrev: 'text-amber-200' },
+    { label: 'Custo Pessoal', real: realPessoal, prev: prevPessoal || 0, diff: diffPessoal, colorReal: 'text-emerald-400', colorPrev: 'text-emerald-200' },
+    { label: 'Custo Total', real: real, prev: prevTotal, diff: diffTotal, colorReal: 'text-blue-400', colorPrev: 'text-blue-200' },
+  ];
 
   return (
-    <div className="space-y-4 pt-2">
+    <div className="space-y-3">
+      <h4 className={cn("text-sm font-bold uppercase tracking-wider", accentClass)}>{title} vs Real</h4>
+
       {/* KPI comparison cards */}
       <div className="grid grid-cols-3 gap-3">
-        {[
-          { label: 'Custo Logísticas', real: realGeral, prev: latestForecast.cost_geral || 0, diff: diffGeral, colorReal: 'text-amber-400', colorPrev: 'text-amber-200' },
-          { label: 'Custo Pessoal', real: realPessoal, prev: latestForecast.cost_pessoal || 0, diff: diffPessoal, colorReal: 'text-emerald-400', colorPrev: 'text-emerald-200' },
-          { label: 'Custo Total', real: real, prev: prevTotal, diff: diffTotal, colorReal: 'text-blue-400', colorPrev: 'text-blue-200' },
-        ].map(item => (
+        {cards.map(item => (
           <Card key={item.label} className="bg-slate-800 border-slate-600">
             <CardContent className="p-3 space-y-1">
               <div className="text-xs text-slate-400 font-medium">{item.label}</div>
@@ -501,12 +489,11 @@ function ComparativeAnalysis({ real, realGeral, realPessoal, allForecasts }) {
 
       {/* Bar chart */}
       <Card className="bg-slate-800 border-slate-600">
-        <CardHeader><CardTitle className="text-white text-sm">Previsto vs Real por Categoria</CardTitle></CardHeader>
-        <CardContent>
+        <CardContent className="pt-4">
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={[
-              { name: 'Custo Logísticas', Real: realGeral, Previsto: latestForecast.cost_geral || 0 },
-              { name: 'Custo Pessoal', Real: realPessoal, Previsto: latestForecast.cost_pessoal || 0 },
+              { name: 'Custo Logísticas', Real: realGeral, Previsto: prevGeral || 0 },
+              { name: 'Custo Pessoal', Real: realPessoal, Previsto: prevPessoal || 0 },
               { name: 'Custo Total', Real: real, Previsto: prevTotal },
             ]} barCategoryGap="30%">
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
@@ -520,6 +507,37 @@ function ComparativeAnalysis({ real, realGeral, realPessoal, allForecasts }) {
           </ResponsiveContainer>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+// ─── Comparative Chart ────────────────────────────────────────────────────────────
+function ComparativeAnalysis({ real, realGeral, realPessoal, allForecasts }) {
+  if (!allForecasts || allForecasts.length === 0) return null;
+
+  const latestForecast = allForecasts[allForecasts.length - 1];
+
+  return (
+    <div className="space-y-6 pt-2">
+      <ComparisonBlock
+        title="Estimado Portfólio"
+        accentClass="text-cyan-300"
+        prevGeral={latestForecast.cost_geral_portfolio || 0}
+        prevPessoal={latestForecast.cost_pessoal_portfolio || 0}
+        real={real}
+        realGeral={realGeral}
+        realPessoal={realPessoal}
+      />
+
+      <ComparisonBlock
+        title="Estimado Pré-Vendas"
+        accentClass="text-purple-300"
+        prevGeral={latestForecast.cost_geral || 0}
+        prevPessoal={latestForecast.cost_pessoal || 0}
+        real={real}
+        realGeral={realGeral}
+        realPessoal={realPessoal}
+      />
 
       {latestForecast.notes && (
         <div className="bg-slate-700/30 rounded-lg px-3 py-2 text-xs text-slate-400">

@@ -17,12 +17,22 @@
     "cost_pessoal": {
       "type": "number",
       "default": 0,
-      "description": "Custo pessoal previsto (anual)"
+      "description": "Custo pessoal previsto - Estimado Pr\u00e9-Vendas (anual)"
     },
     "cost_geral": {
       "type": "number",
       "default": 0,
-      "description": "Custo geral previsto (anual)"
+      "description": "Custo geral/log\u00edsticas previsto - Estimado Pr\u00e9-Vendas (anual)"
+    },
+    "cost_pessoal_portfolio": {
+      "type": "number",
+      "default": 0,
+      "description": "Custo pessoal previsto - Estimado Portf\u00f3lio (anual)"
+    },
+    "cost_geral_portfolio": {
+      "type": "number",
+      "default": 0,
+      "description": "Custo geral/log\u00edsticas previsto - Estimado Portf\u00f3lio (anual)"
     },
     "notes": {
       "type": "string",
