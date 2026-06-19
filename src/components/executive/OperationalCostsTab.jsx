@@ -439,7 +439,7 @@ function ForecastBadges({ real, realGeral, realPessoal, forecast }) {
         {diffTotal > 0 ? '+' : ''}{fmtBRL(diffTotal)} {pct ? `(${pct > 0 ? '+' : ''}${pct}%)` : ''}
       </span>
       <span className="text-slate-600">|</span>
-      <span className="text-amber-400">Gerais: {diffGeral > 0 ? '+' : ''}{fmtBRL(diffGeral)}</span>
+      <span className="text-amber-400">Logísticas: {diffGeral > 0 ? '+' : ''}{fmtBRL(diffGeral)}</span>
       <span className="text-slate-600">|</span>
       <span className="text-emerald-400">Pessoal: {diffPessoal > 0 ? '+' : ''}{fmtBRL(diffPessoal)}</span>
     </div>
@@ -474,9 +474,9 @@ function ComparativeAnalysis({ real, realGeral, realPessoal, allForecasts }) {
       {/* KPI comparison cards */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: 'Total', real: real, prev: prevTotal, diff: diffTotal, colorReal: 'text-blue-400', colorPrev: 'text-blue-200' },
-          { label: 'Custos Gerais', real: realGeral, prev: latestForecast.cost_geral || 0, diff: diffGeral, colorReal: 'text-amber-400', colorPrev: 'text-amber-200' },
+          { label: 'Custo Logísticas', real: realGeral, prev: latestForecast.cost_geral || 0, diff: diffGeral, colorReal: 'text-amber-400', colorPrev: 'text-amber-200' },
           { label: 'Custo Pessoal', real: realPessoal, prev: latestForecast.cost_pessoal || 0, diff: diffPessoal, colorReal: 'text-emerald-400', colorPrev: 'text-emerald-200' },
+          { label: 'Custo Total', real: real, prev: prevTotal, diff: diffTotal, colorReal: 'text-blue-400', colorPrev: 'text-blue-200' },
         ].map(item => (
           <Card key={item.label} className="bg-slate-800 border-slate-600">
             <CardContent className="p-3 space-y-1">
@@ -505,9 +505,9 @@ function ComparativeAnalysis({ real, realGeral, realPessoal, allForecasts }) {
         <CardContent>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={[
-              { name: 'Custos Gerais', Real: realGeral, Previsto: latestForecast.cost_geral || 0 },
+              { name: 'Custo Logísticas', Real: realGeral, Previsto: latestForecast.cost_geral || 0 },
               { name: 'Custo Pessoal', Real: realPessoal, Previsto: latestForecast.cost_pessoal || 0 },
-              { name: 'Total', Real: real, Previsto: prevTotal },
+              { name: 'Custo Total', Real: real, Previsto: prevTotal },
             ]} barCategoryGap="30%">
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
               <XAxis dataKey="name" stroke="#94a3b8" style={{ fontSize: 11 }} />
@@ -614,9 +614,9 @@ function ProjectDetailInline({ costs, forecast, allForecasts }) {
   const hasForecast = allForecasts && allForecasts.length > 0;
 
   const tabs = [
-    { id: 'geral', label: 'Geral', count: costs.length, total: totalCost, color: 'text-blue-400' },
-    { id: 'gerais', label: 'Custos Gerais', count: geral.length, total: totalGeral, color: 'text-amber-400' },
+    { id: 'gerais', label: 'Custo Logísticas', count: geral.length, total: totalGeral, color: 'text-amber-400' },
     { id: 'pessoal', label: 'Custo Pessoal', count: operacional.length, total: totalOp, color: 'text-emerald-400' },
+    { id: 'geral', label: 'Custo Total', count: costs.length, total: totalCost, color: 'text-blue-400' },
     ...(hasForecast ? [{ id: 'comparativo', label: '📊 Previsto vs Real', total: null, color: 'text-purple-400' }] : []),
   ];
 
@@ -624,22 +624,22 @@ function ProjectDetailInline({ costs, forecast, allForecasts }) {
     <div className="p-5 space-y-5">
       {/* KPI row */}
       <div className="grid grid-cols-3 gap-3">
-        <Card className="bg-slate-800 border-slate-600">
-          <CardContent className="p-3 text-center">
-            <div className="text-sm font-bold text-white">{fmtBRL(totalCost)}</div>
-            <div className="text-xs text-slate-400 mt-0.5">Custo Total</div>
-          </CardContent>
-        </Card>
         <Card className="bg-amber-900/20 border-amber-700/40">
           <CardContent className="p-3 text-center">
             <div className="text-sm font-bold text-amber-400">{fmtBRL(totalGeral)}</div>
-            <div className="text-xs text-slate-400 mt-0.5">Custos Gerais</div>
+            <div className="text-xs text-slate-400 mt-0.5">Custo Logísticas</div>
           </CardContent>
         </Card>
         <Card className="bg-emerald-900/20 border-emerald-700/40">
           <CardContent className="p-3 text-center">
             <div className="text-sm font-bold text-emerald-400">{fmtBRL(totalOp)}</div>
             <div className="text-xs text-slate-400 mt-0.5">Custo Pessoal</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-slate-800 border-slate-600">
+          <CardContent className="p-3 text-center">
+            <div className="text-sm font-bold text-white">{fmtBRL(totalCost)}</div>
+            <div className="text-xs text-slate-400 mt-0.5">Custo Total</div>
           </CardContent>
         </Card>
       </div>
@@ -670,7 +670,7 @@ function ProjectDetailInline({ costs, forecast, allForecasts }) {
         <div className="space-y-4">
           {/* Gráfico mensal (sem acumulado) */}
           <Card className="bg-slate-800 border-slate-600">
-            <CardHeader><CardTitle className="text-white text-sm">Evolução Mensal — Total (Geral + Pessoal)</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-white text-sm">Evolução Mensal — Total (Logísticas + Pessoal)</CardTitle></CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={monthlyData} barCategoryGap="20%">
@@ -679,7 +679,7 @@ function ProjectDetailInline({ costs, forecast, allForecasts }) {
                   <YAxis stroke="#94a3b8" style={{ fontSize: 10 }} tickFormatter={v => new Intl.NumberFormat('pt-BR', { notation: 'compact' }).format(v)} />
                   <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff' }} formatter={v => fmtBRL(v)} />
                   <Legend wrapperStyle={{ fontSize: 11, color: '#94a3b8' }} />
-                  <Bar dataKey="geral" stackId="a" fill="#f59e0b" name="Custos Gerais" radius={[0, 0, 0, 0]} />
+                  <Bar dataKey="geral" stackId="a" fill="#f59e0b" name="Custo Logísticas" radius={[0, 0, 0, 0]} />
                   <Bar dataKey="operacional" stackId="a" fill="#10b981" name="Custo Pessoal" radius={[3, 3, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -698,7 +698,7 @@ function ProjectDetailInline({ costs, forecast, allForecasts }) {
                   <RechartsPie>
                     <Pie
                       data={[
-                        { name: 'Custos Gerais', value: totalGeral },
+                        { name: 'Custo Logísticas', value: totalGeral },
                         { name: 'Custo Pessoal', value: totalOp },
                       ]}
                       cx="50%" cy="50%" innerRadius={45} outerRadius={70}
@@ -833,7 +833,7 @@ export default function OperationalCostsTab({ projects, isAdmin }) {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-white">Custos Operacionais</h2>
-          <p className="text-sm text-slate-400 mt-1">Análise por projeto — Custos Gerais (viagens/hospedagem) + Custo Pessoal (tickets).</p>
+          <p className="text-sm text-slate-400 mt-1">Análise por projeto — Custo Logísticas (viagens/hospedagem) + Custo Pessoal (tickets).</p>
         </div>
         <div className="flex gap-2 flex-shrink-0">
           <Button onClick={() => setForecastOpen(true)} className="bg-purple-600 hover:bg-purple-700">
@@ -879,7 +879,7 @@ export default function OperationalCostsTab({ projects, isAdmin }) {
                         <div className="text-sm font-bold text-white">{fmtBRL(p.total)}</div>
                       </div>
                       <div className="text-right hidden sm:block">
-                        <div className="text-xs text-slate-400">Custos Gerais</div>
+                        <div className="text-xs text-slate-400">Custo Logísticas</div>
                         <div className="text-sm font-medium text-amber-400">{fmtBRL(p.totalGeral)}</div>
                       </div>
                       <div className="text-right hidden md:block">
@@ -906,7 +906,7 @@ export default function OperationalCostsTab({ projects, isAdmin }) {
                   </div>
                   <div className="flex gap-4 mt-2 sm:hidden text-xs">
                     <div><span className="text-slate-400">Total: </span><span className="text-white font-bold">{fmtBRL(p.total)}</span></div>
-                    <div><span className="text-slate-400">Gerais: </span><span className="text-amber-400">{fmtBRL(p.totalGeral)}</span></div>
+                    <div><span className="text-slate-400">Logísticas: </span><span className="text-amber-400">{fmtBRL(p.totalGeral)}</span></div>
                   </div>
                 </CardContent>
 
