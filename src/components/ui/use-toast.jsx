@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 
 const TOAST_LIMIT = 20;
 const TOAST_REMOVE_DELAY = 1000000;
+const DEFAULT_TOAST_DURATION = 5000;
 
 const actionTypes = {
   ADD_TOAST: "ADD_TOAST",
@@ -134,6 +135,12 @@ function toast({ ...props }) {
     },
   });
 
+  // Auto-dismiss after the given duration (defaults to 5s)
+  const duration = props.duration ?? DEFAULT_TOAST_DURATION;
+  if (duration !== Infinity) {
+    setTimeout(() => dismiss(), duration);
+  }
+
   return {
     id,
     dismiss,
@@ -161,4 +168,4 @@ function useToast() {
   };
 }
 
-export { useToast, toast }; 
+export { useToast, toast };
