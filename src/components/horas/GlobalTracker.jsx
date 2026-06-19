@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 
-export default function GlobalTracker({ projectId }) {
+export default function GlobalTracker({ projectId, onSaved }) {
   const [isActive, setIsActive] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [startTime, setStartTime] = useState(null);
@@ -52,7 +52,7 @@ export default function GlobalTracker({ projectId }) {
     const now = new Date();
     setStartTime(now);
     setIsActive(true);
-    toast({ title: 'Cronômetro iniciado', description: 'O tempo está sendo rastreado.', duration: 2000 });
+    toast({ title: 'Cronômetro iniciado', description: 'O tempo está sendo rastreado.', duration: 5000 });
   };
 
   const handlePause = () => {
@@ -94,7 +94,8 @@ export default function GlobalTracker({ projectId }) {
         observacoes: acoes,
         reference_month: new Date().toISOString().slice(0, 7)
       });
-      toast({ title: 'Tempo registrado', description: `${totalHoras.toFixed(2)}h salvas com sucesso.`, duration: 3000 });
+      toast({ title: 'Tempo registrado', description: `${totalHoras.toFixed(2)}h salvas com sucesso.`, duration: 5000 });
+      onSaved?.();
     } catch {
       toast({ title: 'Erro ao salvar', description: 'Não foi possível registrar o tempo.', variant: 'destructive' });
     } finally {
