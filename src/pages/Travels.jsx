@@ -581,20 +581,25 @@ export default function Travels() {
                                         return (
                                           <div
                                             key={`event-${travel.id}`}
-                                            className="absolute top-1/2 transform -translate-y-1/2 flex gap-1"
-                                            style={{ left: `${startDayIdx * 48 + 8}px`, zIndex: 10 }}
+                                            className="absolute top-1/2 transform -translate-y-1/2"
+                                            style={{ left: `${startDayIdx * 48}px`, zIndex: 10 }}
                                           >
                                             {Array.from({ length: endDayIdx - startDayIdx + 1 }).map((_, i) => (
                                               <div
                                                 key={i}
-                                                className={cn(
-                                                  "w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-all hover:scale-125 hover:shadow-lg font-bold text-xs text-white flex-shrink-0",
-                                                  travelTypeColors[travel.travel_type]
-                                                )}
-                                                onClick={() => handleEdit(travel)}
-                                                title={travel.title}
+                                                className="absolute top-1/2 -translate-y-1/2 flex items-center justify-center"
+                                                style={{ left: `${i * 48}px`, width: '48px' }}
                                               >
-                                                {statusAbbreviation[travel.status] || 'P'}
+                                                <div
+                                                  className={cn(
+                                                    "w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-all hover:scale-125 hover:shadow-lg font-bold text-xs text-white",
+                                                    travelTypeColors[travel.travel_type]
+                                                  )}
+                                                  onClick={() => handleEdit(travel)}
+                                                  title={travel.title}
+                                                >
+                                                  {statusAbbreviation[travel.status] || 'P'}
+                                                </div>
                                               </div>
                                             ))}
                                           </div>
