@@ -128,7 +128,7 @@ export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser }
   const toggleExpand = (nome) => setExpanded(p => ({ ...p, [nome]: !p[nome] }));
 
   const handleSave = async (data) => {
-    if (editing) {
+    if (editing?.id) {
       await base44.entities.ObrigacaoLegal.update(editing.id, data);
     } else {
       await base44.entities.ObrigacaoLegal.create({ ...data, project_id: projectId });
