@@ -708,16 +708,6 @@ function ProjectDetailInline({ costs, forecast, allForecasts }) {
           {/* Gráfico acumulativo com linha do previsto */}
           <AccumulatedChart monthlyData={monthlyData} forecastTotal={forecastTotal} />
 
-          {/* Gráfico acumulativo — Custo Logísticas */}
-          <AccumulatedChart
-            monthlyData={monthlyData}
-            forecastTotal={forecastGeral}
-            title="Evolução Acumulada — Custo Logísticas"
-            dataKey="acumuladoGeral"
-            lineColor="#f59e0b"
-            lineName="Acumulado Logísticas"
-          />
-
           {/* Pie split */}
           {totalCost > 0 && (
             <Card className="bg-slate-800 border-slate-600">
@@ -747,7 +737,19 @@ function ProjectDetailInline({ costs, forecast, allForecasts }) {
         </div>
       )}
 
-      {activeTab === 'gerais' && <CategoryTable costs={geral} />}
+      {activeTab === 'gerais' && (
+        <div className="space-y-4">
+          <AccumulatedChart
+            monthlyData={monthlyData}
+            forecastTotal={forecastGeral}
+            title="Evolução Acumulada — Custo Logísticas"
+            dataKey="acumuladoGeral"
+            lineColor="#f59e0b"
+            lineName="Acumulado Logísticas"
+          />
+          <CategoryTable costs={geral} />
+        </div>
+      )}
       {activeTab === 'pessoal' && <CategoryTable costs={operacional} />}
       {activeTab === 'comparativo' && (
         <ComparativeAnalysis
