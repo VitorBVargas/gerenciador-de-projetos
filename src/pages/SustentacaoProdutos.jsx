@@ -14,6 +14,7 @@ import { format, parseISO, differenceInDays, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import ChamadoModal from '@/components/sustentacao/ChamadoModal';
 import ChamadoImporter from '@/components/sustentacao/ChamadoImporter';
+import ProdutoSustentacaoModal from '@/components/sustentacao/ProdutoSustentacaoModal';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 const STATUS_CONFIG = {
@@ -75,6 +76,8 @@ export default function SustentacaoProdutos() {
   const [showModal, setShowModal] = useState(false);
   const [showImporter, setShowImporter] = useState(false);
   const [editChamado, setEditChamado] = useState(null);
+  const [showProductModal, setShowProductModal] = useState(false);
+  const [editProduct, setEditProduct] = useState(null);
   const [activeSection, setActiveSection] = useState('overview');
 
   const { data: products = [] } = useQuery({
@@ -184,6 +187,18 @@ export default function SustentacaoProdutos() {
   const handleEdit = (chamado) => { setEditChamado(chamado); setShowModal(true); };
   const handleNew = () => { setEditChamado(null); setShowModal(true); };
 
+  const handleEditProduct = (product) => { setEditProduct(product); setShowProductModal(true); };
+  const handleNewProduct = () => { setEditProduct(null); setShowProductModal(true); };
+  const handleDeleteProduct = async (product) => {
+    const linked = chamados.filter(c => c.product_id === product.id).length;
+    const msg = linked > 0
+      ? `Remover o produto "${product.name}"? Há ${linked} chamado(s) vinculado(s) que ficarão sem produto.`
+      : `Remover o produto "${product.name}"?`;
+    if (!window.confirm(msg)) return;
+    await base44.entities.Product.delete(product.id);
+    qc.invalidateQueries({ queryKey: ['products', projectId] });
+  };
+
   const ativosCount = chamados.filter(c => !['resolvido', 'fechado'].includes(c.status)).length;
   const sections = ['overview', 'chamados', 'criticos', 'tendencias'];
   const sectionLabel = { overview: 'Visão Geral', chamados: 'Chamados Abertos', criticos: 'Críticos', tendencias: 'Tendências' };
@@ -204,6 +219,11 @@ export default function SustentacaoProdutos() {
             variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-800">
             <Upload className="w-4 h-4 mr-2" />
             Importar
+          </Button>
+          <Button onClick={handleNewProduct}
+            variant="outline" className="border-purple-600/50 text-purple-300 hover:bg-purple-600/10">
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Produto
           </Button>
           <Button onClick={handleNew} className="bg-purple-600 hover:bg-purple-700">
             <Plus className="w-4 h-4 mr-2" />
@@ -267,10 +287,20 @@ export default function SustentacaoProdutos() {
                         <p className="text-white font-medium text-sm">{p.name}</p>
                         <p className="text-slate-500 text-xs mt-0.5">{p.vertical || '—'}</p>
                       </div>
-                      <span className={`flex items-center gap-1.5 text-xs font-semibold ${p.health.color}`}>
-                        <span className={`w-2 h-2 rounded-full ${p.health.dot} animate-pulse`} />
-                        {p.health.label}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className={`flex items-center gap-1.5 text-xs font-semibold ${p.health.color}`}>
+                          <span className={`w-2 h-2 rounded-full ${p.health.dot} animate-pulse`} />
+                          {p.health.label}
+                        </span>
+                        <div className="flex items-center gap-0.5">
+                          <button onClick={() => handleEditProduct(p)} className="p-1 text-slate-500 hover:text-blue-400 transition-colors" title="Editar produto">
+                            <Edit className="w-3.5 h-3.5" />
+                          </button>
+                          <button onClick={() => handleDeleteProduct(p)} className="p-1 text-slate-500 hover:text-red-400 transition-colors" title="Remover produto">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
                     </div>
                     <div className="flex gap-4 text-xs">
                       <div className="text-center">
@@ -587,6 +617,10 @@ export default function SustentacaoProdutos() {
       <ChamadoImporter
         open={showImporter} onOpenChange={setShowImporter}
         projectId={projectId} products={products}
+      />
+      <ProdutoSustentacaoModal
+        open={showProductModal} onOpenChange={setShowProductModal}
+        produto={editProduct} projectId={projectId}
       />
     </div>
   );
