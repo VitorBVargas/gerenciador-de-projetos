@@ -53,21 +53,21 @@ const normalizeVertical = (raw) => {
 
 // Produtos fixos por vertical
 const PRODUCTS_BY_VERTICAL = {
-  arrecadacao: ['IPTU', 'ISS', 'ITBI', 'Dívida Ativa', 'NFS-e', 'Fiscalização', 'Alvará', 'CAE', 'Arrecadação Geral'],
-  compras: ['Compras', 'Contratos', 'Licitações', 'Patrimônio', 'Almoxarifado', 'Frota'],
-  contabil: ['Contabilidade', 'Orçamento', 'PCA', 'Tesouraria', 'eSocial Contábil'],
-  pessoal: ['Folha de Pagamento', 'RH', 'Ponto Eletrônico', 'eSocial Pessoal', 'Portal do Servidor'],
-  educacao: ['Diário Escolar', 'Matrícula', 'Gestão Escolar', 'Transporte Escolar', 'Merenda'],
+  arrecadacao: ['IPTU', 'ISS', 'ITBI', 'Dívida Ativa', 'NFS-e', 'Fiscalização', 'Alvará', 'CAE', 'Arrecadação Geral', 'Prestação de Contas'],
+  compras: ['Compras', 'Contratos', 'Licitações', 'Patrimônio', 'Almoxarifado', 'Frota', 'Prestação de Contas'],
+  contabil: ['Contabilidade', 'Orçamento', 'Tesouraria', 'eSocial Contábil', 'Convênios'],
+  pessoal: ['Folha de Pagamento', 'RH', 'Ponto Eletrônico', 'eSocial Pessoal', 'Portal do Servidor', 'Prestação de Contas'],
+  educacao: ['Biblioteca', 'Senso', 'Educação', 'Pais e Alunos', 'Merenda', 'Transporte', 'Professores'],
   saude: ['Prontuário Eletrônico', 'Regulação', 'Farmácia', 'Vigilância Sanitária', 'SISAB'],
   atendimento: ['Protocolo', 'Ouvidoria', 'Portal do Cidadão', 'e-Gov'],
-  plataforma: ['Betha Cloud', 'SSO', 'BFC', 'Integração'],
+  plataforma: ['Conecta', 'Documentos', 'Beth', 'Portal Gestor'],
   gerenciamento: ['GP Projetos', 'Gestão de Contratos', 'Gestão Documental'],
-  parceiros: ['Nota Fiscal', 'Emissão', 'Outros Parceiros'],
+  parceiros: ['BI', 'Vigilância', 'Alvará', 'Assistência Social', 'Esporte'],
   outros: ['Outros'],
 };
 
 // Produtos que possuem aba extra de "Prestação de Contas"
-const PRESTACAO_CONTAS_PRODUCTS = ['Prestação de Contas', 'PCA', 'Contabilidade'];
+const PRESTACAO_CONTAS_PRODUCTS = ['Prestação de Contas', 'Contabilidade'];
 
 export default function SustentacaoWizard({ open, onOpenChange, portfolioFilter, onComplete }) {
   const [step, setStep] = useState(0);
