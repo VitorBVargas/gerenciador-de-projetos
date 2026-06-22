@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { base44 } from '@/api/base44Client';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 
 const STATUS_OPTIONS = [
   { value: 'aberto', label: 'Aberto' },
@@ -32,6 +32,20 @@ export default function ChamadoModal({ open, onOpenChange, chamado, projectId, p
   });
   const [saving, setSaving] = useState(false);
   const [selectedVertical, setSelectedVertical] = useState('');
+
+  const { data: teamMembers = [] } = useQuery({
+    queryKey: ['teamMembers', projectId],
+    queryFn: () => base44.entities.TeamMember.filter({ project_id: projectId }),
+    enabled: !!projectId && open,
+  });
+  const { data: stakeholders = [] } = useQuery({
+    queryKey: ['stakeholders', projectId],
+    queryFn: () => base44.entities.Stakeholder.filter({ project_id: projectId }),
+    enabled: !!projectId && open,
+  });
+
+  // Nomes já presentes na lista (equipe + stakeholders), para detectar valor "fora da lista"
+  const peopleNames = [...teamMembers.map(m => m.name), ...stakeholders.map(s => s.name)].filter(Boolean);
 
   // Verticais distintas presentes nos produtos do projeto
   const verticals = [...new Set((products || []).map(p => p.vertical).filter(Boolean))].sort();
@@ -137,9 +151,29 @@ export default function ChamadoModal({ open, onOpenChange, chamado, projectId, p
           </div>
 
           <div>
-            <Label className="text-slate-300 text-xs">Responsável</Label>
-            <Input value={form.responsavel} onChange={e => set('responsavel', e.target.value)}
-              placeholder="Nome..." className="bg-slate-800 border-slate-600 text-white mt-1" />
+            <Label className="text-slate-300 text-xs">Solicitante</Label>
+            <Select value={form.responsavel || ''} onValueChange={v => set('responsavel', v)}>
+              <SelectTrigger className="bg-slate-800 border-slate-600 text-white mt-1">
+                <SelectValue placeholder="Selecionar pessoa..." />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-800 border-slate-700">
+                {form.responsavel && !peopleNames.includes(form.responsavel) && (
+                  <SelectItem value={form.responsavel} className="text-white hover:bg-slate-700">{form.responsavel}</SelectItem>
+                )}
+                {teamMembers.length > 0 && (
+                  <div className="px-2 py-1 text-[10px] uppercase tracking-wide text-slate-500">Equipe</div>
+                )}
+                {[...new Set(teamMembers.map(m => m.name).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR')).map(n => (
+                  <SelectItem key={`t-${n}`} value={n} className="text-white hover:bg-slate-700">{n}</SelectItem>
+                ))}
+                {stakeholders.length > 0 && (
+                  <div className="px-2 py-1 text-[10px] uppercase tracking-wide text-slate-500">Stakeholders</div>
+                )}
+                {[...new Set(stakeholders.map(s => s.name).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR')).map(n => (
+                  <SelectItem key={`s-${n}`} value={n} className="text-white hover:bg-slate-700">{n}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
