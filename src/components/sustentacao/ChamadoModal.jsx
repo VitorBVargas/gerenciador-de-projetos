@@ -31,11 +31,19 @@ export default function ChamadoModal({ open, onOpenChange, chamado, projectId, p
     data_abertura: '', is_bloqueador: false, notes: ''
   });
   const [saving, setSaving] = useState(false);
+  const [selectedVertical, setSelectedVertical] = useState('');
+
+  // Verticais distintas presentes nos produtos do projeto
+  const verticals = [...new Set((products || []).map(p => p.vertical).filter(Boolean))].sort();
+  const productsInVertical = (products || []).filter(p => p.vertical === selectedVertical);
 
   useEffect(() => {
     if (chamado) {
       setForm({ ...chamado });
+      const prod = (products || []).find(p => p.id === chamado.product_id);
+      setSelectedVertical(prod?.vertical || '');
     } else {
+      setSelectedVertical('');
       setForm({
         numero: '', descricao: '', product_id: '', product_name: '',
         status: 'aberto', prioridade: 'media', responsavel: '',
@@ -46,6 +54,12 @@ export default function ChamadoModal({ open, onOpenChange, chamado, projectId, p
   }, [chamado, open]);
 
   const set = (field, value) => setForm(f => ({ ...f, [field]: value }));
+
+  const handleVerticalChange = (vertical) => {
+    setSelectedVertical(vertical);
+    set('product_id', '');
+    set('product_name', '');
+  };
 
   const handleProductChange = (productId) => {
     const product = products.find(p => p.id === productId);
@@ -95,23 +109,37 @@ export default function ChamadoModal({ open, onOpenChange, chamado, projectId, p
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label className="text-slate-300 text-xs">Produto</Label>
-              <Select value={form.product_id} onValueChange={handleProductChange}>
+              <Label className="text-slate-300 text-xs">Vertical</Label>
+              <Select value={selectedVertical} onValueChange={handleVerticalChange}>
                 <SelectTrigger className="bg-slate-800 border-slate-600 text-white mt-1">
-                  <SelectValue placeholder="Selecionar..." />
+                  <SelectValue placeholder="Selecionar vertical..." />
                 </SelectTrigger>
                 <SelectContent className="bg-slate-800 border-slate-700">
-                  {products.map(p => (
-                    <SelectItem key={p.id} value={p.id} className="text-white hover:bg-slate-700">{p.name}</SelectItem>
+                  {verticals.map(v => (
+                    <SelectItem key={v} value={v} className="text-white hover:bg-slate-700">{v}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label className="text-slate-300 text-xs">Responsável</Label>
-              <Input value={form.responsavel} onChange={e => set('responsavel', e.target.value)}
-                placeholder="Nome..." className="bg-slate-800 border-slate-600 text-white mt-1" />
+              <Label className="text-slate-300 text-xs">Produto</Label>
+              <Select value={form.product_id} onValueChange={handleProductChange} disabled={!selectedVertical}>
+                <SelectTrigger className="bg-slate-800 border-slate-600 text-white mt-1">
+                  <SelectValue placeholder={selectedVertical ? 'Selecionar produto...' : 'Selecione a vertical primeiro'} />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700">
+                  {productsInVertical.map(p => (
+                    <SelectItem key={p.id} value={p.id} className="text-white hover:bg-slate-700">{p.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+          </div>
+
+          <div>
+            <Label className="text-slate-300 text-xs">Responsável</Label>
+            <Input value={form.responsavel} onChange={e => set('responsavel', e.target.value)}
+              placeholder="Nome..." className="bg-slate-800 border-slate-600 text-white mt-1" />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
