@@ -21,6 +21,21 @@ const VERTICAL_OPTIONS = [
   { value: 'outros', label: 'Outros' },
 ];
 
+// Mesma lista fixa de produtos por vertical usada no wizard de sustentação
+const PRODUCTS_BY_VERTICAL = {
+  arrecadacao: ['IPTU', 'ISS', 'ITBI', 'Dívida Ativa', 'NFS-e', 'Fiscalização', 'Alvará', 'CAE', 'Arrecadação Geral', 'Prestação de Contas'],
+  compras: ['Compras', 'Contratos', 'Licitações', 'Patrimônio', 'Almoxarifado', 'Frota', 'Prestação de Contas'],
+  contabil: ['Contabilidade', 'Orçamento', 'Tesouraria', 'eSocial Contábil', 'Convênios'],
+  pessoal: ['Folha de Pagamento', 'RH', 'Ponto Eletrônico', 'eSocial Pessoal', 'Portal do Servidor', 'Prestação de Contas'],
+  educacao: ['Biblioteca', 'Senso', 'Educação', 'Pais e Alunos', 'Merenda', 'Transporte', 'Professores'],
+  saude: ['Prontuário Eletrônico', 'Regulação', 'Farmácia', 'Vigilância Sanitária', 'SISAB'],
+  atendimento: ['Protocolo', 'Ouvidoria', 'Portal do Cidadão', 'e-Gov'],
+  plataforma: ['Conecta', 'Documentos', 'Beth', 'Portal Gestor'],
+  gerenciamento: ['GP Projetos', 'Gestão de Contratos', 'Gestão Documental'],
+  parceiros: ['BI', 'Vigilância', 'Alvará', 'Assistência Social', 'Esporte'],
+  outros: ['Outros'],
+};
+
 export default function ProdutoSustentacaoModal({ open, onOpenChange, produto, projectId }) {
   const qc = useQueryClient();
   const [form, setForm] = useState({ name: '', vertical: '', entity: '' });
@@ -35,6 +50,18 @@ export default function ProdutoSustentacaoModal({ open, onOpenChange, produto, p
   }, [produto, open]);
 
   const set = (field, value) => setForm(f => ({ ...f, [field]: value }));
+
+  // Ao trocar a vertical, limpa o produto se não pertencer à nova lista
+  const handleVerticalChange = (v) => {
+    setForm(f => {
+      const list = PRODUCTS_BY_VERTICAL[v] || [];
+      return { ...f, vertical: v, name: list.includes(f.name) ? f.name : '' };
+    });
+  };
+
+  const productList = PRODUCTS_BY_VERTICAL[form.vertical] || [];
+  // Produto existente com nome fora da lista padrão (ex: importado)
+  const isCustomName = !!form.name && form.vertical && !productList.includes(form.name);
 
   const handleSave = async () => {
     setSaving(true);
@@ -57,16 +84,10 @@ export default function ProdutoSustentacaoModal({ open, onOpenChange, produto, p
         </DialogHeader>
         <div className="space-y-4 mt-2">
           <div>
-            <Label className="text-slate-300 text-xs">Nome do Produto *</Label>
-            <Input value={form.name} onChange={e => set('name', e.target.value)}
-              placeholder="ex: IPTU" className="bg-slate-800 border-slate-600 text-white mt-1" />
-          </div>
-
-          <div>
             <Label className="text-slate-300 text-xs">Vertical *</Label>
-            <Select value={form.vertical} onValueChange={v => set('vertical', v)}>
+            <Select value={form.vertical} onValueChange={handleVerticalChange}>
               <SelectTrigger className="bg-slate-800 border-slate-600 text-white mt-1">
-                <SelectValue placeholder="Selecionar..." />
+                <SelectValue placeholder="Selecionar vertical..." />
               </SelectTrigger>
               <SelectContent className="bg-slate-800 border-slate-700">
                 {VERTICAL_OPTIONS.map(o => (
@@ -74,6 +95,25 @@ export default function ProdutoSustentacaoModal({ open, onOpenChange, produto, p
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div>
+            <Label className="text-slate-300 text-xs">Produto *</Label>
+            {isCustomName ? (
+              <Input value={form.name} onChange={e => set('name', e.target.value)}
+                className="bg-slate-800 border-slate-600 text-white mt-1" />
+            ) : (
+              <Select value={form.name} onValueChange={v => set('name', v)} disabled={!form.vertical}>
+                <SelectTrigger className="bg-slate-800 border-slate-600 text-white mt-1">
+                  <SelectValue placeholder={form.vertical ? 'Selecionar produto...' : 'Selecione a vertical primeiro'} />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700">
+                  {productList.map(p => (
+                    <SelectItem key={p} value={p} className="text-white hover:bg-slate-700">{p}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           <div>
