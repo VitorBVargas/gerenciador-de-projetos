@@ -106,14 +106,18 @@ export default function ObrigacoesLegais({ projectId, project }) {
     queryClient.invalidateQueries(['obrigacoes', projectId]);
   };
 
-  // Auto-inicializa padrões se ainda não existem
+  // Auto-inicializa padrões faltantes (inclusive em projetos já existentes)
   const initialized = React.useRef(false);
   React.useEffect(() => {
-    if (!isLoading && obrigacoes.length === 0 && !initialized.current) {
-      initialized.current = true;
-      initDefaults();
+    if (!isLoading && !initialized.current) {
+      const existing = obrigacoes.map(o => o.nome);
+      const missing = OBRIGACOES_PADRAO.filter(n => !existing.includes(n));
+      if (missing.length > 0) {
+        initialized.current = true;
+        initDefaults();
+      }
     }
-  }, [isLoading, obrigacoes.length]);
+  }, [isLoading, obrigacoes]);
 
   const handleSave = async (data) => {
     if (editing) {
