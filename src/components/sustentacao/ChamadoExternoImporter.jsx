@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Upload, CheckCircle, AlertCircle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useQueryClient } from '@tanstack/react-query';
+import * as XLSX from 'xlsx';
 
 // Importador de Chamados Externos — modelo da aba "Chamados_ASI"
 // Ticket -> numero | Assunto -> descricao | Categoria -> categoria
@@ -44,46 +45,44 @@ export default function ChamadoExternoImporter({ open, onOpenChange, projectId }
     if (!file) return;
     setStatus('processing');
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      const schema = {
-        type: 'object',
-        properties: {
-          items: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                ticket: { type: 'string', description: 'Número do ticket' },
-                assunto: { type: 'string', description: 'Assunto / descrição' },
-                categoria: { type: 'string', description: 'Categoria do chamado' },
-                data_abertura: { type: 'string', description: 'Data de abertura' },
-                solucionado: { type: 'string', description: 'Solucionado? (Sim/Não ou texto)' },
-              }
-            }
-          }
-        }
-      };
-      const extracted = await base44.integrations.Core.ExtractDataFromUploadedFile({ file_url, json_schema: schema });
-      if (extracted.status !== 'success') throw new Error(extracted.details || 'Falha na extração');
+      // Lê a planilha localmente para acessar a aba "Chamados_ASI" por posição de coluna,
+      // pois ela não possui cabeçalhos reais na primeira linha.
+      const buffer = await file.arrayBuffer();
+      const wb = XLSX.read(buffer, { type: 'array' });
+      const sheetName = wb.SheetNames.find(n => n.toLowerCase().replace(/\s/g, '').includes('chamados_asi'))
+        || wb.SheetNames.find(n => n.toLowerCase().includes('chamado'));
+      if (!sheetName) throw new Error('Aba "Chamados_ASI" não encontrada na planilha.');
 
-      const rows = extracted.output?.items || (Array.isArray(extracted.output) ? extracted.output : []);
+      const sheet = wb.Sheets[sheetName];
+      // header:1 -> matriz de arrays (por posição), raw:false -> datas como texto
+      const matrix = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, defval: '' });
+
+      // Colunas (posição): 0=Ticket 1=Assunto 2=Categoria 6=Data abertura 7=Solucionado?
+      // Pula a primeira linha (títulos: "Ticket", "Assunto"...).
+      const dataRows = matrix.filter((r, i) => {
+        if (i === 0) return false;
+        const t = String(r[0] || '').trim().toLowerCase();
+        return t && t !== 'ticket';
+      });
+
       let created = 0, updated = 0, errors = 0;
 
       const existing = await base44.entities.Chamado.filter({ project_id: projectId, tipo: 'externo' });
       const byNumero = {};
       existing.forEach(c => { byNumero[c.numero] = c; });
 
-      for (const row of rows) {
-        const numero = row.ticket ? String(row.ticket).trim().replace(/\.0$/, '') : '';
-        if (!numero || !row.assunto) { errors++; continue; }
-        const solved = String(row.solucionado || '').trim().toLowerCase();
+      for (const r of dataRows) {
+        const numero = String(r[0] || '').trim().replace(/\.0$/, '');
+        const assunto = String(r[1] || '').trim();
+        if (!numero || !assunto) { errors++; continue; }
+        const solved = String(r[7] || '').trim().toLowerCase();
         const payload = {
           project_id: projectId,
           tipo: 'externo',
           numero,
-          descricao: String(row.assunto).trim(),
-          categoria: row.categoria ? String(row.categoria).trim() : '',
-          data_abertura: normalizeDate(row.data_abertura) || new Date().toISOString().split('T')[0],
+          descricao: assunto,
+          categoria: String(r[2] || '').trim(),
+          data_abertura: normalizeDate(r[6]) || new Date().toISOString().split('T')[0],
           status: STATUS_MAP[solved] || (solved ? 'em_andamento' : 'aberto'),
         };
         const ex = byNumero[numero];
@@ -96,7 +95,7 @@ export default function ChamadoExternoImporter({ open, onOpenChange, projectId }
         }
       }
 
-      setResult({ created, updated, errors, total: rows.length });
+      setResult({ created, updated, errors, total: dataRows.length });
       setStatus('done');
       qc.invalidateQueries({ queryKey: ['chamados', projectId] });
     } catch (e) {
