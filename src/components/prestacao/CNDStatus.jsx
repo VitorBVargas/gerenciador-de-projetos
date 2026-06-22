@@ -79,7 +79,7 @@ export function RiscoCNDBadge({ obrigacoes, compact = false }) {
   );
 }
 
-export default function CNDStatusCard({ project, obrigacoes = [] }) {
+export default function CNDStatusCard({ project, obrigacoes = [], showToggle = false }) {
   const { user: currentUser } = useCurrentUser();
   const canEdit = canEditProject(currentUser);
   const queryClient = useQueryClient();
@@ -116,7 +116,7 @@ export default function CNDStatusCard({ project, obrigacoes = [] }) {
               <p className="text-xs text-slate-400 mt-0.5">Certidão Negativa de Débitos</p>
             </div>
           </div>
-          {canEdit && (
+          {canEdit && showToggle && (
             <button
               onClick={toggleCND}
               disabled={saving}

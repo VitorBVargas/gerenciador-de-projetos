@@ -199,7 +199,7 @@ export default function ObrigacoesLegais({ projectId, project }) {
 
       {/* CND Status */}
       {project && (
-        <CNDStatusCard project={project} obrigacoes={obrigacoes} />
+        <CNDStatusCard project={project} obrigacoes={obrigacoes} showToggle />
       )}
 
       {/* Tabs */}
