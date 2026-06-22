@@ -77,6 +77,7 @@ export default function ChamadoImporter({ open, onOpenChange, projectId, product
         );
         const payload = {
           project_id: projectId,
+          tipo: 'interno',
           numero: String(row.numero).trim(),
           descricao: String(row.descricao).trim(),
           product_id: product?.id || '',

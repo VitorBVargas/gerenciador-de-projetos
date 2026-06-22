@@ -14,6 +14,7 @@ import { format, parseISO, differenceInDays, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import ChamadoModal from '@/components/sustentacao/ChamadoModal';
 import ChamadoImporter from '@/components/sustentacao/ChamadoImporter';
+import ChamadoExternoImporter from '@/components/sustentacao/ChamadoExternoImporter';
 import ProdutoSustentacaoModal from '@/components/sustentacao/ProdutoSustentacaoModal';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -74,7 +75,9 @@ export default function SustentacaoProdutos() {
   const [filterPriority, setFilterPriority] = useState('all');
   const [filterResponsavel, setFilterResponsavel] = useState('all');
   const [showModal, setShowModal] = useState(false);
+  const [modalTipo, setModalTipo] = useState('interno');
   const [showImporter, setShowImporter] = useState(false);
+  const [showExternoImporter, setShowExternoImporter] = useState(false);
   const [editChamado, setEditChamado] = useState(null);
   const [showProductModal, setShowProductModal] = useState(false);
   const [editProduct, setEditProduct] = useState(null);
@@ -111,8 +114,12 @@ export default function SustentacaoProdutos() {
 
   const responsaveis = useMemo(() => [...new Set(chamados.map(c => c.responsavel).filter(Boolean))], [chamados]);
 
+  const tipoAtivo = activeSection === 'externos' ? 'externo' : 'interno';
+
   const filteredChamados = useMemo(() => {
     return chamados.filter(c => {
+      const cTipo = c.tipo || 'interno';
+      if (cTipo !== tipoAtivo) return false;
       if (filterProduct !== 'all' && c.product_id !== filterProduct) return false;
       if (filterStatus !== 'all' && c.status !== filterStatus) return false;
       if (filterPriority !== 'all' && c.prioridade !== filterPriority) return false;
@@ -124,7 +131,7 @@ export default function SustentacaoProdutos() {
       }
       return true;
     });
-  }, [chamados, filterProduct, filterStatus, filterPriority, filterResponsavel, search]);
+  }, [chamados, tipoAtivo, filterProduct, filterStatus, filterPriority, filterResponsavel, search]);
 
   const criticos = useMemo(() => chamados.filter(c =>
     (c.prioridade === 'critica' || c.is_bloqueador) && !['resolvido', 'fechado'].includes(c.status)
@@ -184,8 +191,8 @@ export default function SustentacaoProdutos() {
     qc.invalidateQueries({ queryKey: ['chamados', projectId] });
   };
 
-  const handleEdit = (chamado) => { setEditChamado(chamado); setShowModal(true); };
-  const handleNew = () => { setEditChamado(null); setShowModal(true); };
+  const handleEdit = (chamado) => { setEditChamado(chamado); setModalTipo(chamado.tipo || 'interno'); setShowModal(true); };
+  const handleNew = (tipo = 'interno') => { setEditChamado(null); setModalTipo(tipo); setShowModal(true); };
 
   const handleEditProduct = (product) => { setEditProduct(product); setShowProductModal(true); };
   const handleNewProduct = () => { setEditProduct(null); setShowProductModal(true); };
@@ -200,8 +207,10 @@ export default function SustentacaoProdutos() {
   };
 
   const ativosCount = chamados.filter(c => !['resolvido', 'fechado'].includes(c.status)).length;
-  const sections = ['overview', 'chamados', 'criticos', 'tendencias'];
-  const sectionLabel = { overview: 'Visão Geral', chamados: 'Chamados Abertos', criticos: 'Críticos', tendencias: 'Tendências' };
+  const internosCount = chamados.filter(c => (c.tipo || 'interno') === 'interno').length;
+  const externosCount = chamados.filter(c => c.tipo === 'externo').length;
+  const sections = ['overview', 'internos', 'externos', 'criticos', 'tendencias'];
+  const sectionLabel = { overview: 'Visão Geral', internos: `Chamados Internos (${internosCount})`, externos: `Chamados Externos (${externosCount})`, criticos: 'Críticos', tendencias: 'Tendências' };
 
   return (
     <div className="p-6 lg:p-8 space-y-6 min-h-screen">
@@ -215,19 +224,10 @@ export default function SustentacaoProdutos() {
           <p className="text-slate-400 mt-1">Gestão de chamados e saúde dos produtos em sustentação</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => setShowImporter(true)}
-            variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-800">
-            <Upload className="w-4 h-4 mr-2" />
-            Importar
-          </Button>
           <Button onClick={handleNewProduct}
             variant="outline" className="border-purple-600/50 text-purple-300 hover:bg-purple-600/10">
             <Plus className="w-4 h-4 mr-2" />
             Novo Produto
-          </Button>
-          <Button onClick={handleNew} className="bg-purple-600 hover:bg-purple-700">
-            <Plus className="w-4 h-4 mr-2" />
-            Novo Chamado
           </Button>
         </div>
       </div>
@@ -361,9 +361,27 @@ export default function SustentacaoProdutos() {
         </div>
       )}
 
-      {/* ── Chamados Abertos ─────────────────────────────────────────────── */}
-      {activeSection === 'chamados' && (
+      {/* ── Chamados Internos / Externos ─────────────────────────────────── */}
+      {(activeSection === 'internos' || activeSection === 'externos') && (
         <div className="space-y-4">
+          {/* Actions */}
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-lg font-semibold text-white">
+              {activeSection === 'externos' ? 'Chamados Externos' : 'Chamados Internos'}
+            </h2>
+            <div className="flex gap-2">
+              <Button onClick={() => activeSection === 'externos' ? setShowExternoImporter(true) : setShowImporter(true)}
+                variant="outline" size="sm" className="border-slate-600 text-slate-300 hover:bg-slate-800">
+                <Upload className="w-4 h-4 mr-2" />
+                Importar
+              </Button>
+              <Button onClick={() => handleNew(activeSection === 'externos' ? 'externo' : 'interno')}
+                size="sm" className="bg-purple-600 hover:bg-purple-700">
+                <Plus className="w-4 h-4 mr-2" />
+                Novo Chamado
+              </Button>
+            </div>
+          </div>
           {/* Filters */}
           <div className="flex flex-wrap gap-3 items-center bg-slate-800/50 border border-slate-700 rounded-xl p-3">
             <div className="relative flex-1 min-w-[200px]">
@@ -423,6 +441,7 @@ export default function SustentacaoProdutos() {
                 <tr className="border-b border-slate-700 bg-slate-800">
                   <th className="text-left text-slate-400 font-medium px-4 py-3">Número</th>
                   <th className="text-left text-slate-400 font-medium px-4 py-3">Descrição</th>
+                  <th className="text-left text-slate-400 font-medium px-4 py-3">Categoria</th>
                   <th className="text-left text-slate-400 font-medium px-4 py-3">Produto</th>
                   <th className="text-left text-slate-400 font-medium px-4 py-3">Status</th>
                   <th className="text-left text-slate-400 font-medium px-4 py-3">Prioridade</th>
@@ -434,7 +453,7 @@ export default function SustentacaoProdutos() {
               <tbody>
                 {filteredChamados.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="text-center text-slate-500 py-12">
+                    <td colSpan={9} className="text-center text-slate-500 py-12">
                       <Activity className="w-8 h-8 mx-auto mb-2 opacity-30" />
                       <p>Nenhum chamado encontrado</p>
                     </td>
@@ -452,6 +471,7 @@ export default function SustentacaoProdutos() {
                     <td className="px-4 py-3 max-w-xs">
                       <p className="text-slate-200 truncate" title={c.descricao}>{c.descricao}</p>
                     </td>
+                    <td className="px-4 py-3 text-slate-300 text-xs">{c.categoria || '—'}</td>
                     <td className="px-4 py-3 text-slate-300 text-xs">{c.product_name || '—'}</td>
                     <td className="px-4 py-3"><StatusBadge status={c.status} /></td>
                     <td className="px-4 py-3"><PrioBadge prioridade={c.prioridade} /></td>
@@ -613,10 +633,15 @@ export default function SustentacaoProdutos() {
       <ChamadoModal
         open={showModal} onOpenChange={setShowModal}
         chamado={editChamado} projectId={projectId} products={products}
+        defaultTipo={modalTipo}
       />
       <ChamadoImporter
         open={showImporter} onOpenChange={setShowImporter}
         projectId={projectId} products={products}
+      />
+      <ChamadoExternoImporter
+        open={showExternoImporter} onOpenChange={setShowExternoImporter}
+        projectId={projectId}
       />
       <ProdutoSustentacaoModal
         open={showProductModal} onOpenChange={setShowProductModal}

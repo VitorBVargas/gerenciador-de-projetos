@@ -23,10 +23,10 @@ const PRIORITY_OPTIONS = [
   { value: 'critica', label: 'Crítica' },
 ];
 
-export default function ChamadoModal({ open, onOpenChange, chamado, projectId, products }) {
+export default function ChamadoModal({ open, onOpenChange, chamado, projectId, products, defaultTipo = 'interno' }) {
   const qc = useQueryClient();
   const [form, setForm] = useState({
-    numero: '', descricao: '', product_id: '', product_name: '',
+    numero: '', descricao: '', categoria: '', tipo: 'interno', product_id: '', product_name: '',
     status: 'aberto', prioridade: 'media', responsavel: '',
     data_abertura: '', is_bloqueador: false, notes: ''
   });
@@ -59,7 +59,7 @@ export default function ChamadoModal({ open, onOpenChange, chamado, projectId, p
     } else {
       setSelectedVertical('');
       setForm({
-        numero: '', descricao: '', product_id: '', product_name: '',
+        numero: '', descricao: '', categoria: '', tipo: defaultTipo, product_id: '', product_name: '',
         status: 'aberto', prioridade: 'media', responsavel: '',
         data_abertura: new Date().toISOString().split('T')[0],
         is_bloqueador: false, notes: ''
@@ -119,6 +119,12 @@ export default function ChamadoModal({ open, onOpenChange, chamado, projectId, p
             <Textarea value={form.descricao} onChange={e => set('descricao', e.target.value)}
               placeholder="Descreva o chamado..." rows={3}
               className="bg-slate-800 border-slate-600 text-white mt-1 resize-none" />
+          </div>
+
+          <div>
+            <Label className="text-slate-300 text-xs">Categoria</Label>
+            <Input value={form.categoria || ''} onChange={e => set('categoria', e.target.value)}
+              placeholder="ex: Incidente, Dúvida..." className="bg-slate-800 border-slate-600 text-white mt-1" />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
