@@ -10,6 +10,7 @@ import {
   Zap, Shield, ArrowUp, ArrowDown, Minus, ExternalLink, Edit, ShieldCheck, ShieldAlert
 } from 'lucide-react';
 import CNDStatusCard from '../components/prestacao/CNDStatus';
+import PrestacaoConsolidadaCard from '../components/prestacao/PrestacaoConsolidadaCard.jsx';
 import { format, subDays, isWithinInterval, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
@@ -402,32 +403,36 @@ export default function SustentacaoDashboard() {
         </div>
       </div>
 
-      {/* ── GRÁFICO EVOLUÇÃO ─────────────────────────────────────────── */}
-      <Card className="bg-slate-800/60 border-slate-700/50">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-white text-base flex items-center gap-2">
-            <BarChart2 className="w-4 h-4 text-blue-400" /> Evolução das Atividades (últimas 6 semanas)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {weeklyData.every(d => d.concluidas === 0) ? (
-            <p className="text-slate-500 text-sm text-center py-8">Nenhuma atividade concluída com data de encerramento registrada.</p>
-          ) : (
-            <ResponsiveContainer width="100%" height={180}>
-              <BarChart data={weeklyData} barSize={28}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
-                <XAxis dataKey="semana" tick={{ fill: '#94a3b8', fontSize: 12 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: '#94a3b8', fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: 8, color: '#fff' }}
-                  formatter={(v) => [v, 'Concluídas']}
-                />
-                <Bar dataKey="concluidas" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </CardContent>
-      </Card>
+      {/* ── QUADRO CONSOLIDADO (Prestação de Contas) OU GRÁFICO EVOLUÇÃO ── */}
+      {produtos.some(p => p.prestacao_contas) ? (
+        <PrestacaoConsolidadaCard obrigacoes={obrigacoes} produtos={produtos} />
+      ) : (
+        <Card className="bg-slate-800/60 border-slate-700/50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-white text-base flex items-center gap-2">
+              <BarChart2 className="w-4 h-4 text-blue-400" /> Evolução das Atividades (últimas 6 semanas)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {weeklyData.every(d => d.concluidas === 0) ? (
+              <p className="text-slate-500 text-sm text-center py-8">Nenhuma atividade concluída com data de encerramento registrada.</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={180}>
+                <BarChart data={weeklyData} barSize={28}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                  <XAxis dataKey="semana" tick={{ fill: '#94a3b8', fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: '#94a3b8', fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: 8, color: '#fff' }}
+                    formatter={(v) => [v, 'Concluídas']}
+                  />
+                  <Bar dataKey="concluidas" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Project Modal */}
       <ProjectModal
