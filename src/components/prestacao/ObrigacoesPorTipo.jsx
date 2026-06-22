@@ -62,7 +62,10 @@ export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser }
   const queryClient = useQueryClient();
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [expanded, setExpanded] = useState({}); // Track expanded state per obligation type
+  const [expanded, setExpanded] = useState({}); // Track expanded state per obligation type — fechados por padrão
+
+// Obrigações anuais: têm apenas 1 competência (janeiro do ano seguinte ao exercício)
+const OBRIGACOES_ANUAIS = ['DECASP', 'Balancete 13'];
 
   // Get current year from data or use current year
   const years = useMemo(() => {
@@ -90,18 +93,25 @@ export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser }
   const grouped = useMemo(() => {
     const map = {};
     
-    // First, collect existing obligations for this year
-    obrigacoes.filter(o => {
+    // First, collect existing obligations for this year.
+    // Obrigações anuais pertencem ao exercício anterior (competência = jan do ano seguinte).
+    const anoSeguinte = String(Number(selectedYear) + 1);
+    obrigacoes.forEach(o => {
       const [, y] = (o.competencia || '').split('/');
-      return y === selectedYear;
-    }).forEach(o => {
+      const isAnual = OBRIGACOES_ANUAIS.includes(o.nome);
+      const pertence = isAnual ? y === anoSeguinte : y === selectedYear;
+      if (!pertence) return;
       if (!map[o.nome]) map[o.nome] = {};
       map[o.nome][o.competencia] = o;
     });
     
-    // Ensure all 12 months exist for each obligation type
+    // Para obrigações anuais (DECASP, Balancete 13): apenas janeiro do ano seguinte ao exercício
+    const competenciaAnual = `01/${Number(selectedYear) + 1}`;
+
+    // Ensure the right competências exist for each obligation type
     Object.keys(map).forEach(nome => {
-      allMonths.forEach(month => {
+      const meses = OBRIGACOES_ANUAIS.includes(nome) ? [competenciaAnual] : allMonths;
+      meses.forEach(month => {
         if (!map[nome][month]) {
           // Create placeholder for missing month
           map[nome][month] = {
@@ -113,25 +123,17 @@ export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser }
       });
     });
     
-    // Convert back to arrays sorted by month
+    // Convert back to arrays sorted by competência
     const result = {};
     Object.keys(map).forEach(nome => {
-      result[nome] = allMonths.map(month => map[nome][month]);
+      const meses = OBRIGACOES_ANUAIS.includes(nome) ? [`01/${Number(selectedYear) + 1}`] : allMonths;
+      result[nome] = meses.map(month => map[nome][month]);
     });
     
     return result;
   }, [obrigacoes, selectedYear, allMonths, projectId]);
 
   const nomes = Object.keys(grouped).sort();
-
-  // Initialize all as expanded by default
-  React.useEffect(() => {
-    if (nomes.length > 0 && Object.keys(expanded).length === 0) {
-      const initialExpanded = {};
-      nomes.forEach(nome => { initialExpanded[nome] = true; });
-      setExpanded(initialExpanded);
-    }
-  }, [nomes]);
 
   const toggleExpand = (nome) => setExpanded(p => ({ ...p, [nome]: !p[nome] }));
 
@@ -225,7 +227,7 @@ export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser }
         const items = grouped[nome];
         const { aceitos, rejeitados, atrasados, total, last } = getTypeSummary(items);
         const hasAlert = atrasados > 0 || rejeitados > 0;
-        const isExpanded = expanded[nome] !== false; // Default to expanded
+        const isExpanded = expanded[nome] === true; // Fechado por padrão
 
         return (
           <Card key={nome} className={`border ${hasAlert ? 'border-red-500/30 bg-slate-800/80' : 'border-slate-700/50 bg-slate-800/60'}`}>

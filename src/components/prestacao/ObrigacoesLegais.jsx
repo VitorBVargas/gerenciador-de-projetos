@@ -17,7 +17,10 @@ import { useCurrentUser } from '@/lib/permissions';
 import ObrigacoesPorTipo from './ObrigacoesPorTipo';
 import CNDStatusCard from './CNDStatus';
 
-const OBRIGACOES_PADRAO = ['SICOM', 'SIOPE', 'SIOPS', 'Balancete', 'RGF', 'RREO'];
+const OBRIGACOES_PADRAO = ['AM', 'SIOPE', 'SIOPS', 'Balancete', 'RGF', 'RREO', 'MSC', 'DECASP', 'Balancete 13'];
+
+// Obrigações anuais entregues em janeiro do ano seguinte ao exercício
+const OBRIGACOES_ANUAIS = ['DECASP', 'Balancete 13'];
 
 const STATUS_CFG = {
   nao_iniciado: { label: 'Não iniciado', color: 'text-slate-400', bg: 'bg-slate-700/60', icon: Clock },
@@ -90,8 +93,15 @@ export default function ObrigacoesLegais({ projectId, project }) {
     if (missing.length === 0) return;
     const now = new Date();
     const comp = `${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+    const compAnual = `01/${now.getFullYear() + 1}`;
     await Promise.all(missing.map(nome =>
-      base44.entities.ObrigacaoLegal.create({ project_id: projectId, nome, competencia: comp, status: 'nao_iniciado', is_padrao: true })
+      base44.entities.ObrigacaoLegal.create({
+        project_id: projectId,
+        nome,
+        competencia: OBRIGACOES_ANUAIS.includes(nome) ? compAnual : comp,
+        status: 'nao_iniciado',
+        is_padrao: true,
+      })
     ));
     queryClient.invalidateQueries(['obrigacoes', projectId]);
   };
