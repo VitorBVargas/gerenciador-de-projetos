@@ -1,10 +1,11 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
-import { X, Printer, Loader2, Search } from 'lucide-react';
+import { X, Printer, Loader2, Search, Download } from 'lucide-react';
 import { phaseLabels } from '../timeline/phaseLabels';
 import KickoffTeamSlides from './KickoffTeamSlides';
+import { exportKickoffPptx } from './exportKickoffPptx';
 
 // Ordem canônica das fases (mesma do cronograma)
 const PHASE_ORDER = [
@@ -99,7 +100,17 @@ export default function KickoffPresentation({ projectId, onClose }) {
     enabled: !!projectId,
   });
 
+  const [exporting, setExporting] = useState(false);
   const loading = lp || le || lt;
+
+  const handleExportPptx = async () => {
+    setExporting(true);
+    try {
+      await exportKickoffPptx(`Kick-Off ${project?.city || project?.name || ''}`.trim());
+    } finally {
+      setExporting(false);
+    }
+  };
   const macro = useMemo(() => buildMacroConsolidated(events), [events]);
   const monthCols = useMemo(() => buildMonthColumns(macro), [macro]);
   const todayStr = new Date().toISOString().slice(0, 10);
@@ -125,6 +136,9 @@ export default function KickoffPresentation({ projectId, onClose }) {
         <div className="flex items-center gap-2">
           <Button size="sm" className="bg-blue-600 hover:bg-blue-700 gap-2" onClick={() => window.print()}>
             <Printer className="w-4 h-4" /> Imprimir / Salvar PDF
+          </Button>
+          <Button size="sm" className="bg-orange-600 hover:bg-orange-700 gap-2" onClick={handleExportPptx} disabled={exporting}>
+            {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />} Baixar PPT
           </Button>
           <Button size="sm" variant="outline" className="border-slate-600 text-slate-300 gap-2" onClick={onClose}>
             <X className="w-4 h-4" /> Fechar
