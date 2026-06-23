@@ -50,10 +50,24 @@ Deno.serve(async (req) => {
     const projeto = projetos?.[0];
     const nomeProjeto = projeto?.name || 'Projeto';
 
-    // Evita reenvio: a função é idempotente o suficiente porque só dispara quando o último
-    // registro vira enviado. Monta o resumo por entidade.
-    const entidades = [...new Set(reais.map(o => o.entity_name).filter(Boolean))];
-    const entidadesTxt = entidades.length ? entidades.join(', ') : 'Todas as entidades';
+    // Agrupa as obrigações concluídas por entidade para detalhar no e-mail
+    const porEntidade = {};
+    reais.forEach(o => {
+      const ent = o.entity_name || 'Sem entidade';
+      if (!porEntidade[ent]) porEntidade[ent] = [];
+      porEntidade[ent].push(o.nome);
+    });
+    const entidades = Object.keys(porEntidade);
+    const entidadesTxt = entidades.join(', ');
+
+    const detalheEntidades = entidades.map(ent => {
+      const obrigacoesTxt = [...new Set(porEntidade[ent])].sort().join(', ');
+      return `
+        <tr>
+          <td style="padding:6px 12px; border:1px solid #e2e8f0; font-weight:bold; vertical-align:top; white-space:nowrap;">${ent}</td>
+          <td style="padding:6px 12px; border:1px solid #e2e8f0;">${obrigacoesTxt}</td>
+        </tr>`;
+    }).join('');
 
     const subject = `✅ Prestação de Contas concluída — ${nomeProjeto} — Competência ${competencia}`;
     const bodyHtml = `
@@ -65,6 +79,14 @@ Deno.serve(async (req) => {
           <tr><td style="padding:4px 12px 4px 0; color:#64748b;">Competência:</td><td><strong>${competencia}</strong></td></tr>
           <tr><td style="padding:4px 12px 4px 0; color:#64748b;">Entidades:</td><td>${entidadesTxt}</td></tr>
           <tr><td style="padding:4px 12px 4px 0; color:#64748b;">Total de obrigações:</td><td>${reais.length}</td></tr>
+        </table>
+        <h3 style="margin-top:20px; margin-bottom:8px; color:#1e293b;">Obrigações concluídas por entidade</h3>
+        <table style="border-collapse: collapse;">
+          <tr style="background:#f1f5f9;">
+            <th style="padding:6px 12px; border:1px solid #e2e8f0; text-align:left;">Entidade</th>
+            <th style="padding:6px 12px; border:1px solid #e2e8f0; text-align:left;">Obrigações</th>
+          </tr>
+          ${detalheEntidades}
         </table>
         <p style="margin-top:16px; font-size:12px; color:#94a3b8;">Notificação automática do Gerenciador de Projetos.</p>
       </div>
