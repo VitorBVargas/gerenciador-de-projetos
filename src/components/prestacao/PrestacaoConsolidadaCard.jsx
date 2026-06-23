@@ -54,14 +54,17 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
   const [selectedEntityId, setSelectedEntityId] = useState('');
 
   useEffect(() => {
-    if (availableEntities.length > 0 && !availableEntities.some(entity => entity.id === selectedEntityId)) {
-      setSelectedEntityId(availableEntities[0].id);
+    if (availableEntities.length > 0 && selectedEntityId !== '__todos__' && !availableEntities.some(entity => entity.id === selectedEntityId)) {
+      setSelectedEntityId('__todos__');
     }
   }, [availableEntities, selectedEntityId]);
 
   const selectedEntity = useMemo(() => {
+    if (selectedEntityId === '__todos__') return null;
     return availableEntities.find(entity => entity.id === selectedEntityId) || null;
   }, [availableEntities, selectedEntityId]);
+
+  const isAllEntities = selectedEntityId === '__todos__';
 
   const filteredObrigacoes = useMemo(() => {
     if (!selectedEntity) return obrigacoes;
@@ -116,7 +119,9 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
   }, [filteredObrigacoes, tipo, ano]);
 
   const todosPorTipo = useMemo(() => {
-    const entitiesToUse = availableEntities.length > 0 ? availableEntities : [null];
+    const entitiesToUse = isAllEntities
+      ? (availableEntities.length > 0 ? availableEntities : [null])
+      : (selectedEntity ? [selectedEntity] : [null]);
     return tipos.map((tipoNome) => {
       const isAnual = OBRIGACOES_ANUAIS.includes(tipoNome);
       const porMesPorEntidade = {};
@@ -198,6 +203,7 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
                   <SelectValue placeholder="Filtrar entidade" />
                 </SelectTrigger>
                 <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                  <SelectItem value="__todos__">Todas as entidades</SelectItem>
                   {availableEntities.map((entity) => (
                     <SelectItem key={entity.id} value={entity.id}>{entity.nome}</SelectItem>
                   ))}
@@ -238,7 +244,7 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
 
             {isTodos && todosPorTipo.map(({ tipo: tipoNome, porMesPorEntidade }) => {
               const entityEntries = Object.values(porMesPorEntidade);
-              const multiEntity = availableEntities.length > 1;
+              const multiEntity = isAllEntities && availableEntities.length > 1;
               return (
                 <div key={tipoNome} className="grid grid-cols-[180px_repeat(12,1fr)] gap-1 mb-1.5 items-stretch">
                   <div className="flex items-center pr-2">
