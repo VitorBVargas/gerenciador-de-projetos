@@ -448,6 +448,7 @@ export default function SustentacaoProdutos() {
                   <th className="text-left text-slate-400 font-medium px-4 py-3">Descrição</th>
                   <th className="text-left text-slate-400 font-medium px-4 py-3">Categoria</th>
                   <th className="text-left text-slate-400 font-medium px-4 py-3">Produto</th>
+                  <th className="text-left text-slate-400 font-medium px-4 py-3">Entidade</th>
                   <th className="text-left text-slate-400 font-medium px-4 py-3">Status</th>
                   <th className="text-left text-slate-400 font-medium px-4 py-3">Prioridade</th>
                   <th className="text-left text-slate-400 font-medium px-4 py-3">Responsável</th>
@@ -458,7 +459,7 @@ export default function SustentacaoProdutos() {
               <tbody>
                 {filteredChamados.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="text-center text-slate-500 py-12">
+                    <td colSpan={10} className="text-center text-slate-500 py-12">
                       <Activity className="w-8 h-8 mx-auto mb-2 opacity-30" />
                       <p>Nenhum chamado encontrado</p>
                     </td>
@@ -478,6 +479,7 @@ export default function SustentacaoProdutos() {
                     </td>
                     <td className="px-4 py-3 text-slate-300 text-xs">{c.categoria || '—'}</td>
                     <td className="px-4 py-3 text-slate-300 text-xs">{c.product_name || '—'}</td>
+                    <td className="px-4 py-3 text-slate-300 text-xs">{c.entity_name || '—'}</td>
                     <td className="px-4 py-3">
                       <select
                         value={c.status || 'aberto'}

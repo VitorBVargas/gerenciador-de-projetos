@@ -27,6 +27,7 @@ export default function ChamadoModal({ open, onOpenChange, chamado, projectId, p
   const qc = useQueryClient();
   const [form, setForm] = useState({
     numero: '', descricao: '', categoria: '', tipo: 'interno', product_id: '', product_name: '',
+    entity_id: '', entity_name: '',
     status: 'aberto', prioridade: 'media', responsavel: '',
     data_abertura: '', is_bloqueador: false, notes: ''
   });
@@ -41,6 +42,11 @@ export default function ChamadoModal({ open, onOpenChange, chamado, projectId, p
   const { data: stakeholders = [] } = useQuery({
     queryKey: ['stakeholders', projectId],
     queryFn: () => base44.entities.Stakeholder.filter({ project_id: projectId }),
+    enabled: !!projectId && open,
+  });
+  const { data: entidades = [] } = useQuery({
+    queryKey: ['entidades', projectId],
+    queryFn: () => base44.entities.Entidade.filter({ project_id: projectId }),
     enabled: !!projectId && open,
   });
 
@@ -60,6 +66,7 @@ export default function ChamadoModal({ open, onOpenChange, chamado, projectId, p
       setSelectedVertical('');
       setForm({
         numero: '', descricao: '', categoria: '', tipo: defaultTipo, product_id: '', product_name: '',
+        entity_id: '', entity_name: '',
         status: 'aberto', prioridade: 'media', responsavel: '',
         data_abertura: new Date().toISOString().split('T')[0],
         is_bloqueador: false, notes: ''
@@ -79,6 +86,11 @@ export default function ChamadoModal({ open, onOpenChange, chamado, projectId, p
     const product = products.find(p => p.id === productId);
     set('product_id', productId);
     set('product_name', product?.name || '');
+  };
+
+  const handleEntityChange = (entityId) => {
+    const ent = entidades.find(e => e.id === entityId);
+    setForm(f => ({ ...f, entity_id: entityId, entity_name: ent?.nome || '' }));
   };
 
   const handleSave = async () => {
@@ -154,6 +166,25 @@ export default function ChamadoModal({ open, onOpenChange, chamado, projectId, p
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div>
+            <Label className="text-slate-300 text-xs">Entidade / Órgão</Label>
+            <Select value={form.entity_id || ''} onValueChange={handleEntityChange}>
+              <SelectTrigger className="bg-slate-800 border-slate-600 text-white mt-1">
+                <SelectValue placeholder={entidades.length ? 'Selecionar entidade...' : 'Nenhuma entidade cadastrada'} />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-800 border-slate-700">
+                {form.entity_id && !entidades.some(e => e.id === form.entity_id) && form.entity_name && (
+                  <SelectItem value={form.entity_id} className="text-white hover:bg-slate-700">{form.entity_name}</SelectItem>
+                )}
+                {[...entidades].sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0)).map(e => (
+                  <SelectItem key={e.id} value={e.id} className="text-white hover:bg-slate-700">
+                    {e.nome}{e.nome_completo ? ` — ${e.nome_completo}` : ''}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div>

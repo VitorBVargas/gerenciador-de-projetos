@@ -35,6 +35,14 @@
       "type": "string",
       "description": "Nome do produto (desnormalizado)"
     },
+    "entity_id": {
+      "type": "string",
+      "description": "ID da entidade/\u00f3rg\u00e3o vinculada"
+    },
+    "entity_name": {
+      "type": "string",
+      "description": "Nome da entidade/\u00f3rg\u00e3o (desnormalizado)"
+    },
     "status": {
       "type": "string",
       "enum": [
