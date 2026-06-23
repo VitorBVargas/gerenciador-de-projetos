@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { X, Printer, Loader2, Search } from 'lucide-react';
 import { phaseLabels } from '../timeline/phaseLabels';
+import KickoffTeamSlides from './KickoffTeamSlides';
 
 // Ordem canônica das fases (mesma do cronograma)
 const PHASE_ORDER = [
@@ -220,6 +221,15 @@ export default function KickoffPresentation({ projectId, onClose }) {
               <TeamColumn title="Implantação" person={null} subtitle={analistas.length > 0 ? `${analistas.length} Analistas/Especialistas` : 'Analistas / Especialistas'} items={['Mapeamento', 'Diagnóstico', 'Migração', 'Configuração', 'Treinamento', 'Acompanhamento']} />
             </div>
           </Slide>
+
+          {/* SLIDES TÉCNICOS — gerados por vertical a partir da aba Equipe */}
+          <KickoffTeamSlides
+            team={team}
+            products={products}
+            gestao={[project?.coordinator, project?.manager].filter(Boolean)}
+            Slide={Slide}
+            SlideHeader={SlideHeader}
+          />
 
           {/* SLIDE 6 — Macro etapas */}
           <Slide className="bg-gradient-to-br from-blue-50 to-cyan-50">
