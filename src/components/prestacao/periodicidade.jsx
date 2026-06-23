@@ -5,7 +5,7 @@
 export const OBRIGACOES_ANUAIS = ['DECASP', 'IP', 'Balancete 13'];
 
 // Mensais: todos os 12 meses
-export const OBRIGACOES_MENSAIS = ['MSC', 'AM', 'Balancete', 'Folha', 'Contratos'];
+export const OBRIGACOES_MENSAIS = ['MSC', 'AM', 'Balancete', 'Folha', 'Edital'];
 
 // Bimestrais: fechamento ao fim de cada bimestre
 export const OBRIGACOES_BIMESTRAIS = ['RREO', 'SIOPE', 'SIOPS'];

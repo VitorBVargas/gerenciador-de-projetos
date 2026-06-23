@@ -13,7 +13,7 @@ import ObrigacoesPorTipo from './ObrigacoesPorTipo';
 import CNDStatusCard from './CNDStatus';
 import { entityMatchesObligation } from '@/lib/entityRegistry';
 
-const OBRIGACOES_PADRAO = ['AM', 'SIOPE', 'SIOPS', 'Balancete', 'RGF', 'RREO', 'MSC', 'DECASP', 'IP', 'Balancete 13', 'Folha', 'Contratos'];
+const OBRIGACOES_PADRAO = ['AM', 'SIOPE', 'SIOPS', 'Balancete', 'RGF', 'RREO', 'MSC', 'DECASP', 'IP', 'Balancete 13', 'Folha', 'Edital'];
 const OBRIGACOES_ANUAIS = ['DECASP', 'IP', 'Balancete 13'];
 
 function getSemaforo(obrigacao) {
