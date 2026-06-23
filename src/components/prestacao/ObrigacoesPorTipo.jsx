@@ -12,8 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 const STATUS_CFG = {
   nao_iniciado: { label: 'Pendente', color: 'text-slate-400', bg: 'bg-slate-700/60', icon: Clock },
   em_elaboracao: { label: 'Em elaboração', color: 'text-yellow-400', bg: 'bg-yellow-500/10 border border-yellow-500/30', icon: FileText },
-  enviado: { label: 'Enviado', color: 'text-blue-400', bg: 'bg-blue-500/10 border border-blue-500/30', icon: CheckCircle },
-  aceito: { label: 'Aceito', color: 'text-emerald-400', bg: 'bg-emerald-500/10 border border-emerald-500/30', icon: CheckCircle },
+  aceito: { label: 'Enviado Teste', color: 'text-yellow-400', bg: 'bg-yellow-500/10 border border-yellow-500/30', icon: CheckCircle },
+  enviado: { label: 'Enviado Oficial', color: 'text-emerald-400', bg: 'bg-emerald-500/10 border border-emerald-500/30', icon: CheckCircle },
   rejeitado: { label: 'Rejeitado', color: 'text-red-400', bg: 'bg-red-500/10 border border-red-500/30', icon: XCircle },
 };
 

@@ -9,8 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 const STATUS_OPTIONS = [
   { value: 'nao_iniciado', label: 'Não iniciado' },
   { value: 'em_elaboracao', label: 'Em elaboração' },
-  { value: 'enviado', label: 'Enviado' },
-  { value: 'aceito', label: 'Aceito' },
+  { value: 'aceito', label: 'Enviado Teste' },
+  { value: 'enviado', label: 'Enviado Oficial' },
   { value: 'rejeitado', label: 'Rejeitado' },
 ];
 
