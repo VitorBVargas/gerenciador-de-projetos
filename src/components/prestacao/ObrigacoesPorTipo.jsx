@@ -84,6 +84,13 @@ const MESES_BIMESTRE = [2, 4, 6, 8, 10, 12];
   
   const [selectedYear, setSelectedYear] = useState(years[0] || new Date().getFullYear().toString());
 
+  // Se o exercício selecionado deixar de existir (ex.: após deletar), volta para o ano mais recente disponível
+  useEffect(() => {
+    if (!years.includes(selectedYear)) {
+      setSelectedYear(years[0] || new Date().getFullYear().toString());
+    }
+  }, [years, selectedYear]);
+
   // Generate all 12 months for the selected year
   const allMonths = useMemo(() => {
     const months = [];
