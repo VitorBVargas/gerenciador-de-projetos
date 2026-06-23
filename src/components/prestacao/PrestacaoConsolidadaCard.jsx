@@ -51,7 +51,7 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
   const availableEntities = useMemo(() => getAvailableEntities(entidades, produtos), [entidades, produtos]);
   const [selectedTipo, setSelectedTipo] = useState('__todos__');
   const [selectedAno, setSelectedAno] = useState(new Date().getFullYear());
-  const [selectedEntityId, setSelectedEntityId] = useState('');
+  const [selectedEntityId, setSelectedEntityId] = useState('__todos__');
 
   useEffect(() => {
     if (availableEntities.length > 0 && selectedEntityId !== '__todos__' && !availableEntities.some(entity => entity.id === selectedEntityId)) {
