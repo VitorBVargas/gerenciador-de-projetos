@@ -75,8 +75,10 @@ const MESES_BIMESTRE = [2, 4, 6, 8, 10, 12];
   const years = useMemo(() => {
     const yrs = new Set(obrigacoes.map(o => {
       const [, y] = (o.competencia || '').split('/');
+      // Obrigações anuais têm competência em jan do ano seguinte → pertencem ao exercício anterior
+      if (OBRIGACOES_ANUAIS.includes(o.nome) && y) return String(Number(y) - 1);
       return y;
-    }));
+    }).filter(Boolean));
     const currentYear = new Date().getFullYear().toString();
     yrs.add(currentYear);
     return Array.from(yrs).sort().reverse();
