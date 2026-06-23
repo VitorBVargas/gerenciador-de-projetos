@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import CNDStatusCard from '../components/prestacao/CNDStatus';
 import PrestacaoConsolidadaCard from '../components/prestacao/PrestacaoConsolidadaCard.jsx';
+import ObservacoesCriticas from '../components/prestacao/ObservacoesCriticas.jsx';
 import { format, subDays, isWithinInterval, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
@@ -261,6 +262,9 @@ export default function SustentacaoDashboard() {
       {hasPrestacaoContas && (
         <PrestacaoConsolidadaCard obrigacoes={obrigacoes} produtos={produtos} entidades={availableEntities} />
       )}
+
+      {/* ── OBSERVAÇÕES CRÍTICAS (impacto alto, não concluídas/canceladas) ── */}
+      <ObservacoesCriticas projectId={projectId} />
 
       {/* ── KPI CARDS ─────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
