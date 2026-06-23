@@ -137,18 +137,17 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
 
   return (
     <Card className="bg-slate-800/60 border-slate-700/50 overflow-hidden">
-      <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-slate-700/60 to-slate-800/40 border-b border-slate-700/50">
-        <div className="flex items-center gap-2">
+      <div className="px-5 py-4 bg-gradient-to-r from-slate-700/60 to-slate-800/40 border-b border-slate-700/50">
+        <div className="flex items-center gap-2 mb-2">
           <BarChart2 className="w-5 h-5 text-blue-400" />
           <span className="text-white font-bold text-lg">Quadro Consolidado — Prestação de Contas</span>
         </div>
-        <div className="flex flex-col items-end gap-0.5 text-[11px] font-semibold">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] font-semibold">
           <span className="flex items-center gap-1.5 text-emerald-400"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> ENVIADO OFICIAL</span>
           <span className="flex items-center gap-1.5 text-blue-400"><span className="w-2.5 h-2.5 rounded-full bg-blue-500" /> ENVIADO TESTE</span>
           <span className="flex items-center gap-1.5 text-red-400"><span className="w-2.5 h-2.5 rounded-full bg-red-500" /> PENDENTE ENVIO</span>
           <span className="flex items-center gap-1.5 text-yellow-400"><span className="w-2.5 h-2.5 rounded-full bg-yellow-400" /> EM ELABORAÇÃO</span>
           <span className="flex items-center gap-1.5 text-indigo-300"><span className="w-2.5 h-2.5 rounded-full bg-indigo-500/40 border border-indigo-400/60" /> AGUARDANDO</span>
-          <span className="flex items-center gap-1.5 text-slate-300"><span className="w-2.5 h-2.5 rounded-full bg-slate-300" /> NÃO SE APLICA</span>
         </div>
       </div>
 
