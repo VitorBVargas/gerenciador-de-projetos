@@ -14,10 +14,9 @@ import PrestacaoConsolidadaCard from '../components/prestacao/PrestacaoConsolida
 import { format, subDays, isWithinInterval, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
-import ProjectModal from '../components/modals/ProjectModal.jsx';
+import SustentacaoProjectModal from '../components/modals/SustentacaoProjectModal.jsx';
 import GlobalTracker from '@/components/horas/GlobalTracker.jsx';
 import { useCurrentUser, canEditProject } from '@/lib/permissions';
-import EntityManagerCard from '@/components/entities/EntityManagerCard';
 import { getAvailableEntities } from '@/lib/entityRegistry';
 import { createPageUrl } from '../utils';
 
@@ -253,8 +252,6 @@ export default function SustentacaoDashboard() {
         </div>
       </div>
 
-      <EntityManagerCard projectId={projectId} canEdit={canEdit} />
-
       {/* ── CND STATUS — só exibe se o projeto tem Prestação de Contas ── */}
       {hasPrestacaoContas && (
         <CNDStatusCard project={activeProject} obrigacoes={obrigacoes} />
@@ -453,7 +450,7 @@ export default function SustentacaoDashboard() {
 
 
       {/* Project Modal */}
-      <ProjectModal
+      <SustentacaoProjectModal
         open={projectModalOpen}
         onOpenChange={setProjectModalOpen}
         project={activeProject}
