@@ -44,7 +44,7 @@ function KPIBox({ icon: Icon, label, value, color, bg }) {
 function scoreConformidade(obrigacoes) {
   if (!obrigacoes.length) return 100;
   const total = obrigacoes.length;
-  const aceitos = obrigacoes.filter(o => o.status === 'aceito').length;
+  const aceitos = obrigacoes.filter(o => o.status === 'aceito' || o.status === 'enviado').length;
   const atrasados = obrigacoes.filter(o => getSemaforo(o) === 'vermelho').length;
   const rejeitados = obrigacoes.filter(o => o.status === 'rejeitado').length;
   const score = Math.round(((aceitos / total) * 60) + ((1 - atrasados / total) * 25) + ((1 - rejeitados / total) * 15));
