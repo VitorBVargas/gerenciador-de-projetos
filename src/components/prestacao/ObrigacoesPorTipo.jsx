@@ -123,6 +123,7 @@ const MESES_BIMESTRE = [2, 4, 6, 8, 10, 12];
     // Obrigações anuais pertencem ao exercício anterior (competência = jan do ano seguinte).
     const anoSeguinte = String(Number(selectedYear) + 1);
     obrigacoes.forEach(o => {
+      if (!o.nome || !o.nome.trim()) return; // ignora registros fantasma sem nome
       const [, y] = (o.competencia || '').split('/');
       const isAnual = OBRIGACOES_ANUAIS.includes(o.nome);
       const pertence = isAnual ? y === anoSeguinte : y === selectedYear;
