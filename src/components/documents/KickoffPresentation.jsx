@@ -164,44 +164,45 @@ export default function KickoffPresentation({ projectId, onClose }) {
           </Slide>
 
           {/* SLIDE 3 — Portfólio */}
-          <Slide className="relative overflow-hidden" style={{ background: 'radial-gradient(120% 120% at 80% 30%, #1e3a8a 0%, #0f172a 55%, #020617 100%)' }}>
-            <div className="absolute -right-20 -top-10 w-96 h-96 rounded-full bg-blue-600/20 blur-3xl" />
-            <div className="absolute -left-16 bottom-0 w-72 h-72 rounded-full bg-cyan-500/10 blur-3xl" />
+          <Slide className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 45%, #1e40af 100%)' }}>
+            <div className="absolute -right-24 -top-16 w-[28rem] h-[28rem] rounded-full bg-cyan-300/20 blur-3xl" />
+            <div className="absolute -left-20 -bottom-16 w-80 h-80 rounded-full bg-sky-400/20 blur-3xl" />
             <div className="relative z-10 flex flex-col h-full justify-center">
               <div className="flex items-center gap-2.5 mb-5">
-                <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-blue-600/40">+</div>
-                <span className="text-white font-semibold text-lg">Portfólio</span>
+                <div className="w-9 h-9 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center text-white font-bold text-lg">+</div>
+                <span className="text-white/90 font-semibold text-lg">Portfólio</span>
               </div>
-              <h2 className="text-white font-extrabold text-4xl leading-tight tracking-tight">SOLUÇÕES COMPLETAS<br /><span className="text-blue-200">PARA A GESTÃO PÚBLICA</span></h2>
-              <div className="mt-7 inline-flex items-center gap-4 bg-gradient-to-r from-cyan-100 to-blue-100 rounded-2xl px-6 py-3 self-start shadow-xl">
-                <span className="text-blue-900 font-extrabold text-3xl">GRP</span>
-                <span className="w-px h-10 bg-blue-300" />
-                <span className="text-blue-800 text-sm leading-tight">Government<br />Resource<br />Planning</span>
+              <h2 className="text-white font-extrabold text-4xl leading-tight tracking-tight">SOLUÇÕES COMPLETAS<br /><span className="text-cyan-200">PARA A GESTÃO PÚBLICA</span></h2>
+              <div className="mt-7 inline-flex items-center gap-4 bg-white/95 rounded-full px-7 py-3 self-start shadow-xl">
+                <span className="text-blue-700 font-extrabold text-3xl">GRP</span>
+                <span className="w-px h-10 bg-blue-200" />
+                <span className="text-blue-600 text-sm leading-tight">Government<br />Resource<br />Planning</span>
               </div>
               <div className="grid grid-cols-3 gap-3 mt-9">
                 {['Arrecadação', 'Atendimento', 'NoPaper', 'Saúde', 'Contratos', 'Pessoal', 'Contábil', 'Educação', 'Studio'].map(s => (
-                  <div key={s} className="bg-white/10 backdrop-blur border border-white/15 rounded-xl px-4 py-2.5 text-white text-sm font-medium hover:bg-white/15 transition-colors">{s}</div>
+                  <div key={s} className="bg-white/15 backdrop-blur border border-white/20 rounded-full px-5 py-2.5 text-white text-sm font-medium text-center hover:bg-white/25 transition-colors">{s}</div>
                 ))}
               </div>
             </div>
           </Slide>
 
           {/* SLIDE 4 — Números */}
-          <Slide className="relative overflow-hidden" style={{ background: 'radial-gradient(120% 120% at 20% 80%, #1e3a8a 0%, #0f172a 55%, #020617 100%)' }}>
-            <div className="absolute right-0 top-1/4 w-96 h-96 rounded-full bg-blue-600/20 blur-3xl" />
+          <Slide className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #0ea5e9 100%)' }}>
+            <div className="absolute -right-16 top-0 w-96 h-96 rounded-full bg-cyan-300/20 blur-3xl" />
+            <div className="absolute -left-16 bottom-0 w-80 h-80 rounded-full bg-sky-400/20 blur-3xl" />
             <div className="relative z-10 grid grid-cols-5 gap-3.5 h-full content-center">
               {[
-                ['47', 'sistemas', 'bg-indigo-200 text-slate-900'],
-                ['06', 'aplicativos mobile', 'bg-blue-500 text-white'],
-                ['+ de 800', 'municípios', 'bg-white/10 backdrop-blur border border-white/15 text-white'],
-                ['22', 'estados brasileiros', 'bg-indigo-200 text-slate-900'],
-                ['+ de 3 mil', 'clientes', 'bg-white text-blue-700'],
-                ['+ de 700', 'colaboradores', 'bg-cyan-100 text-blue-700'],
+                ['47', 'sistemas', 'bg-white text-blue-700'],
+                ['06', 'aplicativos mobile', 'bg-cyan-300/90 text-blue-900'],
+                ['+ de 800', 'municípios', 'bg-white/15 backdrop-blur border border-white/25 text-white'],
+                ['22', 'estados brasileiros', 'bg-white text-blue-700'],
+                ['+ de 3 mil', 'clientes', 'bg-cyan-300/90 text-blue-900'],
+                ['+ de 700', 'colaboradores', 'bg-white/15 backdrop-blur border border-white/25 text-white'],
                 ['39', 'anos', 'bg-white text-blue-700'],
-                ['30', 'canais de atendimento', 'bg-blue-500 text-white'],
-                ['+ de 44,5 milhões', 'de pessoas impactadas', 'bg-white/10 backdrop-blur border border-white/15 text-white col-span-2'],
+                ['30', 'canais de atendimento', 'bg-cyan-300/90 text-blue-900'],
+                ['+ de 44,5 milhões', 'de pessoas impactadas', 'bg-white text-blue-700 col-span-2'],
               ].map(([n, l, cls], i) => (
-                <div key={i} className={`rounded-2xl p-5 flex flex-col justify-center shadow-lg ${cls}`}>
+                <div key={i} className={`rounded-3xl p-5 flex flex-col justify-center shadow-lg ${cls}`}>
                   <span className="font-extrabold text-3xl leading-none">{n}</span>
                   <span className="text-xs mt-1.5 font-medium opacity-90">{l}</span>
                 </div>
