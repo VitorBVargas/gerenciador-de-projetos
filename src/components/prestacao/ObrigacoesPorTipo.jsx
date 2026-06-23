@@ -59,7 +59,7 @@ function PrazoCell({ obrigacao }) {
   );
 }
 
-export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser }) {
+export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser, vertical = null }) {
   const queryClient = useQueryClient();
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -152,7 +152,7 @@ export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser }
     if (editing?.id) {
       await base44.entities.ObrigacaoLegal.update(editing.id, data);
     } else {
-      await base44.entities.ObrigacaoLegal.create({ ...data, project_id: projectId });
+      await base44.entities.ObrigacaoLegal.create({ ...data, project_id: projectId, ...(vertical ? { vertical } : {}) });
     }
     queryClient.invalidateQueries(['obrigacoes', projectId]);
   };
@@ -167,7 +167,7 @@ export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser }
     if (!tipoNome) return; // nunca cria registro sem nome de obrigação
     if (!o.id) {
       // placeholder — create new record para o tipo correto
-      await base44.entities.ObrigacaoLegal.create({ nome: tipoNome, competencia: o.competencia, status: newStatus, project_id: projectId });
+      await base44.entities.ObrigacaoLegal.create({ nome: tipoNome, competencia: o.competencia, status: newStatus, project_id: projectId, ...(vertical ? { vertical } : {}) });
     } else {
       await base44.entities.ObrigacaoLegal.update(o.id, { status: newStatus });
     }
@@ -177,7 +177,7 @@ export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser }
   const openNew = (nome) => {
     const now = new Date();
     const comp = `${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
-    setEditing({ nome, competencia: comp, status: 'nao_iniciado', project_id: projectId });
+    setEditing({ nome, competencia: comp, status: 'nao_iniciado', project_id: projectId, ...(vertical ? { vertical } : {}) });
     setModalOpen(true);
   };
 
