@@ -19,19 +19,21 @@ function getCellState(o, mesIdx, mesAtual, anoExercicio, anoAtual) {
   // Sem registro válido
   const hasData = o && o.status && o.status !== 'nao_iniciado';
   if (hasData) {
-    if (o.status === 'enviado' || o.status === 'aceito') return 'enviado';
+    if (o.status === 'enviado') return 'enviado';
+    if (o.status === 'aceito') return 'teste';
     if (o.status === 'rejeitado') return 'pendente';
     if (o.status === 'em_elaboracao') return 'elaboracao';
     return 'vazio';
   }
-  // Mês já passou (no exercício atual) e nada foi feito → pendente de envio
+  // Meses passados E o mês atual (no exercício atual) sem dados → pendente de envio
   if (anoExercicio < anoAtual) return 'pendente';
-  if (anoExercicio === anoAtual && mesIdx < mesAtual) return 'pendente';
+  if (anoExercicio === anoAtual && mesIdx <= mesAtual) return 'pendente';
   return 'vazio';
 }
 
 const CELL_CLASS = {
   enviado:    'bg-emerald-500',
+  teste:      'bg-blue-500',
   pendente:   'bg-red-500',
   elaboracao: 'bg-yellow-400',
   vazio:      'bg-slate-700/40',
@@ -146,7 +148,8 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
           <span className="text-white font-bold text-lg">Quadro Consolidado — Prestação de Contas</span>
         </div>
         <div className="flex flex-col items-end gap-0.5 text-[11px] font-semibold">
-          <span className="flex items-center gap-1.5 text-emerald-400"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> ENVIADO</span>
+          <span className="flex items-center gap-1.5 text-emerald-400"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> ENVIADO OFICIAL</span>
+          <span className="flex items-center gap-1.5 text-blue-400"><span className="w-2.5 h-2.5 rounded-full bg-blue-500" /> ENVIADO TESTE</span>
           <span className="flex items-center gap-1.5 text-red-400"><span className="w-2.5 h-2.5 rounded-full bg-red-500" /> PENDENTE ENVIO</span>
           <span className="flex items-center gap-1.5 text-yellow-400"><span className="w-2.5 h-2.5 rounded-full bg-yellow-400" /> EM ELABORAÇÃO</span>
           <span className="flex items-center gap-1.5 text-slate-300"><span className="w-2.5 h-2.5 rounded-full bg-slate-300" /> NÃO INICIADO</span>
