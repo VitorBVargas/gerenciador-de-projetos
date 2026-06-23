@@ -291,27 +291,76 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
               );
             })}
 
-            {!isTodos && (
-              <div className="grid grid-cols-[180px_repeat(12,1fr)] gap-1 mb-1.5 items-stretch">
-                <div className="flex items-center pr-2">
-                  <span className="text-xs text-slate-300 font-medium truncate bg-slate-700/40 rounded-full px-3 py-2 w-full" title={selectedEntity?.nome_completo || selectedEntity?.nome || tipo}>
-                    {selectedEntity?.nome || 'Projeto'}
-                  </span>
+            {!isTodos && (() => {
+              const tipoAtivo = tipo;
+              const isAnualTipo = OBRIGACOES_ANUAIS.includes(tipoAtivo);
+              const multiEntity = isAllEntities && availableEntities.length > 1;
+              const entitiesToUse = isAllEntities
+                ? (availableEntities.length > 0 ? availableEntities : [null])
+                : (selectedEntity ? [selectedEntity] : [null]);
+
+              const porMesPorEntidade = {};
+              entitiesToUse.forEach(ent => {
+                const entityKey = ent?.id || '__none__';
+                porMesPorEntidade[entityKey] = { entity: ent, porMes: {} };
+                obrigacoes
+                  .filter(o => o.nome === tipoAtivo)
+                  .filter(o => entityMatchesObligation(o, ent, availableEntities))
+                  .forEach(o => {
+                    const [m, y] = (o.competencia || '').split('/');
+                    if (!m || !y) return;
+                    const exercicio = isAnualTipo ? Number(y) - 1 : Number(y);
+                    if (exercicio !== ano) return;
+                    const mesIdx = isAnualTipo ? 0 : Number(m) - 1;
+                    porMesPorEntidade[entityKey].porMes[mesIdx] = o;
+                  });
+              });
+
+              const entityEntries = Object.values(porMesPorEntidade);
+
+              return (
+                <div className="grid grid-cols-[180px_repeat(12,1fr)] gap-1 mb-1.5 items-stretch">
+                  <div className="flex items-center pr-2">
+                    <span className="text-xs text-slate-300 font-medium truncate bg-slate-700/40 rounded-full px-3 py-2 w-full" title={tipoAtivo}>
+                      {tipoAtivo}
+                    </span>
+                  </div>
+                  {MESES.map((mes, index) => {
+                    if (!mesPertence(tipoAtivo, index)) {
+                      return <div key={index} className="h-8 rounded-md bg-transparent border border-slate-700/20" title={`${mes}/${ano}: não se aplica`} />;
+                    }
+                    const perEntityStates = entityEntries.map(({ entity, porMes }) => ({
+                      entity,
+                      state: getCellState(porMes[index], index, mesAtual, ano, anoAtual),
+                    }));
+                    const aggState = aggregateState(perEntityStates.map(e => e.state));
+                    const titleParts = perEntityStates.map(({ entity, state }) => `${entity?.nome || '—'}: ${state}`).join(' · ');
+                    return (
+                      <div
+                        key={index}
+                        className={`relative h-8 rounded-md ${CELL_CLASS[aggState]} transition-colors`}
+                        title={`${tipoAtivo} — ${mes}/${ano}${multiEntity ? ` — ${titleParts}` : ''}`}
+                      >
+                        {aggState === 'vazio' && !multiEntity && <span className="text-indigo-300 text-xs font-bold">—</span>}
+                        {multiEntity && (
+                          <div className="absolute top-0.5 left-0.5 flex gap-0.5">
+                            {perEntityStates.map(({ entity, state }) => (
+                              <span
+                                key={entity?.id || 'none'}
+                                className={`text-[8px] leading-none font-bold px-1 py-0.5 rounded ${FLAG_CLASS[state]}`}
+                                title={`${entity?.nome || '—'}: ${state}`}
+                              >
+                                {(entity?.nome || '?').slice(0, 3).toUpperCase()}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-                {MESES.map((mes, index) => {
-                  const obrigacao = obrigacoesPorMes[index];
-                  if (!mesPertence(tipo, index)) {
-                    return <div key={index} className="h-8 rounded-md bg-transparent border border-slate-700/20" title={`${mes}/${ano}: não se aplica`} />;
-                  }
-                  const state = getCellState(obrigacao, index, mesAtual, ano, anoAtual);
-                  return (
-                    <div key={index} className={`h-8 rounded-md ${CELL_CLASS[state]} transition-colors`} title={`${mes}/${ano}${obrigacao?.status ? ` — ${obrigacao.status}` : state === 'vazio' ? ' — aguardando' : ''}`}>
-                      {state === 'vazio' && <span className="text-indigo-300 text-xs font-bold">—</span>}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+              );
+            })()}
           </div>
         </div>
       </CardContent>
