@@ -57,10 +57,11 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
     return Array.from(set).sort((a, b) => b - a);
   }, [obrigacoes]);
 
-  const [selectedTipo, setSelectedTipo] = useState(null);
+  const [selectedTipo, setSelectedTipo] = useState('__todos__');
   const [selectedAno, setSelectedAno] = useState(anos[0]);
 
-  const tipo = selectedTipo && tipos.includes(selectedTipo) ? selectedTipo : tipos[0];
+  const isTodos = selectedTipo === '__todos__';
+  const tipo = !isTodos && tipos.includes(selectedTipo) ? selectedTipo : tipos[0];
   const ano = anos.includes(selectedAno) ? selectedAno : anos[0];
 
   // Entidades = produtos com prestação de contas (uma linha por entidade)
@@ -96,6 +97,25 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
       });
     return map;
   }, [obrigacoes, tipo, ano]);
+
+  // Para o modo "Todos": uma linha por tipo, indexada por mês (0-11)
+  const todosPorTipo = useMemo(() => {
+    return tipos.map(t => {
+      const isAnual = OBRIGACOES_ANUAIS.includes(t);
+      const map = {};
+      obrigacoes
+        .filter(o => o.nome === t)
+        .forEach(o => {
+          const [m, y] = (o.competencia || '').split('/');
+          if (!m || !y) return;
+          const exercicio = isAnual ? Number(y) - 1 : Number(y);
+          if (exercicio !== ano) return;
+          const mesIdx = isAnual ? 0 : Number(m) - 1;
+          map[mesIdx] = o;
+        });
+      return { tipo: t, porMes: map };
+    });
+  }, [obrigacoes, tipos, ano]);
 
   // "Mês consolidado" = último mês com tudo enviado/aceito
   const mesConsolidado = useMemo(() => {
@@ -136,12 +156,20 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
       <CardContent className="p-5 space-y-4">
         {/* Seletores: tipo de obrigação e exercício */}
         <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setSelectedTipo('__todos__')}
+            className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${
+              isTodos ? 'bg-emerald-600 text-white' : 'bg-slate-600/60 text-slate-300 hover:bg-slate-600'
+            }`}
+          >
+            Todos
+          </button>
           {tipos.map(t => (
             <button
               key={t}
               onClick={() => setSelectedTipo(t)}
               className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${
-                t === tipo ? 'bg-emerald-600 text-white' : 'bg-slate-600/60 text-slate-300 hover:bg-slate-600'
+                !isTodos && t === tipo ? 'bg-emerald-600 text-white' : 'bg-slate-600/60 text-slate-300 hover:bg-slate-600'
               }`}
             >
               {t}
@@ -164,7 +192,10 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
 
         {/* Título do mês consolidado */}
         <p className="text-blue-300 font-bold uppercase tracking-wide text-sm">
-          Mês Consolidado: {mesConsolidado >= 0 ? MESES[mesConsolidado] : '—'} <span className="text-slate-500">({ano})</span>
+          {isTodos
+            ? <>Todas as Obrigações <span className="text-slate-500">({ano})</span></>
+            : <>Mês Consolidado: {mesConsolidado >= 0 ? MESES[mesConsolidado] : '—'} <span className="text-slate-500">({ano})</span></>
+          }
         </p>
 
         {/* Grade de meses */}
@@ -180,8 +211,35 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
               ))}
             </div>
 
-            {/* Linhas por entidade (ou linha única do tipo) */}
-            {(entidades.length > 0 ? entidades : [tipo]).map((ent, rowIdx) => (
+            {/* Modo Todos: uma linha por tipo de obrigação */}
+            {isTodos && todosPorTipo.map(({ tipo: t, porMes }, rowIdx) => (
+              <div key={rowIdx} className="grid grid-cols-[180px_repeat(12,1fr)] gap-1 mb-1.5 items-stretch">
+                <div className="flex items-center pr-2">
+                  <span className="text-xs text-slate-300 font-medium truncate bg-slate-700/40 rounded-full px-3 py-2 w-full" title={t}>
+                    {t}
+                  </span>
+                </div>
+                {MESES.map((m, i) => {
+                  const o = porMes[i];
+                  const isAnual = OBRIGACOES_ANUAIS.includes(t);
+                  if (isAnual && i !== 0) {
+                    return <div key={i} className="h-8 rounded-md bg-slate-800/40 border border-slate-700/30" />;
+                  }
+                  const state = getCellState(o, i, mesAtual, ano, anoAtual);
+                  const isMarker = i === mesAtual && ano === anoAtual;
+                  return (
+                    <div
+                      key={i}
+                      className={`h-8 rounded-md ${CELL_CLASS[state]} ${isMarker ? 'ring-2 ring-yellow-400' : ''} transition-colors`}
+                      title={`${t} — ${m}/${ano}${o?.status ? ` — ${o.status}` : ''}`}
+                    />
+                  );
+                })}
+              </div>
+            ))}
+
+            {/* Modo por tipo: linhas por entidade (ou linha única do tipo) */}
+            {!isTodos && (entidades.length > 0 ? entidades : [tipo]).map((ent, rowIdx) => (
               <div key={rowIdx} className="grid grid-cols-[180px_repeat(12,1fr)] gap-1 mb-1.5 items-stretch">
                 <div className="flex items-center pr-2">
                   <span className="text-xs text-slate-300 font-medium truncate bg-slate-700/40 rounded-full px-3 py-2 w-full" title={ent}>
