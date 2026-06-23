@@ -154,6 +154,7 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
           <span className="flex items-center gap-1.5 text-red-400"><span className="w-2.5 h-2.5 rounded-full bg-red-500" /> PENDENTE ENVIO</span>
           <span className="flex items-center gap-1.5 text-yellow-400"><span className="w-2.5 h-2.5 rounded-full bg-yellow-400" /> EM ELABORAÇÃO</span>
           <span className="flex items-center gap-1.5 text-slate-300"><span className="w-2.5 h-2.5 rounded-full bg-slate-300" /> NÃO INICIADO</span>
+          <span className="flex items-center gap-1.5 text-indigo-300"><span className="w-2.5 h-2.5 rounded-full bg-indigo-500/40 border border-indigo-400/60" /> NÃO SE APLICA</span>
         </div>
       </div>
 
@@ -225,9 +226,17 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
                 </div>
                 {MESES.map((m, i) => {
                   const o = porMes[i];
-                  // Mês fora da periodicidade da obrigação → ausente (cinza)
+                  // Mês fora da periodicidade da obrigação → isento (não se aplica)
                   if (!mesPertence(t, i)) {
-                    return <div key={i} className="h-8 rounded-md bg-slate-600/30 border border-slate-600/40" title={`${t} — ${m}/${ano}: não se aplica`} />;
+                    return (
+                      <div
+                        key={i}
+                        className="h-8 rounded-md bg-indigo-500/20 border border-indigo-400/40 flex items-center justify-center"
+                        title={`${t} — ${m}/${ano}: não se aplica`}
+                      >
+                        <span className="text-indigo-300 text-xs font-bold">—</span>
+                      </div>
+                    );
                   }
                   const state = getCellState(o, i, mesAtual, ano, anoAtual);
                   const isMarker = i === mesAtual && ano === anoAtual;
@@ -252,9 +261,17 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
                 </div>
                 {MESES.map((m, i) => {
                   const o = obrigacoesPorMes[i];
-                  // Mês fora da periodicidade da obrigação → ausente (cinza)
+                  // Mês fora da periodicidade da obrigação → isento (não se aplica)
                   if (!mesPertence(tipo, i)) {
-                    return <div key={i} className="h-8 rounded-md bg-slate-600/30 border border-slate-600/40" title={`${m}/${ano}: não se aplica`} />;
+                    return (
+                      <div
+                        key={i}
+                        className="h-8 rounded-md bg-indigo-500/20 border border-indigo-400/40 flex items-center justify-center"
+                        title={`${m}/${ano}: não se aplica`}
+                      >
+                        <span className="text-indigo-300 text-xs font-bold">—</span>
+                      </div>
+                    );
                   }
                   const state = getCellState(o, i, mesAtual, ano, anoAtual);
                   const isMarker = i === mesAtual && ano === anoAtual;
