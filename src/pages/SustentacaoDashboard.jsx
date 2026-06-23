@@ -101,21 +101,21 @@ export default function SustentacaoDashboard() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const { data: obrigacoes = [] } = useQuery({
+  const { data: obrigacoes = [], isLoading: loadingObrigacoes } = useQuery({
     queryKey: ['obrigacoes', projectId],
     queryFn: () => projectId ? base44.entities.ObrigacaoLegal.filter({ project_id: projectId }) : [],
     enabled: !!projectId,
     staleTime: 3 * 60 * 1000,
   });
 
-  const { data: produtos = [] } = useQuery({
+  const { data: produtos = [], isLoading: loadingProdutos } = useQuery({
     queryKey: ['products', projectId],
     queryFn: () => projectId ? base44.entities.Product.filter({ project_id: projectId }) : [],
     enabled: !!projectId,
     staleTime: 5 * 60 * 1000,
   });
 
-  const { data: entities = [] } = useQuery({
+  const { data: entities = [], isLoading: loadingEntities } = useQuery({
     queryKey: ['entities', projectId],
     queryFn: () => projectId ? base44.entities.Entidade.filter({ project_id: projectId }) : [],
     enabled: !!projectId,
@@ -124,6 +124,7 @@ export default function SustentacaoDashboard() {
 
   const availableEntities = React.useMemo(() => getAvailableEntities(entities, produtos), [entities, produtos]);
   const hasPrestacaoContas = produtos.some(p => p.prestacao_contas) || availableEntities.length > 0;
+  const prestacaoLoading = loadingObrigacoes || loadingEntities || loadingProdutos;
 
   if (loadingProject || !activeProject) {
     return (
@@ -260,7 +261,15 @@ export default function SustentacaoDashboard() {
 
       {/* ── QUADRO CONSOLIDADO (Prestação de Contas) — logo abaixo da CND ── */}
       {hasPrestacaoContas && (
-        <PrestacaoConsolidadaCard obrigacoes={obrigacoes} produtos={produtos} entidades={availableEntities} />
+        prestacaoLoading ? (
+          <Card className="bg-slate-800/60 border-slate-700/50">
+            <CardContent className="py-12 flex items-center justify-center">
+              <div className="w-6 h-6 border-2 border-slate-600 border-t-blue-500 rounded-full animate-spin" />
+            </CardContent>
+          </Card>
+        ) : (
+          <PrestacaoConsolidadaCard obrigacoes={obrigacoes} produtos={produtos} entidades={availableEntities} />
+        )
       )}
 
       {/* ── OBSERVAÇÕES CRÍTICAS (impacto alto, não concluídas/canceladas) ── */}
