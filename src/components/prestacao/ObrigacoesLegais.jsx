@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -56,7 +56,6 @@ export default function ObrigacoesLegais({ projectId, project, vertical = null, 
   const queryClient = useQueryClient();
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
-  const initialized = useRef(false);
 
   const { data: decisoes = [] } = useQuery({
     queryKey: ['decisoes', projectId],
@@ -78,10 +77,6 @@ export default function ObrigacoesLegais({ projectId, project, vertical = null, 
     refetchInterval: 30000,
   });
 
-  React.useEffect(() => {
-    initialized.current = false;
-  }, [projectId, vertical, entity?.id]);
-
   const obrigacoes = useMemo(() => {
     return allObrigacoes.filter((obrigacao) => {
       const sameVertical = !vertical || (obrigacao.vertical || vertical) === vertical;
@@ -91,13 +86,10 @@ export default function ObrigacoesLegais({ projectId, project, vertical = null, 
   }, [allObrigacoes, vertical, entity, allEntities]);
 
   const initDefaults = async () => {
-    const existing = obrigacoes.map(o => o.nome);
-    const missing = OBRIGACOES_PADRAO.filter(nome => !existing.includes(nome));
-    if (missing.length === 0) return;
     const now = new Date();
     const comp = `${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
     const compAnual = `01/${now.getFullYear() + 1}`;
-    await Promise.all(missing.map(nome =>
+    await Promise.all(OBRIGACOES_PADRAO.map(nome =>
       base44.entities.ObrigacaoLegal.create({
         project_id: projectId,
         ...(vertical ? { vertical } : {}),
@@ -111,17 +103,6 @@ export default function ObrigacoesLegais({ projectId, project, vertical = null, 
     ));
     queryClient.invalidateQueries(['obrigacoes', projectId]);
   };
-
-  React.useEffect(() => {
-    if (!isLoading && !initialized.current) {
-      const existing = obrigacoes.map(o => o.nome);
-      const missing = OBRIGACOES_PADRAO.filter(nome => !existing.includes(nome));
-      if (missing.length > 0) {
-        initialized.current = true;
-        initDefaults();
-      }
-    }
-  }, [isLoading, obrigacoes]);
 
   const handleSave = async (data) => {
     if (editing?.id) {
@@ -174,6 +155,11 @@ export default function ObrigacoesLegais({ projectId, project, vertical = null, 
             <span className="text-xs text-slate-400">Score</span>
             <span className={`text-lg font-bold ${scoreColor}`}>{score}</span>
           </div>
+          {obrigacoes.length === 0 && (
+            <Button onClick={initDefaults} variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-700 text-sm" size="sm">
+              <Plus className="w-4 h-4 mr-1" /> Criar barras padrão
+            </Button>
+          )}
           <Button onClick={openNew} className="bg-blue-600 hover:bg-blue-700 text-sm" size="sm">
             <Plus className="w-4 h-4 mr-1" /> Nova Obrigação
           </Button>

@@ -379,9 +379,16 @@ export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser, 
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
                 <button
-                  onClick={(e) => { e.stopPropagation(); openNew(nome); }}
+                  onClick={(e) => { e.stopPropagation(); openEdit(last, nome); }}
                   className="p-1.5 text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
-                  title="Adicionar competência"
+                  title="Editar barra"
+                >
+                  <Edit className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); openNew(nome); }}
+                  className="p-1.5 text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-colors"
+                  title="Criar competência"
                 >
                   <Plus className="w-3.5 h-3.5" />
                 </button>
