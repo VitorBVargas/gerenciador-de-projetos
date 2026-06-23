@@ -25,33 +25,25 @@ function fmtRange(s, e) {
   return `${fmtShort(s)} - ${fmtShort(e)}`;
 }
 
-// Consolida fases por vertical (menor início / maior fim entre produtos da vertical)
-function buildMacroByVertical(products, events) {
-  const productById = {};
-  products.forEach(p => { productById[p.id] = p; });
-  const verticalMap = {};
+// Consolida fases em UMA tabela (menor início / maior fim entre TODOS os produtos)
+function buildMacroConsolidated(events) {
+  const phaseMap = {};
   events.forEach(ev => {
-    const product = productById[ev.product_id];
-    const vertical = ev.vertical || product?.vertical;
-    if (!vertical || !ev.phase) return;
-    if (!verticalMap[vertical]) verticalMap[vertical] = {};
-    if (!verticalMap[vertical][ev.phase]) verticalMap[vertical][ev.phase] = { start: null, end: null, statuses: [] };
-    const b = verticalMap[vertical][ev.phase];
+    if (!ev.phase) return;
+    if (!phaseMap[ev.phase]) phaseMap[ev.phase] = { start: null, end: null, statuses: [] };
+    const b = phaseMap[ev.phase];
     if (ev.start_date && (!b.start || ev.start_date < b.start)) b.start = ev.start_date;
     if (ev.end_date && (!b.end || ev.end_date > b.end)) b.end = ev.end_date;
     if (ev.status) b.statuses.push(ev.status);
   });
-  return Object.entries(verticalMap).map(([vertical, phases]) => {
-    const rows = PHASE_ORDER.filter(ph => phases[ph]).map(ph => {
-      const b = phases[ph];
-      let status = 'nao_iniciado';
-      if (b.statuses.includes('atrasado')) status = 'atrasado';
-      else if (b.statuses.includes('em_andamento')) status = 'em_andamento';
-      else if (b.statuses.length > 0 && b.statuses.every(s => s === 'concluido')) status = 'concluido';
-      return { phase: ph, label: phaseLabels[ph] || ph, start: b.start, end: b.end, status };
-    });
-    return { vertical, rows };
-  }).filter(v => v.rows.length > 0).sort((a, b) => a.vertical.localeCompare(b.vertical));
+  return PHASE_ORDER.filter(ph => phaseMap[ph]).map(ph => {
+    const b = phaseMap[ph];
+    let status = 'nao_iniciado';
+    if (b.statuses.includes('atrasado')) status = 'atrasado';
+    else if (b.statuses.includes('em_andamento')) status = 'em_andamento';
+    else if (b.statuses.length > 0 && b.statuses.every(s => s === 'concluido')) status = 'concluido';
+    return { phase: ph, label: phaseLabels[ph] || ph, start: b.start, end: b.end, status };
+  });
 }
 
 // Calcula colunas de meses entre a primeira e última data
@@ -65,8 +57,15 @@ function buildMonthColumns(rows) {
   const cols = [];
   let [y, m] = [parseInt(min.slice(0, 4)), parseInt(min.slice(5, 7))];
   const [ey, em] = [parseInt(max.slice(0, 4)), parseInt(max.slice(5, 7))];
+  const minDay = parseInt(min.slice(8, 10));
+  const maxDay = parseInt(max.slice(8, 10));
   while (y < ey || (y === ey && m <= em)) {
-    cols.push({ y, m, label: `${MONTH_ABBR[m - 1]}/${String(y).slice(2)}` });
+    const isFirst = cols.length === 0;
+    const isLast = y === ey && m === em;
+    const lastDay = new Date(y, m, 0).getDate();
+    const startDay = isFirst ? minDay : 1;
+    const endDay = isLast ? maxDay : lastDay;
+    cols.push({ y, m, label: `${MONTH_ABBR[m - 1]}/${String(y).slice(2)}`, range: `${String(startDay).padStart(2, '0')} A ${String(endDay).padStart(2, '0')}` });
     m++; if (m > 12) { m = 1; y++; }
     if (cols.length > 24) break;
   }
@@ -100,7 +99,9 @@ export default function KickoffPresentation({ projectId, onClose }) {
   });
 
   const loading = lp || le || lt;
-  const macro = useMemo(() => buildMacroByVertical(products, events), [products, events]);
+  const macro = useMemo(() => buildMacroConsolidated(events), [events]);
+  const monthCols = useMemo(() => buildMonthColumns(macro), [macro]);
+  const todayStr = new Date().toISOString().slice(0, 10);
 
   // Equipe agrupada por papel de gestão (Portfólio / Operação / Projeto / Implantação)
   const gestaoPortfolio = team.filter(m => m.vertical === 'gestao_operacoes' || m.role?.toLowerCase().includes('portf')).slice(0, 1);
@@ -137,17 +138,18 @@ export default function KickoffPresentation({ projectId, onClose }) {
 
           {/* SLIDE 1 — Capa */}
           <Slide className="p-0 overflow-hidden relative bg-blue-600">
-            <div className="absolute left-0 top-0 w-1/3 h-2/3 bg-blue-300/60 rounded-br-[120px]" />
-            <div className="absolute left-10 top-1/3 bg-white rounded-2xl shadow-xl px-8 py-6 z-10">
-              <h1 className="text-3xl font-bold text-slate-900">Kick-Off</h1>
-              <p className="text-slate-600 mt-2">Projeto de Implantação</p>
-              <p className="text-blue-700 text-sm mt-1">{mesAno}</p>
+            <div className="absolute left-0 top-0 w-[18%] h-[72%] bg-blue-300/70 rounded-br-[100px]" />
+            <div className="absolute left-0 bottom-12 w-[14%] h-[14%] bg-white rounded-r-2xl" />
+            <div className="absolute left-[14%] top-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-xl px-10 py-8 z-10">
+              <h1 className="text-4xl font-bold text-slate-900">Kick-Off</h1>
+              <p className="text-slate-700 text-lg mt-4">Projeto de Implantação</p>
+              <p className="text-blue-700 text-sm mt-3">{mesAno}</p>
             </div>
-            <div className="absolute right-12 top-1/2 -translate-y-1/4 text-right z-10">
-              <p className="text-white font-extrabold italic text-6xl tracking-tight">BETHA</p>
+            <div className="absolute right-[8%] top-1/2 -translate-y-[140%] z-10">
+              <p className="text-white font-extrabold italic text-7xl tracking-tight">BETHA</p>
             </div>
-            <div className="absolute right-12 bottom-16 bg-blue-200/80 rounded-lg px-8 py-3 z-10">
-              <p className="text-slate-900 font-bold text-lg">{project?.city || project?.name || '—'}</p>
+            <div className="absolute right-0 bottom-12 w-[55%] bg-blue-200/90 rounded-l-2xl px-10 py-4 z-10">
+              <p className="text-slate-900 font-bold text-2xl">{project?.city || project?.name || '—'}</p>
             </div>
           </Slide>
 
@@ -224,9 +226,10 @@ export default function KickoffPresentation({ projectId, onClose }) {
                 ['Operação Assistida', '4 semanas', ['Acompanhamento assistido', 'Aceite de Implantação', 'Passagem de Bastão', 'Serviços pós-implantação'], 'bg-slate-600 text-white'],
               ].map(([titulo, semanas, items, cls], i) => (
                 <div key={i} className="flex flex-col">
-                  <div className={`${cls} rounded px-2 py-3 text-center text-[11px] font-semibold min-h-[60px] flex items-center justify-center`}>{titulo}</div>
-                  <div className="bg-slate-200 text-slate-700 text-[10px] text-center py-1 mt-2 rounded">{semanas}</div>
-                  <ul className="mt-2 space-y-1">
+                  <div className={`${cls} px-3 py-4 text-center text-[11px] font-semibold min-h-[64px] flex items-center justify-center`}
+                    style={{ clipPath: 'polygon(0 0, 88% 0, 100% 50%, 88% 100%, 0 100%, 12% 50%)' }}>{titulo}</div>
+                  <div className="bg-slate-200 text-slate-700 text-[10px] text-center py-1 mt-3 mx-auto px-3 rounded">{semanas}</div>
+                  <ul className="mt-3 space-y-1">
                     {items.map(it => <li key={it} className="text-[9px] text-slate-600 leading-tight">- {it}</li>)}
                   </ul>
                 </div>
@@ -259,37 +262,41 @@ export default function KickoffPresentation({ projectId, onClose }) {
             </ul>
           </Slide>
 
-          {/* SLIDE 8 — Proposta de Cronograma (dinâmico, um por vertical) */}
-          {macro.length === 0 ? (
-            <Slide className="bg-gradient-to-br from-blue-50 to-cyan-50">
-              <SlideHeader title="Proposta de Cronograma" />
-              <div className="flex items-center justify-center h-3/4 text-slate-400 text-sm">Nenhuma etapa de cronograma cadastrada na plataforma.</div>
-            </Slide>
-          ) : macro.map(({ vertical, rows }) => {
-            const cols = buildMonthColumns(rows);
-            return (
-              <Slide key={vertical} className="bg-gradient-to-br from-blue-50 to-cyan-50">
-                <SlideHeader title="Proposta de Cronograma" subtitle={vertical} />
-                <div className="mt-4 overflow-hidden">
+          {/* SLIDE 8 — Proposta de Cronograma (tabela consolidada) */}
+          <Slide className="bg-gradient-to-br from-blue-50 to-cyan-50">
+            <SlideHeader title="Proposta de Cronograma" />
+            {macro.length === 0 ? (
+              <div className="flex items-center justify-center flex-1 text-slate-400 text-sm">Nenhuma etapa de cronograma cadastrada na plataforma.</div>
+            ) : (
+              <>
+                <div className="mt-5 flex-1 flex items-start">
                   <table className="w-full text-[11px] border-collapse">
                     <thead>
                       <tr>
-                        <th className="text-left p-1.5 w-44"></th>
-                        <th className="w-24"></th>
-                        {cols.map(c => <th key={c.label} className="bg-slate-100 border border-slate-300 px-1 py-1 text-slate-600 font-semibold">{c.label}</th>)}
+                        <th className="w-44 border-b border-slate-200"></th>
+                        <th className="w-28 border-b border-slate-200"></th>
+                        {monthCols.map(c => <th key={c.label} className="bg-slate-50 border border-slate-300 px-1 py-1.5 text-slate-600 font-bold text-center">{c.label}</th>)}
+                      </tr>
+                      <tr>
+                        <th className="border-b border-slate-200"></th>
+                        <th className="border-b border-slate-200"></th>
+                        {monthCols.map(c => <th key={c.label} className="bg-slate-50 border border-slate-300 px-1 py-1 text-slate-400 font-medium text-center text-[9px]">{c.range}</th>)}
                       </tr>
                     </thead>
                     <tbody>
-                      {rows.map(r => (
+                      {macro.map(r => (
                         <tr key={r.phase}>
-                          <td className="p-1.5 font-medium text-slate-800 border-b border-slate-200">{r.label}</td>
-                          <td className="p-1.5 text-slate-500 border-b border-slate-200 whitespace-nowrap">{fmtRange(r.start, r.end)}</td>
-                          {cols.map(c => {
+                          <td className="p-2 font-semibold text-slate-800 bg-slate-50/50 border border-slate-200">{r.label}</td>
+                          <td className="p-2 text-slate-600 font-medium bg-slate-50/50 border border-slate-200 whitespace-nowrap text-center">{fmtRange(r.start, r.end)}</td>
+                          {monthCols.map(c => {
                             const colStart = `${c.y}-${String(c.m).padStart(2, '0')}-01`;
                             const colEnd = `${c.y}-${String(c.m).padStart(2, '0')}-31`;
                             const active = r.start && r.end && r.start <= colEnd && r.end >= colStart;
+                            const showToday = todayStr >= colStart && todayStr <= colEnd;
                             return (
-                              <td key={c.label} className="border border-slate-200 h-6" style={{ background: active ? STATUS_COLOR[r.status] : 'transparent' }} />
+                              <td key={c.label} className="border border-slate-200 h-7 relative" style={{ background: active ? STATUS_COLOR[r.status] : 'transparent' }}>
+                                {showToday && <span className="absolute top-0 bottom-0 left-1/2 w-0.5 bg-red-500" />}
+                              </td>
                             );
                           })}
                         </tr>
@@ -297,22 +304,22 @@ export default function KickoffPresentation({ projectId, onClose }) {
                     </tbody>
                   </table>
                 </div>
-                <div className="flex items-center gap-6 mt-4 text-[11px] text-slate-600">
-                  <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full" style={{ background: STATUS_COLOR.concluido }} /> Finalizado</span>
-                  <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full" style={{ background: STATUS_COLOR.em_andamento }} /> Em andamento</span>
-                  <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full" style={{ background: STATUS_COLOR.nao_iniciado }} /> Planejado</span>
+                <div className="flex items-center justify-center gap-10 mt-4 text-[12px] text-slate-600">
+                  <span className="flex items-center gap-2"><span className="w-3.5 h-3.5 rounded-full" style={{ background: STATUS_COLOR.concluido }} /> Finalizado</span>
+                  <span className="flex items-center gap-2"><span className="w-3.5 h-3.5 rounded-full" style={{ background: STATUS_COLOR.em_andamento }} /> Em andamento</span>
+                  <span className="flex items-center gap-2"><span className="w-3.5 h-3.5 rounded-full" style={{ background: STATUS_COLOR.nao_iniciado }} /> Planejado</span>
                 </div>
-              </Slide>
-            );
-          })}
+              </>
+            )}
+          </Slide>
 
           {/* SLIDE 9 — Próximos passos */}
           <Slide className="bg-gradient-to-br from-blue-50 to-cyan-50">
             <SlideHeader title="Próximos passos" subtitle="Alinhamentos" />
-            <div className="grid grid-cols-3 gap-4 mt-8">
-              <NextStepCol header="FINALIZADO" headerCls="bg-green-200 text-slate-800" body="Planejamento do Projeto" items={['Entendimento de escopo', 'Documentos de planejamento e controle']} />
-              <NextStepCol header="EM ANDAMENTO" headerCls="bg-blue-300 text-slate-800" body="Alinhamentos iniciais / Kick-Off" items={['Apresentação de equipes', 'Alinhamento próximos passos', 'Mapeamento de Pontos Focais', 'Coleta de Base e Dicionário de Dados']} />
-              <NextStepCol header="NÃO INICIADO" headerCls="bg-slate-300 text-slate-800" body="" items={['Diagnóstico (mapeamento técnico)', 'Treinamento', 'Configuração teste', 'Liberação para utilização', 'Operação Assistida']} />
+            <div className="grid grid-cols-3 gap-5 mt-8 flex-1">
+              <NextStepCol header="FINALIZADO" headerCls="bg-teal-300/70 text-slate-700" bodyCls="bg-teal-100/50" sections={[{ title: 'Planejamento do Projeto', items: ['Entendimento de escopo', 'Documentos de planejamento e controle'] }]} />
+              <NextStepCol header="EM ANDAMENTO" headerCls="bg-blue-400/80 text-slate-800" bodyCls="bg-blue-200/50" sections={[{ title: 'Alinhamentos iniciais / Kick-Off', items: ['Apresentação de equipes', 'Alinhamento próximos passos'] }, { title: 'Documentos', items: ['Mapeamento de Pontos Focais', 'Coleta de Base e Dicionário de Dados'] }]} />
+              <NextStepCol header="NÃO INICIADO" headerCls="bg-slate-400/70 text-slate-800" bodyCls="bg-slate-200/60" boldItems sections={[{ title: '', items: ['Diagnóstico (mapeamento técnico)', 'Treinamento', 'Configuração teste', 'Liberação para utilização', 'Operação Assistida'] }]} />
             </div>
           </Slide>
 
@@ -378,15 +385,19 @@ function TeamColumn({ title, person, subtitle, items }) {
   );
 }
 
-function NextStepCol({ header, headerCls, body, items }) {
+function NextStepCol({ header, headerCls, bodyCls, sections, boldItems }) {
   return (
-    <div className="bg-white/40 rounded-lg overflow-hidden">
-      <div className={`text-center font-bold text-sm py-2 ${headerCls}`}>{header}</div>
-      <div className="p-4">
-        {body && <p className="font-semibold text-slate-800 text-sm mb-2">{body}</p>}
-        <ul className="space-y-1.5">
-          {items.map(it => <li key={it} className="text-xs text-slate-700">– {it}</li>)}
-        </ul>
+    <div className="rounded-lg overflow-hidden flex flex-col">
+      <div className={`text-center font-bold text-sm py-3 ${headerCls}`}>{header}</div>
+      <div className={`p-4 flex-1 space-y-3 ${bodyCls}`}>
+        {sections.map((s, i) => (
+          <div key={i}>
+            {s.title && <p className="font-bold text-slate-800 text-sm mb-1.5">{s.title}</p>}
+            <ul className="space-y-1">
+              {s.items.map(it => <li key={it} className={`text-xs text-slate-700 ${boldItems ? 'font-semibold' : ''}`}>– {it}</li>)}
+            </ul>
+          </div>
+        ))}
       </div>
     </div>
   );
