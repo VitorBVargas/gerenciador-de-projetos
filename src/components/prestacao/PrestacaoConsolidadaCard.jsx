@@ -273,13 +273,13 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
                         {aggState === 'vazio' && !multiEntity && <span className="text-indigo-300 text-xs font-bold">—</span>}
                         {multiEntity && (
                           <div className="absolute top-0.5 left-0.5 flex gap-0.5">
-                            {perEntityStates.map(({ entity, state }) => (
+                            {perEntityStates.filter(({ entity }) => entity?.nome).map(({ entity, state }) => (
                               <span
                                 key={entity?.id || 'none'}
                                 className={`text-[8px] leading-none font-bold px-1 py-0.5 rounded ${FLAG_CLASS[state]}`}
-                                title={`${entity?.nome || '—'}: ${state}`}
+                                title={`${entity.nome}: ${state}`}
                               >
-                                {(entity?.nome || '?').slice(0, 3).toUpperCase()}
+                                {entity.nome.slice(0, 3).toUpperCase()}
                               </span>
                             ))}
                           </div>
@@ -344,13 +344,13 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
                         {aggState === 'vazio' && !multiEntity && <span className="text-indigo-300 text-xs font-bold">—</span>}
                         {multiEntity && (
                           <div className="absolute top-0.5 left-0.5 flex gap-0.5">
-                            {perEntityStates.map(({ entity, state }) => (
+                            {perEntityStates.filter(({ entity }) => entity?.nome).map(({ entity, state }) => (
                               <span
                                 key={entity?.id || 'none'}
                                 className={`text-[8px] leading-none font-bold px-1 py-0.5 rounded ${FLAG_CLASS[state]}`}
-                                title={`${entity?.nome || '—'}: ${state}`}
+                                title={`${entity.nome}: ${state}`}
                               >
-                                {(entity?.nome || '?').slice(0, 3).toUpperCase()}
+                                {entity.nome.slice(0, 3).toUpperCase()}
                               </span>
                             ))}
                           </div>
