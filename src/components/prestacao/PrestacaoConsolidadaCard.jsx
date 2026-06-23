@@ -239,11 +239,10 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
                     );
                   }
                   const state = getCellState(o, i, mesAtual, ano, anoAtual);
-                  const isMarker = i === mesAtual && ano === anoAtual;
                   return (
                     <div
                       key={i}
-                      className={`h-8 rounded-md ${CELL_CLASS[state]} ${isMarker ? 'ring-2 ring-yellow-400' : ''} transition-colors`}
+                      className={`h-8 rounded-md ${CELL_CLASS[state]} transition-colors`}
                       title={`${t} — ${m}/${ano}${o?.status ? ` — ${o.status}` : ''}`}
                     />
                   );
@@ -274,11 +273,10 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
                     );
                   }
                   const state = getCellState(o, i, mesAtual, ano, anoAtual);
-                  const isMarker = i === mesAtual && ano === anoAtual;
                   return (
                     <div
                       key={i}
-                      className={`h-8 rounded-md ${CELL_CLASS[state]} ${isMarker ? 'ring-2 ring-yellow-400' : ''} transition-colors`}
+                      className={`h-8 rounded-md ${CELL_CLASS[state]} transition-colors`}
                       title={`${m}/${ano}${o?.status ? ` — ${o.status}` : ''}`}
                     />
                   );
