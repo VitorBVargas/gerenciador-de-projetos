@@ -213,8 +213,8 @@ export default function KickoffPresentation({ projectId, onClose }) {
           <Slide className="bg-gradient-to-br from-blue-50 to-cyan-50">
             <SlideHeader title="Equipe BETHA" subtitle="Gestão de Projetos e Implantação" />
             <div className="grid grid-cols-4 gap-4 mt-8">
-              <TeamColumn title="Gestão de Portfólio" person={gestaoPortfolio[0]} items={['Gestão estratégica', 'Alocação de recursos', 'Aprovações', 'Priorizações']} />
-              <TeamColumn title="Gestão da Operação" person={coordTecnica[0]} items={['Gestão da operação', 'Alocação de recursos', 'Aprovações', 'Priorizações']} />
+              <TeamColumn title="Gestão de Portfólio" person={project?.portfolio_manager ? { name: project.portfolio_manager } : gestaoPortfolio[0]} items={['Gestão estratégica', 'Alocação de recursos', 'Aprovações', 'Priorizações']} />
+              <TeamColumn title="Gestão da Operação" person={project?.coordinator ? { name: project.coordinator } : coordTecnica[0]} items={['Gestão da operação', 'Alocação de recursos', 'Aprovações', 'Priorizações']} />
               <TeamColumn title="Gestão do Projeto" person={gestaoProjeto[0] || { name: project?.manager }} items={['Planejamento', 'Comunicação', 'Cronograma', 'Status report', 'Riscos', 'Gestão da Mudança']} />
               <TeamColumn title="Implantação" person={null} subtitle={analistas.length > 0 ? `${analistas.length} Analistas/Especialistas` : 'Analistas / Especialistas'} items={['Mapeamento', 'Diagnóstico', 'Migração', 'Configuração', 'Treinamento', 'Acompanhamento']} />
             </div>
