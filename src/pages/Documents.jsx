@@ -9,6 +9,7 @@ import {
   Clock, AlertCircle, ChevronRight, Loader2, Package
 } from 'lucide-react';
 import { toast } from 'sonner';
+import KickoffPresentation from '@/components/documents/KickoffPresentation';
 
 const DOCUMENTS = [
   { key: 'tap', label: 'TAP', byProduct: false, description: 'Termo de Abertura do Projeto' },
@@ -38,6 +39,7 @@ export default function Documents() {
   const [uploadingDoc, setUploadingDoc] = useState(null);
   const [expandedVerticals, setExpandedVerticals] = useState({});
   const [uploadingTemplate, setUploadingTemplate] = useState(null);
+  const [kickoffOpen, setKickoffOpen] = useState(false);
   const fileInputRef = useRef(null);
   const templateInputRef = useRef(null);
   const queryClient = useQueryClient();
@@ -378,6 +380,15 @@ export default function Documents() {
                               <Download className="w-3.5 h-3.5" />
                               {doc.byProduct ? 'Selecionar e Gerar' : 'Baixar'}
                             </Button>
+                            {doc.key === 'kickoff' && (
+                              <Button
+                                size="sm"
+                                className="bg-blue-600 hover:bg-blue-700 gap-1.5 text-xs h-7"
+                                onClick={() => setKickoffOpen(true)}
+                              >
+                                <FileText className="w-3.5 h-3.5" /> Gerar
+                              </Button>
+                            )}
                             <Button
                               size="sm"
                               variant="outline"
@@ -402,6 +413,15 @@ export default function Documents() {
                           >
                             {uploadingTemplate === doc.key ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
                             Upload de template
+                          </Button>
+                        )}
+                        {doc.key === 'kickoff' && !hasTemplate && (
+                          <Button
+                            size="sm"
+                            className="bg-blue-600 hover:bg-blue-700 gap-1.5 text-xs h-7"
+                            onClick={() => setKickoffOpen(true)}
+                          >
+                            <FileText className="w-3.5 h-3.5" /> Gerar
                           </Button>
                         )}
                       </div>
@@ -767,6 +787,10 @@ export default function Documents() {
           </div>
         );
       })()}
+
+      {kickoffOpen && (
+        <KickoffPresentation projectId={projectId} onClose={() => setKickoffOpen(false)} />
+      )}
     </div>
   );
 }
