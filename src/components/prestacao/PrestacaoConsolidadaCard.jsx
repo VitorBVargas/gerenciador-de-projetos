@@ -37,7 +37,7 @@ const CELL_CLASS = {
   pendente:   'bg-red-500',
   elaboracao: 'bg-yellow-400',
   vazio:      'bg-indigo-500/20 border border-indigo-400/40 flex items-center justify-center',
-  ausente:    'bg-slate-700/40',
+  ausente:    'bg-transparent border border-slate-700/20',
 };
 
 export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [] }) {
@@ -231,7 +231,7 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
                     return (
                       <div
                         key={i}
-                        className="h-8 rounded-md bg-slate-700/40"
+                        className="h-8 rounded-md bg-transparent border border-slate-700/20"
                         title={`${t} — ${m}/${ano}: não se aplica`}
                       />
                     );
@@ -265,7 +265,7 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
                     return (
                       <div
                         key={i}
-                        className="h-8 rounded-md bg-slate-700/40"
+                        className="h-8 rounded-md bg-transparent border border-slate-700/20"
                         title={`${m}/${ano}: não se aplica`}
                       />
                     );
