@@ -370,8 +370,8 @@ export default function KickoffPresentation({ projectId, onClose }) {
             break-after: page; page-break-after: always;
             box-shadow: none !important; border-radius: 0 !important;
             margin: 0 !important;
-            width: 100%; height: 100vh;
-            aspect-ratio: auto !important;
+            width: 100%;
+            height: auto;
           }
           .kickoff-slide:last-child { break-after: auto; page-break-after: auto; }
           /* Preserva cores de fundo e gradientes no PDF */
