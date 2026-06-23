@@ -59,21 +59,27 @@ export default function SustentacaoPrestacaoContas() {
         <ObrigacoesLegais projectId={projectId} project={project} />
       ) : (
         <Tabs value={selectedEntityId} onValueChange={setSelectedEntityId} className="space-y-4">
-          <TabsList className="h-auto w-full justify-start overflow-x-auto bg-slate-800/70 p-1">
-            {availableEntities.map((entity) => (
-              <TabsTrigger
-                key={entity.id}
-                value={entity.id}
-                className="min-w-fit bg-transparent text-slate-300 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
-              >
-                {entity.nome}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-
           {availableEntities.map((entity) => (
             <TabsContent key={entity.id} value={entity.id} className="mt-0">
-              <ObrigacoesLegais projectId={projectId} project={project} entity={entity} allEntities={availableEntities} />
+              <ObrigacoesLegais
+                projectId={projectId}
+                project={project}
+                entity={entity}
+                allEntities={availableEntities}
+                entityTabs={
+                  <TabsList className="h-auto justify-start overflow-x-auto bg-slate-800/70 p-1 mb-4">
+                    {availableEntities.map((e) => (
+                      <TabsTrigger
+                        key={e.id}
+                        value={e.id}
+                        className="min-w-fit bg-transparent text-slate-300 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                      >
+                        {e.nome}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                }
+              />
             </TabsContent>
           ))}
         </Tabs>

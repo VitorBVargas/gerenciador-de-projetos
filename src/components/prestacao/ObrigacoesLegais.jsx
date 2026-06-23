@@ -51,7 +51,7 @@ function scoreConformidade(obrigacoes) {
   return Math.min(100, Math.max(0, score));
 }
 
-export default function ObrigacoesLegais({ projectId, project, vertical = null, entity = null, allEntities = [] }) {
+export default function ObrigacoesLegais({ projectId, project, vertical = null, entity = null, allEntities = [], entityTabs = null }) {
   const { user: currentUser } = useCurrentUser();
   const queryClient = useQueryClient();
   const [modalOpen, setModalOpen] = useState(false);
@@ -177,6 +177,8 @@ export default function ObrigacoesLegais({ projectId, project, vertical = null, 
       </div>
 
       {project && <CNDStatusCard project={project} obrigacoes={obrigacoes} showToggle />}
+
+      {entityTabs}
 
       <ObrigacoesPorTipo obrigacoes={obrigacoes} projectId={projectId} currentUser={currentUser} vertical={vertical} entity={entity} />
 
