@@ -38,14 +38,20 @@ const PRODUCTS_BY_VERTICAL = {
 
 export default function ProdutoSustentacaoModal({ open, onOpenChange, produto, projectId }) {
   const qc = useQueryClient();
-  const [form, setForm] = useState({ name: '', vertical: '', entity: '' });
+  const [form, setForm] = useState({ name: '', custom_name: '', vertical: '', entity: '' });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (produto) {
-      setForm({ name: produto.name || '', vertical: produto.vertical || '', entity: produto.entity || '' });
+      const known = (PRODUCTS_BY_VERTICAL[produto.vertical] || []).includes(produto.name);
+      setForm({
+        name: known ? produto.name || '' : '',
+        custom_name: known ? '' : (produto.name || ''),
+        vertical: produto.vertical || '',
+        entity: produto.entity || '',
+      });
     } else {
-      setForm({ name: '', vertical: '', entity: '' });
+      setForm({ name: '', custom_name: '', vertical: '', entity: '' });
     }
   }, [produto, open]);
 
@@ -63,9 +69,12 @@ export default function ProdutoSustentacaoModal({ open, onOpenChange, produto, p
   // Produto existente com nome fora da lista padrão (ex: importado)
   const isCustomName = !!form.name && form.vertical && !productList.includes(form.name);
 
+  const finalName = (form.custom_name || '').trim() || form.name;
+
   const handleSave = async () => {
     setSaving(true);
-    const data = { ...form, project_id: projectId };
+    const { custom_name, ...rest } = form;
+    const data = { ...rest, name: finalName, project_id: projectId };
     if (produto?.id) {
       await base44.entities.Product.update(produto.id, data);
     } else {
@@ -117,6 +126,13 @@ export default function ProdutoSustentacaoModal({ open, onOpenChange, produto, p
           </div>
 
           <div>
+            <Label className="text-slate-300 text-xs">Nome personalizado (opcional)</Label>
+            <Input value={form.custom_name} onChange={e => set('custom_name', e.target.value)}
+              placeholder="Deixe em branco para usar o produto selecionado" className="bg-slate-800 border-slate-600 text-white mt-1" />
+            <p className="text-[11px] text-slate-500 mt-1">Se preenchido, este nome será usado no lugar do produto.</p>
+          </div>
+
+          <div>
             <Label className="text-slate-300 text-xs">Entidade / Órgão</Label>
             <Input value={form.entity} onChange={e => set('entity', e.target.value)}
               placeholder="ex: PM, CM, IPASI" className="bg-slate-800 border-slate-600 text-white mt-1" />
@@ -124,7 +140,7 @@ export default function ProdutoSustentacaoModal({ open, onOpenChange, produto, p
 
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="ghost" onClick={() => onOpenChange(false)} className="text-slate-400">Cancelar</Button>
-            <Button onClick={handleSave} disabled={saving || !form.name || !form.vertical}
+            <Button onClick={handleSave} disabled={saving || !finalName || !form.vertical}
               className="bg-purple-600 hover:bg-purple-700">
               {saving ? 'Salvando...' : 'Salvar'}
             </Button>
