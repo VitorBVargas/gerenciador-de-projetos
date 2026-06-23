@@ -357,11 +357,26 @@ export default function KickoffPresentation({ projectId, onClose }) {
 
       <style>{`
         @media print {
+          html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; }
           body * { visibility: hidden; }
           .kickoff-slides, .kickoff-slides * { visibility: visible; }
-          .kickoff-slides { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; }
-          .kickoff-slide { page-break-after: always; box-shadow: none !important; }
-          @page { size: landscape; margin: 8mm; }
+          .kickoff-slides {
+            position: absolute; left: 0; top: 0; width: 100%;
+            margin: 0 !important; padding: 0 !important;
+            display: block !important; max-width: none !important;
+          }
+          .kickoff-slide {
+            break-inside: avoid; page-break-inside: avoid;
+            break-after: page; page-break-after: always;
+            box-shadow: none !important; border-radius: 0 !important;
+            margin: 0 !important;
+            width: 100%; height: 100vh;
+            aspect-ratio: auto !important;
+          }
+          .kickoff-slide:last-child { break-after: auto; page-break-after: auto; }
+          /* Preserva cores de fundo e gradientes no PDF */
+          * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          @page { size: A4 landscape; margin: 0; }
         }
       `}</style>
     </div>
