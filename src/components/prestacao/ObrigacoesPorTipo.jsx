@@ -313,9 +313,11 @@ export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser, 
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline" onClick={handleDeleteYear} className="border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300 gap-1.5">
-            <Trash2 className="w-3.5 h-3.5" /> Deletar Exercício
-          </Button>
+          {['admin', 'gerente'].includes(currentUser?.role) && (
+            <Button size="sm" variant="outline" onClick={handleDeleteYear} className="border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300 gap-1.5">
+              <Trash2 className="w-3.5 h-3.5" /> Deletar Exercício
+            </Button>
+          )}
           <Button size="sm" variant="outline" onClick={addNewYear} className="border-slate-600 text-slate-300 hover:bg-slate-700 gap-1.5">
             <Plus className="w-3.5 h-3.5" /> Novo Exercício
           </Button>
