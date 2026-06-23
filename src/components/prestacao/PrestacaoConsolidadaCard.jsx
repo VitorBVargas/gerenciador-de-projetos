@@ -36,8 +36,8 @@ const CELL_CLASS = {
   teste:      'bg-blue-500',
   pendente:   'bg-red-500',
   elaboracao: 'bg-yellow-400',
-  vazio:      'bg-slate-700/40',
-  ausente:    'bg-slate-600/30 border border-slate-600/40',
+  vazio:      'bg-indigo-500/20 border border-indigo-400/40 flex items-center justify-center',
+  ausente:    'bg-slate-700/40',
 };
 
 export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [] }) {
@@ -153,8 +153,8 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
           <span className="flex items-center gap-1.5 text-blue-400"><span className="w-2.5 h-2.5 rounded-full bg-blue-500" /> ENVIADO TESTE</span>
           <span className="flex items-center gap-1.5 text-red-400"><span className="w-2.5 h-2.5 rounded-full bg-red-500" /> PENDENTE ENVIO</span>
           <span className="flex items-center gap-1.5 text-yellow-400"><span className="w-2.5 h-2.5 rounded-full bg-yellow-400" /> EM ELABORAÇÃO</span>
-          <span className="flex items-center gap-1.5 text-slate-300"><span className="w-2.5 h-2.5 rounded-full bg-slate-300" /> NÃO INICIADO</span>
-          <span className="flex items-center gap-1.5 text-indigo-300"><span className="w-2.5 h-2.5 rounded-full bg-indigo-500/40 border border-indigo-400/60" /> NÃO SE APLICA</span>
+          <span className="flex items-center gap-1.5 text-indigo-300"><span className="w-2.5 h-2.5 rounded-full bg-indigo-500/40 border border-indigo-400/60" /> AGUARDANDO</span>
+          <span className="flex items-center gap-1.5 text-slate-300"><span className="w-2.5 h-2.5 rounded-full bg-slate-300" /> NÃO SE APLICA</span>
         </div>
       </div>
 
@@ -231,11 +231,9 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
                     return (
                       <div
                         key={i}
-                        className="h-8 rounded-md bg-indigo-500/20 border border-indigo-400/40 flex items-center justify-center"
+                        className="h-8 rounded-md bg-slate-700/40"
                         title={`${t} — ${m}/${ano}: não se aplica`}
-                      >
-                        <span className="text-indigo-300 text-xs font-bold">—</span>
-                      </div>
+                      />
                     );
                   }
                   const state = getCellState(o, i, mesAtual, ano, anoAtual);
@@ -243,8 +241,10 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
                     <div
                       key={i}
                       className={`h-8 rounded-md ${CELL_CLASS[state]} transition-colors`}
-                      title={`${t} — ${m}/${ano}${o?.status ? ` — ${o.status}` : ''}`}
-                    />
+                      title={`${t} — ${m}/${ano}${o?.status ? ` — ${o.status}` : state === 'vazio' ? ' — aguardando' : ''}`}
+                    >
+                      {state === 'vazio' && <span className="text-indigo-300 text-xs font-bold">—</span>}
+                    </div>
                   );
                 })}
               </div>
@@ -265,11 +265,9 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
                     return (
                       <div
                         key={i}
-                        className="h-8 rounded-md bg-indigo-500/20 border border-indigo-400/40 flex items-center justify-center"
+                        className="h-8 rounded-md bg-slate-700/40"
                         title={`${m}/${ano}: não se aplica`}
-                      >
-                        <span className="text-indigo-300 text-xs font-bold">—</span>
-                      </div>
+                      />
                     );
                   }
                   const state = getCellState(o, i, mesAtual, ano, anoAtual);
@@ -277,8 +275,10 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
                     <div
                       key={i}
                       className={`h-8 rounded-md ${CELL_CLASS[state]} transition-colors`}
-                      title={`${m}/${ano}${o?.status ? ` — ${o.status}` : ''}`}
-                    />
+                      title={`${m}/${ano}${o?.status ? ` — ${o.status}` : state === 'vazio' ? ' — aguardando' : ''}`}
+                    >
+                      {state === 'vazio' && <span className="text-indigo-300 text-xs font-bold">—</span>}
+                    </div>
                   );
                 })}
               </div>
