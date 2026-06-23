@@ -151,10 +151,12 @@ const OBRIGACOES_ANUAIS = ['DECASP', 'Balancete 13'];
     queryClient.invalidateQueries(['obrigacoes', projectId]);
   };
 
-  const handleStatusChange = async (o, newStatus) => {
+  const handleStatusChange = async (o, newStatus, nome) => {
+    const tipoNome = o.nome || nome;
+    if (!tipoNome) return; // nunca cria registro sem nome de obrigação
     if (!o.id) {
-      // placeholder — create new record
-      await base44.entities.ObrigacaoLegal.create({ nome: o.nome || '', competencia: o.competencia, status: newStatus, project_id: projectId });
+      // placeholder — create new record para o tipo correto
+      await base44.entities.ObrigacaoLegal.create({ nome: tipoNome, competencia: o.competencia, status: newStatus, project_id: projectId });
     } else {
       await base44.entities.ObrigacaoLegal.update(o.id, { status: newStatus });
     }
@@ -291,7 +293,7 @@ const OBRIGACOES_ANUAIS = ['DECASP', 'Balancete 13'];
                             <td className="px-4 py-2.5">
                              <select
                                value={o.status || 'nao_iniciado'}
-                               onChange={e => handleStatusChange(o, e.target.value)}
+                               onChange={e => handleStatusChange(o, e.target.value, nome)}
                                className={`text-xs font-medium rounded-full px-2 py-0.5 border cursor-pointer bg-transparent focus:outline-none focus:ring-1 focus:ring-blue-500 ${STATUS_CFG[o.status]?.color || 'text-slate-400'} ${STATUS_CFG[o.status]?.bg || 'bg-slate-700/60'}`}
                              >
                                {Object.entries(STATUS_CFG).map(([val, cfg]) => (
