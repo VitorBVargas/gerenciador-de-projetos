@@ -205,6 +205,18 @@ export default function SustentacaoDashboard() {
                 <span className="text-slate-500 block text-xs">Portfólio</span>
                 <span className="text-white font-medium capitalize">{activeProject.portfolio?.replace(/_/g, ' ') || '—'}</span>
               </div>
+              {availableEntities.length > 0 && (
+                <div className="col-span-2 md:col-span-2">
+                  <span className="text-slate-500 block text-xs">Entidades</span>
+                  <div className="flex flex-wrap gap-1.5 mt-0.5">
+                    {availableEntities.map((ent) => (
+                      <span key={ent.id || ent.nome} className="text-xs px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-300 border border-blue-500/30 font-medium">
+                        {ent.nome}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
               {activeProject.sustentacao_start_date && (
                 <div>
                   <span className="text-slate-500 block text-xs">Início da Sustentação</span>
