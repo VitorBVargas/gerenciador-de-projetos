@@ -33,12 +33,12 @@ export default function DecisaoModal({ open, onOpenChange, decisao, onSave }) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[460px] bg-slate-900 border-slate-700 text-slate-200">
         <DialogHeader>
-          <DialogTitle>{decisao ? 'Editar Decisão' : 'Registrar Decisão'}</DialogTitle>
+          <DialogTitle>{decisao ? 'Editar Observação' : 'Registrar Observação'}</DialogTitle>
         </DialogHeader>
         <div className="space-y-3 py-2">
           <div className="space-y-1">
-            <Label className="text-slate-300 text-xs">Decisão *</Label>
-            <Textarea value={form.descricao} onChange={e => set('descricao', e.target.value)} rows={3} placeholder="Descreva a decisão..." className="bg-slate-800 border-slate-700 resize-none" />
+            <Label className="text-slate-300 text-xs">Observação *</Label>
+            <Textarea value={form.descricao} onChange={e => set('descricao', e.target.value)} rows={3} placeholder="Descreva a observação..." className="bg-slate-800 border-slate-700 resize-none" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
@@ -47,7 +47,13 @@ export default function DecisaoModal({ open, onOpenChange, decisao, onSave }) {
             </div>
             <div className="space-y-1">
               <Label className="text-slate-300 text-xs">Responsável</Label>
-              <Input value={form.responsavel} onChange={e => set('responsavel', e.target.value)} placeholder="Nome" className="bg-slate-800 border-slate-700" />
+              <Select value={form.responsavel} onValueChange={v => set('responsavel', v)}>
+                <SelectTrigger className="bg-slate-800 border-slate-700"><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700">
+                  <SelectItem value="Betha">Betha</SelectItem>
+                  <SelectItem value="Cliente">Cliente</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1">
               <Label className="text-slate-300 text-xs">Impacto</Label>

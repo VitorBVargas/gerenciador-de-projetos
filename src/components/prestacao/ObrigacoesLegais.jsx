@@ -4,9 +4,9 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
-  Plus, CheckCircle, Clock, AlertTriangle, XCircle, FileText, TrendingUp, Award
+  Plus, CheckCircle, Clock, AlertTriangle, XCircle, FileText, TrendingUp, Award, MessageSquare
 } from 'lucide-react';
-import { differenceInDays, parseISO } from 'date-fns';
+import { differenceInDays, parseISO, format } from 'date-fns';
 import ObrigacaoModal from './ObrigacaoModal';
 import { useCurrentUser } from '@/lib/permissions';
 import ObrigacoesPorTipo from './ObrigacoesPorTipo';
@@ -57,6 +57,19 @@ export default function ObrigacoesLegais({ projectId, project, vertical = null, 
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const initialized = useRef(false);
+
+  const { data: decisoes = [] } = useQuery({
+    queryKey: ['decisoes', projectId],
+    queryFn: () => base44.entities.Decisao.filter({ project_id: projectId }),
+    enabled: !!projectId,
+    staleTime: 60000,
+  });
+
+  const observacoesCriticas = useMemo(() =>
+    decisoes.filter(d => d.impacto === 'alto' && d.status !== 'cancelada' && d.status !== 'concluida')
+      .sort((a, b) => (b.data || '').localeCompare(a.data || '')),
+    [decisoes]
+  );
 
   const { data: allObrigacoes = [], isLoading } = useQuery({
     queryKey: ['obrigacoes', projectId],
@@ -181,6 +194,25 @@ export default function ObrigacoesLegais({ projectId, project, vertical = null, 
       {entityTabs}
 
       <ObrigacoesPorTipo obrigacoes={obrigacoes} projectId={projectId} currentUser={currentUser} vertical={vertical} entity={entity} />
+
+      {observacoesCriticas.length > 0 && (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-red-400" />
+            <h3 className="text-sm font-semibold text-red-400 uppercase tracking-wider">Observações Críticas</h3>
+          </div>
+          {observacoesCriticas.map(d => (
+            <div key={d.id} className="bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3">
+              <p className="text-sm text-white leading-relaxed">{d.descricao}</p>
+              <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-slate-400">
+                {d.data && <span>{format(parseISO(d.data), 'dd/MM/yyyy')}</span>}
+                {d.responsavel && <span className="font-medium text-red-300">{d.responsavel}</span>}
+                <span className="capitalize">{d.status?.replace('_', ' ')}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <ObrigacaoModal open={modalOpen} onOpenChange={setModalOpen} obrigacao={editing} onSave={handleSave} currentUser={currentUser} />
     </div>

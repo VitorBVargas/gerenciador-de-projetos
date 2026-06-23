@@ -27,7 +27,7 @@ const STATUS_CFG = {
 const TIPO_LABEL = { alinhamento: 'Alinhamento', revisao: 'Revisão', apresentacao: 'Apresentação', emergencial: 'Emergencial', kickoff: 'Kickoff', outro: 'Outro' };
 
 const TABS = ['dashboard', 'reunioes', 'decisoes', 'documentos'];
-const TAB_LABELS = { dashboard: 'Dashboard', reunioes: 'Reuniões', decisoes: 'Decisões', documentos: 'Documentos' };
+const TAB_LABELS = { dashboard: 'Dashboard', reunioes: 'Reuniões', decisoes: 'Observações', documentos: 'Documentos' };
 
 function KPICard({ icon: Icon, label, value, color = 'text-blue-400', bg = 'bg-blue-500/10' }) {
   return (
@@ -226,7 +226,7 @@ export default function SustentacaoReunioes() {
             {/* Decisões recentes */}
             <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-5">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">Decisões Recentes</h3>
+                <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">Observações Recentes</h3>
                 <button onClick={() => setTab('decisoes')} className="text-xs text-blue-400 hover:text-blue-300">Ver todas</button>
               </div>
               {decisoes.length === 0 ? <p className="text-slate-500 text-sm">Nenhuma decisão registrada.</p> : (
@@ -343,19 +343,19 @@ export default function SustentacaoReunioes() {
         </div>
       )}
 
-      {/* ── DECISÕES ── */}
+      {/* ── OBSERVAÇÕES ── */}
       {tab === 'decisoes' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold text-white">Decisões Registradas</h2>
+            <h2 className="text-base font-semibold text-white">Observações Registradas</h2>
             <Button onClick={() => openDec()} size="sm" className="bg-blue-600 hover:bg-blue-700">
-              <Plus className="w-4 h-4 mr-1" /> Registrar Decisão
+              <Plus className="w-4 h-4 mr-1" /> Registrar Observação
             </Button>
           </div>
           {decisoes.length === 0 ? (
             <div className="text-center py-12 text-slate-500 bg-slate-800/40 rounded-xl border border-slate-700/40">
               <Target className="w-10 h-10 mx-auto mb-2 opacity-30" />
-              <p className="text-sm">Nenhuma decisão registrada.</p>
+              <p className="text-sm">Nenhuma observação registrada.</p>
             </div>
           ) : (
             <div className="space-y-2">

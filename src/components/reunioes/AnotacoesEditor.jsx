@@ -5,7 +5,7 @@ import { CheckCircle, Clock } from 'lucide-react';
 
 const SECTIONS = [
   { key: 'temas', label: 'Temas Discutidos', placeholder: 'Descreva os temas abordados na reunião...' },
-  { key: 'decisoes', label: 'Decisões Tomadas', placeholder: 'Liste as decisões formalizadas...' },
+  { key: 'decisoes', label: 'Observações', placeholder: 'Registre observações relevantes da reunião...' },
   { key: 'pendencias', label: 'Pendências Identificadas', placeholder: 'Liste pendências e itens em aberto...' },
   { key: 'proximos_passos', label: 'Próximos Passos', placeholder: 'Descreva os próximos passos acordados...' },
   { key: 'observacoes', label: 'Observações Gerais', placeholder: 'Observações adicionais...' },
