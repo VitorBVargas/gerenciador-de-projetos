@@ -191,6 +191,11 @@ export default function SustentacaoProdutos() {
     qc.invalidateQueries({ queryKey: ['chamados', projectId] });
   };
 
+  const handleStatusChange = async (chamado, newStatus) => {
+    await base44.entities.Chamado.update(chamado.id, { status: newStatus });
+    qc.invalidateQueries({ queryKey: ['chamados', projectId] });
+  };
+
   const handleEdit = (chamado) => { setEditChamado(chamado); setModalTipo(chamado.tipo || 'interno'); setShowModal(true); };
   const handleNew = (tipo = 'interno') => { setEditChamado(null); setModalTipo(tipo); setShowModal(true); };
 
@@ -473,7 +478,17 @@ export default function SustentacaoProdutos() {
                     </td>
                     <td className="px-4 py-3 text-slate-300 text-xs">{c.categoria || '—'}</td>
                     <td className="px-4 py-3 text-slate-300 text-xs">{c.product_name || '—'}</td>
-                    <td className="px-4 py-3"><StatusBadge status={c.status} /></td>
+                    <td className="px-4 py-3">
+                      <select
+                        value={c.status || 'aberto'}
+                        onChange={e => handleStatusChange(c, e.target.value)}
+                        className={`text-xs font-medium rounded-full px-2 py-0.5 border cursor-pointer focus:outline-none focus:ring-1 focus:ring-purple-500 ${(STATUS_CONFIG[c.status] || STATUS_CONFIG.aberto).color}`}
+                      >
+                        {Object.entries(STATUS_CONFIG).map(([v, cfg]) => (
+                          <option key={v} value={v} className="bg-slate-800 text-white">{cfg.label}</option>
+                        ))}
+                      </select>
+                    </td>
                     <td className="px-4 py-3"><PrioBadge prioridade={c.prioridade} /></td>
                     <td className="px-4 py-3 text-slate-300 text-xs">{c.responsavel || '—'}</td>
                     <td className="px-4 py-3 text-slate-400 text-xs">
