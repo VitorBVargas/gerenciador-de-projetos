@@ -61,7 +61,7 @@ function PrazoCell({ obrigacao }) {
   );
 }
 
-export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser, vertical = null }) {
+export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser, vertical = null, entity = null }) {
   const queryClient = useQueryClient();
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -164,9 +164,9 @@ export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser, 
 
   const handleSave = async (data) => {
     if (editing?.id) {
-      await base44.entities.ObrigacaoLegal.update(editing.id, data);
+      await base44.entities.ObrigacaoLegal.update(editing.id, { ...data, ...(entity ? { entity_id: entity.id, entity_name: entity.nome } : {}) });
     } else {
-      await base44.entities.ObrigacaoLegal.create({ ...data, project_id: projectId, ...(vertical ? { vertical } : {}) });
+      await base44.entities.ObrigacaoLegal.create({ ...data, project_id: projectId, ...(vertical ? { vertical } : {}), ...(entity ? { entity_id: entity.id, entity_name: entity.nome } : {}) });
     }
     queryClient.invalidateQueries(['obrigacoes', projectId]);
   };
@@ -181,9 +181,9 @@ export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser, 
     if (!tipoNome) return; // nunca cria registro sem nome de obrigação
     if (!o.id) {
       // placeholder — create new record para o tipo correto
-      await base44.entities.ObrigacaoLegal.create({ nome: tipoNome, competencia: o.competencia, status: newStatus, project_id: projectId, ...(vertical ? { vertical } : {}), ...(typeof o.ordem === 'number' ? { ordem: o.ordem } : {}) });
+      await base44.entities.ObrigacaoLegal.create({ nome: tipoNome, competencia: o.competencia, status: newStatus, project_id: projectId, ...(vertical ? { vertical } : {}), ...(entity ? { entity_id: entity.id, entity_name: entity.nome } : {}), ...(typeof o.ordem === 'number' ? { ordem: o.ordem } : {}) });
     } else {
-      await base44.entities.ObrigacaoLegal.update(o.id, { status: newStatus });
+      await base44.entities.ObrigacaoLegal.update(o.id, { status: newStatus, ...(entity ? { entity_id: entity.id, entity_name: entity.nome } : {}) });
     }
     queryClient.invalidateQueries(['obrigacoes', projectId]);
   };
@@ -191,14 +191,14 @@ export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser, 
   const openNew = (nome) => {
     const now = new Date();
     const comp = `${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
-    setEditing({ nome, competencia: comp, status: 'nao_iniciado', project_id: projectId, ...(vertical ? { vertical } : {}) });
+    setEditing({ nome, competencia: comp, status: 'nao_iniciado', project_id: projectId, ...(vertical ? { vertical } : {}), ...(entity ? { entity_id: entity.id, entity_name: entity.nome } : {}) });
     setModalOpen(true);
   };
 
   // Edita uma competência específica. Para placeholders (sem id), garante nome/competência
   // para que o salvamento crie/atualize apenas o registro daquela competência.
   const openEdit = (o, nome) => {
-    setEditing({ ...o, nome: o.nome || nome, project_id: projectId });
+    setEditing({ ...o, nome: o.nome || nome, project_id: projectId, ...(entity ? { entity_id: entity.id, entity_name: entity.nome } : {}) });
     setModalOpen(true);
   };
 

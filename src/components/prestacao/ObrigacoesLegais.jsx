@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -11,10 +11,9 @@ import ObrigacaoModal from './ObrigacaoModal';
 import { useCurrentUser } from '@/lib/permissions';
 import ObrigacoesPorTipo from './ObrigacoesPorTipo';
 import CNDStatusCard from './CNDStatus';
+import { entityMatchesObligation } from '@/lib/entityRegistry';
 
 const OBRIGACOES_PADRAO = ['AM', 'SIOPE', 'SIOPS', 'Balancete', 'RGF', 'RREO', 'MSC', 'DECASP', 'IP', 'Balancete 13', 'Folha', 'Contratos'];
-
-// Obrigações anuais entregues em janeiro do ano seguinte ao exercício
 const OBRIGACOES_ANUAIS = ['DECASP', 'IP', 'Balancete 13'];
 
 function getSemaforo(obrigacao) {
@@ -52,11 +51,12 @@ function scoreConformidade(obrigacoes) {
   return Math.min(100, Math.max(0, score));
 }
 
-export default function ObrigacoesLegais({ projectId, project, vertical = null }) {
+export default function ObrigacoesLegais({ projectId, project, vertical = null, entity = null, allEntities = [] }) {
   const { user: currentUser } = useCurrentUser();
   const queryClient = useQueryClient();
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const initialized = useRef(false);
 
   const { data: allObrigacoes = [], isLoading } = useQuery({
     queryKey: ['obrigacoes', projectId],
@@ -65,16 +65,21 @@ export default function ObrigacoesLegais({ projectId, project, vertical = null }
     refetchInterval: 30000,
   });
 
-  // Filtra pela vertical selecionada (quando houver). Registros antigos sem vertical
-  // são tratados como pertencentes à primeira vertical para não desaparecerem.
+  React.useEffect(() => {
+    initialized.current = false;
+  }, [projectId, vertical, entity?.id]);
+
   const obrigacoes = useMemo(() => {
-    if (!vertical) return allObrigacoes;
-    return allObrigacoes.filter(o => (o.vertical || vertical) === vertical);
-  }, [allObrigacoes, vertical]);
+    return allObrigacoes.filter((obrigacao) => {
+      const sameVertical = !vertical || (obrigacao.vertical || vertical) === vertical;
+      const sameEntity = entityMatchesObligation(obrigacao, entity, allEntities);
+      return sameVertical && sameEntity;
+    });
+  }, [allObrigacoes, vertical, entity, allEntities]);
 
   const initDefaults = async () => {
     const existing = obrigacoes.map(o => o.nome);
-    const missing = OBRIGACOES_PADRAO.filter(n => !existing.includes(n));
+    const missing = OBRIGACOES_PADRAO.filter(nome => !existing.includes(nome));
     if (missing.length === 0) return;
     const now = new Date();
     const comp = `${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
@@ -83,6 +88,7 @@ export default function ObrigacoesLegais({ projectId, project, vertical = null }
       base44.entities.ObrigacaoLegal.create({
         project_id: projectId,
         ...(vertical ? { vertical } : {}),
+        ...(entity ? { entity_id: entity.id, entity_name: entity.nome } : {}),
         nome,
         competencia: OBRIGACOES_ANUAIS.includes(nome) ? compAnual : comp,
         ordem: OBRIGACOES_PADRAO.indexOf(nome),
@@ -93,12 +99,10 @@ export default function ObrigacoesLegais({ projectId, project, vertical = null }
     queryClient.invalidateQueries(['obrigacoes', projectId]);
   };
 
-  // Auto-inicializa padrões faltantes (inclusive em projetos já existentes)
-  const initialized = React.useRef(false);
   React.useEffect(() => {
     if (!isLoading && !initialized.current) {
       const existing = obrigacoes.map(o => o.nome);
-      const missing = OBRIGACOES_PADRAO.filter(n => !existing.includes(n));
+      const missing = OBRIGACOES_PADRAO.filter(nome => !existing.includes(nome));
       if (missing.length > 0) {
         initialized.current = true;
         initDefaults();
@@ -107,17 +111,27 @@ export default function ObrigacoesLegais({ projectId, project, vertical = null }
   }, [isLoading, obrigacoes]);
 
   const handleSave = async (data) => {
-    if (editing) {
-      await base44.entities.ObrigacaoLegal.update(editing.id, data);
+    if (editing?.id) {
+      await base44.entities.ObrigacaoLegal.update(editing.id, {
+        ...data,
+        ...(entity ? { entity_id: entity.id, entity_name: entity.nome } : {}),
+      });
     } else {
-      await base44.entities.ObrigacaoLegal.create({ ...data, project_id: projectId, ...(vertical ? { vertical } : {}) });
+      await base44.entities.ObrigacaoLegal.create({
+        ...data,
+        project_id: projectId,
+        ...(vertical ? { vertical } : {}),
+        ...(entity ? { entity_id: entity.id, entity_name: entity.nome } : {}),
+      });
     }
     queryClient.invalidateQueries(['obrigacoes', projectId]);
   };
 
-  const openNew = () => { setEditing(null); setModalOpen(true); };
+  const openNew = () => {
+    setEditing(null);
+    setModalOpen(true);
+  };
 
-  // KPIs
   const pendentes = obrigacoes.filter(o => o.status === 'nao_iniciado').length;
   const emElaboracao = obrigacoes.filter(o => o.status === 'em_elaboracao').length;
   const enviados = obrigacoes.filter(o => o.status === 'enviado').length;
@@ -125,7 +139,6 @@ export default function ObrigacoesLegais({ projectId, project, vertical = null }
   const rejeitados = obrigacoes.filter(o => o.status === 'rejeitado').length;
   const proximosPrazo = obrigacoes.filter(o => getSemaforo(o) === 'amarelo').length;
   const score = scoreConformidade(obrigacoes);
-
   const scoreColor = score >= 80 ? 'text-emerald-400' : score >= 60 ? 'text-yellow-400' : 'text-red-400';
   const scoreBg = score >= 80 ? 'bg-emerald-500/10' : score >= 60 ? 'bg-yellow-500/10' : 'bg-red-500/10';
 
@@ -135,11 +148,12 @@ export default function ObrigacoesLegais({ projectId, project, vertical = null }
 
   return (
     <div className="space-y-5">
-      {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h2 className="text-xl font-bold text-white">Obrigações Legais</h2>
-          <p className="text-sm text-slate-400">Controle de entregas obrigatórias e conformidade regulatória</p>
+          <p className="text-sm text-slate-400">
+            Controle de entregas obrigatórias e conformidade regulatória{entity ? ` — ${entity.nome_completo || entity.nome}` : ''}
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl ${scoreBg} border border-slate-700/50`}>
@@ -153,7 +167,6 @@ export default function ObrigacoesLegais({ projectId, project, vertical = null }
         </div>
       </div>
 
-      {/* KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <KPIBox icon={Clock} label="Pendentes" value={pendentes} color="text-slate-400" bg="bg-slate-700/60" />
         <KPIBox icon={FileText} label="Em elaboração" value={emElaboracao} color="text-yellow-400" bg="bg-yellow-500/10" />
@@ -163,20 +176,11 @@ export default function ObrigacoesLegais({ projectId, project, vertical = null }
         <KPIBox icon={AlertTriangle} label="Próx. do prazo" value={proximosPrazo} color="text-orange-400" bg="bg-orange-500/10" />
       </div>
 
-      {/* CND Status */}
-      {project && (
-        <CNDStatusCard project={project} obrigacoes={obrigacoes} showToggle />
-      )}
+      {project && <CNDStatusCard project={project} obrigacoes={obrigacoes} showToggle />}
 
-      <ObrigacoesPorTipo obrigacoes={obrigacoes} projectId={projectId} currentUser={currentUser} vertical={vertical} />
+      <ObrigacoesPorTipo obrigacoes={obrigacoes} projectId={projectId} currentUser={currentUser} vertical={vertical} entity={entity} />
 
-      <ObrigacaoModal
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-        obrigacao={editing}
-        onSave={handleSave}
-        currentUser={currentUser}
-      />
+      <ObrigacaoModal open={modalOpen} onOpenChange={setModalOpen} obrigacao={editing} onSave={handleSave} currentUser={currentUser} />
     </div>
   );
 }

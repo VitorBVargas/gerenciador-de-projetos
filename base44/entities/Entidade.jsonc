@@ -1,0 +1,26 @@
+{
+  "name": "Entidade",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "ID do projeto de sustenta\u00e7\u00e3o"
+    },
+    "nome": {
+      "type": "string",
+      "description": "Nome curto da entidade (ex: PM, C\u00e2mara, IP)"
+    },
+    "nome_completo": {
+      "type": "string",
+      "description": "Nome completo da entidade"
+    },
+    "ordem": {
+      "type": "number",
+      "description": "Ordem de exibi\u00e7\u00e3o nas abas e filtros"
+    }
+  },
+  "required": [
+    "project_id",
+    "nome"
+  ]
+}

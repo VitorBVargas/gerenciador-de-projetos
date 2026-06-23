@@ -17,6 +17,8 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import ProjectModal from '../components/modals/ProjectModal.jsx';
 import GlobalTracker from '@/components/horas/GlobalTracker.jsx';
 import { useCurrentUser, canEditProject } from '@/lib/permissions';
+import EntityManagerCard from '@/components/entities/EntityManagerCard';
+import { getAvailableEntities } from '@/lib/entityRegistry';
 import { createPageUrl } from '../utils';
 
 const PRIORITY_CONFIG = {
@@ -112,6 +114,16 @@ export default function SustentacaoDashboard() {
     enabled: !!projectId,
     staleTime: 5 * 60 * 1000,
   });
+
+  const { data: entities = [] } = useQuery({
+    queryKey: ['entities', projectId],
+    queryFn: () => projectId ? base44.entities.Entidade.filter({ project_id: projectId }) : [],
+    enabled: !!projectId,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const availableEntities = React.useMemo(() => getAvailableEntities(entities, produtos), [entities, produtos]);
+  const hasPrestacaoContas = produtos.some(p => p.prestacao_contas) || availableEntities.length > 0;
 
   if (loadingProject || !activeProject) {
     return (
@@ -241,14 +253,16 @@ export default function SustentacaoDashboard() {
         </div>
       </div>
 
+      <EntityManagerCard projectId={projectId} canEdit={canEdit} />
+
       {/* ── CND STATUS — só exibe se o projeto tem Prestação de Contas ── */}
-      {produtos.some(p => p.prestacao_contas) && (
+      {hasPrestacaoContas && (
         <CNDStatusCard project={activeProject} obrigacoes={obrigacoes} />
       )}
 
       {/* ── QUADRO CONSOLIDADO (Prestação de Contas) — logo abaixo da CND ── */}
-      {produtos.some(p => p.prestacao_contas) && (
-        <PrestacaoConsolidadaCard obrigacoes={obrigacoes} produtos={produtos} />
+      {hasPrestacaoContas && (
+        <PrestacaoConsolidadaCard obrigacoes={obrigacoes} produtos={produtos} entidades={availableEntities} />
       )}
 
       {/* ── KPI CARDS ─────────────────────────────────────────────────── */}
@@ -409,7 +423,7 @@ export default function SustentacaoDashboard() {
       </div>
 
       {/* ── GRÁFICO EVOLUÇÃO — apenas projetos sem Prestação de Contas ── */}
-      {!produtos.some(p => p.prestacao_contas) && (
+      {!hasPrestacaoContas && (
         <Card className="bg-slate-800/60 border-slate-700/50">
           <CardHeader className="pb-2">
             <CardTitle className="text-white text-base flex items-center gap-2">

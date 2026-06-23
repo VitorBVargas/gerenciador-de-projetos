@@ -1,20 +1,13 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { BarChart2 } from 'lucide-react';
 import { OBRIGACOES_ANUAIS, mesPertence } from './periodicidade';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { entityMatchesObligation, getAvailableEntities } from '@/lib/entityRegistry';
 
 const MESES = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
 
-// Mapeia status da obrigação para a cor do semáforo do quadro consolidado
-const STATUS_COLOR = {
-  enviado:   { fill: 'bg-emerald-500',  label: 'Enviado',          legend: 'bg-emerald-500' },
-  aceito:    { fill: 'bg-emerald-500',  label: 'Enviado',          legend: 'bg-emerald-500' },
-  rejeitado: { fill: 'bg-red-500',      label: 'Pendente envio',   legend: 'bg-red-500' },
-  em_elaboracao: { fill: 'bg-yellow-400', label: 'Em elaboração',  legend: 'bg-yellow-400' },
-};
-
 function getCellState(o, mesIdx, mesAtual, anoExercicio, anoAtual) {
-  // Sem registro válido
   const hasData = o && o.status && o.status !== 'nao_iniciado';
   if (hasData) {
     if (o.status === 'enviado') return 'enviado';
@@ -23,34 +16,49 @@ function getCellState(o, mesIdx, mesAtual, anoExercicio, anoAtual) {
     if (o.status === 'em_elaboracao') return 'elaboracao';
     return 'vazio';
   }
-  // Mês atual sem dados → não marca como pendente (apenas a borda amarela o destaca)
   if (anoExercicio === anoAtual && mesIdx === mesAtual) return 'vazio';
-  // Meses passados sem dados → pendente de envio
   if (anoExercicio < anoAtual) return 'pendente';
   if (anoExercicio === anoAtual && mesIdx < mesAtual) return 'pendente';
   return 'vazio';
 }
 
 const CELL_CLASS = {
-  enviado:    'bg-emerald-500',
-  teste:      'bg-blue-500',
-  pendente:   'bg-red-500',
+  enviado: 'bg-emerald-500',
+  teste: 'bg-blue-500',
+  pendente: 'bg-red-500',
   elaboracao: 'bg-yellow-400',
-  vazio:      'bg-indigo-500/20 border border-indigo-400/40 flex items-center justify-center',
-  ausente:    'bg-transparent border border-slate-700/20',
+  vazio: 'bg-indigo-500/20 border border-indigo-400/40 flex items-center justify-center',
 };
 
-export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [] }) {
-  // Tipos de obrigação que possuem registros
-  const tipos = useMemo(() => {
-    const set = new Set(obrigacoes.map(o => o.nome).filter(Boolean));
-    return Array.from(set).sort();
-  }, [obrigacoes]);
+export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [], entidades = [] }) {
+  const availableEntities = useMemo(() => getAvailableEntities(entidades, produtos), [entidades, produtos]);
+  const [selectedTipo, setSelectedTipo] = useState('__todos__');
+  const [selectedAno, setSelectedAno] = useState(new Date().getFullYear());
+  const [selectedEntityId, setSelectedEntityId] = useState('');
 
-  // Anos disponíveis (exercícios). Anuais contam para o exercício anterior à sua competência.
+  useEffect(() => {
+    if (availableEntities.length > 0 && !availableEntities.some(entity => entity.id === selectedEntityId)) {
+      setSelectedEntityId(availableEntities[0].id);
+    }
+  }, [availableEntities, selectedEntityId]);
+
+  const selectedEntity = useMemo(() => {
+    return availableEntities.find(entity => entity.id === selectedEntityId) || null;
+  }, [availableEntities, selectedEntityId]);
+
+  const filteredObrigacoes = useMemo(() => {
+    if (!selectedEntity) return obrigacoes;
+    return obrigacoes.filter(obrigacao => entityMatchesObligation(obrigacao, selectedEntity, availableEntities));
+  }, [obrigacoes, selectedEntity, availableEntities]);
+
+  const tipos = useMemo(() => {
+    const set = new Set(filteredObrigacoes.map(o => o.nome).filter(Boolean));
+    return Array.from(set).sort();
+  }, [filteredObrigacoes]);
+
   const anos = useMemo(() => {
     const set = new Set();
-    obrigacoes.forEach(o => {
+    filteredObrigacoes.forEach(o => {
       const [, y] = (o.competencia || '').split('/');
       if (!y) return;
       const ano = OBRIGACOES_ANUAIS.includes(o.nome) ? Number(y) - 1 : Number(y);
@@ -58,37 +66,26 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
     });
     set.add(new Date().getFullYear());
     return Array.from(set).sort((a, b) => b - a);
-  }, [obrigacoes]);
+  }, [filteredObrigacoes]);
 
-  const [selectedTipo, setSelectedTipo] = useState('__todos__');
-  const [selectedAno, setSelectedAno] = useState(anos[0]);
+  useEffect(() => {
+    if (anos.length > 0 && !anos.includes(selectedAno)) {
+      setSelectedAno(anos[0]);
+    }
+  }, [anos, selectedAno]);
 
   const isTodos = selectedTipo === '__todos__';
   const tipo = !isTodos && tipos.includes(selectedTipo) ? selectedTipo : tipos[0];
   const ano = anos.includes(selectedAno) ? selectedAno : anos[0];
-
-  // Entidades = produtos com prestação de contas (uma linha por entidade)
-  const entidades = useMemo(() => {
-    const seen = new Map();
-    produtos
-      .filter(p => p.prestacao_contas)
-      .forEach(p => {
-        const key = p.entity_full_name || p.entity || p.name;
-        if (key && !seen.has(key)) seen.set(key, p);
-      });
-    return Array.from(seen.keys());
-  }, [produtos]);
-
   const now = new Date();
-  const mesAtual = now.getMonth(); // 0-11
+  const mesAtual = now.getMonth();
   const anoAtual = now.getFullYear();
 
-  // Obrigações do tipo/ano selecionado, indexadas por mês (0-11)
   const obrigacoesPorMes = useMemo(() => {
     if (!tipo) return {};
     const isAnual = OBRIGACOES_ANUAIS.includes(tipo);
     const map = {};
-    obrigacoes
+    filteredObrigacoes
       .filter(o => o.nome === tipo)
       .forEach(o => {
         const [m, y] = (o.competencia || '').split('/');
@@ -99,33 +96,31 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
         map[mesIdx] = o;
       });
     return map;
-  }, [obrigacoes, tipo, ano]);
+  }, [filteredObrigacoes, tipo, ano]);
 
-  // Para o modo "Todos": uma linha por tipo, indexada por mês (0-11)
   const todosPorTipo = useMemo(() => {
-    return tipos.map(t => {
-      const isAnual = OBRIGACOES_ANUAIS.includes(t);
-      const map = {};
-      obrigacoes
-        .filter(o => o.nome === t)
+    return tipos.map((tipoNome) => {
+      const isAnual = OBRIGACOES_ANUAIS.includes(tipoNome);
+      const porMes = {};
+      filteredObrigacoes
+        .filter(o => o.nome === tipoNome)
         .forEach(o => {
           const [m, y] = (o.competencia || '').split('/');
           if (!m || !y) return;
           const exercicio = isAnual ? Number(y) - 1 : Number(y);
           if (exercicio !== ano) return;
           const mesIdx = isAnual ? 0 : Number(m) - 1;
-          map[mesIdx] = o;
+          porMes[mesIdx] = o;
         });
-      return { tipo: t, porMes: map };
+      return { tipo: tipoNome, porMes };
     });
-  }, [obrigacoes, tipos, ano]);
+  }, [filteredObrigacoes, tipos, ano]);
 
-  // "Mês consolidado" = último mês com tudo enviado/aceito
   const mesConsolidado = useMemo(() => {
     let last = -1;
     for (let i = 0; i < 12; i++) {
-      const o = obrigacoesPorMes[i];
-      if (o && (o.status === 'enviado' || o.status === 'aceito')) last = i;
+      const obrigacao = obrigacoesPorMes[i];
+      if (obrigacao && (obrigacao.status === 'enviado' || obrigacao.status === 'aceito')) last = i;
     }
     return last;
   }, [obrigacoesPorMes]);
@@ -142,7 +137,6 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
 
   return (
     <Card className="bg-slate-800/60 border-slate-700/50 overflow-hidden">
-      {/* Cabeçalho com legenda */}
       <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-slate-700/60 to-slate-800/40 border-b border-slate-700/50">
         <div className="flex items-center gap-2">
           <BarChart2 className="w-5 h-5 text-blue-400" />
@@ -159,90 +153,82 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
       </div>
 
       <CardContent className="p-5 space-y-4">
-        {/* Seletores: tipo de obrigação e exercício */}
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setSelectedTipo('__todos__')}
-            className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${
-              isTodos ? 'bg-emerald-600 text-white' : 'bg-slate-600/60 text-slate-300 hover:bg-slate-600'
-            }`}
+            className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${isTodos ? 'bg-emerald-600 text-white' : 'bg-slate-600/60 text-slate-300 hover:bg-slate-600'}`}
           >
             Todos
           </button>
-          {tipos.map(t => (
+          {tipos.map(tipoNome => (
             <button
-              key={t}
-              onClick={() => setSelectedTipo(t)}
-              className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${
-                !isTodos && t === tipo ? 'bg-emerald-600 text-white' : 'bg-slate-600/60 text-slate-300 hover:bg-slate-600'
-              }`}
+              key={tipoNome}
+              onClick={() => setSelectedTipo(tipoNome)}
+              className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${!isTodos && tipoNome === tipo ? 'bg-emerald-600 text-white' : 'bg-slate-600/60 text-slate-300 hover:bg-slate-600'}`}
             >
-              {t}
+              {tipoNome}
             </button>
           ))}
-          <div className="ml-auto flex items-center gap-1.5">
-            {anos.map(a => (
+          {availableEntities.length > 0 && (
+            <div className="ml-auto min-w-[220px]">
+              <Select value={selectedEntityId} onValueChange={setSelectedEntityId}>
+                <SelectTrigger className="bg-slate-700/60 border-slate-600 text-white">
+                  <SelectValue placeholder="Filtrar entidade" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                  {availableEntities.map((entity) => (
+                    <SelectItem key={entity.id} value={entity.id}>{entity.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          <div className="flex items-center gap-1.5">
+            {anos.map(itemAno => (
               <button
-                key={a}
-                onClick={() => setSelectedAno(a)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
-                  a === ano ? 'bg-blue-600 text-white' : 'bg-slate-700/60 text-slate-300 hover:bg-slate-700'
-                }`}
+                key={itemAno}
+                onClick={() => setSelectedAno(itemAno)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${itemAno === ano ? 'bg-blue-600 text-white' : 'bg-slate-700/60 text-slate-300 hover:bg-slate-700'}`}
               >
-                {a}
+                {itemAno}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Título do mês consolidado */}
         <p className="text-blue-300 font-bold uppercase tracking-wide text-sm">
           {isTodos
-            ? <>Todas as Obrigações <span className="text-slate-500">({ano})</span></>
+            ? <>{selectedEntity ? selectedEntity.nome : 'Todas as Obrigações'} <span className="text-slate-500">({ano})</span></>
             : <>Mês Consolidado: {mesConsolidado >= 0 ? MESES[mesConsolidado] : '—'} <span className="text-slate-500">({ano})</span></>
           }
         </p>
 
-        {/* Grade de meses */}
         <div className="overflow-x-auto">
           <div className="min-w-[640px]">
-            {/* Header de meses */}
             <div className="grid grid-cols-[180px_repeat(12,1fr)] gap-1 mb-1">
               <div />
-              {MESES.map((m, i) => (
-                <div key={m} className={`text-center text-xs font-bold ${i === mesAtual && ano === anoAtual ? 'text-yellow-400' : 'text-slate-400'}`}>
-                  {m}
+              {MESES.map((mes, index) => (
+                <div key={mes} className={`text-center text-xs font-bold ${index === mesAtual && ano === anoAtual ? 'text-yellow-400' : 'text-slate-400'}`}>
+                  {mes}
                 </div>
               ))}
             </div>
 
-            {/* Modo Todos: uma linha por tipo de obrigação */}
-            {isTodos && todosPorTipo.map(({ tipo: t, porMes }, rowIdx) => (
-              <div key={rowIdx} className="grid grid-cols-[180px_repeat(12,1fr)] gap-1 mb-1.5 items-stretch">
+            {isTodos && todosPorTipo.map(({ tipo: tipoNome, porMes }) => (
+              <div key={tipoNome} className="grid grid-cols-[180px_repeat(12,1fr)] gap-1 mb-1.5 items-stretch">
                 <div className="flex items-center pr-2">
-                  <span className="text-xs text-slate-300 font-medium truncate bg-slate-700/40 rounded-full px-3 py-2 w-full" title={t}>
-                    {t}
+                  <span className="text-xs text-slate-300 font-medium truncate bg-slate-700/40 rounded-full px-3 py-2 w-full" title={tipoNome}>
+                    {tipoNome}
                   </span>
                 </div>
-                {MESES.map((m, i) => {
-                  const o = porMes[i];
-                  // Mês fora da periodicidade da obrigação → isento (não se aplica)
-                  if (!mesPertence(t, i)) {
-                    return (
-                      <div
-                        key={i}
-                        className="h-8 rounded-md bg-transparent border border-slate-700/20"
-                        title={`${t} — ${m}/${ano}: não se aplica`}
-                      />
-                    );
+                {MESES.map((mes, index) => {
+                  const obrigacao = porMes[index];
+                  if (!mesPertence(tipoNome, index)) {
+                    return <div key={index} className="h-8 rounded-md bg-transparent border border-slate-700/20" title={`${tipoNome} — ${mes}/${ano}: não se aplica`} />;
                   }
-                  const state = getCellState(o, i, mesAtual, ano, anoAtual);
+                  const state = getCellState(obrigacao, index, mesAtual, ano, anoAtual);
                   return (
-                    <div
-                      key={i}
-                      className={`h-8 rounded-md ${CELL_CLASS[state]} transition-colors`}
-                      title={`${t} — ${m}/${ano}${o?.status ? ` — ${o.status}` : state === 'vazio' ? ' — aguardando' : ''}`}
-                    >
+                    <div key={index} className={`h-8 rounded-md ${CELL_CLASS[state]} transition-colors`} title={`${tipoNome} — ${mes}/${ano}${obrigacao?.status ? ` — ${obrigacao.status}` : state === 'vazio' ? ' — aguardando' : ''}`}>
                       {state === 'vazio' && <span className="text-indigo-300 text-xs font-bold">—</span>}
                     </div>
                   );
@@ -250,39 +236,27 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
               </div>
             ))}
 
-            {/* Modo por tipo: linhas por entidade (ou linha única do tipo) */}
-            {!isTodos && (entidades.length > 0 ? entidades : [tipo]).map((ent, rowIdx) => (
-              <div key={rowIdx} className="grid grid-cols-[180px_repeat(12,1fr)] gap-1 mb-1.5 items-stretch">
+            {!isTodos && (
+              <div className="grid grid-cols-[180px_repeat(12,1fr)] gap-1 mb-1.5 items-stretch">
                 <div className="flex items-center pr-2">
-                  <span className="text-xs text-slate-300 font-medium truncate bg-slate-700/40 rounded-full px-3 py-2 w-full" title={ent}>
-                    {ent}
+                  <span className="text-xs text-slate-300 font-medium truncate bg-slate-700/40 rounded-full px-3 py-2 w-full" title={selectedEntity?.nome_completo || selectedEntity?.nome || tipo}>
+                    {selectedEntity?.nome || 'Projeto'}
                   </span>
                 </div>
-                {MESES.map((m, i) => {
-                  const o = obrigacoesPorMes[i];
-                  // Mês fora da periodicidade da obrigação → isento (não se aplica)
-                  if (!mesPertence(tipo, i)) {
-                    return (
-                      <div
-                        key={i}
-                        className="h-8 rounded-md bg-transparent border border-slate-700/20"
-                        title={`${m}/${ano}: não se aplica`}
-                      />
-                    );
+                {MESES.map((mes, index) => {
+                  const obrigacao = obrigacoesPorMes[index];
+                  if (!mesPertence(tipo, index)) {
+                    return <div key={index} className="h-8 rounded-md bg-transparent border border-slate-700/20" title={`${mes}/${ano}: não se aplica`} />;
                   }
-                  const state = getCellState(o, i, mesAtual, ano, anoAtual);
+                  const state = getCellState(obrigacao, index, mesAtual, ano, anoAtual);
                   return (
-                    <div
-                      key={i}
-                      className={`h-8 rounded-md ${CELL_CLASS[state]} transition-colors`}
-                      title={`${m}/${ano}${o?.status ? ` — ${o.status}` : state === 'vazio' ? ' — aguardando' : ''}`}
-                    >
+                    <div key={index} className={`h-8 rounded-md ${CELL_CLASS[state]} transition-colors`} title={`${mes}/${ano}${obrigacao?.status ? ` — ${obrigacao.status}` : state === 'vazio' ? ' — aguardando' : ''}`}>
                       {state === 'vazio' && <span className="text-indigo-300 text-xs font-bold">—</span>}
                     </div>
                   );
                 })}
               </div>
-            ))}
+            )}
           </div>
         </div>
       </CardContent>

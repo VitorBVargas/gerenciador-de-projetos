@@ -6,6 +6,14 @@
       "type": "string",
       "description": "ID do projeto"
     },
+    "entity_id": {
+      "type": "string",
+      "description": "ID da entidade vinculada"
+    },
+    "entity_name": {
+      "type": "string",
+      "description": "Nome da entidade vinculada"
+    },
     "vertical": {
       "type": "string",
       "description": "Vertical da presta\u00e7\u00e3o de contas (ex: pessoal, cont\u00e1bil) \u2014 vinculada ao produto de Presta\u00e7\u00e3o de Contas"
