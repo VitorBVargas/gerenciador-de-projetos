@@ -1,11 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { BarChart2 } from 'lucide-react';
+import { OBRIGACOES_ANUAIS, mesPertence } from './periodicidade';
 
 const MESES = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
-
-// Obrigações anuais: competência = janeiro do ano seguinte ao exercício
-const OBRIGACOES_ANUAIS = ['DECASP', 'Balancete 13'];
 
 // Mapeia status da obrigação para a cor do semáforo do quadro consolidado
 const STATUS_COLOR = {
@@ -25,9 +23,11 @@ function getCellState(o, mesIdx, mesAtual, anoExercicio, anoAtual) {
     if (o.status === 'em_elaboracao') return 'elaboracao';
     return 'vazio';
   }
-  // Meses passados E o mês atual (no exercício atual) sem dados → pendente de envio
+  // Mês atual sem dados → não marca como pendente (apenas a borda amarela o destaca)
+  if (anoExercicio === anoAtual && mesIdx === mesAtual) return 'vazio';
+  // Meses passados sem dados → pendente de envio
   if (anoExercicio < anoAtual) return 'pendente';
-  if (anoExercicio === anoAtual && mesIdx <= mesAtual) return 'pendente';
+  if (anoExercicio === anoAtual && mesIdx < mesAtual) return 'pendente';
   return 'vazio';
 }
 
@@ -37,6 +37,7 @@ const CELL_CLASS = {
   pendente:   'bg-red-500',
   elaboracao: 'bg-yellow-400',
   vazio:      'bg-slate-700/40',
+  ausente:    'bg-slate-600/30 border border-slate-600/40',
 };
 
 export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [] }) {
@@ -224,9 +225,9 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
                 </div>
                 {MESES.map((m, i) => {
                   const o = porMes[i];
-                  const isAnual = OBRIGACOES_ANUAIS.includes(t);
-                  if (isAnual && i !== 0) {
-                    return <div key={i} className="h-8 rounded-md bg-slate-800/40 border border-slate-700/30" />;
+                  // Mês fora da periodicidade da obrigação → ausente (cinza)
+                  if (!mesPertence(t, i)) {
+                    return <div key={i} className="h-8 rounded-md bg-slate-600/30 border border-slate-600/40" title={`${t} — ${m}/${ano}: não se aplica`} />;
                   }
                   const state = getCellState(o, i, mesAtual, ano, anoAtual);
                   const isMarker = i === mesAtual && ano === anoAtual;
@@ -251,10 +252,9 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
                 </div>
                 {MESES.map((m, i) => {
                   const o = obrigacoesPorMes[i];
-                  const isAnual = OBRIGACOES_ANUAIS.includes(tipo);
-                  // Para anuais só a coluna JAN é relevante
-                  if (isAnual && i !== 0) {
-                    return <div key={i} className="h-8 rounded-md bg-slate-800/40 border border-slate-700/30" />;
+                  // Mês fora da periodicidade da obrigação → ausente (cinza)
+                  if (!mesPertence(tipo, i)) {
+                    return <div key={i} className="h-8 rounded-md bg-slate-600/30 border border-slate-600/40" title={`${m}/${ano}: não se aplica`} />;
                   }
                   const state = getCellState(o, i, mesAtual, ano, anoAtual);
                   const isMarker = i === mesAtual && ano === anoAtual;

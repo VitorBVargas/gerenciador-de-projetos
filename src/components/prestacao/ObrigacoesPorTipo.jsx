@@ -8,6 +8,7 @@ import { CheckCircle, Clock, AlertTriangle, XCircle, FileText, Plus, Calendar, C
 import { differenceInDays, parseISO, format } from 'date-fns';
 import ObrigacaoModal from './ObrigacaoModal';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { OBRIGACOES_ANUAIS, mesesEsperados } from './periodicidade';
 
 const STATUS_CFG = {
   nao_iniciado: { label: 'Pendente', color: 'text-slate-400', bg: 'bg-slate-700/60', icon: Clock },
@@ -64,13 +65,6 @@ export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser }
   const [editing, setEditing] = useState(null);
   const [expanded, setExpanded] = useState({}); // Track expanded state per obligation type — fechados por padrão
 
-// Obrigações anuais: têm apenas 1 competência (janeiro do ano seguinte ao exercício)
-const OBRIGACOES_ANUAIS = ['DECASP', 'Balancete 13'];
-// Obrigações bimestrais: 6 competências por exercício (fim de cada bimestre)
-const OBRIGACOES_BIMESTRAIS = ['MSC'];
-// Meses de fechamento de cada bimestre
-const MESES_BIMESTRE = [2, 4, 6, 8, 10, 12];
-
   // Get current year from data or use current year
   const years = useMemo(() => {
     const yrs = new Set(obrigacoes.map(o => {
@@ -102,17 +96,10 @@ const MESES_BIMESTRE = [2, 4, 6, 8, 10, 12];
     return months;
   }, [selectedYear]);
 
-  // Competências bimestrais (6 por ano)
-  const bimestralMonths = useMemo(
-    () => MESES_BIMESTRE.map(m => `${String(m).padStart(2, '0')}/${selectedYear}`),
-    [selectedYear]
-  );
-
   // Retorna as competências esperadas para um tipo de obrigação
   const mesesDoTipo = (nome) => {
     if (OBRIGACOES_ANUAIS.includes(nome)) return [`01/${Number(selectedYear) + 1}`];
-    if (OBRIGACOES_BIMESTRAIS.includes(nome)) return bimestralMonths;
-    return allMonths;
+    return mesesEsperados(nome).map(m => `${String(m).padStart(2, '0')}/${selectedYear}`);
   };
 
   // Group by nome (type), filtered by selected year, ensuring all 12 months exist
@@ -155,7 +142,7 @@ const MESES_BIMESTRE = [2, 4, 6, 8, 10, 12];
     });
     
     return result;
-  }, [obrigacoes, selectedYear, allMonths, bimestralMonths, projectId]);
+  }, [obrigacoes, selectedYear, allMonths, projectId]);
 
   const nomes = Object.keys(grouped).sort();
 
