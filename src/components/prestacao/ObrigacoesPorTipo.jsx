@@ -66,6 +66,10 @@ export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser }
 
 // Obrigações anuais: têm apenas 1 competência (janeiro do ano seguinte ao exercício)
 const OBRIGACOES_ANUAIS = ['DECASP', 'Balancete 13'];
+// Obrigações bimestrais: 6 competências por exercício (fim de cada bimestre)
+const OBRIGACOES_BIMESTRAIS = ['MSC'];
+// Meses de fechamento de cada bimestre
+const MESES_BIMESTRE = [2, 4, 6, 8, 10, 12];
 
   // Get current year from data or use current year
   const years = useMemo(() => {
@@ -89,6 +93,19 @@ const OBRIGACOES_ANUAIS = ['DECASP', 'Balancete 13'];
     return months;
   }, [selectedYear]);
 
+  // Competências bimestrais (6 por ano)
+  const bimestralMonths = useMemo(
+    () => MESES_BIMESTRE.map(m => `${String(m).padStart(2, '0')}/${selectedYear}`),
+    [selectedYear]
+  );
+
+  // Retorna as competências esperadas para um tipo de obrigação
+  const mesesDoTipo = (nome) => {
+    if (OBRIGACOES_ANUAIS.includes(nome)) return [`01/${Number(selectedYear) + 1}`];
+    if (OBRIGACOES_BIMESTRAIS.includes(nome)) return bimestralMonths;
+    return allMonths;
+  };
+
   // Group by nome (type), filtered by selected year, ensuring all 12 months exist
   const grouped = useMemo(() => {
     const map = {};
@@ -105,12 +122,9 @@ const OBRIGACOES_ANUAIS = ['DECASP', 'Balancete 13'];
       map[o.nome][o.competencia] = o;
     });
     
-    // Para obrigações anuais (DECASP, Balancete 13): apenas janeiro do ano seguinte ao exercício
-    const competenciaAnual = `01/${Number(selectedYear) + 1}`;
-
     // Ensure the right competências exist for each obligation type
     Object.keys(map).forEach(nome => {
-      const meses = OBRIGACOES_ANUAIS.includes(nome) ? [competenciaAnual] : allMonths;
+      const meses = mesesDoTipo(nome);
       meses.forEach(month => {
         if (!map[nome][month]) {
           // Create placeholder for missing month
@@ -126,12 +140,12 @@ const OBRIGACOES_ANUAIS = ['DECASP', 'Balancete 13'];
     // Convert back to arrays sorted by competência
     const result = {};
     Object.keys(map).forEach(nome => {
-      const meses = OBRIGACOES_ANUAIS.includes(nome) ? [`01/${Number(selectedYear) + 1}`] : allMonths;
+      const meses = mesesDoTipo(nome);
       result[nome] = meses.map(month => map[nome][month]);
     });
     
     return result;
-  }, [obrigacoes, selectedYear, allMonths, projectId]);
+  }, [obrigacoes, selectedYear, allMonths, bimestralMonths, projectId]);
 
   const nomes = Object.keys(grouped).sort();
 
