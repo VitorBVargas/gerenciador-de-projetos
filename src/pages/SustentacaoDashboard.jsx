@@ -246,6 +246,11 @@ export default function SustentacaoDashboard() {
         <CNDStatusCard project={activeProject} obrigacoes={obrigacoes} />
       )}
 
+      {/* ── QUADRO CONSOLIDADO (Prestação de Contas) — logo abaixo da CND ── */}
+      {produtos.some(p => p.prestacao_contas) && (
+        <PrestacaoConsolidadaCard obrigacoes={obrigacoes} produtos={produtos} />
+      )}
+
       {/* ── KPI CARDS ─────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         <KPICard icon={CheckSquare} label="Backlog Total" value={backlogActivities.length}
@@ -403,10 +408,8 @@ export default function SustentacaoDashboard() {
         </div>
       </div>
 
-      {/* ── QUADRO CONSOLIDADO (Prestação de Contas) OU GRÁFICO EVOLUÇÃO ── */}
-      {produtos.some(p => p.prestacao_contas) ? (
-        <PrestacaoConsolidadaCard obrigacoes={obrigacoes} produtos={produtos} />
-      ) : (
+      {/* ── GRÁFICO EVOLUÇÃO — apenas projetos sem Prestação de Contas ── */}
+      {!produtos.some(p => p.prestacao_contas) && (
         <Card className="bg-slate-800/60 border-slate-700/50">
           <CardHeader className="pb-2">
             <CardTitle className="text-white text-base flex items-center gap-2">
@@ -433,6 +436,7 @@ export default function SustentacaoDashboard() {
           </CardContent>
         </Card>
       )}
+
 
       {/* Project Modal */}
       <ProjectModal
