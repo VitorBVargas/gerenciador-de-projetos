@@ -12,7 +12,7 @@ import { useCurrentUser } from '@/lib/permissions';
 import ObrigacoesPorTipo from './ObrigacoesPorTipo';
 import CNDStatusCard from './CNDStatus';
 
-const OBRIGACOES_PADRAO = ['AM', 'SIOPE', 'SIOPS', 'Balancete', 'RGF', 'RREO', 'MSC', 'DECASP', 'Balancete 13'];
+const OBRIGACOES_PADRAO = ['AM', 'SIOPE', 'SIOPS', 'Balancete', 'RGF', 'RREO', 'MSC', 'DECASP', 'Balancete 13', 'Folha', 'Contratos'];
 
 // Obrigações anuais entregues em janeiro do ano seguinte ao exercício
 const OBRIGACOES_ANUAIS = ['DECASP', 'Balancete 13'];

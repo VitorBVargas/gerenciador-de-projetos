@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +11,6 @@ import {
 } from 'lucide-react';
 import CNDStatusCard from '../components/prestacao/CNDStatus';
 import PrestacaoConsolidadaCard from '../components/prestacao/PrestacaoConsolidadaCard.jsx';
-import { getPrestacaoVerticals } from '../components/prestacao/prestacaoVerticals';
 import { format, subDays, isWithinInterval, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
@@ -70,8 +69,7 @@ export default function SustentacaoDashboard() {
   const projectId = urlParams.get('project_id');
   const { user: currentUser } = useCurrentUser();
   const canEdit = canEditProject(currentUser);
-  const [projectModalOpen, setProjectModalOpen] = useState(false);
-  const [prestacaoVertical, setPrestacaoVertical] = useState(null);
+  const [projectModalOpen, setProjectModalOpen] = React.useState(false);
 
   const { data: activeProject, isLoading: loadingProject } = useQuery({
     queryKey: ['project', projectId],
@@ -249,40 +247,9 @@ export default function SustentacaoDashboard() {
       )}
 
       {/* ── QUADRO CONSOLIDADO (Prestação de Contas) — logo abaixo da CND ── */}
-      {produtos.some(p => p.prestacao_contas) && (() => {
-        const verticais = getPrestacaoVerticals(produtos);
-        const hasMulti = verticais.length > 1;
-        const selected = hasMulti
-          ? (verticais.some(v => v.key === prestacaoVertical) ? prestacaoVertical : verticais[0].key)
-          : null;
-        const obrigacoesView = selected
-          ? obrigacoes.filter(o => (o.vertical || selected) === selected)
-          : obrigacoes;
-        return (
-          <div className="space-y-3">
-            {hasMulti && (
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs text-slate-400 font-medium">Prestação de Contas:</span>
-                {verticais.map(v => (
-                  <button
-                    key={v.key}
-                    onClick={() => setPrestacaoVertical(v.key)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors capitalize ${
-                      selected === v.key
-                        ? 'bg-yellow-500 text-slate-900'
-                        : 'bg-slate-700/60 text-slate-300 hover:bg-slate-700'
-                    }`}
-                    title={v.productName}
-                  >
-                    {v.label}
-                  </button>
-                ))}
-              </div>
-            )}
-            <PrestacaoConsolidadaCard obrigacoes={obrigacoesView} produtos={produtos} />
-          </div>
-        );
-      })()}
+      {produtos.some(p => p.prestacao_contas) && (
+        <PrestacaoConsolidadaCard obrigacoes={obrigacoes} produtos={produtos} />
+      )}
 
       {/* ── KPI CARDS ─────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
