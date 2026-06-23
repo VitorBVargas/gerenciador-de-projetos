@@ -378,19 +378,22 @@ export default function KickoffPresentation({ projectId, onClose }) {
             position: absolute; left: 0; top: 0; width: 100%;
             margin: 0 !important; padding: 0 !important;
             display: block !important; max-width: none !important;
+            gap: 0 !important;
           }
           .kickoff-slide {
             break-inside: avoid; page-break-inside: avoid;
             break-after: page; page-break-after: always;
             box-shadow: none !important; border-radius: 0 !important;
             margin: 0 !important;
-            width: 100%;
-            height: auto;
+            width: 277mm !important;
+            height: 188mm !important;
+            aspect-ratio: auto !important;
+            overflow: hidden !important;
           }
           .kickoff-slide:last-child { break-after: auto; page-break-after: auto; }
           /* Preserva cores de fundo e gradientes no PDF */
           * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-          @page { size: A4 landscape; margin: 0; }
+          @page { size: A4 landscape; margin: 10mm; }
         }
       `}</style>
     </div>
