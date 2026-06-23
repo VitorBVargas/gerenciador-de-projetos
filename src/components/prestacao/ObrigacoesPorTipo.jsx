@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, Clock, AlertTriangle, XCircle, FileText, Plus, Calendar, ChevronDown, ChevronUp, Trash2, Edit, ChevronLeft, ChevronRight } from 'lucide-react';
+import { CheckCircle, Clock, AlertTriangle, XCircle, FileText, Plus, Calendar, ChevronDown, ChevronUp, Trash2, Edit, ChevronLeft, ChevronRight, ArrowUp, ArrowDown } from 'lucide-react';
 import { differenceInDays, parseISO, format } from 'date-fns';
 import ObrigacaoModal from './ObrigacaoModal';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -17,6 +17,8 @@ const STATUS_CFG = {
   enviado: { label: 'Enviado Oficial', color: 'text-emerald-400', bg: 'bg-emerald-500/10 border border-emerald-500/30', icon: CheckCircle },
   rejeitado: { label: 'Rejeitado', color: 'text-red-400', bg: 'bg-red-500/10 border border-red-500/30', icon: XCircle },
 };
+
+const DEFAULT_TYPE_ORDER = ['AM', 'SIOPE', 'SIOPS', 'Balancete', 'RGF', 'RREO', 'MSC', 'DECASP', 'IP', 'Balancete 13', 'Folha', 'Contratos'];
 
 function getSemaforo(o) {
   if (o.status === 'aceito') return 'aceito';
@@ -144,7 +146,19 @@ export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser, 
     return result;
   }, [obrigacoes, selectedYear, allMonths, projectId]);
 
-  const nomes = Object.keys(grouped).sort();
+  const nomes = useMemo(() => {
+    const getTypeOrder = (nome) => {
+      const record = (grouped[nome] || []).find(o => typeof o.ordem === 'number');
+      if (record) return record.ordem;
+      const defaultIndex = DEFAULT_TYPE_ORDER.indexOf(nome);
+      return defaultIndex >= 0 ? defaultIndex : 999;
+    };
+
+    return Object.keys(grouped).sort((a, b) => {
+      const diff = getTypeOrder(a) - getTypeOrder(b);
+      return diff !== 0 ? diff : a.localeCompare(b);
+    });
+  }, [grouped]);
 
   const toggleExpand = (nome) => setExpanded(p => ({ ...p, [nome]: !p[nome] }));
 
@@ -167,7 +181,7 @@ export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser, 
     if (!tipoNome) return; // nunca cria registro sem nome de obrigação
     if (!o.id) {
       // placeholder — create new record para o tipo correto
-      await base44.entities.ObrigacaoLegal.create({ nome: tipoNome, competencia: o.competencia, status: newStatus, project_id: projectId, ...(vertical ? { vertical } : {}) });
+      await base44.entities.ObrigacaoLegal.create({ nome: tipoNome, competencia: o.competencia, status: newStatus, project_id: projectId, ...(vertical ? { vertical } : {}), ...(typeof o.ordem === 'number' ? { ordem: o.ordem } : {}) });
     } else {
       await base44.entities.ObrigacaoLegal.update(o.id, { status: newStatus });
     }
@@ -205,6 +219,54 @@ export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser, 
     const maxYear = Math.max(...years.map(Number));
     const newYear = String(maxYear + 1);
     setSelectedYear(newYear);
+  };
+
+  const persistTypeOrder = async (orderedNames) => {
+    const updates = [];
+
+    orderedNames.forEach((typeName, index) => {
+      obrigacoes
+        .filter(o => o.id && o.nome === typeName)
+        .forEach(o => {
+          if (o.ordem !== index) {
+            updates.push(base44.entities.ObrigacaoLegal.update(o.id, { ordem: index }));
+          }
+        });
+    });
+
+    if (updates.length === 0) return;
+    await Promise.all(updates);
+    queryClient.invalidateQueries(['obrigacoes', projectId]);
+  };
+
+  const handleMoveType = async (nome, direction) => {
+    const currentIndex = nomes.indexOf(nome);
+    const targetIndex = currentIndex + direction;
+    if (currentIndex < 0 || targetIndex < 0 || targetIndex >= nomes.length) return;
+
+    const ordered = [...nomes];
+    [ordered[currentIndex], ordered[targetIndex]] = [ordered[targetIndex], ordered[currentIndex]];
+    await persistTypeOrder(ordered);
+  };
+
+  const handleDeleteType = async (nome) => {
+    const anoSeguinte = String(Number(selectedYear) + 1);
+    const registros = (grouped[nome] || []).filter(o => {
+      if (!o.id) return false;
+      const [, y] = (o.competencia || '').split('/');
+      const isAnual = OBRIGACOES_ANUAIS.includes(nome);
+      return isAnual ? y === anoSeguinte : y === selectedYear;
+    });
+
+    if (registros.length === 0) {
+      alert(`Não há registros para a barra ${nome} no exercício ${selectedYear}.`);
+      return;
+    }
+
+    if (!confirm(`Deletar a barra ${nome} e seus ${registros.length} registro(s) do exercício ${selectedYear}?`)) return;
+
+    await Promise.all(registros.map(o => base44.entities.ObrigacaoLegal.delete(o.id)));
+    queryClient.invalidateQueries(['obrigacoes', projectId]);
   };
 
   // Remove todos os registros do exercício selecionado (inclui as anuais cuja competência é jan do ano seguinte)
@@ -259,11 +321,13 @@ export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser, 
           </Button>
         </div>
       </div>
-      {nomes.map(nome => {
+      {nomes.map((nome, index) => {
         const items = grouped[nome];
         const { aceitos, rejeitados, atrasados, total, last } = getTypeSummary(items);
         const hasAlert = atrasados > 0 || rejeitados > 0;
         const isExpanded = expanded[nome] === true; // Fechado por padrão
+        const canMoveUp = index > 0;
+        const canMoveDown = index < nomes.length - 1;
 
         return (
           <Card key={nome} className={`border ${hasAlert ? 'border-red-500/30 bg-slate-800/80' : 'border-slate-700/50 bg-slate-800/60'}`}>
@@ -289,6 +353,29 @@ export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser, 
                   {atrasados > 0 && <span className="text-red-400 animate-pulse">{atrasados} atrasados</span>}
                 </div>
                 {last && <StatusCell obrigacao={last} />}
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleMoveType(nome, -1); }}
+                  disabled={!canMoveUp}
+                  className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-30"
+                  title="Mover para cima"
+                >
+                  <ArrowUp className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleMoveType(nome, 1); }}
+                  disabled={!canMoveDown}
+                  className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-30"
+                  title="Mover para baixo"
+                >
+                  <ArrowDown className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleDeleteType(nome); }}
+                  className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                  title="Deletar barra"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); openNew(nome); }}
                   className="p-1.5 text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"

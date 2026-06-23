@@ -2,7 +2,7 @@
 // Define quais meses (1-12) cada tipo de obrigação possui competência em um exercício.
 
 // Anuais: competência única em janeiro do ano seguinte ao exercício
-export const OBRIGACOES_ANUAIS = ['DECASP', 'Balancete 13'];
+export const OBRIGACOES_ANUAIS = ['DECASP', 'IP', 'Balancete 13'];
 
 // Mensais: todos os 12 meses
 export const OBRIGACOES_MENSAIS = ['MSC', 'AM', 'Balancete', 'Folha', 'Contratos'];

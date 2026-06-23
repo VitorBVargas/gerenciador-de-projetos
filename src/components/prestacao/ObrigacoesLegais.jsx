@@ -12,10 +12,10 @@ import { useCurrentUser } from '@/lib/permissions';
 import ObrigacoesPorTipo from './ObrigacoesPorTipo';
 import CNDStatusCard from './CNDStatus';
 
-const OBRIGACOES_PADRAO = ['AM', 'SIOPE', 'SIOPS', 'Balancete', 'RGF', 'RREO', 'MSC', 'DECASP', 'Balancete 13', 'Folha', 'Contratos'];
+const OBRIGACOES_PADRAO = ['AM', 'SIOPE', 'SIOPS', 'Balancete', 'RGF', 'RREO', 'MSC', 'DECASP', 'IP', 'Balancete 13', 'Folha', 'Contratos'];
 
 // Obrigações anuais entregues em janeiro do ano seguinte ao exercício
-const OBRIGACOES_ANUAIS = ['DECASP', 'Balancete 13'];
+const OBRIGACOES_ANUAIS = ['DECASP', 'IP', 'Balancete 13'];
 
 function getSemaforo(obrigacao) {
   if (obrigacao.status === 'aceito') return null;
@@ -85,6 +85,7 @@ export default function ObrigacoesLegais({ projectId, project, vertical = null }
         ...(vertical ? { vertical } : {}),
         nome,
         competencia: OBRIGACOES_ANUAIS.includes(nome) ? compAnual : comp,
+        ordem: OBRIGACOES_PADRAO.indexOf(nome),
         status: 'nao_iniciado',
         is_padrao: true,
       })
