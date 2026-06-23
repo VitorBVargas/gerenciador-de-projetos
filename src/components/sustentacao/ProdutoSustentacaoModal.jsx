@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { base44 } from '@/api/base44Client';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 
 const VERTICAL_OPTIONS = [
   { value: 'arrecadacao', label: 'Arrecadação' },
@@ -40,6 +40,12 @@ export default function ProdutoSustentacaoModal({ open, onOpenChange, produto, p
   const qc = useQueryClient();
   const [form, setForm] = useState({ name: '', custom_name: '', vertical: '', entity: '' });
   const [saving, setSaving] = useState(false);
+
+  const { data: entidades = [] } = useQuery({
+    queryKey: ['entidades', projectId],
+    queryFn: () => base44.entities.Entidade.filter({ project_id: projectId }),
+    enabled: !!projectId && open,
+  });
 
   useEffect(() => {
     if (produto) {
@@ -134,8 +140,21 @@ export default function ProdutoSustentacaoModal({ open, onOpenChange, produto, p
 
           <div>
             <Label className="text-slate-300 text-xs">Entidade / Órgão</Label>
-            <Input value={form.entity} onChange={e => set('entity', e.target.value)}
-              placeholder="ex: PM, CM, IPASI" className="bg-slate-800 border-slate-600 text-white mt-1" />
+            <Select value={form.entity || ''} onValueChange={v => set('entity', v)}>
+              <SelectTrigger className="bg-slate-800 border-slate-600 text-white mt-1">
+                <SelectValue placeholder={entidades.length ? 'Selecionar entidade...' : 'Nenhuma entidade cadastrada'} />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-800 border-slate-700">
+                {form.entity && !entidades.some(e => e.nome === form.entity) && (
+                  <SelectItem value={form.entity} className="text-white hover:bg-slate-700">{form.entity}</SelectItem>
+                )}
+                {[...entidades].sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0)).map(e => (
+                  <SelectItem key={e.id} value={e.nome} className="text-white hover:bg-slate-700">
+                    {e.nome}{e.nome_completo ? ` — ${e.nome_completo}` : ''}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex justify-end gap-2 pt-2">
