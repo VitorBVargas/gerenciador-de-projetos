@@ -210,6 +210,24 @@ const MESES_BIMESTRE = [2, 4, 6, 8, 10, 12];
     setSelectedYear(newYear);
   };
 
+  // Remove todos os registros do exercício selecionado (inclui as anuais cuja competência é jan do ano seguinte)
+  const handleDeleteYear = async () => {
+    const anoSeguinte = String(Number(selectedYear) + 1);
+    const doExercicio = obrigacoes.filter(o => {
+      if (!o.id) return false;
+      const [, y] = (o.competencia || '').split('/');
+      const isAnual = OBRIGACOES_ANUAIS.includes(o.nome);
+      return isAnual ? y === anoSeguinte : y === selectedYear;
+    });
+    if (doExercicio.length === 0) {
+      alert(`Não há registros para o exercício ${selectedYear}.`);
+      return;
+    }
+    if (!confirm(`Deletar TODOS os ${doExercicio.length} registros do exercício ${selectedYear}? Esta ação não pode ser desfeita.`)) return;
+    await Promise.all(doExercicio.map(o => base44.entities.ObrigacaoLegal.delete(o.id)));
+    queryClient.invalidateQueries(['obrigacoes', projectId]);
+  };
+
   return (
     <div className="space-y-4">
       {/* Year selector */}
@@ -235,9 +253,14 @@ const MESES_BIMESTRE = [2, 4, 6, 8, 10, 12];
             </button>
           </div>
         </div>
-        <Button size="sm" variant="outline" onClick={addNewYear} className="border-slate-600 text-slate-300 hover:bg-slate-700 gap-1.5">
-          <Plus className="w-3.5 h-3.5" /> Novo Exercício
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="outline" onClick={handleDeleteYear} className="border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300 gap-1.5">
+            <Trash2 className="w-3.5 h-3.5" /> Deletar Exercício
+          </Button>
+          <Button size="sm" variant="outline" onClick={addNewYear} className="border-slate-600 text-slate-300 hover:bg-slate-700 gap-1.5">
+            <Plus className="w-3.5 h-3.5" /> Novo Exercício
+          </Button>
+        </div>
       </div>
       {nomes.map(nome => {
         const items = grouped[nome];
