@@ -234,7 +234,7 @@ export default function KickoffPresentation({ projectId, onClose }) {
           {/* SLIDE 6 — Macro etapas */}
           <Slide className="bg-gradient-to-br from-blue-50 to-cyan-50">
             <SlideHeader title="Metodologia" subtitle="Macro etapas e atividades" />
-            <div className="grid grid-cols-5 gap-2 mt-6">
+            <div className="grid grid-cols-5 gap-3 mt-8 flex-1">
               {[
                 ['Iniciação / Planejamento', '1 semana', ['Planejamento', 'Backup (base + dicionário)', 'Kick-Off', 'Proposta de Cronograma', 'Documentação de Projeto'], 'bg-blue-500 text-white'],
                 ['Análise Inicial e Diagnóstico Operacional', '3 semanas', ['Premissas e requisitos', 'Mapeamento assistido', 'Refinamento e controle'], 'bg-slate-600 text-white'],
@@ -243,18 +243,18 @@ export default function KickoffPresentation({ projectId, onClose }) {
                 ['Operação Assistida', '4 semanas', ['Acompanhamento assistido', 'Aceite de Implantação', 'Passagem de Bastão', 'Serviços pós-implantação'], 'bg-slate-600 text-white'],
               ].map(([titulo, semanas, items, cls], i) => (
                 <div key={i} className="flex flex-col">
-                  <div className={`${cls} px-3 py-4 text-center text-[11px] font-semibold min-h-[64px] flex items-center justify-center`}
+                  <div className={`${cls} px-4 py-6 text-center text-sm font-semibold min-h-[92px] flex items-center justify-center leading-snug`}
                     style={{ clipPath: 'polygon(0 0, 88% 0, 100% 50%, 88% 100%, 0 100%, 12% 50%)' }}>{titulo}</div>
-                  <div className="bg-slate-200 text-slate-700 text-[10px] text-center py-1 mt-3 mx-auto px-3 rounded">{semanas}</div>
-                  <ul className="mt-3 space-y-1">
-                    {items.map(it => <li key={it} className="text-[9px] text-slate-600 leading-tight">- {it}</li>)}
+                  <div className="bg-slate-200 text-slate-700 text-xs font-medium text-center py-1.5 mt-4 mx-auto px-4 rounded-full">{semanas}</div>
+                  <ul className="mt-4 space-y-1.5">
+                    {items.map(it => <li key={it} className="text-[11px] text-slate-600 leading-snug flex items-start gap-1.5"><span className="w-1 h-1 rounded-full bg-blue-400 mt-1.5 flex-shrink-0" />{it}</li>)}
                   </ul>
                 </div>
               ))}
             </div>
-            <div className="mt-4 flex items-center gap-2">
-              <div className="flex-1 h-6 bg-blue-600 rounded flex items-center justify-center text-white text-[10px] font-semibold">Implantação</div>
-              <div className="w-28 h-6 bg-blue-300 rounded flex items-center justify-center text-slate-800 text-[10px] font-semibold">Sustentação</div>
+            <div className="mt-6 flex items-center gap-3">
+              <div className="flex-1 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white text-xs font-semibold">Implantação</div>
+              <div className="w-36 h-8 bg-blue-300 rounded-lg flex items-center justify-center text-slate-800 text-xs font-semibold">Sustentação</div>
             </div>
           </Slide>
 
