@@ -127,7 +127,7 @@ export default function KickoffPresentation({ projectId, onClose }) {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[60] bg-slate-950/95 overflow-y-auto">
+    <div className="kickoff-print-root fixed inset-0 z-[60] bg-slate-950/95 overflow-y-auto">
       <div className="print:hidden sticky top-0 z-10 flex items-center justify-between px-6 py-3 bg-slate-900 border-b border-slate-700">
         <div className="flex items-center gap-2 text-white">
           <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-sm">B</div>
@@ -371,29 +371,39 @@ export default function KickoffPresentation({ projectId, onClose }) {
 
       <style>{`
         @media print {
-          html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; }
+          @page { size: A4 landscape; margin: 0; }
+          html, body {
+            margin: 0 !important; padding: 0 !important; background: #fff !important;
+            height: auto !important; overflow: visible !important;
+          }
+          /* Hide everything, then reveal only the slides container */
           body * { visibility: hidden; }
-          .kickoff-slides, .kickoff-slides * { visibility: visible; }
+          .kickoff-slides, .kickoff-slides * { visibility: visible !important; }
+          /* The modal overlay is fixed/overflow-auto — neutralize it for print so the full document flows across pages */
+          .kickoff-print-root {
+            position: static !important; inset: auto !important;
+            overflow: visible !important; height: auto !important;
+            background: #fff !important;
+          }
           .kickoff-slides {
-            position: absolute; left: 0; top: 0; width: 100%;
+            position: static !important;
             margin: 0 !important; padding: 0 !important;
             display: block !important; max-width: none !important;
-            gap: 0 !important;
+            gap: 0 !important; overflow: visible !important;
           }
           .kickoff-slide {
             break-inside: avoid; page-break-inside: avoid;
             break-after: page; page-break-after: always;
             box-shadow: none !important; border-radius: 0 !important;
-            margin: 0 !important;
-            width: 277mm !important;
-            height: 188mm !important;
+            margin: 0 auto !important;
+            width: 297mm !important;
+            height: 209mm !important;
             aspect-ratio: auto !important;
             overflow: hidden !important;
           }
           .kickoff-slide:last-child { break-after: auto; page-break-after: auto; }
           /* Preserva cores de fundo e gradientes no PDF */
           * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-          @page { size: A4 landscape; margin: 10mm; }
         }
       `}</style>
     </div>
