@@ -9,7 +9,7 @@ import {
   Clock, AlertCircle, ChevronRight, Loader2, Package
 } from 'lucide-react';
 import { toast } from 'sonner';
-import KickoffPresentation from '@/components/documents/KickoffPresentation';
+import KickoffDeck from '@/components/kickoff/KickoffDeck';
 
 const DOCUMENTS = [
   { key: 'tap', label: 'TAP', byProduct: false, description: 'Termo de Abertura do Projeto' },
@@ -789,7 +789,7 @@ export default function Documents() {
       })()}
 
       {kickoffOpen && (
-        <KickoffPresentation projectId={projectId} onClose={() => setKickoffOpen(false)} />
+        <KickoffDeck projectId={projectId} onClose={() => setKickoffOpen(false)} />
       )}
     </div>
   );
