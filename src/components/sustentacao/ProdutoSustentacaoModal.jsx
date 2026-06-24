@@ -75,6 +75,7 @@ export default function ProdutoSustentacaoModal({ open, onOpenChange, produto, p
   // Produto existente com nome fora da lista padrão (ex: importado)
   const isCustomName = !!form.name && form.vertical && !productList.includes(form.name);
 
+  const hasCustomName = !!(form.custom_name || '').trim();
   const finalName = (form.custom_name || '').trim() || form.name;
 
   const handleSave = async () => {
@@ -99,7 +100,7 @@ export default function ProdutoSustentacaoModal({ open, onOpenChange, produto, p
         </DialogHeader>
         <div className="space-y-4 mt-2">
           <div>
-            <Label className="text-slate-300 text-xs">Vertical *</Label>
+            <Label className="text-slate-300 text-xs">Vertical {!hasCustomName && '*'}</Label>
             <Select value={form.vertical} onValueChange={handleVerticalChange}>
               <SelectTrigger className="bg-slate-800 border-slate-600 text-white mt-1">
                 <SelectValue placeholder="Selecionar vertical..." />
@@ -113,7 +114,7 @@ export default function ProdutoSustentacaoModal({ open, onOpenChange, produto, p
           </div>
 
           <div>
-            <Label className="text-slate-300 text-xs">Produto *</Label>
+            <Label className="text-slate-300 text-xs">Produto {!hasCustomName && '*'}</Label>
             {isCustomName ? (
               <Input value={form.name} onChange={e => set('name', e.target.value)}
                 className="bg-slate-800 border-slate-600 text-white mt-1" />
@@ -159,7 +160,7 @@ export default function ProdutoSustentacaoModal({ open, onOpenChange, produto, p
 
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="ghost" onClick={() => onOpenChange(false)} className="text-slate-400">Cancelar</Button>
-            <Button onClick={handleSave} disabled={saving || !finalName || !form.vertical}
+            <Button onClick={handleSave} disabled={saving || !finalName || (!hasCustomName && !form.vertical)}
               className="bg-purple-600 hover:bg-purple-700">
               {saving ? 'Salvando...' : 'Salvar'}
             </Button>
