@@ -6,6 +6,7 @@ import { X, Printer, Loader2, Search, Download } from 'lucide-react';
 import { phaseLabels } from '../timeline/phaseLabels';
 import KickoffTeamSlides from './KickoffTeamSlides';
 import { exportKickoffPptx } from './exportKickoffPptx';
+import { exportKickoffPdf } from './exportKickoffPdf';
 
 // Ordem canônica das fases (mesma do cronograma)
 const PHASE_ORDER = [
@@ -101,7 +102,17 @@ export default function KickoffPresentation({ projectId, onClose }) {
   });
 
   const [exporting, setExporting] = useState(false);
+  const [exportingPdf, setExportingPdf] = useState(false);
   const loading = lp || le || lt;
+
+  const handleExportPdf = async () => {
+    setExportingPdf(true);
+    try {
+      await exportKickoffPdf(`Kick-Off ${project?.city || project?.name || ''}`.trim());
+    } finally {
+      setExportingPdf(false);
+    }
+  };
 
   const handleExportPptx = async () => {
     setExporting(true);
@@ -134,8 +145,8 @@ export default function KickoffPresentation({ projectId, onClose }) {
           <span className="font-semibold">Kick-Off — Projeto de Implantação</span>
         </div>
         <div className="flex items-center gap-2">
-          <Button size="sm" className="bg-blue-600 hover:bg-blue-700 gap-2" onClick={() => window.print()}>
-            <Printer className="w-4 h-4" /> Imprimir / Salvar PDF
+          <Button size="sm" className="bg-blue-600 hover:bg-blue-700 gap-2" onClick={handleExportPdf} disabled={exportingPdf}>
+            {exportingPdf ? <Loader2 className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4" />} {exportingPdf ? 'Gerando PDF...' : 'Salvar PDF'}
           </Button>
           <Button size="sm" className="bg-orange-600 hover:bg-orange-700 gap-2" onClick={handleExportPptx} disabled={exporting}>
             {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />} Baixar PPT
