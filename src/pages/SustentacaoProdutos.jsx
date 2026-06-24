@@ -196,6 +196,16 @@ export default function SustentacaoProdutos() {
     qc.invalidateQueries({ queryKey: ['chamados', projectId] });
   };
 
+  const handleProductChange = async (chamado, newProductId) => {
+    if (newProductId === '__none__') {
+      await base44.entities.Chamado.update(chamado.id, { product_id: '', product_name: '' });
+    } else {
+      const prod = products.find(p => p.id === newProductId);
+      await base44.entities.Chamado.update(chamado.id, { product_id: newProductId, product_name: prod?.name || '' });
+    }
+    qc.invalidateQueries({ queryKey: ['chamados', projectId] });
+  };
+
   const handleEdit = (chamado) => { setEditChamado(chamado); setModalTipo(chamado.tipo || 'interno'); setShowModal(true); };
   const handleNew = (tipo = 'interno') => { setEditChamado(null); setModalTipo(tipo); setShowModal(true); };
 
@@ -478,7 +488,22 @@ export default function SustentacaoProdutos() {
                       <p className="text-slate-200 truncate" title={c.descricao}>{c.descricao}</p>
                     </td>
                     <td className="px-4 py-3 text-slate-300 text-xs">{c.categoria || '—'}</td>
-                    <td className="px-4 py-3 text-slate-300 text-xs">{c.product_name || '—'}</td>
+                    <td className="px-4 py-3">
+                      <select
+                        value={c.product_id || '__none__'}
+                        onChange={e => handleProductChange(c, e.target.value)}
+                        className="text-xs text-slate-200 bg-slate-700/60 border border-slate-600 rounded-md px-2 py-1 max-w-[160px] cursor-pointer focus:outline-none focus:ring-1 focus:ring-purple-500"
+                        title={c.product_name || 'Sem produto'}
+                      >
+                        <option value="__none__" className="bg-slate-800 text-slate-400">— Sem produto —</option>
+                        {!c.product_id && c.product_name && (
+                          <option value="__none__" disabled className="bg-slate-800 text-slate-400">{c.product_name}</option>
+                        )}
+                        {products.map(p => (
+                          <option key={p.id} value={p.id} className="bg-slate-800 text-white">{p.name}</option>
+                        ))}
+                      </select>
+                    </td>
                     <td className="px-4 py-3 text-slate-300 text-xs">{c.entity_name || '—'}</td>
                     <td className="px-4 py-3">
                       <select
