@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import {
   CheckSquare, AlertTriangle, Target, TrendingUp, Users,
   Calendar, Clock, Flag, ChevronRight, Activity, BarChart2,
-  Zap, Shield, ArrowUp, ArrowDown, Minus, ExternalLink, Edit, ShieldCheck, ShieldAlert
+  Zap, Shield, ArrowUp, ArrowDown, Minus, ExternalLink, Edit, ShieldCheck, ShieldAlert, Eye, RotateCcw
 } from 'lucide-react';
 import CNDStatusCard from '../components/prestacao/CNDStatus';
 import PrestacaoConsolidadaCard from '../components/prestacao/PrestacaoConsolidadaCard.jsx';
@@ -18,9 +18,21 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import SustentacaoProjectModal from '../components/modals/SustentacaoProjectModal.jsx';
 import GlobalTracker from '@/components/horas/GlobalTracker.jsx';
 import ChamadosResumo from '../components/sustentacao/ChamadosResumo.jsx';
+import HideableSection from '../components/sustentacao/HideableSection.jsx';
 import { useCurrentUser, canEditProject } from '@/lib/permissions';
 import { getAvailableEntities } from '@/lib/entityRegistry';
 import { createPageUrl } from '../utils';
+
+const SECTION_LABELS = {
+  cnd: 'Status CND',
+  prestacao: 'Prestação de Contas',
+  observacoes: 'Observações Críticas',
+  kpis: 'KPI Cards',
+  objetivos: 'Objetivos do Roadmap',
+  chamados: 'Chamados',
+  backlog: 'Backlog e Riscos',
+  evolucao: 'Evolução das Atividades',
+};
 
 const PRIORITY_CONFIG = {
   alta:   { label: 'Alta',   color: 'text-red-400',    bg: 'bg-red-500/10 border-red-500/30',    dot: 'bg-red-400' },
@@ -73,6 +85,18 @@ export default function SustentacaoDashboard() {
   const { user: currentUser } = useCurrentUser();
   const canEdit = canEditProject(currentUser);
   const [projectModalOpen, setProjectModalOpen] = React.useState(false);
+
+  const storageKey = `dashHidden:${projectId}`;
+  const [hiddenSections, setHiddenSections] = React.useState(() => {
+    try { return JSON.parse(localStorage.getItem(`dashHidden:${projectId}`) || '[]'); } catch { return []; }
+  });
+  const persistHidden = (next) => {
+    setHiddenSections(next);
+    try { localStorage.setItem(storageKey, JSON.stringify(next)); } catch (e) { /* ignore */ }
+  };
+  const hideSection = (key) => persistHidden([...new Set([...hiddenSections, key])]);
+  const showSection = (key) => persistHidden(hiddenSections.filter(k => k !== key));
+  const isHidden = (key) => hiddenSections.includes(key);
 
   const { data: activeProject, isLoading: loadingProject } = useQuery({
     queryKey: ['project', projectId],
@@ -308,238 +332,279 @@ export default function SustentacaoDashboard() {
         </div>
       </div>
 
+      {/* ── BARRA DE QUADROS OCULTOS ──────────────────────────────────── */}
+      {hiddenSections.length > 0 && (
+        <div className="flex items-center gap-2 flex-wrap bg-slate-800/40 border border-slate-700/50 rounded-xl px-4 py-2.5">
+          <span className="text-xs text-slate-400 flex items-center gap-1.5">
+            <Eye className="w-3.5 h-3.5" /> Quadros ocultos:
+          </span>
+          {hiddenSections.map(key => (
+            <button key={key} onClick={() => showSection(key)}
+              className="text-xs px-2.5 py-1 rounded-full bg-slate-700/60 text-slate-300 hover:bg-slate-600 hover:text-white transition-colors flex items-center gap-1">
+              {SECTION_LABELS[key] || key} <RotateCcw className="w-3 h-3" />
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* ── CND STATUS — só exibe se o projeto tem Prestação de Contas ── */}
-      {hasPrestacaoContas && (
-        <CNDStatusCard project={activeProject} obrigacoes={obrigacoes} />
+      {hasPrestacaoContas && !isHidden('cnd') && (
+        <HideableSection hidden={false} onHide={() => hideSection('cnd')}>
+          <CNDStatusCard project={activeProject} obrigacoes={obrigacoes} />
+        </HideableSection>
       )}
 
       {/* ── QUADRO CONSOLIDADO (Prestação de Contas) — logo abaixo da CND ── */}
-      {hasPrestacaoContas && (
-        prestacaoLoading ? (
-          <Card className="bg-slate-800/60 border-slate-700/50">
-            <CardContent className="py-12 flex items-center justify-center">
-              <div className="w-6 h-6 border-2 border-slate-600 border-t-blue-500 rounded-full animate-spin" />
-            </CardContent>
-          </Card>
-        ) : (
-          <PrestacaoConsolidadaCard obrigacoes={obrigacoes} produtos={produtos} entidades={availableEntities} />
-        )
+      {hasPrestacaoContas && !isHidden('prestacao') && (
+        <HideableSection hidden={false} onHide={() => hideSection('prestacao')}>
+          {prestacaoLoading ? (
+            <Card className="bg-slate-800/60 border-slate-700/50">
+              <CardContent className="py-12 flex items-center justify-center">
+                <div className="w-6 h-6 border-2 border-slate-600 border-t-blue-500 rounded-full animate-spin" />
+              </CardContent>
+            </Card>
+          ) : (
+            <PrestacaoConsolidadaCard obrigacoes={obrigacoes} produtos={produtos} entidades={availableEntities} />
+          )}
+        </HideableSection>
       )}
 
       {/* ── OBSERVAÇÕES CRÍTICAS (impacto alto, não concluídas/canceladas) ── */}
-      <ObservacoesCriticas projectId={projectId} />
+      {!isHidden('observacoes') && (
+        <HideableSection hidden={false} onHide={() => hideSection('observacoes')}>
+          <ObservacoesCriticas projectId={projectId} />
+        </HideableSection>
+      )}
 
       {/* ── KPI CARDS ─────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-        <KPICard icon={CheckSquare} label="Backlog Total" value={backlogActivities.length}
-          color="text-blue-400" bg="bg-blue-500/10" />
-        <KPICard icon={Activity} label="Concluídas (30d)" value={done30.length}
-          color="text-emerald-400" bg="bg-emerald-500/10" />
-        <KPICard icon={AlertTriangle} label="Riscos Ativos" value={activeRisks.length}
-          sub={criticalRisks.length > 0 ? `${criticalRisks.length} crítico(s)` : 'Sem críticos'}
-          color={criticalRisks.length > 0 ? "text-red-400" : "text-emerald-400"}
-          bg={criticalRisks.length > 0 ? "bg-red-500/10" : "bg-emerald-500/10"} />
-        <KPICard icon={Users} label="Equipe" value={teamMembers.length}
-          color="text-purple-400" bg="bg-purple-500/10" />
-        <KPICard icon={TrendingUp} label="Atividades Concluídas" value={`${objPct}%`}
-          sub={`${totalDone} de ${activities.length}`}
-          color="text-cyan-400" bg="bg-cyan-500/10" />
-      </div>
+      {!isHidden('kpis') && (
+        <HideableSection hidden={false} onHide={() => hideSection('kpis')}>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <KPICard icon={CheckSquare} label="Backlog Total" value={backlogActivities.length}
+              color="text-blue-400" bg="bg-blue-500/10" />
+            <KPICard icon={Activity} label="Concluídas (30d)" value={done30.length}
+              color="text-emerald-400" bg="bg-emerald-500/10" />
+            <KPICard icon={AlertTriangle} label="Riscos Ativos" value={activeRisks.length}
+              sub={criticalRisks.length > 0 ? `${criticalRisks.length} crítico(s)` : 'Sem críticos'}
+              color={criticalRisks.length > 0 ? "text-red-400" : "text-emerald-400"}
+              bg={criticalRisks.length > 0 ? "bg-red-500/10" : "bg-emerald-500/10"} />
+            <KPICard icon={Users} label="Equipe" value={teamMembers.length}
+              color="text-purple-400" bg="bg-purple-500/10" />
+            <KPICard icon={TrendingUp} label="Atividades Concluídas" value={`${objPct}%`}
+              sub={`${totalDone} de ${activities.length}`}
+              color="text-cyan-400" bg="bg-cyan-500/10" />
+          </div>
+        </HideableSection>
+      )}
 
       {/* ── OBJETIVOS ATUAIS (Roadmap 30/60/90 dias) ─────────────────── */}
-      <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-5">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Target className="w-4 h-4 text-blue-400" />
-            <span className="text-sm font-semibold text-slate-200">Objetivos do Roadmap</span>
-            {cicloAtivo && <span className="text-xs text-slate-500">· {cicloAtivo.name}</span>}
-          </div>
-          <a href={createPageUrl(`SustentacaoRoadmap?project_id=${projectId}`)}
-            className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1">
-            Ver Roadmap <ChevronRight className="w-3 h-3" />
-          </a>
-        </div>
+      {!isHidden('objetivos') && (
+        <HideableSection hidden={false} onHide={() => hideSection('objetivos')}>
+          <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Target className="w-4 h-4 text-blue-400" />
+                <span className="text-sm font-semibold text-slate-200">Objetivos do Roadmap</span>
+                {cicloAtivo && <span className="text-xs text-slate-500">· {cicloAtivo.name}</span>}
+              </div>
+              <a href={createPageUrl(`SustentacaoRoadmap?project_id=${projectId}`)}
+                className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1">
+                Ver Roadmap <ChevronRight className="w-3 h-3" />
+              </a>
+            </div>
 
-        {!cicloAtivo ? (
-          <div className="text-center py-6">
-            <p className="text-slate-500 text-sm">Nenhum ciclo ativo.</p>
-            <p className="text-slate-600 text-xs mt-1">Crie um ciclo e objetivos na aba Roadmap.</p>
+            {!cicloAtivo ? (
+              <div className="text-center py-6">
+                <p className="text-slate-500 text-sm">Nenhum ciclo ativo.</p>
+                <p className="text-slate-600 text-xs mt-1">Crie um ciclo e objetivos na aba Roadmap.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                {[
+                  { key: '30dias', label: '30 dias', icon: '🎯', color: 'from-blue-600/20 to-cyan-600/10', border: 'border-blue-500/30' },
+                  { key: '60dias', label: '60 dias', icon: '🚀', color: 'from-purple-600/20 to-pink-600/10', border: 'border-purple-500/30' },
+                  { key: '90dias', label: '90 dias', icon: '🏁', color: 'from-emerald-600/20 to-teal-600/10', border: 'border-emerald-500/30' },
+                ].map(({ key, label, icon, color, border }) => {
+                  const objs = objCiclo.filter(o => o.periodo === key);
+                  return (
+                    <div key={key} className={`bg-gradient-to-br ${color} border ${border} rounded-xl p-4`}>
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-lg">{icon}</span>
+                        <span className="text-sm font-semibold text-slate-300">Objetivo — {label}</span>
+                      </div>
+                      {objs.length === 0 ? (
+                        <p className="text-slate-500 text-sm py-2">Nenhum objetivo definido.</p>
+                      ) : (
+                        <div className="space-y-3">
+                          {objs.map(obj => {
+                            const pct = objProgress(obj);
+                            return (
+                              <div key={obj.id}>
+                                <p className="text-white font-medium text-sm">{obj.titulo}</p>
+                                <div className="mt-1.5">
+                                  <div className="flex justify-between text-xs text-slate-400 mb-1">
+                                    <span>{obj.responsavel || 'Sem responsável'}</span>
+                                    <span className="font-semibold text-white">{pct}%</span>
+                                  </div>
+                                  <div className="w-full bg-slate-700 rounded-full h-1.5">
+                                    <div className="h-1.5 rounded-full bg-blue-500 transition-all" style={{ width: `${pct}%` }} />
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {[
-              { key: '30dias', label: '30 dias', icon: '🎯', color: 'from-blue-600/20 to-cyan-600/10', border: 'border-blue-500/30' },
-              { key: '60dias', label: '60 dias', icon: '🚀', color: 'from-purple-600/20 to-pink-600/10', border: 'border-purple-500/30' },
-              { key: '90dias', label: '90 dias', icon: '🏁', color: 'from-emerald-600/20 to-teal-600/10', border: 'border-emerald-500/30' },
-            ].map(({ key, label, icon, color, border }) => {
-              const objs = objCiclo.filter(o => o.periodo === key);
-              return (
-                <div key={key} className={`bg-gradient-to-br ${color} border ${border} rounded-xl p-4`}>
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-lg">{icon}</span>
-                    <span className="text-sm font-semibold text-slate-300">Objetivo — {label}</span>
+        </HideableSection>
+      )}
+
+      {/* ── RESUMO DE CHAMADOS (internos e externos) ─────────────────── */}
+      {!isHidden('chamados') && (
+        <HideableSection hidden={false} onHide={() => hideSection('chamados')}>
+          <ChamadosResumo chamados={chamados} projectId={projectId} />
+        </HideableSection>
+      )}
+
+      {/* ── BACKLOG RESUMO + TOP 5 + RISCOS ──────────────────────────── */}
+      {!isHidden('backlog') && (
+        <HideableSection hidden={false} onHide={() => hideSection('backlog')}>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            {/* Backlog por prioridade + Top 5 */}
+            <div className="lg:col-span-2 space-y-4">
+              {/* Prioridade summary */}
+              <Card className="bg-slate-800/60 border-slate-700/50">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-white text-base flex items-center gap-2">
+                    <Flag className="w-4 h-4 text-blue-400" /> Resumo do Backlog
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="grid grid-cols-4 gap-3 mb-4">
+                    {[
+                      { key: 'critica', label: 'Crítica', color: 'bg-red-500' },
+                      { key: 'alta', label: 'Alta', color: 'bg-orange-500' },
+                      { key: 'media', label: 'Média', color: 'bg-yellow-500' },
+                      { key: 'baixa', label: 'Baixa', color: 'bg-slate-500' },
+                    ].map(({ key, label, color }) => (
+                      <div key={key} className="text-center bg-slate-700/50 rounded-lg p-3">
+                        <div className={`w-3 h-3 rounded-full ${color} mx-auto mb-1`} />
+                        <p className="text-2xl font-bold text-white">{priorityCounts[key] || 0}</p>
+                        <p className="text-xs text-slate-400">{label}</p>
+                      </div>
+                    ))}
                   </div>
-                  {objs.length === 0 ? (
-                    <p className="text-slate-500 text-sm py-2">Nenhum objetivo definido.</p>
+
+                  {/* Top 5 */}
+                  <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">5 próximos priorizados</p>
+                  {top5.length === 0 ? (
+                    <p className="text-slate-500 text-sm py-4 text-center">Nenhuma atividade no backlog.</p>
                   ) : (
-                    <div className="space-y-3">
-                      {objs.map(obj => {
-                        const pct = objProgress(obj);
+                    <div className="space-y-2">
+                      {top5.map(a => {
+                        const pCfg = PRIORITY_CONFIG[a.priority] || PRIORITY_CONFIG.media;
+                        const sCfg = STATUS_ACTIVITY[a.status] || STATUS_ACTIVITY.todo;
                         return (
-                          <div key={obj.id}>
-                            <p className="text-white font-medium text-sm">{obj.titulo}</p>
-                            <div className="mt-1.5">
-                              <div className="flex justify-between text-xs text-slate-400 mb-1">
-                                <span>{obj.responsavel || 'Sem responsável'}</span>
-                                <span className="font-semibold text-white">{pct}%</span>
-                              </div>
-                              <div className="w-full bg-slate-700 rounded-full h-1.5">
-                                <div className="h-1.5 rounded-full bg-blue-500 transition-all" style={{ width: `${pct}%` }} />
-                              </div>
+                          <div key={a.id} className="flex items-center gap-3 bg-slate-700/40 rounded-lg px-3 py-2.5">
+                            <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${pCfg.dot}`} />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm text-white font-medium truncate">{a.title}</p>
+                              {a.assignee && <p className="text-xs text-slate-400">{a.assignee}</p>}
                             </div>
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${sCfg.bg} ${sCfg.color} flex-shrink-0`}>
+                              {sCfg.label}
+                            </span>
+                            <span className={`text-xs font-medium flex-shrink-0 ${pCfg.color}`}>{pCfg.label}</span>
                           </div>
                         );
                       })}
                     </div>
                   )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+                </CardContent>
+              </Card>
+            </div>
 
-      {/* ── RESUMO DE CHAMADOS (internos e externos) ─────────────────── */}
-      <ChamadosResumo chamados={chamados} projectId={projectId} />
-
-      {/* ── BACKLOG RESUMO + TOP 5 + RISCOS ──────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        {/* Backlog por prioridade + Top 5 */}
-        <div className="lg:col-span-2 space-y-4">
-          {/* Prioridade summary */}
-          <Card className="bg-slate-800/60 border-slate-700/50">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-white text-base flex items-center gap-2">
-                <Flag className="w-4 h-4 text-blue-400" /> Resumo do Backlog
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="grid grid-cols-4 gap-3 mb-4">
-                {[
-                  { key: 'critica', label: 'Crítica', color: 'bg-red-500' },
-                  { key: 'alta', label: 'Alta', color: 'bg-orange-500' },
-                  { key: 'media', label: 'Média', color: 'bg-yellow-500' },
-                  { key: 'baixa', label: 'Baixa', color: 'bg-slate-500' },
-                ].map(({ key, label, color }) => (
-                  <div key={key} className="text-center bg-slate-700/50 rounded-lg p-3">
-                    <div className={`w-3 h-3 rounded-full ${color} mx-auto mb-1`} />
-                    <p className="text-2xl font-bold text-white">{priorityCounts[key] || 0}</p>
-                    <p className="text-xs text-slate-400">{label}</p>
-                  </div>
-                ))}
-              </div>
-
-              {/* Top 5 */}
-              <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">5 próximos priorizados</p>
-              {top5.length === 0 ? (
-                <p className="text-slate-500 text-sm py-4 text-center">Nenhuma atividade no backlog.</p>
-              ) : (
-                <div className="space-y-2">
-                  {top5.map(a => {
-                    const pCfg = PRIORITY_CONFIG[a.priority] || PRIORITY_CONFIG.media;
-                    const sCfg = STATUS_ACTIVITY[a.status] || STATUS_ACTIVITY.todo;
-                    return (
-                      <div key={a.id} className="flex items-center gap-3 bg-slate-700/40 rounded-lg px-3 py-2.5">
-                        <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${pCfg.dot}`} />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm text-white font-medium truncate">{a.title}</p>
-                          {a.assignee && <p className="text-xs text-slate-400">{a.assignee}</p>}
-                        </div>
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${sCfg.bg} ${sCfg.color} flex-shrink-0`}>
-                          {sCfg.label}
-                        </span>
-                        <span className={`text-xs font-medium flex-shrink-0 ${pCfg.color}`}>{pCfg.label}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Alertas e Riscos */}
-        <div>
-          <Card className="bg-slate-800/60 border-slate-700/50 h-full">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-white text-base flex items-center gap-2">
-                <Shield className="w-4 h-4 text-red-400" /> Alertas e Riscos
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0 space-y-2">
-              {activeRisks.length === 0 ? (
-                <div className="text-center py-8">
-                  <Shield className="w-10 h-10 text-emerald-400/30 mx-auto mb-2" />
-                  <p className="text-sm text-emerald-400">Nenhum risco ativo</p>
-                </div>
-              ) : (
-                activeRisks.slice(0, 6).map(r => {
-                  const isCrit = r.probability >= 4 || r.impact >= 4;
-                  return (
-                    <div key={r.id} className={`rounded-lg px-3 py-2.5 border ${isCrit ? 'bg-red-500/10 border-red-500/30' : 'bg-yellow-500/10 border-yellow-500/20'}`}>
-                      <div className="flex items-start gap-2">
-                        <AlertTriangle className={`w-3.5 h-3.5 mt-0.5 flex-shrink-0 ${isCrit ? 'text-red-400' : 'text-yellow-400'}`} />
-                        <div>
-                          <p className="text-sm text-white font-medium leading-tight">{r.title}</p>
-                          {r.description && (
-                            <p className="text-xs text-slate-400 mt-0.5 line-clamp-2">{r.description}</p>
-                          )}
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-xs text-slate-500">P:{r.probability} I:{r.impact}</span>
-                            {r.suggested_owner && <span className="text-xs text-slate-400">• {r.suggested_owner}</span>}
+            {/* Alertas e Riscos */}
+            <div>
+              <Card className="bg-slate-800/60 border-slate-700/50 h-full">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-white text-base flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-red-400" /> Alertas e Riscos
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0 space-y-2">
+                  {activeRisks.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Shield className="w-10 h-10 text-emerald-400/30 mx-auto mb-2" />
+                      <p className="text-sm text-emerald-400">Nenhum risco ativo</p>
+                    </div>
+                  ) : (
+                    activeRisks.slice(0, 6).map(r => {
+                      const isCrit = r.probability >= 4 || r.impact >= 4;
+                      return (
+                        <div key={r.id} className={`rounded-lg px-3 py-2.5 border ${isCrit ? 'bg-red-500/10 border-red-500/30' : 'bg-yellow-500/10 border-yellow-500/20'}`}>
+                          <div className="flex items-start gap-2">
+                            <AlertTriangle className={`w-3.5 h-3.5 mt-0.5 flex-shrink-0 ${isCrit ? 'text-red-400' : 'text-yellow-400'}`} />
+                            <div>
+                              <p className="text-sm text-white font-medium leading-tight">{r.title}</p>
+                              {r.description && (
+                                <p className="text-xs text-slate-400 mt-0.5 line-clamp-2">{r.description}</p>
+                              )}
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-xs text-slate-500">P:{r.probability} I:{r.impact}</span>
+                                {r.suggested_owner && <span className="text-xs text-slate-400">• {r.suggested_owner}</span>}
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-              {activeRisks.length > 6 && (
-                <p className="text-xs text-slate-500 text-center">+{activeRisks.length - 6} riscos adicionais na aba Riscos</p>
+                      );
+                    })
+                  )}
+                  {activeRisks.length > 6 && (
+                    <p className="text-xs text-slate-500 text-center">+{activeRisks.length - 6} riscos adicionais na aba Riscos</p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </HideableSection>
+      )}
+
+      {/* ── GRÁFICO EVOLUÇÃO — apenas projetos sem Prestação de Contas ── */}
+      {!hasPrestacaoContas && !isHidden('evolucao') && (
+        <HideableSection hidden={false} onHide={() => hideSection('evolucao')}>
+          <Card className="bg-slate-800/60 border-slate-700/50">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-white text-base flex items-center gap-2">
+                <BarChart2 className="w-4 h-4 text-blue-400" /> Evolução das Atividades (últimas 6 semanas)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {weeklyData.every(d => d.concluidas === 0) ? (
+                <p className="text-slate-500 text-sm text-center py-8">Nenhuma atividade concluída com data de encerramento registrada.</p>
+              ) : (
+                <ResponsiveContainer width="100%" height={180}>
+                  <BarChart data={weeklyData} barSize={28}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                    <XAxis dataKey="semana" tick={{ fill: '#94a3b8', fontSize: 12 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: '#94a3b8', fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: 8, color: '#fff' }}
+                      formatter={(v) => [v, 'Concluídas']}
+                    />
+                    <Bar dataKey="concluidas" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
               )}
             </CardContent>
           </Card>
-        </div>
-      </div>
-
-      {/* ── GRÁFICO EVOLUÇÃO — apenas projetos sem Prestação de Contas ── */}
-      {!hasPrestacaoContas && (
-        <Card className="bg-slate-800/60 border-slate-700/50">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-white text-base flex items-center gap-2">
-              <BarChart2 className="w-4 h-4 text-blue-400" /> Evolução das Atividades (últimas 6 semanas)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {weeklyData.every(d => d.concluidas === 0) ? (
-              <p className="text-slate-500 text-sm text-center py-8">Nenhuma atividade concluída com data de encerramento registrada.</p>
-            ) : (
-              <ResponsiveContainer width="100%" height={180}>
-                <BarChart data={weeklyData} barSize={28}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
-                  <XAxis dataKey="semana" tick={{ fill: '#94a3b8', fontSize: 12 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: '#94a3b8', fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: 8, color: '#fff' }}
-                    formatter={(v) => [v, 'Concluídas']}
-                  />
-                  <Bar dataKey="concluidas" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
+        </HideableSection>
       )}
 
 
