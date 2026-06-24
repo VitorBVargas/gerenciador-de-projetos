@@ -7,6 +7,8 @@ import { phaseLabels } from '../timeline/phaseLabels';
 import KickoffTeamSlides from './KickoffTeamSlides';
 import { exportKickoffPptx } from './exportKickoffPptx';
 import { exportKickoffPdf } from './exportKickoffPdf';
+import { BETHA, buildPlaceholders } from '../engine/bethaEngine';
+import { BethaSlide as Slide, BethaSlideHeader as SlideHeader } from '../engine/BethaSlide';
 
 // Ordem canônica das fases (mesma do cronograma)
 const PHASE_ORDER = [
@@ -126,16 +128,14 @@ export default function KickoffPresentation({ projectId, onClose }) {
   const monthCols = useMemo(() => buildMonthColumns(macro), [macro]);
   const todayStr = new Date().toISOString().slice(0, 10);
 
+  // Placeholders resolvidos pelo Betha Presentation Engine
+  const ph = useMemo(() => buildPlaceholders(project), [project]);
+
   // Equipe agrupada por papel de gestão (Portfólio / Operação / Projeto / Implantação)
   const gestaoPortfolio = team.filter(m => m.vertical === 'gestao_operacoes' || m.role?.toLowerCase().includes('portf')).slice(0, 1);
   const gestaoProjeto = team.filter(m => m.vertical === 'gestao_projetos' || m.role?.toLowerCase().includes('projeto')).slice(0, 1);
   const coordTecnica = team.filter(m => m.vertical === 'coordenacao_tecnica' || m.role?.toLowerCase().includes('coorden')).slice(0, 1);
   const analistas = team.filter(m => !['gestao_operacoes', 'gestao_projetos', 'coordenacao_tecnica'].includes(m.vertical));
-
-  const mesAno = useMemo(() => {
-    const d = new Date();
-    return `${MONTH_ABBR[d.getMonth()].charAt(0) + MONTH_ABBR[d.getMonth()].slice(1).toLowerCase()}/${d.getFullYear()}`;
-  }, []);
 
   return (
     <div className="kickoff-print-root fixed inset-0 z-[60] bg-slate-950/95 overflow-y-auto">
@@ -169,13 +169,13 @@ export default function KickoffPresentation({ projectId, onClose }) {
             <div className="absolute left-[14%] top-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-xl px-10 py-8 z-10">
               <h1 className="text-4xl font-bold text-slate-900">Kick-Off</h1>
               <p className="text-slate-700 text-lg mt-4">Projeto de Implantação</p>
-              <p className="text-blue-700 text-sm mt-3">{mesAno}</p>
+              <p className="text-blue-700 text-sm mt-3">{ph.MES}/{ph.ANO}</p>
             </div>
             <div className="absolute right-[8%] top-1/2 -translate-y-[140%] z-10">
               <p className="text-white font-extrabold italic text-7xl tracking-tight">BETHA</p>
             </div>
             <div className="absolute right-0 bottom-12 w-[55%] bg-blue-200/90 rounded-l-2xl px-10 py-4 z-10">
-              <p className="text-slate-900 font-bold text-2xl">{project?.city || project?.name || '—'}</p>
+              <p className="text-slate-900 font-bold text-2xl">{ph.CLIENTE}</p>
             </div>
           </Slide>
 
@@ -240,8 +240,8 @@ export default function KickoffPresentation({ projectId, onClose }) {
           <Slide className="bg-gradient-to-br from-blue-50 to-cyan-50">
             <SlideHeader title="Equipe BETHA" subtitle="Gestão de Projetos e Implantação" />
             <div className="grid grid-cols-4 gap-4 mt-8">
-              <TeamColumn title="Gestão de Portfólio" person={project?.portfolio_manager ? { name: project.portfolio_manager } : gestaoPortfolio[0]} items={['Gestão estratégica', 'Alocação de recursos', 'Aprovações', 'Priorizações']} />
-              <TeamColumn title="Gestão da Operação" person={project?.coordinator ? { name: project.coordinator } : coordTecnica[0]} items={['Gestão da operação', 'Alocação de recursos', 'Aprovações', 'Priorizações']} />
+              <TeamColumn title="Gestão de Portfólio" person={project?.portfolio_manager ? { name: ph.PORTFOLIO } : gestaoPortfolio[0]} items={['Gestão estratégica', 'Alocação de recursos', 'Aprovações', 'Priorizações']} />
+              <TeamColumn title="Gestão da Operação" person={project?.coordinator ? { name: ph.COORDENADOR } : coordTecnica[0]} items={['Gestão da operação', 'Alocação de recursos', 'Aprovações', 'Priorizações']} />
               <TeamColumn title="Gestão do Projeto" person={gestaoProjeto[0] || { name: project?.manager }} items={['Planejamento', 'Comunicação', 'Cronograma', 'Status report', 'Riscos', 'Gestão da Mudança']} />
               <TeamColumn title="Implantação" person={null} subtitle={analistas.length > 0 ? `${analistas.length} Analistas/Especialistas` : 'Analistas / Especialistas'} items={['Mapeamento', 'Diagnóstico', 'Migração', 'Configuração', 'Treinamento', 'Acompanhamento']} />
             </div>
@@ -422,23 +422,6 @@ export default function KickoffPresentation({ projectId, onClose }) {
           * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
       `}</style>
-    </div>
-  );
-}
-
-function Slide({ children, className = '' }) {
-  return (
-    <div className={`kickoff-slide rounded-xl shadow-2xl p-10 aspect-[16/9] flex flex-col overflow-hidden ${className}`}>
-      {children}
-    </div>
-  );
-}
-
-function SlideHeader({ title, subtitle }) {
-  return (
-    <div className="flex items-center gap-3">
-      <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold">B</div>
-      <h2 className="text-2xl font-bold text-blue-700">{title}{subtitle && <span className="text-slate-500 font-normal"> – {subtitle}</span>}</h2>
     </div>
   );
 }
