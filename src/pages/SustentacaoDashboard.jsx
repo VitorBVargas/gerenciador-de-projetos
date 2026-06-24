@@ -122,6 +122,27 @@ export default function SustentacaoDashboard() {
     staleTime: 5 * 60 * 1000,
   });
 
+  const { data: ciclos = [] } = useQuery({
+    queryKey: ['roadmapCiclos', projectId],
+    queryFn: () => projectId ? base44.entities.RoadmapCiclo.filter({ project_id: projectId }) : [],
+    enabled: !!projectId,
+    staleTime: 2 * 60 * 1000,
+  });
+
+  const { data: objetivos = [] } = useQuery({
+    queryKey: ['roadmapObjetivos', projectId],
+    queryFn: () => projectId ? base44.entities.RoadmapObjetivo.filter({ project_id: projectId }) : [],
+    enabled: !!projectId,
+    staleTime: 2 * 60 * 1000,
+  });
+
+  const { data: iniciativas = [] } = useQuery({
+    queryKey: ['roadmapIniciativas', projectId],
+    queryFn: () => projectId ? base44.entities.RoadmapIniciativa.filter({ project_id: projectId }) : [],
+    enabled: !!projectId,
+    staleTime: 2 * 60 * 1000,
+  });
+
   const availableEntities = React.useMemo(() => getAvailableEntities(entities, produtos), [entities, produtos]);
   const hasPrestacaoContas = produtos.some(p => p.prestacao_contas) || availableEntities.length > 0;
   const prestacaoLoading = loadingObrigacoes || loadingEntities || loadingProdutos;
@@ -178,6 +199,19 @@ export default function SustentacaoDashboard() {
 
   const totalDone = activities.filter(a => a.status === 'done').length;
   const objPct = activities.length > 0 ? Math.round((totalDone / activities.length) * 100) : 0;
+
+  // ---- Roadmap: ciclo ativo + objetivos por período ----
+  const cicloAtivo = [...ciclos]
+    .filter(c => c.status === 'ativo')
+    .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0] || null;
+  const objCiclo = cicloAtivo ? objetivos.filter(o => o.ciclo_id === cicloAtivo.id) : [];
+  const iniCiclo = cicloAtivo ? iniciativas.filter(i => i.ciclo_id === cicloAtivo.id) : [];
+
+  const objProgress = (obj) => {
+    const inis = iniCiclo.filter(i => i.objetivo_id === obj.id);
+    if (!inis.length) return obj.status === 'concluido' ? 100 : 0;
+    return Math.round((inis.filter(i => i.concluido).length / inis.length) * 100);
+  };
 
   const handleSaveProject = async (data) => {
     await base44.entities.Project.update(activeProject.id, data);
@@ -304,43 +338,67 @@ export default function SustentacaoDashboard() {
           color="text-cyan-400" bg="bg-cyan-500/10" />
       </div>
 
-      {/* ── OBJETIVOS ATUAIS (Roadmap 30/60 dias) ────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {[
-          { label: 'Objetivo — 30 dias', icon: '🎯', color: 'from-blue-600/20 to-cyan-600/10', border: 'border-blue-500/30', key: 'objetivo_30d' },
-          { label: 'Objetivo — 60 dias', icon: '🚀', color: 'from-purple-600/20 to-pink-600/10', border: 'border-purple-500/30', key: 'objetivo_60d' },
-        ].map(({ label, icon, color, border, key }) => {
-          const obj = activeProject[key];
-          return (
-            <div key={key} className={`bg-gradient-to-br ${color} border ${border} rounded-xl p-5`}>
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-xl">{icon}</span>
-                <span className="text-sm font-semibold text-slate-300">{label}</span>
-              </div>
-              {obj ? (
-                <div>
-                  <p className="text-white font-semibold text-base">{typeof obj === 'string' ? obj : obj.title || '—'}</p>
-                  {obj.description && <p className="text-slate-400 text-sm mt-1">{obj.description}</p>}
-                  {obj.progress != null && (
-                    <div className="mt-3">
-                      <div className="flex justify-between text-xs text-slate-400 mb-1">
-                        <span>Progresso</span><span className="font-semibold text-white">{obj.progress}%</span>
-                      </div>
-                      <div className="w-full bg-slate-700 rounded-full h-2">
-                        <div className="h-2 rounded-full bg-blue-500 transition-all" style={{ width: `${obj.progress}%` }} />
-                      </div>
+      {/* ── OBJETIVOS ATUAIS (Roadmap 30/60/90 dias) ─────────────────── */}
+      <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Target className="w-4 h-4 text-blue-400" />
+            <span className="text-sm font-semibold text-slate-200">Objetivos do Roadmap</span>
+            {cicloAtivo && <span className="text-xs text-slate-500">· {cicloAtivo.name}</span>}
+          </div>
+          <a href={createPageUrl(`SustentacaoRoadmap?project_id=${projectId}`)}
+            className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1">
+            Ver Roadmap <ChevronRight className="w-3 h-3" />
+          </a>
+        </div>
+
+        {!cicloAtivo ? (
+          <div className="text-center py-6">
+            <p className="text-slate-500 text-sm">Nenhum ciclo ativo.</p>
+            <p className="text-slate-600 text-xs mt-1">Crie um ciclo e objetivos na aba Roadmap.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {[
+              { key: '30dias', label: '30 dias', icon: '🎯', color: 'from-blue-600/20 to-cyan-600/10', border: 'border-blue-500/30' },
+              { key: '60dias', label: '60 dias', icon: '🚀', color: 'from-purple-600/20 to-pink-600/10', border: 'border-purple-500/30' },
+              { key: '90dias', label: '90 dias', icon: '🏁', color: 'from-emerald-600/20 to-teal-600/10', border: 'border-emerald-500/30' },
+            ].map(({ key, label, icon, color, border }) => {
+              const objs = objCiclo.filter(o => o.periodo === key);
+              return (
+                <div key={key} className={`bg-gradient-to-br ${color} border ${border} rounded-xl p-4`}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-lg">{icon}</span>
+                    <span className="text-sm font-semibold text-slate-300">Objetivo — {label}</span>
+                  </div>
+                  {objs.length === 0 ? (
+                    <p className="text-slate-500 text-sm py-2">Nenhum objetivo definido.</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {objs.map(obj => {
+                        const pct = objProgress(obj);
+                        return (
+                          <div key={obj.id}>
+                            <p className="text-white font-medium text-sm">{obj.titulo}</p>
+                            <div className="mt-1.5">
+                              <div className="flex justify-between text-xs text-slate-400 mb-1">
+                                <span>{obj.responsavel || 'Sem responsável'}</span>
+                                <span className="font-semibold text-white">{pct}%</span>
+                              </div>
+                              <div className="w-full bg-slate-700 rounded-full h-1.5">
+                                <div className="h-1.5 rounded-full bg-blue-500 transition-all" style={{ width: `${pct}%` }} />
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
-              ) : (
-                <div className="text-center py-4">
-                  <p className="text-slate-500 text-sm">Nenhum objetivo definido.</p>
-                  <p className="text-slate-600 text-xs mt-1">Defina os objetivos na aba Roadmap.</p>
-                </div>
-              )}
-            </div>
-          );
-        })}
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* ── BACKLOG RESUMO + TOP 5 + RISCOS ──────────────────────────── */}
