@@ -9,6 +9,10 @@ import { exportKickoffPptx } from './exportKickoffPptx';
 import { exportKickoffPdf } from './exportKickoffPdf';
 import { BETHA, buildPlaceholders } from '../engine/bethaEngine';
 import { BethaSlide as Slide, BethaSlideHeader as SlideHeader } from '../engine/BethaSlide';
+import KickoffVisaoGeral from './slides/KickoffVisaoGeral';
+import KickoffProdutos from './slides/KickoffProdutos';
+import KickoffRiscos from './slides/KickoffRiscos';
+import KickoffComunicacao from './slides/KickoffComunicacao';
 
 // Ordem canônica das fases (mesma do cronograma)
 const PHASE_ORDER = [
@@ -102,6 +106,16 @@ export default function KickoffPresentation({ projectId, onClose }) {
     queryFn: () => base44.entities.TeamMember.filter({ project_id: projectId }),
     enabled: !!projectId,
   });
+  const { data: stakeholders = [] } = useQuery({
+    queryKey: ['stakeholders', projectId],
+    queryFn: () => base44.entities.Stakeholder.filter({ project_id: projectId }),
+    enabled: !!projectId,
+  });
+  const { data: risks = [] } = useQuery({
+    queryKey: ['risks', projectId],
+    queryFn: () => base44.entities.Risk.filter({ project_id: projectId }),
+    enabled: !!projectId,
+  });
 
   const [exporting, setExporting] = useState(false);
   const [exportingPdf, setExportingPdf] = useState(false);
@@ -189,6 +203,9 @@ export default function KickoffPresentation({ projectId, onClose }) {
             </div>
           </Slide>
 
+          {/* SLIDE — Visão Geral (resumo executivo, dados do projeto) */}
+          <KickoffVisaoGeral project={project} products={products} risksCount={risks.filter(r => !['encerrado', 'mitigado'].includes(r.status)).length} Slide={Slide} SlideHeader={SlideHeader} values={ph} />
+
           {/* SLIDE 3 — Portfólio */}
           <Slide className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 45%, #1e40af 100%)' }}>
             <div className="absolute -right-24 -top-16 w-[28rem] h-[28rem] rounded-full bg-cyan-300/20 blur-3xl" />
@@ -255,6 +272,9 @@ export default function KickoffPresentation({ projectId, onClose }) {
             Slide={Slide}
             SlideHeader={SlideHeader}
           />
+
+          {/* SLIDE — Produtos por vertical */}
+          <KickoffProdutos products={products} Slide={Slide} SlideHeader={SlideHeader} values={ph} />
 
           {/* SLIDE 6 — Macro etapas */}
           <Slide className="bg-gradient-to-br from-blue-50 to-cyan-50">
@@ -354,6 +374,12 @@ export default function KickoffPresentation({ projectId, onClose }) {
               </>
             )}
           </Slide>
+
+          {/* SLIDE — Riscos ativos */}
+          <KickoffRiscos risks={risks} Slide={Slide} SlideHeader={SlideHeader} values={ph} />
+
+          {/* SLIDE — Comunicação / matriz de contatos */}
+          <KickoffComunicacao project={project} stakeholders={stakeholders} team={team} Slide={Slide} SlideHeader={SlideHeader} values={ph} />
 
           {/* SLIDE 9 — Próximos passos */}
           <Slide className="bg-gradient-to-br from-blue-50 to-cyan-50">
