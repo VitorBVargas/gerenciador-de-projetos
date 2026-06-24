@@ -315,37 +315,37 @@ export default function SustentacaoDashboard() {
               )}
             </div>
           </div>
-          <div className="flex gap-2 flex-shrink-0">
-            {activeProject.contract_link && (
-              <Button variant="outline" size="sm" className="border-slate-600 text-slate-300 hover:bg-slate-700"
-                onClick={() => window.open(activeProject.contract_link, '_blank')}>
-                <ExternalLink className="w-4 h-4 mr-1" /> Contrato
-              </Button>
-            )}
-            {canEdit && (
-              <Button size="sm" className="bg-slate-700 hover:bg-slate-600"
-                onClick={() => setProjectModalOpen(true)}>
-                <Edit className="w-4 h-4 mr-1" /> Editar
-              </Button>
+          <div className="flex flex-col items-end gap-2 flex-shrink-0">
+            <div className="flex gap-2">
+              {activeProject.contract_link && (
+                <Button variant="outline" size="sm" className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                  onClick={() => window.open(activeProject.contract_link, '_blank')}>
+                  <ExternalLink className="w-4 h-4 mr-1" /> Contrato
+                </Button>
+              )}
+              {canEdit && (
+                <Button size="sm" className="bg-slate-700 hover:bg-slate-600"
+                  onClick={() => setProjectModalOpen(true)}>
+                  <Edit className="w-4 h-4 mr-1" /> Editar
+                </Button>
+              )}
+            </div>
+            {hiddenSections.length > 0 && (
+              <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                <span className="text-[11px] text-slate-500 flex items-center gap-1">
+                  <Eye className="w-3 h-3" /> Ocultos:
+                </span>
+                {hiddenSections.map(key => (
+                  <button key={key} onClick={() => showSection(key)}
+                    className="text-[11px] px-2 py-0.5 rounded-full bg-slate-700/60 text-slate-300 hover:bg-slate-600 hover:text-white transition-colors flex items-center gap-1">
+                    {SECTION_LABELS[key] || key} <RotateCcw className="w-2.5 h-2.5" />
+                  </button>
+                ))}
+              </div>
             )}
           </div>
         </div>
       </div>
-
-      {/* ── BARRA DE QUADROS OCULTOS ──────────────────────────────────── */}
-      {hiddenSections.length > 0 && (
-        <div className="flex items-center gap-2 flex-wrap bg-slate-800/40 border border-slate-700/50 rounded-xl px-4 py-2.5">
-          <span className="text-xs text-slate-400 flex items-center gap-1.5">
-            <Eye className="w-3.5 h-3.5" /> Quadros ocultos:
-          </span>
-          {hiddenSections.map(key => (
-            <button key={key} onClick={() => showSection(key)}
-              className="text-xs px-2.5 py-1 rounded-full bg-slate-700/60 text-slate-300 hover:bg-slate-600 hover:text-white transition-colors flex items-center gap-1">
-              {SECTION_LABELS[key] || key} <RotateCcw className="w-3 h-3" />
-            </button>
-          ))}
-        </div>
-      )}
 
       {/* ── CND STATUS — só exibe se o projeto tem Prestação de Contas ── */}
       {hasPrestacaoContas && !isHidden('cnd') && (
