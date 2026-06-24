@@ -4,8 +4,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, Clock, AlertTriangle, XCircle, FileText, Plus, Calendar, ChevronDown, ChevronUp, Trash2, Edit, ChevronLeft, ChevronRight, ArrowUp, ArrowDown } from 'lucide-react';
+import { CheckCircle, Clock, AlertTriangle, XCircle, FileText, Plus, Calendar, ChevronDown, ChevronUp, Trash2, Edit, ChevronLeft, ChevronRight, GripVertical } from 'lucide-react';
 import { differenceInDays, parseISO, format } from 'date-fns';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import ObrigacaoModal from './ObrigacaoModal';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { OBRIGACOES_ANUAIS, mesesEsperados } from './periodicidade';
@@ -239,13 +240,11 @@ export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser, 
     queryClient.invalidateQueries(['obrigacoes', projectId]);
   };
 
-  const handleMoveType = async (nome, direction) => {
-    const currentIndex = nomes.indexOf(nome);
-    const targetIndex = currentIndex + direction;
-    if (currentIndex < 0 || targetIndex < 0 || targetIndex >= nomes.length) return;
-
+  const handleDragEnd = async (result) => {
+    if (!result.destination || result.source.index === result.destination.index) return;
     const ordered = [...nomes];
-    [ordered[currentIndex], ordered[targetIndex]] = [ordered[targetIndex], ordered[currentIndex]];
+    const [moved] = ordered.splice(result.source.index, 1);
+    ordered.splice(result.destination.index, 0, moved);
     await persistTypeOrder(ordered);
   };
 
@@ -323,23 +322,39 @@ export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser, 
           </Button>
         </div>
       </div>
-      {nomes.map((nome, index) => {
-        const items = grouped[nome];
-        const { aceitos, rejeitados, atrasados, total, last } = getTypeSummary(items);
-        const hasAlert = atrasados > 0 || rejeitados > 0;
-        const isExpanded = expanded[nome] === true; // Fechado por padrão
-        const canMoveUp = index > 0;
-        const canMoveDown = index < nomes.length - 1;
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <Droppable droppableId="obrigacoes-tipos">
+          {(dropProvided) => (
+            <div ref={dropProvided.innerRef} {...dropProvided.droppableProps} className="space-y-4">
+              {nomes.map((nome, index) => {
+                const items = grouped[nome];
+                const { aceitos, rejeitados, atrasados, total, last } = getTypeSummary(items);
+                const hasAlert = atrasados > 0 || rejeitados > 0;
+                const isExpanded = expanded[nome] === true; // Fechado por padrão
 
-        return (
-          <Card key={nome} className={`border ${hasAlert ? 'border-red-500/30 bg-slate-800/80' : 'border-slate-700/50 bg-slate-800/60'}`}>
-            {/* Header row - clickable to expand/collapse */}
-            <div
-              className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-slate-700/20 transition-colors rounded-t-lg"
-              onClick={() => toggleExpand(nome)}
-            >
-              <div className="flex items-center gap-3">
-                {hasAlert
+                return (
+                  <Draggable key={nome} draggableId={nome} index={index}>
+                    {(dragProvided, dragSnapshot) => (
+                      <Card
+                        ref={dragProvided.innerRef}
+                        {...dragProvided.draggableProps}
+                        className={`border ${hasAlert ? 'border-red-500/30 bg-slate-800/80' : 'border-slate-700/50 bg-slate-800/60'} ${dragSnapshot.isDragging ? 'ring-2 ring-blue-500/50 shadow-xl' : ''}`}
+                      >
+                        {/* Header row - clickable to expand/collapse */}
+                        <div
+                          className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-slate-700/20 transition-colors rounded-t-lg"
+                          onClick={() => toggleExpand(nome)}
+                        >
+                          <div className="flex items-center gap-3">
+                            <span
+                              {...dragProvided.dragHandleProps}
+                              onClick={(e) => e.stopPropagation()}
+                              className="p-1 -ml-1 text-slate-500 hover:text-slate-300 cursor-grab active:cursor-grabbing transition-colors"
+                              title="Arraste para reordenar"
+                            >
+                              <GripVertical className="w-4 h-4" />
+                            </span>
+                            {hasAlert
                   ? <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0" />
                   : aceitos === total
                     ? <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />
@@ -355,22 +370,6 @@ export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser, 
                   {atrasados > 0 && <span className="text-red-400 animate-pulse">{atrasados} atrasados</span>}
                 </div>
                 {last && <StatusCell obrigacao={last} />}
-                <button
-                  onClick={(e) => { e.stopPropagation(); handleMoveType(nome, -1); }}
-                  disabled={!canMoveUp}
-                  className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-30"
-                  title="Mover para cima"
-                >
-                  <ArrowUp className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); handleMoveType(nome, 1); }}
-                  disabled={!canMoveDown}
-                  className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-30"
-                  title="Mover para baixo"
-                >
-                  <ArrowDown className="w-3.5 h-3.5" />
-                </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); handleDeleteType(nome); }}
                   className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
@@ -460,11 +459,18 @@ export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser, 
                     </tbody>
                   </table>
                 </div>
-              </CardContent>
-            )}
-          </Card>
-        );
-      })}
+                          </CardContent>
+                        )}
+                      </Card>
+                    )}
+                  </Draggable>
+                );
+              })}
+              {dropProvided.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
 
       <ObrigacaoModal
         open={modalOpen}
