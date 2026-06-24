@@ -374,34 +374,39 @@ export default function KickoffPresentation({ projectId, onClose }) {
           @page { size: A4 landscape; margin: 0; }
           html, body {
             margin: 0 !important; padding: 0 !important; background: #fff !important;
-            height: auto !important; overflow: visible !important;
+            height: auto !important; width: auto !important; overflow: visible !important;
           }
           /* Hide everything, then reveal only the slides container */
           body * { visibility: hidden; }
           .kickoff-slides, .kickoff-slides * { visibility: visible !important; }
-          /* The modal overlay is fixed/overflow-auto — neutralize it for print so the full document flows across pages */
-          .kickoff-print-root {
-            position: static !important; inset: auto !important;
-            overflow: visible !important; height: auto !important;
-            background: #fff !important;
+          /* Collapse EVERY ancestor of the slides so nothing reserves blank pages/space */
+          #root, .kickoff-print-root, .kickoff-print-root * {
+            position: static !important; inset: auto !important; transform: none !important;
           }
+          .kickoff-print-root {
+            overflow: visible !important; height: auto !important; min-height: 0 !important;
+            background: #fff !important; padding: 0 !important; margin: 0 !important;
+          }
+          /* Hide the toolbar entirely (it sits above slide 1 and pushes blank pages) */
+          .kickoff-print-root > .print\\:hidden { display: none !important; }
           .kickoff-slides {
-            position: static !important;
             margin: 0 !important; padding: 0 !important;
-            display: block !important; max-width: none !important;
+            display: block !important; max-width: none !important; width: auto !important;
             gap: 0 !important; overflow: visible !important;
           }
           .kickoff-slide {
             break-inside: avoid; page-break-inside: avoid;
             break-after: page; page-break-after: always;
             box-shadow: none !important; border-radius: 0 !important;
-            margin: 0 auto !important;
+            margin: 0 !important;
             width: 297mm !important;
-            height: 209mm !important;
+            height: 208mm !important;
             aspect-ratio: auto !important;
             overflow: hidden !important;
           }
           .kickoff-slide:last-child { break-after: auto; page-break-after: auto; }
+          /* Zera margens entre slides (space-y) que criariam páginas/linhas em branco */
+          .kickoff-slides > * { margin-top: 0 !important; margin-bottom: 0 !important; }
           /* Preserva cores de fundo e gradientes no PDF */
           * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
