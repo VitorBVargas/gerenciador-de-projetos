@@ -230,6 +230,7 @@ export default function Activities() {
         activity={selectedActivity}
         projectId={projectId}
         verticals={verticals}
+        isSustentacao={isSustentacao}
       />
 
       {projectId && <GlobalTracker projectId={projectId} />}

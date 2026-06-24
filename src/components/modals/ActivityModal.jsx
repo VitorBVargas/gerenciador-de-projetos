@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from 'sonner';
 import { phaseLabels } from '@/components/timeline/phaseLabels';
 
-export default function ActivityModal({ open, onOpenChange, activity, projectId, verticals, isInternal = false }) {
+export default function ActivityModal({ open, onOpenChange, activity, projectId, verticals, isInternal = false, isSustentacao = false }) {
   const queryClient = useQueryClient();
 
   const { data: teamMembers = [] } = useQuery({
@@ -150,29 +150,31 @@ export default function ActivityModal({ open, onOpenChange, activity, projectId,
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-300">Etapa do Cronograma</label>
-            <Select value={watch('phase')} onValueChange={(val) => setValue('phase', val)}>
-              <SelectTrigger className="bg-slate-800 border-slate-700">
-                <SelectValue placeholder="Selecione uma etapa (opcional)" />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-slate-700 text-white max-h-[200px]">
-                <SelectItem value="none">Nenhuma</SelectItem>
-                {isInternal
-                  ? [...internalSchedule]
-                      .sort((a, b) => (a.order || 0) - (b.order || 0))
-                      .filter(s => s.title)
-                      .map(s => (
-                        <SelectItem key={s.id} value={s.id}>
-                          {s.title.replace('▌ ', '').trim()}
-                        </SelectItem>
-                      ))
-                  : Object.entries(phaseLabels).map(([key, label]) => (
-                      <SelectItem key={key} value={key}>{label}</SelectItem>
-                    ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {!isSustentacao && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-300">Etapa do Cronograma</label>
+              <Select value={watch('phase')} onValueChange={(val) => setValue('phase', val)}>
+                <SelectTrigger className="bg-slate-800 border-slate-700">
+                  <SelectValue placeholder="Selecione uma etapa (opcional)" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700 text-white max-h-[200px]">
+                  <SelectItem value="none">Nenhuma</SelectItem>
+                  {isInternal
+                    ? [...internalSchedule]
+                        .sort((a, b) => (a.order || 0) - (b.order || 0))
+                        .filter(s => s.title)
+                        .map(s => (
+                          <SelectItem key={s.id} value={s.id}>
+                            {s.title.replace('▌ ', '').trim()}
+                          </SelectItem>
+                        ))
+                    : Object.entries(phaseLabels).map(([key, label]) => (
+                        <SelectItem key={key} value={key}>{label}</SelectItem>
+                      ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-slate-300">Responsável</label>
