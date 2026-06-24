@@ -17,6 +17,7 @@ import { ptBR } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import SustentacaoProjectModal from '../components/modals/SustentacaoProjectModal.jsx';
 import GlobalTracker from '@/components/horas/GlobalTracker.jsx';
+import ChamadosResumo from '../components/sustentacao/ChamadosResumo.jsx';
 import { useCurrentUser, canEditProject } from '@/lib/permissions';
 import { getAvailableEntities } from '@/lib/entityRegistry';
 import { createPageUrl } from '../utils';
@@ -139,6 +140,13 @@ export default function SustentacaoDashboard() {
   const { data: iniciativas = [] } = useQuery({
     queryKey: ['roadmapIniciativas', projectId],
     queryFn: () => projectId ? base44.entities.RoadmapIniciativa.filter({ project_id: projectId }) : [],
+    enabled: !!projectId,
+    staleTime: 2 * 60 * 1000,
+  });
+
+  const { data: chamados = [] } = useQuery({
+    queryKey: ['chamados', projectId],
+    queryFn: () => projectId ? base44.entities.Chamado.filter({ project_id: projectId }) : [],
     enabled: !!projectId,
     staleTime: 2 * 60 * 1000,
   });
@@ -400,6 +408,9 @@ export default function SustentacaoDashboard() {
           </div>
         )}
       </div>
+
+      {/* ── RESUMO DE CHAMADOS (internos e externos) ─────────────────── */}
+      <ChamadosResumo chamados={chamados} projectId={projectId} />
 
       {/* ── BACKLOG RESUMO + TOP 5 + RISCOS ──────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
