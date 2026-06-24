@@ -438,6 +438,7 @@ export default function KickoffPresentation({ projectId, onClose }) {
             margin: 0 !important;
             width: 297mm !important;
             height: 208mm !important;
+            min-height: 0 !important;
             aspect-ratio: auto !important;
             overflow: hidden !important;
           }

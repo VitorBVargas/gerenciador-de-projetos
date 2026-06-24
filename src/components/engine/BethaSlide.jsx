@@ -6,11 +6,13 @@ import { BETHA, applyPlaceholders } from './bethaEngine';
 // de forma fixa. Documentos NÃO devem redefinir cores/raio aqui.
 
 export function BethaSlide({ children, className = '', style = {} }) {
+  // Em tela: altura MÍNIMA (cresce com o conteúdo, nada é cortado).
+  // No PDF/PPTX a altura volta a ser fixa via CSS de impressão (página A4).
   return (
     <div
-      className={`betha-slide kickoff-slide flex flex-col overflow-hidden p-10 ${className}`}
+      className={`betha-slide kickoff-slide flex flex-col p-10 ${className}`}
       style={{
-        aspectRatio: BETHA.slide.ratio,
+        minHeight: `min(56.25vw, 640px)`,
         borderRadius: BETHA.card.radius,
         boxShadow: BETHA.card.shadow,
         fontFamily: BETHA.font,
