@@ -39,6 +39,7 @@ const navigationImplantacao = [
   { name: 'Migração', href: 'Migration', icon: ArrowLeftRight },
   { name: 'Homologação', href: 'Homologation', icon: CheckCircle },
   { name: 'Atividades', href: 'Activities', icon: CheckSquare },
+  { name: 'Reuniões e Relatórios', href: 'SustentacaoReunioes', icon: CalendarDays },
   { name: 'Viagens', href: 'Travels', icon: Plane },
   { name: 'Orçamento', href: 'Budget', icon: DollarSign },
   { name: 'Apontamento de Horas', href: 'HorasApontamento', icon: Timer },
