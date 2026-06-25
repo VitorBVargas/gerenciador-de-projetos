@@ -45,7 +45,7 @@ export default function Home() {
         </div>
 
         {/* Button Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 max-w-5xl mx-auto">
+        <div className={parceiro ? "flex justify-center" : "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 max-w-5xl mx-auto"}>
           {/* Projetos Internos */}
           {!parceiro && (
           <button
