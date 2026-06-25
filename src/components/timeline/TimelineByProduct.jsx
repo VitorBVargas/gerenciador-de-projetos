@@ -76,14 +76,28 @@ function EditableText({ value, onCommit, readOnly }) {
 }
 
 function EditableDate({ value, onCommit, readOnly }) {
+  const [editing, setEditing] = useState(false);
   if (readOnly) return <span className="text-sm text-slate-300">{formatDateForDisplay(value)}</span>;
+  if (editing) {
+    return (
+      <input
+        autoFocus
+        type="date"
+        value={value || ''}
+        onChange={e => { if (e.target.value !== (value || '')) onCommit(e.target.value); }}
+        onBlur={() => setEditing(false)}
+        className="bg-transparent border-0 border-b border-slate-600 px-0 py-0.5 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
+      />
+    );
+  }
   return (
-    <input
-      type="date"
-      value={value || ''}
-      onChange={e => { if (e.target.value !== (value || '')) onCommit(e.target.value); }}
-      className="bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200 focus:outline-none focus:border-blue-500 cursor-pointer"
-    />
+    <span
+      onClick={() => setEditing(true)}
+      className="text-sm text-slate-300 cursor-text hover:text-white rounded px-1 -mx-1 inline-block"
+      title="Clique para editar"
+    >
+      {formatDateForDisplay(value)}
+    </span>
   );
 }
 
@@ -174,7 +188,7 @@ export default function TimelineByProduct({ verticals, entityProducts, timelineE
                         </thead>
                         <tbody>
                           {productEvents.map(event => (
-                            <tr key={event.id} className="border-b border-slate-700/30 hover:bg-slate-700/20">
+                            <tr key={event.id} className="border-b border-slate-700/30 hover:bg-slate-700/20" onDoubleClick={() => onEdit && onEdit(event, product.id)}>
                               <td className="px-4 py-3">
                                 <EditableText
                                   value={event.title || phaseLabels[event.phase]}
