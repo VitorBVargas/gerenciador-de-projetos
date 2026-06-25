@@ -45,7 +45,49 @@ const calculateProgressFromDates = (event) => {
 /**
  * Visão Por Produto: aba por vertical, depois aba por produto dentro da vertical
  */
-export default function TimelineByProduct({ verticals, entityProducts, timelineEvents, onStatusChange, onEdit, onDelete }) {
+function EditableText({ value, onCommit, readOnly }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value || '');
+  if (readOnly) return <span className="text-sm text-white">{value}</span>;
+  if (editing) {
+    return (
+      <input
+        autoFocus
+        value={draft}
+        onChange={e => setDraft(e.target.value)}
+        onBlur={() => { setEditing(false); if (draft !== (value || '')) onCommit(draft); }}
+        onKeyDown={e => {
+          if (e.key === 'Enter') { e.target.blur(); }
+          if (e.key === 'Escape') { setDraft(value || ''); setEditing(false); }
+        }}
+        className="w-full bg-slate-900 border border-blue-500 rounded px-2 py-1 text-sm text-white focus:outline-none"
+      />
+    );
+  }
+  return (
+    <span
+      onClick={() => { setDraft(value || ''); setEditing(true); }}
+      className="text-sm text-white cursor-text hover:bg-slate-700/40 rounded px-1 -mx-1 inline-block"
+      title="Clique para editar"
+    >
+      {value}
+    </span>
+  );
+}
+
+function EditableDate({ value, onCommit, readOnly }) {
+  if (readOnly) return <span className="text-sm text-slate-300">{formatDateForDisplay(value)}</span>;
+  return (
+    <input
+      type="date"
+      value={value || ''}
+      onChange={e => { if (e.target.value !== (value || '')) onCommit(e.target.value); }}
+      className="bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200 focus:outline-none focus:border-blue-500 cursor-pointer"
+    />
+  );
+}
+
+export default function TimelineByProduct({ verticals, entityProducts, timelineEvents, onStatusChange, onFieldChange, onEdit, onDelete, readOnly }) {
   const [activeVertical, setActiveVertical] = useState(verticals[0] || '');
   const [selectedProductId, setSelectedProductId] = useState(null);
 
@@ -132,24 +174,39 @@ export default function TimelineByProduct({ verticals, entityProducts, timelineE
                         </thead>
                         <tbody>
                           {productEvents.map(event => (
-                            <tr key={event.id} className="border-b border-slate-700/30 hover:bg-slate-700/20 cursor-pointer" onDoubleClick={() => onEdit(event, product.id)}>
-                              <td className="px-4 py-3 text-sm text-white">{event.title || phaseLabels[event.phase]}</td>
+                            <tr key={event.id} className="border-b border-slate-700/30 hover:bg-slate-700/20">
+                              <td className="px-4 py-3">
+                                <EditableText
+                                  value={event.title || phaseLabels[event.phase]}
+                                  readOnly={readOnly || !onFieldChange}
+                                  onCommit={(v) => onFieldChange(event.id, 'title', v)}
+                                />
+                              </td>
                               <td className="px-4 py-3">
                                 <select
                                   value={event.status}
                                   onChange={e => onStatusChange(event.id, e.target.value)}
-                                  className={`px-3 py-1 rounded text-xs font-medium text-white border-0 ${statusColors[event.status]} cursor-pointer hover:opacity-80`}
+                                  disabled={readOnly || !onStatusChange}
+                                  className={`px-3 py-1 rounded text-xs font-medium text-white border-0 ${statusColors[event.status]} cursor-pointer hover:opacity-80 disabled:cursor-default`}
                                 >
                                   {Object.entries(statusLabels).map(([k, l]) => (
                                     <option key={k} value={k}>{l}</option>
                                   ))}
                                 </select>
                               </td>
-                              <td className="px-4 py-3 text-sm text-slate-300">
-                                {formatDateForDisplay(event.start_date)}
+                              <td className="px-4 py-3">
+                                <EditableDate
+                                  value={event.start_date}
+                                  readOnly={readOnly || !onFieldChange}
+                                  onCommit={(v) => onFieldChange(event.id, 'start_date', v)}
+                                />
                               </td>
-                              <td className="px-4 py-3 text-sm text-slate-300">
-                                {formatDateForDisplay(event.end_date)}
+                              <td className="px-4 py-3">
+                                <EditableDate
+                                  value={event.end_date}
+                                  readOnly={readOnly || !onFieldChange}
+                                  onCommit={(v) => onFieldChange(event.id, 'end_date', v)}
+                                />
                               </td>
                               <td className="px-4 py-3">
                                 <div className="flex items-center gap-2 max-w-xs">

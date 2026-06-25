@@ -146,6 +146,14 @@ export default function Timeline() {
     }
   };
 
+  // Edição inline direto no quadro (título, datas)
+  const handleFieldChange = (eventId, field, value) => {
+    const event = timelineEvents.find(e => e.id === eventId);
+    if (event && event[field] !== value) {
+      updateMutation.mutate({ id: eventId, data: { ...event, [field]: value } });
+    }
+  };
+
   // 🚀 OTIMIZAÇÃO 3: useMemo nas renderizações pesadas.
   // Essa lógica de filtro e ordenação rodava a cada clique/tecla. Agora, só roda quando 'products' muda.
   const allEntities = useMemo(() => {
@@ -271,6 +279,7 @@ export default function Timeline() {
               entityProducts={entityProducts}
               timelineEvents={timelineEvents}
               onStatusChange={canEdit ? handleStatusChange : undefined}
+              onFieldChange={canEdit ? handleFieldChange : undefined}
               onEdit={canEdit ? handleEdit : undefined}
               onDelete={canEdit ? handleDelete : undefined}
               readOnly={!canEdit}
