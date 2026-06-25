@@ -66,7 +66,16 @@
     },
     "responsavel": {
       "type": "string",
-      "description": "Respons\u00e1vel pelo chamado"
+      "description": "Solicitante do chamado"
+    },
+    "responsavel_tipo": {
+      "type": "string",
+      "enum": [
+        "betha",
+        "revenda",
+        "cliente"
+      ],
+      "description": "Respons\u00e1vel pelo chamado: Betha, Revenda ou Cliente"
     },
     "data_abertura": {
       "type": "string",

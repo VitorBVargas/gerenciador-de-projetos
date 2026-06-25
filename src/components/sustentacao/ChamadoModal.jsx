@@ -28,7 +28,7 @@ export default function ChamadoModal({ open, onOpenChange, chamado, projectId, p
   const [form, setForm] = useState({
     numero: '', descricao: '', categoria: '', tipo: 'interno', product_id: '', product_name: '',
     entity_id: '', entity_name: '',
-    status: 'aberto', prioridade: 'media', responsavel: '',
+    status: 'aberto', prioridade: 'media', responsavel: '', responsavel_tipo: '',
     data_abertura: '', is_bloqueador: false, notes: ''
   });
   const [saving, setSaving] = useState(false);
@@ -67,7 +67,7 @@ export default function ChamadoModal({ open, onOpenChange, chamado, projectId, p
       setForm({
         numero: '', descricao: '', categoria: '', tipo: defaultTipo, product_id: '', product_name: '',
         entity_id: '', entity_name: '',
-        status: 'aberto', prioridade: 'media', responsavel: '',
+        status: 'aberto', prioridade: 'media', responsavel: '', responsavel_tipo: '',
         data_abertura: new Date().toISOString().split('T')[0],
         is_bloqueador: false, notes: ''
       });
@@ -209,6 +209,20 @@ export default function ChamadoModal({ open, onOpenChange, chamado, projectId, p
                 {[...new Set(stakeholders.map(s => s.name).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR')).map(n => (
                   <SelectItem key={`s-${n}`} value={n} className="text-white hover:bg-slate-700">{n}</SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label className="text-slate-300 text-xs">Responsável</Label>
+            <Select value={form.responsavel_tipo || ''} onValueChange={v => set('responsavel_tipo', v)}>
+              <SelectTrigger className="bg-slate-800 border-slate-600 text-white mt-1">
+                <SelectValue placeholder="Selecionar responsável..." />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-800 border-slate-700">
+                <SelectItem value="betha" className="text-white hover:bg-slate-700">Betha</SelectItem>
+                <SelectItem value="revenda" className="text-white hover:bg-slate-700">Revenda</SelectItem>
+                <SelectItem value="cliente" className="text-white hover:bg-slate-700">Cliente</SelectItem>
               </SelectContent>
             </Select>
           </div>
