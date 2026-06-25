@@ -44,7 +44,8 @@ import HideableSection from '../components/sustentacao/HideableSection.jsx';
 
 const SECTION_LABELS = {
   info: 'Informações e Health Score',
-  charts: 'Gráficos de Progresso',
+  cronograma: 'Progresso do Cronograma',
+  homologacao: 'Progresso de Homologação',
   migration: 'Progresso da Migração',
   documents: 'Documentos Chave',
 };
@@ -854,61 +855,68 @@ export default function Dashboard() {
       )}
 
       {/* Charts Row */}
-      {!isHidden('charts') && (
-      <HideableSection hidden={false} onHide={() => hideSection('charts')}>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {timelineProgressData.length > 0 ? (
-          <Card className="bg-slate-800/50 border-slate-700/50">
-            <CardHeader>
-              <CardTitle className="text-white">Progresso do Cronograma por Vertical</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {timelineProgressData.map((item) => (
-                  <div key={item.name} className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-slate-300">{item.name}</span>
-                      <span className="text-white font-semibold">{item.progress}%</span>
-                    </div>
-                    <div className="w-full bg-slate-700 rounded-full h-2.5">
-                      <div
-                        className="h-2.5 rounded-full transition-all duration-300"
-                        style={{ width: `${item.progress}%`, backgroundColor: item.color }}
-                      />
-                    </div>
+      <div className={cn(
+        "grid grid-cols-1 gap-6",
+        (!isHidden('cronograma') && !isHidden('homologacao')) ? "lg:grid-cols-2" : "lg:grid-cols-1"
+      )}>
+        {!isHidden('cronograma') && (
+          <HideableSection hidden={false} onHide={() => hideSection('cronograma')}>
+            {timelineProgressData.length > 0 ? (
+              <Card className="bg-slate-800/50 border-slate-700/50 h-full">
+                <CardHeader>
+                  <CardTitle className="text-white">Progresso do Cronograma por Vertical</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {timelineProgressData.map((item) => (
+                      <div key={item.name} className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-slate-300">{item.name}</span>
+                          <span className="text-white font-semibold">{item.progress}%</span>
+                        </div>
+                        <div className="w-full bg-slate-700 rounded-full h-2.5">
+                          <div
+                            className="h-2.5 rounded-full transition-all duration-300"
+                            style={{ width: `${item.progress}%`, backgroundColor: item.color }}
+                          />
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <Card className="bg-slate-800/50 border-slate-700/50">
-            <CardContent className="py-12">
-              <EmptyState
-                icon={Calendar}
-                title="Nenhuma etapa cadastrada"
-                description="Adicione etapas no cronograma para visualizar o progresso"
-              />
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="bg-slate-800/50 border-slate-700/50 h-full">
+                <CardContent className="py-12">
+                  <EmptyState
+                    icon={Calendar}
+                    title="Nenhuma etapa cadastrada"
+                    description="Adicione etapas no cronograma para visualizar o progresso"
+                  />
+                </CardContent>
+              </Card>
+            )}
+          </HideableSection>
         )}
 
-        {filteredProducts.length > 0 ? (
-          <HomologationProgressChart products={filteredProducts} tasks={filteredHomologationTasks} />
-        ) : (
-          <Card className="bg-slate-800/50 border-slate-700/50">
-            <CardContent className="py-12">
-              <EmptyState
-                icon={Calendar}
-                title="Nenhum produto cadastrado"
-                description="Adicione produtos para visualizar o gráfico de homologação"
-              />
-            </CardContent>
-          </Card>
+        {!isHidden('homologacao') && (
+          <HideableSection hidden={false} onHide={() => hideSection('homologacao')}>
+            {filteredProducts.length > 0 ? (
+              <HomologationProgressChart products={filteredProducts} tasks={filteredHomologationTasks} />
+            ) : (
+              <Card className="bg-slate-800/50 border-slate-700/50 h-full">
+                <CardContent className="py-12">
+                  <EmptyState
+                    icon={Calendar}
+                    title="Nenhum produto cadastrado"
+                    description="Adicione produtos para visualizar o gráfico de homologação"
+                  />
+                </CardContent>
+              </Card>
+            )}
+          </HideableSection>
         )}
       </div>
-      </HideableSection>
-      )}
 
       {/* Migration Progress Chart */}
       {filteredProducts.length > 0 && !isHidden('migration') && (
