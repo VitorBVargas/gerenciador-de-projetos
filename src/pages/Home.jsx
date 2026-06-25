@@ -1,10 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { ArrowRight, FolderOpen, BarChart3, Database, ClipboardList, BookOpen } from 'lucide-react';
+import { useCurrentUser, isParceiro } from '@/lib/permissions';
 export default function Home() {
   const navigate = useNavigate();
+  const { user } = useCurrentUser();
   const [activeButton, setActiveButton] = useState(null);
+
+  // Parceiros só veem a lista de projetos liberados
+  useEffect(() => {
+    if (user && isParceiro(user)) {
+      navigate(createPageUrl('ProjectsList'), { replace: true });
+    }
+  }, [user, navigate]);
 
   const handleNavigation = (page) => {
     navigate(createPageUrl(page));

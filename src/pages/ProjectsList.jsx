@@ -19,7 +19,7 @@ import ProjectTypeSelector from '../components/modals/ProjectTypeSelector';
 import SustentacaoWizard from '../components/modals/SustentacaoWizard';
 import ProjectCard from '../components/projects/ProjectCard';
 import ClosureReportButton from '../components/closure/ClosureReportButton';
-import { useCurrentUser, canCreateProject, canDeleteProject, canManageUsers } from '@/lib/permissions';
+import { useCurrentUser, canCreateProject, canDeleteProject, canManageUsers, isParceiro, getAllowedProjectIds } from '@/lib/permissions';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { deleteProjectCronogramas, completeProjectCronogramas } from '../functions/syncProjectCronogramas';
 import {
@@ -73,10 +73,22 @@ export default function ProjectsList() {
   const [projectToDelete, setProjectToDelete] = useState(null);
   const [deletingProjectId, setDeletingProjectId] = useState(null);
 
-  const { data: projects = [], isLoading } = useQuery({
-    queryKey: ['projects', portfolioFilter],
-    queryFn: () => base44.entities.Project.filter({ portfolio: portfolioFilter }, 'display_order')
+  const parceiro = isParceiro(currentUser);
+  const allowedIds = getAllowedProjectIds(currentUser);
+
+  const { data: allProjects = [], isLoading } = useQuery({
+    queryKey: ['projects', portfolioFilter, parceiro ? 'parceiro' : 'all'],
+    enabled: !!currentUser,
+    queryFn: () =>
+      parceiro
+        ? base44.entities.Project.list('display_order', 1000)
+        : base44.entities.Project.filter({ portfolio: portfolioFilter }, 'display_order')
   });
+
+  // Parceiro só enxerga os projetos liberados
+  const projects = parceiro
+    ? allProjects.filter((p) => allowedIds.includes(p.id))
+    : allProjects;
 
   const updateOrderMutation = useMutation({
     mutationFn: async ({ id, display_order }) => {
@@ -228,12 +240,14 @@ export default function ProjectsList() {
               <p className="text-slate-500 text-xs">de Projetos</p>
             </div>
           </Link>
-          <Link to={createPageUrl('PortfolioSelect?mode=projects')}>
-            <Button variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-700">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Voltar
-            </Button>
-          </Link>
+          {!parceiro && (
+            <Link to={createPageUrl('PortfolioSelect?mode=projects')}>
+              <Button variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-700">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Voltar
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -241,7 +255,9 @@ export default function ProjectsList() {
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-white">Portfólio {portfolioLabels[portfolioFilter]}</h1>
+            <h1 className="text-3xl font-bold text-white">
+              {parceiro ? 'Meus Projetos' : `Portfólio ${portfolioLabels[portfolioFilter]}`}
+            </h1>
             <p className="text-slate-400 mt-1">{activeProjects.length} projeto(s) ativo(s)</p>
           </div>
           <div className="flex gap-3 flex-wrap">
@@ -253,12 +269,14 @@ export default function ProjectsList() {
             >
               🗺️ Reportar Bug / Melhoria
             </a>
-            <Link to={createPageUrl(`ExecutiveStatus?portfolio=${portfolioFilter}`)}>
-              <Button className="bg-purple-600 hover:bg-purple-700">
-                <TrendingUp className="w-4 h-4 mr-2" />
-                Status Executivo
-              </Button>
-            </Link>
+            {!parceiro && (
+              <Link to={createPageUrl(`ExecutiveStatus?portfolio=${portfolioFilter}`)}>
+                <Button className="bg-purple-600 hover:bg-purple-700">
+                  <TrendingUp className="w-4 h-4 mr-2" />
+                  Status Executivo
+                </Button>
+              </Link>
+            )}
             {canManageUsersFlag && (
               <Button
                 onClick={() => window.location.href = createPageUrl('UserManagement')}

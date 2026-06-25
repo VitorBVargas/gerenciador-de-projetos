@@ -8,8 +8,9 @@ import { Card } from '@/components/ui/card';
 import { ArrowLeft, UserPlus, ShieldCheck, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCurrentUser, canManageUsers, ROLE_LABELS } from '@/lib/permissions';
+import ParceiroProjectsSelector from '@/components/users/ParceiroProjectsSelector';
 
-const ROLE_OPTIONS = ['admin', 'gerente', 'coordenador', 'user'];
+const ROLE_OPTIONS = ['admin', 'gerente', 'coordenador', 'user', 'parceiro'];
 
 export default function UserManagement() {
   const { user: currentUser, loading: loadingUser } = useCurrentUser();
@@ -143,28 +144,38 @@ export default function UserManagement() {
           ) : (
             <div className="divide-y">
               {users.map((u) => (
-                <div key={u.id} className="px-5 py-3 flex items-center justify-between gap-4 hover:bg-slate-50">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-slate-800 truncate">{u.full_name || '—'}</p>
-                    <p className="text-xs text-slate-500 truncate">{u.email}</p>
+                <div key={u.id} className="px-5 py-3 hover:bg-slate-50">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-slate-800 truncate">{u.full_name || '—'}</p>
+                      <p className="text-xs text-slate-500 truncate">{u.email}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {savingId === u.id && <Loader2 className="w-4 h-4 animate-spin text-slate-400" />}
+                      <Select
+                        value={u.role || 'user'}
+                        onValueChange={(v) => handleRoleChange(u.id, v)}
+                        disabled={u.id === currentUser?.id}
+                      >
+                        <SelectTrigger className="w-40">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ROLE_OPTIONS.map((r) => (
+                            <SelectItem key={r} value={r}>{ROLE_LABELS[r]}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {savingId === u.id && <Loader2 className="w-4 h-4 animate-spin text-slate-400" />}
-                    <Select
-                      value={u.role || 'user'}
-                      onValueChange={(v) => handleRoleChange(u.id, v)}
-                      disabled={u.id === currentUser?.id}
-                    >
-                      <SelectTrigger className="w-40">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {ROLE_OPTIONS.map((r) => (
-                          <SelectItem key={r} value={r}>{ROLE_LABELS[r]}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {u.role === 'parceiro' && (
+                    <ParceiroProjectsSelector
+                      user={u}
+                      onSaved={(ids) =>
+                        setUsers((prev) => prev.map((x) => (x.id === u.id ? { ...x, allowed_project_ids: ids } : x)))
+                      }
+                    />
+                  )}
                 </div>
               ))}
               {users.length === 0 && (

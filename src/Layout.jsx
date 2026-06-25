@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
+import { isParceiro, canParceiroSeePage, canAccessProject } from '@/lib/permissions';
 import {
   LayoutDashboard,
   Users,
@@ -90,6 +91,16 @@ export default function Layout({ children, currentPageName }) {
     }
   }, [projectId]);
 
+  // Bloqueio de acesso para Parceiros: páginas restritas e projetos não liberados
+  useEffect(() => {
+    if (!user || !isParceiro(user)) return;
+    const blockedPage = !canParceiroSeePage(user, currentPageName);
+    const blockedProject = projectId && !canAccessProject(user, projectId);
+    if (blockedPage || blockedProject) {
+      window.location.href = createPageUrl('ProjectsList');
+    }
+  }, [user, currentPageName, projectId]);
+
   const handleLogout = () => {
     base44.auth.logout();
   };
@@ -150,6 +161,8 @@ export default function Layout({ children, currentPageName }) {
               .filter(item => {
                 // Aba Prestação de Contas só aparece se o projeto tiver produto com prestacao_contas=true
                 if (item.href === 'SustentacaoPrestacaoContas') return hasPrestacaoContas;
+                // Parceiros não veem Orçamento nem Apontamento de Horas
+                if (!canParceiroSeePage(user, item.href)) return false;
                 return true;
               })
               .map((item) => {

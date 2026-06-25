@@ -8,10 +8,18 @@
         "admin",
         "gerente",
         "coordenador",
-        "user"
+        "user",
+        "parceiro"
       ],
       "default": "user",
       "description": "Perfil do usu\u00e1rio no sistema"
+    },
+    "allowed_project_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs dos projetos que um usu\u00e1rio Parceiro pode visualizar/editar"
     }
   },
   "required": []
