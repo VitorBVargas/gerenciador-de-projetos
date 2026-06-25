@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { ArrowRight, FolderOpen, BarChart3, Database, ClipboardList, BookOpen } from 'lucide-react';
-import { useCurrentUser, isParceiro } from '@/lib/permissions';
+import { useCurrentUser, isParceiro, canSeeExecutiveStatus } from '@/lib/permissions';
 export default function Home() {
   const navigate = useNavigate();
   const { user } = useCurrentUser();
   const parceiro = isParceiro(user);
+  const verStatusExecutivo = canSeeExecutiveStatus(user);
   const [activeButton, setActiveButton] = useState(null);
 
   const handleNavigation = (page) => {
@@ -83,7 +84,7 @@ export default function Home() {
           </button>
 
           {/* Status Executivo */}
-          {!parceiro && (
+          {!parceiro && verStatusExecutivo && (
           <button
             onClick={() => handleNavigation('PortfolioSelect?mode=executive')}
             onMouseEnter={() => setActiveButton(2)}

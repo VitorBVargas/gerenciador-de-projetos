@@ -77,6 +77,11 @@ export function canManageUsers(user) {
   return user?.role === 'admin';
 }
 
+// Usuários do tipo "user" não têm acesso ao Status Executivo
+export function canSeeExecutiveStatus(user) {
+  return user?.role !== 'user';
+}
+
 /**
  * Hook para carregar o usuário logado uma única vez.
  */

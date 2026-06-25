@@ -23,6 +23,7 @@ import {
 import { cn } from "@/lib/utils";
 import { createPageUrl } from '../utils';
 import { Link } from 'react-router-dom';
+import { canSeeExecutiveStatus } from '@/lib/permissions';
 
 import PasswordReleasesChart from '../components/executive/PasswordReleasesChart';
 import ProjectGoLiveTimeline from '../components/executive/ProjectGoLiveTimeline';
@@ -68,7 +69,12 @@ const statusColors = {
 export default function ExecutiveStatus() {
   const [activeTab, setActiveTab] = useState('overview');
   const [currentUser, setCurrentUser] = useState(null);
-  React.useEffect(() => { base44.auth.me().then(setCurrentUser).catch(() => {}); }, []);
+  React.useEffect(() => {
+    base44.auth.me().then((u) => {
+      setCurrentUser(u);
+      if (!canSeeExecutiveStatus(u)) window.location.href = createPageUrl('Home');
+    }).catch(() => {});
+  }, []);
   const [selectedStatusFilter, setSelectedStatusFilter] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
   const [isRevenueModalOpen, setIsRevenueModalOpen] = useState(false);

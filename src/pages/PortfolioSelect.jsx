@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { ArrowLeft, Building2, BarChart3, ClipboardList } from 'lucide-react';
+import { useCurrentUser, canSeeExecutiveStatus } from '@/lib/permissions';
 
 const portfolios = [
   {
@@ -25,8 +26,16 @@ const portfolios = [
 ];
 
 export default function PortfolioSelect() {
+  const { user, loading } = useCurrentUser();
   const urlParams = new URLSearchParams(window.location.search);
   const mode = urlParams.get('mode') || 'projects';
+
+  // Bloqueia acesso ao modo executivo para usuários do tipo "user"
+  useEffect(() => {
+    if (!loading && mode === 'executive' && !canSeeExecutiveStatus(user)) {
+      window.location.href = createPageUrl('Home');
+    }
+  }, [loading, user, mode]);
 
   const title = mode === 'executive' ? 'Status Executivo' : mode === 'edital' ? 'Pendência Edital' : 'Projetos';
   const subtitle = mode === 'executive'
