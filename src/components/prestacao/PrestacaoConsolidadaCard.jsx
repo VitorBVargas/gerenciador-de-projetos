@@ -249,7 +249,7 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
 
             {isTodos && todosPorTipo.map(({ tipo: tipoNome, porMesPorEntidade }) => {
               const entityEntries = Object.values(porMesPorEntidade);
-              const multiEntity = isAllEntities && entityEntries.filter(e => e.entity).length > 1;
+              const multiEntity = isAllEntities && entityEntries.filter(e => e.entity).length > 0;
               return (
                 <div key={tipoNome} className="grid grid-cols-[180px_repeat(12,1fr)] gap-1 mb-1.5 items-stretch">
                   <div className="flex items-center pr-2">
@@ -309,7 +309,7 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
                 obrigacoesDoTipo.some(o => entityMatchesObligation(o, ent, availableEntities))
               );
               const entitiesToUse = entitiesComObrigacao.length > 0 ? entitiesComObrigacao : [null];
-              const multiEntity = isAllEntities && entitiesToUse.filter(e => e).length > 1;
+              const multiEntity = isAllEntities && entitiesToUse.filter(e => e).length > 0;
 
               const porMesPorEntidade = {};
               entitiesToUse.forEach(ent => {
