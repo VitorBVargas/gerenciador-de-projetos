@@ -91,13 +91,13 @@ function EditableDate({ value, onCommit, readOnly }) {
     );
   }
   return (
-    <span
-      onClick={() => setEditing(true)}
-      className="text-sm text-slate-300 cursor-text hover:text-white rounded px-1 -mx-1 inline-block"
-      title="Clique para editar"
-    >
-      {formatDateForDisplay(value)}
-    </span>
+    <input
+      type="date"
+      value={value || ''}
+      onChange={e => { if (e.target.value !== (value || '')) onCommit(e.target.value); }}
+      onClick={e => { e.currentTarget.showPicker && e.currentTarget.showPicker(); }}
+      className="bg-transparent border-0 px-1 -mx-1 py-0.5 text-sm text-slate-300 hover:text-white focus:outline-none cursor-pointer"
+    />
   );
 }
 
