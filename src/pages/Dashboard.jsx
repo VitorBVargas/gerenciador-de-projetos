@@ -13,7 +13,9 @@ import {
   AlertTriangle,
   Plus,
   ExternalLink,
-  Upload
+  Upload,
+  Eye,
+  RotateCcw
 } from 'lucide-react';
 import { format, differenceInDays, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -38,6 +40,14 @@ import EntityFilter from '../components/filters/EntityFilter';
 import KeyDocuments from '../components/dashboard/KeyDocuments.jsx';
 import ExportProjectButton from '../components/dashboard/ExportProjectButton.jsx';
 import { useCurrentUser, canEditProject } from '@/lib/permissions';
+import HideableSection from '../components/sustentacao/HideableSection.jsx';
+
+const SECTION_LABELS = {
+  info: 'Informações e Health Score',
+  charts: 'Gráficos de Progresso',
+  migration: 'Progresso da Migração',
+  documents: 'Documentos Chave',
+};
 
 export default function Dashboard() {
   const queryClient = useQueryClient();
@@ -48,6 +58,18 @@ export default function Dashboard() {
   const urlParams = new URLSearchParams(window.location.search);
   const projectId = urlParams.get('project_id');
   const isNewProject = urlParams.get('isNewProject') === 'true';
+
+  const storageKey = `dashTradHidden:${projectId}`;
+  const [hiddenSections, setHiddenSections] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(`dashTradHidden:${projectId}`) || '[]'); } catch { return []; }
+  });
+  const persistHidden = (next) => {
+    setHiddenSections(next);
+    try { localStorage.setItem(storageKey, JSON.stringify(next)); } catch (e) { /* ignore */ }
+  };
+  const hideSection = (key) => persistHidden([...new Set([...hiddenSections, key])]);
+  const showSection = (key) => persistHidden(hiddenSections.filter(k => k !== key));
+  const isHidden = (key) => hiddenSections.includes(key);
 
   const [selectedEntity, setSelectedEntity] = useState(null);
   const [projectModalOpen, setProjectModalOpen] = useState(false);
@@ -655,13 +677,29 @@ export default function Dashboard() {
         )}
       </div>
 
+      {/* Quadros ocultos — restaurar */}
+      {hiddenSections.length > 0 && (
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="text-[11px] text-slate-500 flex items-center gap-1">
+            <Eye className="w-3 h-3" /> Ocultos:
+          </span>
+          {hiddenSections.map(key => (
+            <button key={key} onClick={() => showSection(key)}
+              className="text-[11px] px-2 py-0.5 rounded-full bg-slate-700/60 text-slate-300 hover:bg-slate-600 hover:text-white transition-colors flex items-center gap-1">
+              {SECTION_LABELS[key] || key} <RotateCcw className="w-2.5 h-2.5" />
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Entity Filter */}
       {allEntities.length > 0 && (
         <EntityFilter entities={allEntities} selectedEntity={selectedEntity} onEntityChange={setSelectedEntity} />
       )}
 
       {/* Project Info Row */}
-      {activeProject && (
+      {activeProject && !isHidden('info') && (
+        <HideableSection hidden={false} onHide={() => hideSection('info')}>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Project Card */}
           <div className="lg:col-span-2">
@@ -798,6 +836,7 @@ export default function Dashboard() {
             projectStatus={activeProject?.status}
           />
         </div>
+        </HideableSection>
       )}
 
       {!activeProject && (
@@ -815,6 +854,8 @@ export default function Dashboard() {
       )}
 
       {/* Charts Row */}
+      {!isHidden('charts') && (
+      <HideableSection hidden={false} onHide={() => hideSection('charts')}>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {timelineProgressData.length > 0 ? (
           <Card className="bg-slate-800/50 border-slate-700/50">
@@ -866,14 +907,22 @@ export default function Dashboard() {
           </Card>
         )}
       </div>
+      </HideableSection>
+      )}
 
       {/* Migration Progress Chart */}
-      {filteredProducts.length > 0 && (
-        <MigrationProgressChart products={filteredProducts} tasks={filteredMigrationTasks} />
+      {filteredProducts.length > 0 && !isHidden('migration') && (
+        <HideableSection hidden={false} onHide={() => hideSection('migration')}>
+          <MigrationProgressChart products={filteredProducts} tasks={filteredMigrationTasks} />
+        </HideableSection>
       )}
 
       {/* Documentos Chave */}
-      <KeyDocuments projectId={projectId} project={activeProject} products={products} />
+      {!isHidden('documents') && (
+        <HideableSection hidden={false} onHide={() => hideSection('documents')}>
+          <KeyDocuments projectId={projectId} project={activeProject} products={products} />
+        </HideableSection>
+      )}
 
       {/* Project Modal */}
       <ProjectModal
