@@ -156,3 +156,8 @@ button:focus-visible {
     @apply bg-background text-foreground;
   }
 }
+
+.editable-date::-webkit-calendar-picker-indicator {
+  display: none;
+  -webkit-appearance: none;
+}
