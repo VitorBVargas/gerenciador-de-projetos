@@ -37,7 +37,7 @@ import AIWelcomeModal from '../components/modals/AIWelcomeModal.jsx';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Sparkles } from 'lucide-react';
 import EntityFilter from '../components/filters/EntityFilter';
-import KeyDocuments from '../components/dashboard/KeyDocuments.jsx';
+import CriticalObservations from '../components/dashboard/CriticalObservations.jsx';
 import ExportProjectButton from '../components/dashboard/ExportProjectButton.jsx';
 import { useCurrentUser, canEditProject } from '@/lib/permissions';
 import HideableSection from '../components/sustentacao/HideableSection.jsx';
@@ -48,7 +48,7 @@ const SECTION_LABELS = {
   cronograma: 'Progresso do Cronograma',
   homologacao: 'Progresso de Homologação',
   migration: 'Progresso da Migração',
-  documents: 'Documentos Chave',
+  documents: 'Observações e Reunião',
 };
 
 export default function Dashboard() {
@@ -927,10 +927,10 @@ export default function Dashboard() {
         </HideableSection>
       )}
 
-      {/* Documentos Chave */}
+      {/* Observações Críticas + Próxima Reunião */}
       {!isHidden('documents') && (
         <HideableSection hidden={false} onHide={() => hideSection('documents')}>
-          <KeyDocuments projectId={projectId} project={activeProject} products={products} />
+          <CriticalObservations projectId={projectId} />
         </HideableSection>
       )}
 
