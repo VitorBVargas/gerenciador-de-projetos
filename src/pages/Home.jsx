@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { ArrowRight, FolderOpen, BarChart3, Database, ClipboardList, BookOpen } from 'lucide-react';
@@ -6,14 +6,8 @@ import { useCurrentUser, isParceiro } from '@/lib/permissions';
 export default function Home() {
   const navigate = useNavigate();
   const { user } = useCurrentUser();
+  const parceiro = isParceiro(user);
   const [activeButton, setActiveButton] = useState(null);
-
-  // Parceiros só veem a lista de projetos liberados
-  useEffect(() => {
-    if (user && isParceiro(user)) {
-      navigate(createPageUrl('ProjectsList'), { replace: true });
-    }
-  }, [user, navigate]);
 
   const handleNavigation = (page) => {
     navigate(createPageUrl(page));
@@ -53,6 +47,7 @@ export default function Home() {
         {/* Button Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 max-w-5xl mx-auto">
           {/* Projetos Internos */}
+          {!parceiro && (
           <button
             onClick={() => handleNavigation('InternalProjectsList')}
             onMouseEnter={() => setActiveButton(0)}
@@ -66,6 +61,7 @@ export default function Home() {
             </div>
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
           </button>
+          )}
 
           {/* Projetos - Portfólios */}
           <button
@@ -87,6 +83,7 @@ export default function Home() {
           </button>
 
           {/* Status Executivo */}
+          {!parceiro && (
           <button
             onClick={() => handleNavigation('PortfolioSelect?mode=executive')}
             onMouseEnter={() => setActiveButton(2)}
@@ -100,8 +97,10 @@ export default function Home() {
             </div>
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
           </button>
+          )}
 
           {/* Pendência Edital */}
+          {!parceiro && (
           <button
             onClick={() => handleNavigation('PortfolioSelect?mode=edital')}
             onMouseEnter={() => setActiveButton(3)}
@@ -115,8 +114,10 @@ export default function Home() {
             </div>
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
           </button>
+          )}
 
           {/* Lições Aprendidas / FAQ */}
+          {!parceiro && (
           <button
             onClick={() => handleNavigation('KnowledgeBase')}
             onMouseEnter={() => setActiveButton(4)}
@@ -130,11 +131,13 @@ export default function Home() {
             </div>
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
           </button>
+          )}
         </div>
 
         {/* Footer hint */}
         <div className="text-center mt-16 text-slate-400 text-sm flex flex-col items-center gap-3">
           <p>Clique em qualquer opção para começar</p>
+          {!parceiro && (
           <div className="flex items-center gap-3">
             <a
               href="https://betha-road-map.base44.app/"
@@ -152,6 +155,7 @@ export default function Home() {
               Backups
             </button>
           </div>
+          )}
         </div>
       </div>
     </div>
