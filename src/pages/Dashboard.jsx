@@ -41,6 +41,7 @@ import KeyDocuments from '../components/dashboard/KeyDocuments.jsx';
 import ExportProjectButton from '../components/dashboard/ExportProjectButton.jsx';
 import { useCurrentUser, canEditProject } from '@/lib/permissions';
 import HideableSection from '../components/sustentacao/HideableSection.jsx';
+import GlobalTracker from '../components/horas/GlobalTracker.jsx';
 
 const SECTION_LABELS = {
   info: 'Informações e Health Score',
@@ -628,6 +629,7 @@ export default function Dashboard() {
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
+      <GlobalTracker projectId={projectId} onSaved={() => queryClient.invalidateQueries({ queryKey: ['horasLancamento', projectId] })} />
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
