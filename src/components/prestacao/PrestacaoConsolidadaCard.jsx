@@ -119,17 +119,22 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
   }, [filteredObrigacoes, tipo, ano]);
 
   const todosPorTipo = useMemo(() => {
-    const entitiesToUse = isAllEntities
+    const allCandidates = isAllEntities
       ? (availableEntities.length > 0 ? availableEntities : [null])
       : (selectedEntity ? [selectedEntity] : [null]);
     return tipos.map((tipoNome) => {
       const isAnual = OBRIGACOES_ANUAIS.includes(tipoNome);
+      const obrigacoesDoTipo = filteredObrigacoes.filter(o => o.nome === tipoNome);
+      // Mostra apenas entidades que realmente possuem esta obrigação cadastrada
+      const entitiesToUse = allCandidates.filter(ent =>
+        obrigacoesDoTipo.some(o => entityMatchesObligation(o, ent, availableEntities))
+      );
+      const finalEntities = entitiesToUse.length > 0 ? entitiesToUse : [null];
       const porMesPorEntidade = {};
-      entitiesToUse.forEach((ent) => {
+      finalEntities.forEach((ent) => {
         const entityKey = ent?.id || '__none__';
         porMesPorEntidade[entityKey] = { entity: ent, porMes: {} };
-        filteredObrigacoes
-          .filter(o => o.nome === tipoNome)
+        obrigacoesDoTipo
           .filter(o => entityMatchesObligation(o, ent, availableEntities))
           .forEach(o => {
             const [m, y] = (o.competencia || '').split('/');
@@ -244,7 +249,7 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
 
             {isTodos && todosPorTipo.map(({ tipo: tipoNome, porMesPorEntidade }) => {
               const entityEntries = Object.values(porMesPorEntidade);
-              const multiEntity = isAllEntities && availableEntities.length > 1;
+              const multiEntity = isAllEntities && entityEntries.filter(e => e.entity).length > 1;
               return (
                 <div key={tipoNome} className="grid grid-cols-[180px_repeat(12,1fr)] gap-1 mb-1.5 items-stretch">
                   <div className="flex items-center pr-2">
@@ -294,17 +299,23 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
             {!isTodos && (() => {
               const tipoAtivo = tipo;
               const isAnualTipo = OBRIGACOES_ANUAIS.includes(tipoAtivo);
-              const multiEntity = isAllEntities && availableEntities.length > 1;
-              const entitiesToUse = isAllEntities
+              const allCandidates = isAllEntities
                 ? (availableEntities.length > 0 ? availableEntities : [null])
                 : (selectedEntity ? [selectedEntity] : [null]);
+
+              const obrigacoesDoTipo = filteredObrigacoes.filter(o => o.nome === tipoAtivo);
+              // Mostra apenas entidades que realmente possuem esta obrigação cadastrada
+              const entitiesComObrigacao = allCandidates.filter(ent =>
+                obrigacoesDoTipo.some(o => entityMatchesObligation(o, ent, availableEntities))
+              );
+              const entitiesToUse = entitiesComObrigacao.length > 0 ? entitiesComObrigacao : [null];
+              const multiEntity = isAllEntities && entitiesToUse.filter(e => e).length > 1;
 
               const porMesPorEntidade = {};
               entitiesToUse.forEach(ent => {
                 const entityKey = ent?.id || '__none__';
                 porMesPorEntidade[entityKey] = { entity: ent, porMes: {} };
-                obrigacoes
-                  .filter(o => o.nome === tipoAtivo)
+                obrigacoesDoTipo
                   .filter(o => entityMatchesObligation(o, ent, availableEntities))
                   .forEach(o => {
                     const [m, y] = (o.competencia || '').split('/');
