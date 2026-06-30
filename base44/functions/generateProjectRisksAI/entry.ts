@@ -32,14 +32,15 @@ Deno.serve(async (req) => {
       base44.asServiceRole.entities.Project.filter({ portfolio: p.portfolio }),
     ]);
 
-    // Dados específicos de sustentação (chamados, obrigações legais, roadmap, reuniões)
-    const [chamados, obrigacoes, reunioes] = isSustentacao
+    // Dados específicos de sustentação (chamados, obrigações legais, reuniões, atividades)
+    const [chamados, obrigacoes, reunioes, atividades] = isSustentacao
       ? await Promise.all([
           base44.asServiceRole.entities.Chamado.filter({ project_id }),
           base44.asServiceRole.entities.ObrigacaoLegal.filter({ project_id }),
           base44.asServiceRole.entities.Reuniao.filter({ project_id }),
+          base44.asServiceRole.entities.ProjectActivity.filter({ project_id }),
         ])
-      : [[], [], []];
+      : [[], [], [], []];
 
     // Datas chave
     const sortedEvents = (timelineEvents || []).filter(t => t.end_date).sort((a, b) => a.end_date.localeCompare(b.end_date));
@@ -88,11 +89,32 @@ Deno.serve(async (req) => {
 
     if (isSustentacao) {
       // ── Contexto de SUSTENTAÇÃO ────────────────────────────────────────
-      const chamadosAbertos = chamados.filter(c => ['aberto', 'em_andamento', 'aguardando_cliente'].includes(c.status));
+      const diasDesde = (d) => d ? Math.floor((today - new Date(d)) / (1000 * 60 * 60 * 24)) : null;
+      const chamadosAbertosList = chamados.filter(c => ['aberto', 'em_andamento', 'aguardando_cliente'].includes(c.status));
+      const chamadosAbertos = chamadosAbertosList;
       const chamadosBloqueadores = chamados.filter(c => c.is_bloqueador && c.status !== 'fechado' && c.status !== 'resolvido');
       const chamadosCriticos = chamados.filter(c => c.prioridade === 'critica' && c.status !== 'fechado' && c.status !== 'resolvido');
+      // Chamados abertos há mais de 30 dias (envelhecimento / SLA estourado)
+      const chamadosEnvelhecidos = chamadosAbertosList
+        .map(c => ({ numero: c.numero, prioridade: c.prioridade, dias_aberto: diasDesde(c.data_abertura) }))
+        .filter(c => c.dias_aberto !== null && c.dias_aberto > 30)
+        .sort((a, b) => b.dias_aberto - a.dias_aberto);
       const obrigacoesPendentes = obrigacoes.filter(o => ['nao_iniciado', 'em_elaboracao', 'rejeitado'].includes(o.status));
       const obrigacoesRejeitadas = obrigacoes.filter(o => o.status === 'rejeitado');
+      // Obrigações legais com prazo vencido ou próximo (próximos 15 dias)
+      const obrigacoesVencidas = obrigacoesPendentes
+        .map(o => ({ nome: o.nome, competencia: o.competencia, dias_para_prazo: o.data_limite ? -diasDesde(o.data_limite) : null }))
+        .filter(o => o.dias_para_prazo !== null && o.dias_para_prazo <= 15)
+        .sort((a, b) => a.dias_para_prazo - b.dias_para_prazo);
+      // Atividades de sustentação não concluídas e seus prazos
+      const atividadesAbertas = atividades.filter(a => a.status !== 'concluido' && !a.completed_date);
+      const atividadesAtrasadas = atividadesAbertas
+        .map(a => ({ titulo: a.title, responsavel: a.assignee, prazo: a.end_date, dias_de_atraso: a.end_date ? diasDesde(a.end_date) : null }))
+        .filter(a => a.dias_de_atraso !== null && a.dias_de_atraso > 0)
+        .sort((a, b) => b.dias_de_atraso - a.dias_de_atraso);
+      const atividadesProximas = atividadesAbertas
+        .map(a => ({ titulo: a.title, responsavel: a.assignee, prazo: a.end_date, dias_para_prazo: a.end_date ? -diasDesde(a.end_date) : null }))
+        .filter(a => a.dias_para_prazo !== null && a.dias_para_prazo >= 0 && a.dias_para_prazo <= 7);
 
       ctx = {
         ...ctxBase,
@@ -101,12 +123,22 @@ Deno.serve(async (req) => {
           abertos: chamadosAbertos.length,
           bloqueadores_abertos: chamadosBloqueadores.length,
           criticos_abertos: chamadosCriticos.length,
+          envelhecidos_mais_30_dias: chamadosEnvelhecidos.length,
+          chamados_mais_antigos_abertos: chamadosEnvelhecidos.slice(0, 8),
           por_status: chamados.reduce((acc, c) => { acc[c.status] = (acc[c.status] || 0) + 1; return acc; }, {}),
+        },
+        atividades: {
+          total: atividades.length,
+          abertas: atividadesAbertas.length,
+          atrasadas: atividadesAtrasadas.length,
+          atividades_atrasadas: atividadesAtrasadas.slice(0, 8),
+          vencendo_proximos_7_dias: atividadesProximas,
         },
         obrigacoes_legais: {
           total: obrigacoes.length,
           pendentes: obrigacoesPendentes.length,
           rejeitadas: obrigacoesRejeitadas.length,
+          vencidas_ou_proximas: obrigacoesVencidas.slice(0, 8),
           cnd_ativa: p.cnd_ativa !== false,
         },
         relacionamento: {
@@ -131,9 +163,11 @@ DIRETRIZES (SUSTENTAÇÃO):
 - Gere entre 6 e 12 riscos relevantes e contextualizados para a OPERAÇÃO deste contrato.
 - NÃO gere riscos de implantação (migração, homologação, go-live, treinamento inicial). O sistema já está em produção.
 - Cubra os temas típicos de sustentação: SLA / acúmulo de chamados (especialmente bloqueadores e críticos abertos), obrigações legais e prestação de contas (SICOM/SIOPE/etc. pendentes ou rejeitadas, situação da CND), continuidade e disponibilidade do serviço, satisfação e relacionamento com o cliente, capacidade/sobrecarga da equipe de sustentação, dependência de pessoas-chave, mudanças legais/normativas, e risco de renovação/cancelamento do contrato.
+- ANALISE OS PRAZOS: use os campos "chamados.chamados_mais_antigos_abertos" (chamados envelhecidos com dias em aberto), "atividades.atividades_atrasadas" e "atividades.vencendo_proximos_7_dias", e "obrigacoes_legais.vencidas_ou_proximas" (dias para o prazo) para gerar riscos concretos baseados nesses prazos, citando os itens específicos no ai_rationale.
 - Use as categorias mais adequadas: operacional, legal, governanca, cliente, recurso, tecnico, financeiro, comunicacao, externo.
-- Se houver chamados bloqueadores ou críticos abertos, gere risco de criticidade alta de continuidade do serviço.
-- Se houver obrigações legais pendentes ou rejeitadas, ou CND inativa, gere risco legal de alta gravidade.
+- Se houver chamados bloqueadores, críticos abertos ou chamados envelhecidos há muito tempo, gere risco de criticidade alta de continuidade do serviço / SLA.
+- Se houver atividades atrasadas ou vencendo, gere risco operacional sobre cumprimento dos prazos da equipe de sustentação.
+- Se houver obrigações legais pendentes, rejeitadas, vencidas/próximas do prazo, ou CND inativa, gere risco legal de alta gravidade.
 - Para suggested_owner use papéis de sustentação: Coordenador de Sustentação, Analista de Suporte, Cliente, Gestor do Contrato.
 - Em "phase" use a área de sustentação relacionada (suporte, obrigacoes_legais, relacionamento, operacao, contrato).
 - Calcule risk_score geral (0-100) e risk_level (muito_baixo, baixo, medio, alto, critico).
