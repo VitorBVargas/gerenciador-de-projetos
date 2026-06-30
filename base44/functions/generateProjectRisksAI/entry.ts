@@ -21,6 +21,8 @@ Deno.serve(async (req) => {
     }
     const p = project[0];
 
+    const isSustentacao = p.project_type === 'sustentacao';
+
     const [products, cronogramas, timelineEvents, team, similarProjects] = await Promise.all([
       base44.asServiceRole.entities.Product.filter({ project_id }),
       base44.asServiceRole.entities.Cronograma.filter({ project_id }),
@@ -29,6 +31,15 @@ Deno.serve(async (req) => {
       // Projetos do mesmo portfólio (histórico)
       base44.asServiceRole.entities.Project.filter({ portfolio: p.portfolio }),
     ]);
+
+    // Dados específicos de sustentação (chamados, obrigações legais, roadmap, reuniões)
+    const [chamados, obrigacoes, reunioes] = isSustentacao
+      ? await Promise.all([
+          base44.asServiceRole.entities.Chamado.filter({ project_id }),
+          base44.asServiceRole.entities.ObrigacaoLegal.filter({ project_id }),
+          base44.asServiceRole.entities.Reuniao.filter({ project_id }),
+        ])
+      : [[], [], []];
 
     // Datas chave
     const sortedEvents = (timelineEvents || []).filter(t => t.end_date).sort((a, b) => a.end_date.localeCompare(b.end_date));
@@ -41,8 +52,9 @@ Deno.serve(async (req) => {
     // Verticais únicas
     const verticais = [...new Set((products || []).map(pr => pr.vertical).filter(Boolean))];
 
-    // ── 2. Monta o prompt ────────────────────────────────────────────────
-    const ctx = {
+    // ── 2. Monta o contexto base ─────────────────────────────────────────
+    const ctxBase = {
+      tipo_projeto: isSustentacao ? 'sustentacao' : 'implantacao',
       projeto: {
         nome: p.name,
         portfolio: p.portfolio,
@@ -60,12 +72,6 @@ Deno.serve(async (req) => {
         verticais: verticais,
         produtos: products.map(pr => ({ nome: pr.name, vertical: pr.vertical, entidade: pr.entity })),
       },
-      cronograma: {
-        total_cronogramas: cronogramas.length,
-        go_live_previsto: goLiveEvent?.end_date || null,
-        dias_ate_go_live: daysUntilGoLive,
-        marcos_atrasados: timelineEvents.filter(t => t.status === 'atrasado').length,
-      },
       equipe: {
         total_membros: team.length,
         lideres: team.filter(t => t.is_leader).length,
@@ -77,16 +83,85 @@ Deno.serve(async (req) => {
       },
     };
 
-    const prompt = `Você é o Gerente de Riscos IA — atua como Gerente de Riscos Sênior, PMO Corporativo, especialista PMBOK/PRINCE2 e em implantação de ERP para setor público brasileiro.
+    let ctx;
+    let prompt;
 
-Analise o projeto abaixo e gere uma lista de RISCOS RELEVANTES E CONTEXTUALIZADOS (não genéricos). Considere porte do município, valor, quantidade de produtos/verticais, prazos, marcos críticos.
+    if (isSustentacao) {
+      // ── Contexto de SUSTENTAÇÃO ────────────────────────────────────────
+      const chamadosAbertos = chamados.filter(c => ['aberto', 'em_andamento', 'aguardando_cliente'].includes(c.status));
+      const chamadosBloqueadores = chamados.filter(c => c.is_bloqueador && c.status !== 'fechado' && c.status !== 'resolvido');
+      const chamadosCriticos = chamados.filter(c => c.prioridade === 'critica' && c.status !== 'fechado' && c.status !== 'resolvido');
+      const obrigacoesPendentes = obrigacoes.filter(o => ['nao_iniciado', 'em_elaboracao', 'rejeitado'].includes(o.status));
+      const obrigacoesRejeitadas = obrigacoes.filter(o => o.status === 'rejeitado');
+
+      ctx = {
+        ...ctxBase,
+        chamados: {
+          total: chamados.length,
+          abertos: chamadosAbertos.length,
+          bloqueadores_abertos: chamadosBloqueadores.length,
+          criticos_abertos: chamadosCriticos.length,
+          por_status: chamados.reduce((acc, c) => { acc[c.status] = (acc[c.status] || 0) + 1; return acc; }, {}),
+        },
+        obrigacoes_legais: {
+          total: obrigacoes.length,
+          pendentes: obrigacoesPendentes.length,
+          rejeitadas: obrigacoesRejeitadas.length,
+          cnd_ativa: p.cnd_ativa !== false,
+        },
+        relacionamento: {
+          total_reunioes: reunioes.length,
+          ultima_reuniao: p.last_meeting_date || null,
+          proxima_reuniao: p.next_meeting_date || null,
+        },
+        contrato: {
+          valor_recorrente_mensal: p.contract_recurring_value || p.recurring_value || 0,
+          inicio_sustentacao: p.sustentacao_start_date || null,
+        },
+      };
+
+      prompt = `Você é o Gerente de Riscos IA — atua como Gerente de Riscos Sênior e PMO especializado em SUSTENTAÇÃO/PÓS-IMPLANTAÇÃO de ERP para o setor público brasileiro.
+
+Este é um PROJETO DE SUSTENTAÇÃO (operação contínua), NÃO uma implantação. Os riscos são totalmente diferentes: o sistema já está em produção. Foque na CONTINUIDADE DO SERVIÇO, não em entrega/go-live.
 
 CONTEXTO DO PROJETO:
 ${JSON.stringify(ctx, null, 2)}
 
-DIRETRIZES:
+DIRETRIZES (SUSTENTAÇÃO):
+- Gere entre 6 e 12 riscos relevantes e contextualizados para a OPERAÇÃO deste contrato.
+- NÃO gere riscos de implantação (migração, homologação, go-live, treinamento inicial). O sistema já está em produção.
+- Cubra os temas típicos de sustentação: SLA / acúmulo de chamados (especialmente bloqueadores e críticos abertos), obrigações legais e prestação de contas (SICOM/SIOPE/etc. pendentes ou rejeitadas, situação da CND), continuidade e disponibilidade do serviço, satisfação e relacionamento com o cliente, capacidade/sobrecarga da equipe de sustentação, dependência de pessoas-chave, mudanças legais/normativas, e risco de renovação/cancelamento do contrato.
+- Use as categorias mais adequadas: operacional, legal, governanca, cliente, recurso, tecnico, financeiro, comunicacao, externo.
+- Se houver chamados bloqueadores ou críticos abertos, gere risco de criticidade alta de continuidade do serviço.
+- Se houver obrigações legais pendentes ou rejeitadas, ou CND inativa, gere risco legal de alta gravidade.
+- Para suggested_owner use papéis de sustentação: Coordenador de Sustentação, Analista de Suporte, Cliente, Gestor do Contrato.
+- Em "phase" use a área de sustentação relacionada (suporte, obrigacoes_legais, relacionamento, operacao, contrato).
+- Calcule risk_score geral (0-100) e risk_level (muito_baixo, baixo, medio, alto, critico).
+- Resumo executivo de 2-3 frases sobre o panorama de risco da SUSTENTAÇÃO.
+
+Responda APENAS com JSON válido seguindo o schema.`;
+    } else {
+      // ── Contexto de IMPLANTAÇÃO ────────────────────────────────────────
+      ctx = {
+        ...ctxBase,
+        cronograma: {
+          total_cronogramas: cronogramas.length,
+          go_live_previsto: goLiveEvent?.end_date || null,
+          dias_ate_go_live: daysUntilGoLive,
+          marcos_atrasados: timelineEvents.filter(t => t.status === 'atrasado').length,
+        },
+      };
+
+      prompt = `Você é o Gerente de Riscos IA — atua como Gerente de Riscos Sênior, PMO Corporativo, especialista PMBOK/PRINCE2 e em implantação de ERP para setor público brasileiro.
+
+Este é um PROJETO DE IMPLANTAÇÃO. Analise o projeto abaixo e gere uma lista de RISCOS RELEVANTES E CONTEXTUALIZADOS (não genéricos). Considere porte do município, valor, quantidade de produtos/verticais, prazos, marcos críticos.
+
+CONTEXTO DO PROJETO:
+${JSON.stringify(ctx, null, 2)}
+
+DIRETRIZES (IMPLANTAÇÃO):
 - Gere entre 6 e 14 riscos relevantes para ESTE projeto.
-- Cada risco deve ter título curto, descrição contextualizada, categoria (tecnico, cronograma, recurso, cliente, externo), probabilidade (1-5), impacto (1-5), GUT (gravidade, urgência, tendência 1-5), mitigation (ação preventiva), corrective_action (ação corretiva), suggested_owner (Gerente de Projeto, Coordenador Técnico, Cliente, Equipe de Migração, etc.), phase (fase associada) e ai_rationale (por que esse risco se aplica AQUI).
+- Cada risco deve ter título curto, descrição contextualizada, categoria, probabilidade (1-5), impacto (1-5), GUT (gravidade, urgência, tendência 1-5), mitigation (ação preventiva), corrective_action (ação corretiva), suggested_owner (Gerente de Projeto, Coordenador Técnico, Cliente, Equipe de Migração, etc.), phase (fase associada) e ai_rationale (por que esse risco se aplica AQUI).
 - Cubra obrigatoriamente: Migração, Homologação, Treinamento/Capacitação, Go Live, Equipe Cliente, Mudança Organizacional, Infraestrutura, Cronograma.
 - Se dias_ate_go_live for menor que 15 e houver atividades abertas, inclua risco crítico de atraso no Go Live.
 - Se municipio for grande/metropole, aumente riscos de mudança organizacional e capacitação.
@@ -95,6 +170,7 @@ DIRETRIZES:
 - Resumo executivo de 2-3 frases sobre o panorama de risco do projeto.
 
 Responda APENAS com JSON válido seguindo o schema.`;
+    }
 
     // ── 3. Chama LLM com schema estruturado ──────────────────────────────
     const llmResponse = await base44.asServiceRole.integrations.Core.InvokeLLM({
@@ -112,7 +188,7 @@ Responda APENAS com JSON válido seguindo o schema.`;
               properties: {
                 title: { type: 'string' },
                 description: { type: 'string' },
-                category: { type: 'string', enum: ['tecnico', 'cronograma', 'recurso', 'cliente', 'externo'] },
+                category: { type: 'string', enum: ['tecnico', 'cronograma', 'recurso', 'cliente', 'externo', 'operacional', 'produto', 'legal', 'governanca', 'comunicacao', 'capacitacao', 'financeiro'] },
                 probability: { type: 'number' },
                 impact: { type: 'number' },
                 gut_g: { type: 'number' },
