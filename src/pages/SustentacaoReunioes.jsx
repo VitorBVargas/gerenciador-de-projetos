@@ -15,6 +15,7 @@ import ReuniaoModal from '../components/reunioes/ReuniaoModal';
 import AnotacoesEditor from '../components/reunioes/AnotacoesEditor';
 import DecisaoModal from '../components/reunioes/DecisaoModal';
 import BibliotecaDocumental from '../components/reunioes/BibliotecaDocumental';
+import RelatorioOperacionalIA from '../components/reunioes/RelatorioOperacionalIA';
 import { useCurrentUser } from '@/lib/permissions';
 
 const STATUS_CFG = {
@@ -26,8 +27,8 @@ const STATUS_CFG = {
 
 const TIPO_LABEL = { alinhamento: 'Alinhamento', revisao: 'Revisão', apresentacao: 'Apresentação', emergencial: 'Emergencial', kickoff: 'Kickoff', outro: 'Outro' };
 
-const TABS = ['dashboard', 'reunioes', 'decisoes', 'documentos'];
-const TAB_LABELS = { dashboard: 'Dashboard', reunioes: 'Reuniões', decisoes: 'Observações', documentos: 'Documentos' };
+const TABS = ['dashboard', 'reunioes', 'relatorio_ia', 'decisoes', 'documentos'];
+const TAB_LABELS = { dashboard: 'Dashboard', reunioes: 'Reuniões', relatorio_ia: 'Relatório IA', decisoes: 'Observações', documentos: 'Documentos' };
 
 function KPICard({ icon: Icon, label, value, color = 'text-blue-400', bg = 'bg-blue-500/10' }) {
   return (
@@ -341,6 +342,11 @@ export default function SustentacaoReunioes() {
             )}
           </div>
         </div>
+      )}
+
+      {/* ── RELATÓRIO IA ── */}
+      {tab === 'relatorio_ia' && (
+        <RelatorioOperacionalIA projectId={projectId} currentUser={currentUser} />
       )}
 
       {/* ── OBSERVAÇÕES ── */}
