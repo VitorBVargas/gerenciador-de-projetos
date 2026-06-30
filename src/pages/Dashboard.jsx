@@ -15,7 +15,8 @@ import {
   ExternalLink,
   Upload,
   Eye,
-  RotateCcw
+  RotateCcw,
+  CheckCircle
 } from 'lucide-react';
 import { format, differenceInDays, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -42,6 +43,7 @@ import ExportProjectButton from '../components/dashboard/ExportProjectButton.jsx
 import { useCurrentUser, canEditProject } from '@/lib/permissions';
 import HideableSection from '../components/sustentacao/HideableSection.jsx';
 import GlobalTracker from '../components/horas/GlobalTracker.jsx';
+import ConcluirProjetoModal from '../components/modals/ConcluirProjetoModal.jsx';
 
 const SECTION_LABELS = {
   info: 'Informações e Health Score',
@@ -82,6 +84,7 @@ export default function Dashboard() {
   const [isAIWelcomeOpen, setIsAIWelcomeOpen] = useState(isNewProject);
   const [hasShownInsights, setHasShownInsights] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [concluirModalOpen, setConcluirModalOpen] = useState(false);
 
   // Fetch all data with staleTime to reduce re-fetches
   const { data: projects = [], isLoading: loadingProjects } = useQuery({
@@ -289,6 +292,10 @@ export default function Dashboard() {
   const handleEditProject = () => {
     setSelectedProject(activeProject);
     setProjectModalOpen(true);
+  };
+
+  const handleConcluirProjeto = () => {
+    updateProjectMutation.mutate({ id: activeProject.id, data: { status: 'concluido' } });
   };
 
   const handleImportSuccess = () => {
@@ -660,6 +667,15 @@ export default function Dashboard() {
                 Editar Projeto
               </Button>
             )}
+            {canEdit && activeProject.status !== 'concluido' && (
+              <Button
+                onClick={() => setConcluirModalOpen(true)}
+                className="bg-emerald-600 hover:bg-emerald-700"
+              >
+                <CheckCircle className="w-4 h-4 mr-2" />
+                Concluir Projeto
+              </Button>
+            )}
             <Button 
               onClick={() => setInsightsModalOpen(true)}
               className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
@@ -972,6 +988,18 @@ export default function Dashboard() {
           homologationTasks
         }}
       />
+
+      {/* Concluir Projeto Modal */}
+      {activeProject && (
+        <ConcluirProjetoModal
+          open={concluirModalOpen}
+          onOpenChange={setConcluirModalOpen}
+          project={activeProject}
+          currentUser={currentUser}
+          onConfirm={handleConcluirProjeto}
+          isSaving={updateProjectMutation.isPending}
+        />
+      )}
 
       {/* AI Welcome Modal */}
       <AIWelcomeModal 
