@@ -3,37 +3,28 @@ import { base44 } from '@/api/base44Client';
 import { useQueryClient } from '@tanstack/react-query';
 import { CheckCircle, Clock } from 'lucide-react';
 
-const SECTIONS = [
-  { key: 'temas', label: 'Temas Discutidos', placeholder: 'Descreva os temas abordados na reunião...' },
-  { key: 'decisoes', label: 'Observações', placeholder: 'Registre observações relevantes da reunião...' },
-  { key: 'pendencias', label: 'Pendências Identificadas', placeholder: 'Liste pendências e itens em aberto...' },
-  { key: 'proximos_passos', label: 'Próximos Passos', placeholder: 'Descreva os próximos passos acordados...' },
-  { key: 'observacoes', label: 'Observações Gerais', placeholder: 'Observações adicionais...' },
-];
-
 export default function AnotacoesEditor({ reuniao, currentUser }) {
   const queryClient = useQueryClient();
-  const [anotacoes, setAnotacoes] = useState(reuniao?.anotacoes || {});
+  const [texto, setTexto] = useState(reuniao?.anotacoes?.temas || '');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const timerRef = useRef(null);
 
   useEffect(() => {
-    setAnotacoes(reuniao?.anotacoes || {});
+    setTexto(reuniao?.anotacoes?.temas || '');
   }, [reuniao?.id]);
 
-  const handleChange = (key, value) => {
-    const updated = { ...anotacoes, [key]: value };
-    setAnotacoes(updated);
+  const handleChange = (value) => {
+    setTexto(value);
     setSaved(false);
     if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => autosave(updated), 1500);
+    timerRef.current = setTimeout(() => autosave(value), 1500);
   };
 
-  const autosave = async (data) => {
+  const autosave = async (value) => {
     setSaving(true);
     await base44.entities.Reuniao.update(reuniao.id, {
-      anotacoes: data,
+      anotacoes: { ...(reuniao?.anotacoes || {}), temas: value },
       last_edited_by: currentUser?.full_name || '',
       last_edited_at: new Date().toISOString(),
     });
@@ -55,19 +46,14 @@ export default function AnotacoesEditor({ reuniao, currentUser }) {
           )}
         </div>
       </div>
-      <div className="space-y-3">
-        {SECTIONS.map(sec => (
-          <div key={sec.key} className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50">
-            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2">{sec.label}</label>
-            <textarea
-              value={anotacoes[sec.key] || ''}
-              onChange={e => handleChange(sec.key, e.target.value)}
-              placeholder={sec.placeholder}
-              rows={3}
-              className="w-full bg-transparent text-sm text-slate-200 placeholder-slate-600 resize-none focus:outline-none leading-relaxed"
-            />
-          </div>
-        ))}
+      <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50">
+        <textarea
+          value={texto}
+          onChange={e => handleChange(e.target.value)}
+          placeholder="Registre aqui as anotações da reunião: temas discutidos, observações, pendências, próximos passos..."
+          rows={16}
+          className="w-full bg-transparent text-sm text-slate-200 placeholder-slate-600 resize-none focus:outline-none leading-relaxed"
+        />
       </div>
     </div>
   );
