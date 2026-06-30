@@ -183,18 +183,12 @@ export default function ActivityModal({ open, onOpenChange, activity, projectId,
                 <SelectValue placeholder="Selecione um responsável" />
               </SelectTrigger>
               <SelectContent className="bg-slate-800 border-slate-700 text-white">
-                {(isInternal
-                  ? teamMembers
-                  : teamMembers.filter(member => member.vertical === watch('vertical'))
-                ).map(member => (
+                {teamMembers.map(member => (
                   <SelectItem key={member.id} value={member.name}>{member.name}</SelectItem>
                 ))}
-                {(isInternal
-                  ? teamMembers.length === 0
-                  : teamMembers.filter(member => member.vertical === watch('vertical')).length === 0
-                ) && (
+                {teamMembers.length === 0 && (
                   <div className="p-2 text-sm text-slate-400 text-center">
-                    {isInternal ? 'Nenhum membro cadastrado' : 'Nenhum membro nesta vertical'}
+                    Nenhum membro cadastrado
                   </div>
                 )}
               </SelectContent>
