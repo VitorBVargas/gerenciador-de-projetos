@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Sparkles, AlertTriangle, CheckCircle, Clock, ListChecks, Save, Loader2, Copy, Check } from 'lucide-react';
+import { Sparkles, AlertTriangle, CheckCircle, Clock, ListChecks, FileDown, Loader2, FileText, Trash2, History } from 'lucide-react';
+import { format, parseISO } from 'date-fns';
 import { toast } from 'sonner';
+import { buildRelatorioPdf, serializeRelatorio, parseRelatorio } from './relatorioPdfGenerator';
 
 const PERIODS = [
   { value: 7, label: '7 dias' },
@@ -10,34 +13,29 @@ const PERIODS = [
   { value: 30, label: '30 dias' },
 ];
 
-function buildPlainText(report, stats, days) {
-  const lines = [];
-  lines.push(`RELATÓRIO OPERACIONAL — últimos/próximos ${days} dias`);
-  lines.push('');
-  lines.push('RESUMO DAS ATIVIDADES');
-  lines.push(report.resumo_atividades || '');
-  if (report.destaques?.length) {
-    lines.push('');
-    lines.push('DESTAQUES');
-    report.destaques.forEach(d => lines.push(`• ${d}`));
-  }
-  lines.push('');
-  lines.push('ANÁLISE DE RISCO (PRÓXIMOS DIAS)');
-  lines.push(report.analise_risco || '');
-  if (report.acoes_recomendadas?.length) {
-    lines.push('');
-    lines.push('AÇÕES RECOMENDADAS');
-    report.acoes_recomendadas.forEach(a => lines.push(`• ${a}`));
-  }
-  return lines.join('\n');
+function downloadPdf(report, stats, meta) {
+  const doc = buildRelatorioPdf(report, stats, meta);
+  const safeName = (meta.projectName || 'projeto').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+  doc.save(`relatorio_operacional_${safeName}_${(meta.dateLabel || '').replace(/\//g, '-')}.pdf`);
 }
 
-export default function RelatorioOperacionalIA({ projectId, currentUser }) {
+export default function RelatorioOperacionalIA({ projectId, currentUser, projectName }) {
+  const queryClient = useQueryClient();
   const [days, setDays] = useState(14);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
-  const [saving, setSaving] = useState(false);
-  const [copied, setCopied] = useState(false);
+
+  const { data: historico = [] } = useQuery({
+    queryKey: ['relatorios', projectId],
+    queryFn: () => base44.entities.RelatorioOperacional.filter({ project_id: projectId }),
+    enabled: !!projectId, refetchInterval: 30000,
+  });
+
+  // Apenas relatórios gerados por IA (com JSON estruturado)
+  const relatoriosIA = historico
+    .map(r => ({ ...r, parsed: parseRelatorio(r.observacoes) }))
+    .filter(r => r.parsed)
+    .sort((a, b) => (b.data_envio || '').localeCompare(a.data_envio || ''));
 
   const generate = async () => {
     if (!projectId) { toast.error('Selecione um projeto.'); return; }
@@ -46,7 +44,33 @@ export default function RelatorioOperacionalIA({ projectId, currentUser }) {
     try {
       const res = await base44.functions.invoke('generateOperationalReportAI', { project_id: projectId, days });
       if (res.data?.success) {
-        setResult(res.data);
+        const now = new Date();
+        const meta = {
+          projectName: projectName || '',
+          days: res.data.period_days,
+          dateLabel: now.toLocaleDateString('pt-BR'),
+          responsavel: currentUser?.full_name || '',
+        };
+        const payload = { report: res.data.report, stats: res.data.stats, meta };
+        setResult(payload);
+
+        // Salva automaticamente na biblioteca (histórico)
+        await base44.entities.RelatorioOperacional.create({
+          project_id: projectId,
+          nome: `Relatório Operacional IA — ${now.toLocaleDateString('pt-BR')}`,
+          tipo: 'relatorio',
+          data_envio: now.toISOString().slice(0, 10),
+          responsavel: currentUser?.full_name || '',
+          status: 'enviado',
+          ano: now.getFullYear(),
+          mes: now.getMonth() + 1,
+          observacoes: serializeRelatorio(res.data.report, res.data.stats, meta),
+        });
+        queryClient.invalidateQueries(['relatorios', projectId]);
+
+        // Baixa o PDF gerado
+        downloadPdf(res.data.report, res.data.stats, meta);
+        toast.success('Relatório gerado em PDF e salvo no histórico!');
       } else {
         toast.error(res.data?.error || 'Erro ao gerar relatório.');
       }
@@ -57,35 +81,15 @@ export default function RelatorioOperacionalIA({ projectId, currentUser }) {
     }
   };
 
-  const copyText = () => {
-    if (!result) return;
-    navigator.clipboard.writeText(buildPlainText(result.report, result.stats, result.period_days));
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+  const handleDownloadHistorico = (item) => {
+    const { report, stats, meta } = item.parsed;
+    downloadPdf(report, stats, meta || { projectName, dateLabel: item.data_envio });
   };
 
-  const saveToLibrary = async () => {
-    if (!result) return;
-    setSaving(true);
-    try {
-      const now = new Date();
-      await base44.entities.RelatorioOperacional.create({
-        project_id: projectId,
-        nome: `Relatório Operacional IA — ${now.toLocaleDateString('pt-BR')}`,
-        tipo: 'relatorio',
-        data_envio: now.toISOString().slice(0, 10),
-        responsavel: currentUser?.full_name || '',
-        status: 'enviado',
-        ano: now.getFullYear(),
-        mes: now.getMonth() + 1,
-        observacoes: buildPlainText(result.report, result.stats, result.period_days),
-      });
-      toast.success('Relatório salvo na biblioteca de documentos!');
-    } catch (e) {
-      toast.error('Erro ao salvar.');
-    } finally {
-      setSaving(false);
-    }
+  const handleDelete = async (id) => {
+    if (!confirm('Remover este relatório do histórico?')) return;
+    await base44.entities.RelatorioOperacional.delete(id);
+    queryClient.invalidateQueries(['relatorios', projectId]);
   };
 
   const r = result?.report;
@@ -101,7 +105,7 @@ export default function RelatorioOperacionalIA({ projectId, currentUser }) {
           </div>
           <div>
             <h3 className="text-base font-semibold text-white">Relatório Operacional com IA</h3>
-            <p className="text-sm text-slate-400">Resumo das atividades executadas e análise de risco para os próximos dias, com base em criticidade e prazos.</p>
+            <p className="text-sm text-slate-400">Ao gerar, um PDF executivo é criado automaticamente, baixado e registrado no histórico abaixo.</p>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -115,7 +119,7 @@ export default function RelatorioOperacionalIA({ projectId, currentUser }) {
           </div>
           <Button onClick={generate} disabled={loading} className="bg-purple-600 hover:bg-purple-700">
             {loading ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Sparkles className="w-4 h-4 mr-1" />}
-            {loading ? 'Gerando...' : 'Gerar Relatório'}
+            {loading ? 'Gerando...' : 'Gerar Relatório PDF'}
           </Button>
         </div>
       </div>
@@ -126,9 +130,9 @@ export default function RelatorioOperacionalIA({ projectId, currentUser }) {
         </div>
       )}
 
+      {/* Preview do último gerado */}
       {r && !loading && (
         <div className="space-y-4">
-          {/* Stats rápidas */}
           {stats && (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
               <StatMini icon={CheckCircle} label="Concluídas" value={stats.concluidas} color="text-emerald-400" bg="bg-emerald-500/10" />
@@ -140,19 +144,12 @@ export default function RelatorioOperacionalIA({ projectId, currentUser }) {
             </div>
           )}
 
-          {/* Ações */}
-          <div className="flex justify-end gap-2">
-            <Button onClick={copyText} variant="outline" size="sm" className="border-slate-700 bg-slate-800 hover:bg-slate-700">
-              {copied ? <Check className="w-4 h-4 mr-1 text-emerald-400" /> : <Copy className="w-4 h-4 mr-1" />}
-              {copied ? 'Copiado' : 'Copiar'}
-            </Button>
-            <Button onClick={saveToLibrary} disabled={saving} size="sm" className="bg-blue-600 hover:bg-blue-700">
-              {saving ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Save className="w-4 h-4 mr-1" />}
-              Salvar na biblioteca
+          <div className="flex justify-end">
+            <Button onClick={() => downloadPdf(result.report, result.stats, result.meta)} size="sm" className="bg-blue-600 hover:bg-blue-700">
+              <FileDown className="w-4 h-4 mr-1" /> Baixar PDF novamente
             </Button>
           </div>
 
-          {/* Resumo das atividades */}
           <Section title="Resumo das Atividades Executadas" icon={CheckCircle} color="text-emerald-400">
             <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-line">{r.resumo_atividades}</p>
             {r.destaques?.length > 0 && (
@@ -166,12 +163,10 @@ export default function RelatorioOperacionalIA({ projectId, currentUser }) {
             )}
           </Section>
 
-          {/* Análise de risco */}
           <Section title="Análise de Risco — Próximos Dias" icon={AlertTriangle} color="text-red-400">
             <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-line">{r.analise_risco}</p>
           </Section>
 
-          {/* Ações recomendadas */}
           {r.acoes_recomendadas?.length > 0 && (
             <Section title="Ações Recomendadas" icon={ListChecks} color="text-blue-400">
               <ul className="space-y-1.5">
@@ -185,6 +180,45 @@ export default function RelatorioOperacionalIA({ projectId, currentUser }) {
           )}
         </div>
       )}
+
+      {/* Histórico de geração */}
+      <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <History className="w-4 h-4 text-slate-400" />
+          <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wider">Histórico de Relatórios Gerados</h3>
+        </div>
+        {relatoriosIA.length === 0 ? (
+          <div className="text-center py-8 text-slate-500">
+            <FileText className="w-8 h-8 mx-auto mb-2 opacity-30" />
+            <p className="text-sm">Nenhum relatório gerado ainda.</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {relatoriosIA.map(item => (
+              <div key={item.id} className="flex items-center gap-3 bg-slate-900/40 rounded-xl px-4 py-3 border border-slate-700/40 hover:bg-slate-900/70 transition-colors">
+                <div className="w-9 h-9 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+                  <FileText className="w-4.5 h-4.5 text-blue-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-white truncate">{item.nome}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    {item.data_envio ? format(parseISO(item.data_envio), 'dd/MM/yyyy') : '—'}
+                    {item.parsed?.meta?.days ? ` • ${item.parsed.meta.days} dias` : ''}
+                    {item.responsavel ? ` • ${item.responsavel}` : ''}
+                  </p>
+                </div>
+                <Button onClick={() => handleDownloadHistorico(item)} size="sm" variant="outline"
+                  className="border-slate-700 bg-slate-800 hover:bg-slate-700 h-8 text-xs flex-shrink-0">
+                  <FileDown className="w-3.5 h-3.5 mr-1" /> Baixar
+                </Button>
+                <button onClick={() => handleDelete(item.id)} className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0">
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

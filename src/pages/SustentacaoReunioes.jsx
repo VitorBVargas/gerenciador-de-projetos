@@ -78,6 +78,13 @@ export default function SustentacaoReunioes() {
     enabled: !!projectId, refetchInterval: 30000,
   });
 
+  const { data: projectData } = useQuery({
+    queryKey: ['project', projectId],
+    queryFn: () => base44.entities.Project.filter({ id: projectId }).then(r => r[0] || null),
+    enabled: !!projectId,
+  });
+  const projectName = projectData?.name || '';
+
   const now = new Date();
   const proximas = reunioes.filter(r => r.status === 'agendada' && r.data && isAfter(parseISO(r.data), now)).sort((a, b) => a.data.localeCompare(b.data));
   const realizadas = reunioes.filter(r => r.status === 'realizada');
@@ -346,7 +353,7 @@ export default function SustentacaoReunioes() {
 
       {/* ── RELATÓRIO IA ── */}
       {tab === 'relatorio_ia' && (
-        <RelatorioOperacionalIA projectId={projectId} currentUser={currentUser} />
+        <RelatorioOperacionalIA projectId={projectId} currentUser={currentUser} projectName={projectName} />
       )}
 
       {/* ── OBSERVAÇÕES ── */}
@@ -395,7 +402,7 @@ export default function SustentacaoReunioes() {
 
       {/* ── DOCUMENTOS ── */}
       {tab === 'documentos' && (
-        <BibliotecaDocumental relatorios={relatorios} projectId={projectId} currentUser={currentUser} />
+        <BibliotecaDocumental relatorios={relatorios} projectId={projectId} currentUser={currentUser} projectName={projectName} />
       )}
 
       {/* Modals */}
