@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { phaseLabels } from '@/components/timeline/phaseLabels';
+import { VERTICAL_BADGE_COLORS } from '@/components/verticalColors';
 import { cn } from "@/lib/utils";
 
 export default function ActivityCard({ activity, isDragging, isDone, onClick }) {
@@ -22,6 +23,9 @@ export default function ActivityCard({ activity, isDragging, isDone, onClick }) 
   }
 
   const phaseLabel = activity.phase ? phaseLabels[activity.phase] : null;
+  const verticalBadge = activity.vertical
+    ? (VERTICAL_BADGE_COLORS[activity.vertical] || VERTICAL_BADGE_COLORS.outros)
+    : null;
 
   return (
     <div
@@ -32,11 +36,18 @@ export default function ActivityCard({ activity, isDragging, isDone, onClick }) 
         isDragging && "shadow-xl shadow-blue-900/20 border-blue-500 z-50"
       )}
     >
-      {phaseLabel && (
-        <div className="text-[10px] font-medium bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded w-fit max-w-full truncate border border-blue-500/30">
-          {phaseLabel}
-        </div>
-      )}
+      <div className="flex flex-wrap items-center gap-1.5">
+        {verticalBadge && (
+          <div className={cn("text-[10px] font-medium px-2 py-0.5 rounded w-fit max-w-full truncate border capitalize", verticalBadge)}>
+            {activity.vertical.replace(/_/g, ' ')}
+          </div>
+        )}
+        {phaseLabel && (
+          <div className="text-[10px] font-medium bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded w-fit max-w-full truncate border border-blue-500/30">
+            {phaseLabel}
+          </div>
+        )}
+      </div>
       <div className="font-medium text-white text-sm leading-tight">{activity.title}</div>
 
       <div className="flex flex-col gap-2 mt-auto pt-2 border-t border-slate-700/50">

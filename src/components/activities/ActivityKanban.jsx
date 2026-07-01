@@ -199,14 +199,14 @@ export default function ActivityKanban({ activities, verticals, onEdit, projectI
     saveColumnMutation.mutate({ title: colTitle.trim(), color: sel.border, bg: sel.bg });
   };
 
-  const verticalActivities = isInternal || !selectedVertical
+  const verticalActivities = isInternal || isSustentacao || !selectedVertical
     ? activities
     : activities.filter(a => !a.vertical || a.vertical === selectedVertical);
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        {!isInternal && verticals.length > 0 && (
+        {!isInternal && !isSustentacao && verticals.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {verticals.map(v => (
               <button key={v} onClick={() => setSelectedVertical(v)}
