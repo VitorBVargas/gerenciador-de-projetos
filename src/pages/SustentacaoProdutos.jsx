@@ -256,6 +256,12 @@ export default function SustentacaoProdutos() {
     qc.invalidateQueries({ queryKey: ['chamados', projectId] });
   };
 
+  const handlePrevisaoChange = async (chamado, value) => {
+    if ((chamado.previsao_conclusao || '') === value) return;
+    await base44.entities.Chamado.update(chamado.id, { previsao_conclusao: value });
+    qc.invalidateQueries({ queryKey: ['chamados', projectId] });
+  };
+
   const handleExportPdf = () => {
     generateChamadosPdf({
       chamados: filteredChamados,
@@ -522,6 +528,7 @@ export default function SustentacaoProdutos() {
                   <th className="text-left text-slate-400 font-medium px-4 py-3">Produto</th>
                   <th className="text-left text-slate-400 font-medium px-4 py-3">Entidade</th>
                   <th className="text-left text-slate-400 font-medium px-4 py-3">Status</th>
+                  <th className="text-left text-slate-400 font-medium px-4 py-3">Previsão Conclusão</th>
                   <th className="text-left text-slate-400 font-medium px-4 py-3">Prioridade</th>
                   <th className="text-left text-slate-400 font-medium px-4 py-3">Solicitante</th>
                   <th className="text-left text-slate-400 font-medium px-4 py-3">Abertura</th>
@@ -531,7 +538,7 @@ export default function SustentacaoProdutos() {
               <tbody>
                 {filteredChamados.length === 0 ? (
                   <tr>
-                    <td colSpan={10} className="text-center text-slate-500 py-12">
+                    <td colSpan={11} className="text-center text-slate-500 py-12">
                       <Activity className="w-8 h-8 mx-auto mb-2 opacity-30" />
                       <p>Nenhum chamado encontrado</p>
                     </td>
@@ -577,6 +584,15 @@ export default function SustentacaoProdutos() {
                           <option key={v} value={v} className="bg-slate-800 text-white">{cfg.label}</option>
                         ))}
                       </select>
+                    </td>
+                    <td className="px-4 py-3">
+                      <input
+                        type="date"
+                        key={c.id + (c.previsao_conclusao || '')}
+                        defaultValue={c.previsao_conclusao || ''}
+                        onChange={e => handlePrevisaoChange(c, e.target.value)}
+                        className="editable-date text-xs text-slate-200 bg-slate-700/60 border border-slate-600 rounded-md px-2 py-1 w-32 focus:outline-none focus:ring-1 focus:ring-purple-500 cursor-pointer"
+                      />
                     </td>
                     <td className="px-4 py-3"><PrioBadge prioridade={c.prioridade} /></td>
                     <td className="px-4 py-3">

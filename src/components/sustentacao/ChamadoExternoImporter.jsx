@@ -57,6 +57,10 @@ export default function ChamadoExternoImporter({ open, onOpenChange, projectId }
       // header:1 -> matriz de arrays (por posição), raw:false -> datas como texto
       const matrix = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, defval: '' });
 
+      // Localiza a coluna "Previsão de Conclusão" pelo cabeçalho (posição variável)
+      const headerRow = (matrix[0] || []).map(h => String(h || '').trim().toLowerCase());
+      const previsaoCol = headerRow.findIndex(h => h.includes('previs') && h.includes('conclus'));
+
       // Colunas (posição): 0=Ticket 1=Assunto 2=Categoria 6=Data abertura 7=Solucionado?
       // Pula a primeira linha (títulos: "Ticket", "Assunto"...).
       const dataRows = matrix.filter((r, i) => {
@@ -85,6 +89,10 @@ export default function ChamadoExternoImporter({ open, onOpenChange, projectId }
           data_abertura: normalizeDate(r[6]) || new Date().toISOString().split('T')[0],
           status: STATUS_MAP[solved] || (solved ? 'em_andamento' : 'aberto'),
         };
+        if (previsaoCol >= 0) {
+          const prev = normalizeDate(r[previsaoCol]);
+          if (prev) payload.previsao_conclusao = prev;
+        }
         const ex = byNumero[numero];
         if (ex) {
           await base44.entities.Chamado.update(ex.id, payload);
