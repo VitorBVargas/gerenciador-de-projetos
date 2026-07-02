@@ -7,8 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Package, AlertTriangle, Plus, Upload, Search, Filter,
-  CheckCircle2, Clock, TrendingUp, Activity, Zap, Edit, Trash2, BarChart3
+  CheckCircle2, Clock, TrendingUp, Activity, Zap, Edit, Trash2, BarChart3, FileDown
 } from 'lucide-react';
+import { generateChamadosPdf } from '@/components/sustentacao/chamadosPdfGenerator';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, Legend } from 'recharts';
 import { format, parseISO, differenceInDays, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -117,6 +118,13 @@ export default function SustentacaoProdutos() {
   const [showProductModal, setShowProductModal] = useState(false);
   const [editProduct, setEditProduct] = useState(null);
   const [activeSection, setActiveSection] = useState('overview');
+
+  const { data: projectList = [] } = useQuery({
+    queryKey: ['project-name', projectId],
+    queryFn: () => projectId ? base44.entities.Project.filter({ id: projectId }) : [],
+    enabled: !!projectId,
+  });
+  const projectName = projectList[0]?.name || '';
 
   const { data: products = [] } = useQuery({
     queryKey: ['products', projectId],
@@ -246,6 +254,20 @@ export default function SustentacaoProdutos() {
     if ((chamado.responsavel || '') === value) return;
     await base44.entities.Chamado.update(chamado.id, { responsavel: value });
     qc.invalidateQueries({ queryKey: ['chamados', projectId] });
+  };
+
+  const handleExportPdf = () => {
+    generateChamadosPdf({
+      chamados: filteredChamados,
+      kpis: [
+        { label: 'Total de Chamados', value: chamados.length },
+        { label: 'Chamados Ativos', value: ativosCount },
+        { label: 'Críticos / Bloqueadores', value: criticos.length },
+        { label: 'Nesta lista', value: filteredChamados.length },
+      ],
+      projectName,
+      tipoLabel: activeSection === 'externos' ? 'Chamados Externos' : 'Chamados Internos',
+    });
   };
 
   const handleEdit = (chamado) => { setEditChamado(chamado); setModalTipo(chamado.tipo || 'interno'); setShowModal(true); };
@@ -427,6 +449,11 @@ export default function SustentacaoProdutos() {
               {activeSection === 'externos' ? 'Chamados Externos' : 'Chamados Internos'}
             </h2>
             <div className="flex gap-2">
+              <Button onClick={handleExportPdf}
+                variant="outline" size="sm" className="border-slate-600 text-slate-300 hover:bg-slate-800">
+                <FileDown className="w-4 h-4 mr-2" />
+                Exportar PDF
+              </Button>
               <Button onClick={() => activeSection === 'externos' ? setShowExternoImporter(true) : setShowImporter(true)}
                 variant="outline" size="sm" className="border-slate-600 text-slate-300 hover:bg-slate-800">
                 <Upload className="w-4 h-4 mr-2" />
