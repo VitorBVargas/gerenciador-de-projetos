@@ -18,7 +18,7 @@ export function generateChamadosPdf({ chamados, kpis, projectName, tipoLabel }) 
   const margin = 40;
 
   // Header
-  doc.setFillColor(88, 28, 135);
+  doc.setFillColor(30, 58, 138);
   doc.rect(0, 0, pageWidth, 60, 'F');
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(16);
@@ -36,12 +36,12 @@ export function generateChamadosPdf({ chamados, kpis, projectName, tipoLabel }) 
   kpis.forEach((k, i) => {
     const x = margin + i * (cardW + 10);
     doc.setDrawColor(200);
-    doc.setFillColor(245, 243, 255);
+    doc.setFillColor(239, 246, 255);
     doc.roundedRect(x, y, cardW, 46, 4, 4, 'FD');
     doc.setTextColor(100, 100, 100);
     doc.setFontSize(8);
     doc.text(k.label, x + 10, y + 16);
-    doc.setTextColor(88, 28, 135);
+    doc.setTextColor(37, 99, 235);
     doc.setFontSize(18);
     doc.setFont(undefined, 'bold');
     doc.text(String(k.value), x + 10, y + 38);
@@ -65,8 +65,8 @@ export function generateChamadosPdf({ chamados, kpis, projectName, tipoLabel }) 
       fmtDate(c.data_abertura),
     ]),
     styles: { fontSize: 7.5, cellPadding: 4, overflow: 'linebreak', valign: 'middle' },
-    headStyles: { fillColor: [88, 28, 135], textColor: 255, fontSize: 8 },
-    alternateRowStyles: { fillColor: [248, 247, 252] },
+    headStyles: { fillColor: [37, 99, 235], textColor: 255, fontSize: 8 },
+    alternateRowStyles: { fillColor: [239, 246, 255] },
     columnStyles: {
       0: { cellWidth: 55 },
       1: { cellWidth: 200 },
