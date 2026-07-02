@@ -63,7 +63,7 @@ export function generateChamadosPdf({ chamados, kpis, projectName, tipoLabel }) 
   autoTable(doc, {
     startY: y + cardH + 20,
     margin: { left: margin, right: margin },
-    head: [['Número', 'Descrição', 'Categoria', 'Produto', 'Entidade', 'Status', 'Prioridade', 'Solicitante', 'Abertura', 'Previsão Conclusão']],
+    head: [['Número', 'Descrição', 'Categoria', 'Produto', 'Entidade', 'Status', 'Prioridade', 'Abertura', 'Previsão Conclusão']],
     body: chamados.map(c => [
       c.numero || '—',
       c.descricao || '—',
@@ -72,7 +72,6 @@ export function generateChamadosPdf({ chamados, kpis, projectName, tipoLabel }) 
       c.entity_name || '—',
       STATUS_LABEL[c.status] || c.status || '—',
       PRIO_LABEL[c.prioridade] || c.prioridade || '—',
-      c.responsavel || '—',
       fmtDate(c.data_abertura),
       fmtDate(c.previsao_conclusao),
     ]),
@@ -80,16 +79,15 @@ export function generateChamadosPdf({ chamados, kpis, projectName, tipoLabel }) 
     headStyles: { fillColor: [37, 99, 235], textColor: 255, fontSize: 8 },
     alternateRowStyles: { fillColor: [239, 246, 255] },
     columnStyles: {
-      0: { cellWidth: 55 },
-      1: { cellWidth: 175 },
-      2: { cellWidth: 60 },
-      3: { cellWidth: 80 },
-      4: { cellWidth: 50 },
-      5: { cellWidth: 70 },
-      6: { cellWidth: 50 },
-      7: { cellWidth: 80 },
-      8: { cellWidth: 55 },
-      9: { cellWidth: 65 },
+      0: { cellWidth: 60 },
+      1: { cellWidth: 210 },
+      2: { cellWidth: 70 },
+      3: { cellWidth: 90 },
+      4: { cellWidth: 55 },
+      5: { cellWidth: 75 },
+      6: { cellWidth: 55 },
+      7: { cellWidth: 60 },
+      8: { cellWidth: 70 },
     },
   });
 
