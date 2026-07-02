@@ -25,6 +25,14 @@ const statusColors = {
   concluido: 'bg-green-600', atrasado: 'bg-red-600'
 };
 
+const calculateDaysBetween = (start, end) => {
+  if (!start || !end) return null;
+  const s = new Date(start);
+  const e = new Date(end);
+  if (isNaN(s) || isNaN(e)) return null;
+  return Math.round((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24));
+};
+
 const calculateProgressFromDates = (event) => {
   if (event.status === 'concluido') return 100;
   if (event.status === 'nao_iniciado') return 0;
@@ -179,6 +187,7 @@ export default function TimelineByProduct({ verticals, entityProducts, timelineE
                           <tr className="border-b border-slate-700 bg-slate-900/50">
                             <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Atividade</th>
                             <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Status</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Dias</th>
                             <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Data Início</th>
                             <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Data Fim</th>
                             <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Progresso</th>
@@ -206,6 +215,13 @@ export default function TimelineByProduct({ verticals, entityProducts, timelineE
                                     <option key={k} value={k}>{l}</option>
                                   ))}
                                 </select>
+                              </td>
+                              <td className="px-4 py-3">
+                                {calculateDaysBetween(event.start_date, event.end_date) !== null ? (
+                                  <span className="text-sm text-slate-300">{calculateDaysBetween(event.start_date, event.end_date)} dias</span>
+                                ) : (
+                                  <span className="text-sm text-slate-600">—</span>
+                                )}
                               </td>
                               <td className="px-4 py-3">
                                 <EditableDate
@@ -242,7 +258,7 @@ export default function TimelineByProduct({ verticals, entityProducts, timelineE
                             </tr>
                           ))}
                           {productEvents.length === 0 && (
-                            <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-500 text-sm">Nenhuma etapa</td></tr>
+                            <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-500 text-sm">Nenhuma etapa</td></tr>
                           )}
                         </tbody>
                       </table>
