@@ -16,6 +16,7 @@ import ChamadoModal from '@/components/sustentacao/ChamadoModal';
 import ChamadoImporter from '@/components/sustentacao/ChamadoImporter';
 import ChamadoExternoImporter from '@/components/sustentacao/ChamadoExternoImporter';
 import ProdutoSustentacaoModal from '@/components/sustentacao/ProdutoSustentacaoModal';
+import MultiSelectFilter from '@/components/sustentacao/MultiSelectFilter';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 const STATUS_CONFIG = {
@@ -70,10 +71,10 @@ export default function SustentacaoProdutos() {
   const qc = useQueryClient();
 
   const [search, setSearch] = useState('');
-  const [filterProduct, setFilterProduct] = useState('all');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [filterPriority, setFilterPriority] = useState('all');
-  const [filterResponsavel, setFilterResponsavel] = useState('all');
+  const [filterProduct, setFilterProduct] = useState([]);
+  const [filterStatus, setFilterStatus] = useState([]);
+  const [filterPriority, setFilterPriority] = useState([]);
+  const [filterResponsavel, setFilterResponsavel] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [modalTipo, setModalTipo] = useState('interno');
   const [showImporter, setShowImporter] = useState(false);
@@ -120,10 +121,10 @@ export default function SustentacaoProdutos() {
     return chamados.filter(c => {
       const cTipo = c.tipo || 'interno';
       if (cTipo !== tipoAtivo) return false;
-      if (filterProduct !== 'all' && c.product_id !== filterProduct) return false;
-      if (filterStatus !== 'all' && c.status !== filterStatus) return false;
-      if (filterPriority !== 'all' && c.prioridade !== filterPriority) return false;
-      if (filterResponsavel !== 'all' && c.responsavel !== filterResponsavel) return false;
+      if (filterProduct.length && !filterProduct.includes(c.product_id)) return false;
+      if (filterStatus.length && !filterStatus.includes(c.status)) return false;
+      if (filterPriority.length && !filterPriority.includes(c.prioridade)) return false;
+      if (filterResponsavel.length && !filterResponsavel.includes(c.responsavel)) return false;
       if (search) {
         const q = search.toLowerCase();
         return c.numero?.toLowerCase().includes(q) || c.descricao?.toLowerCase().includes(q) ||
@@ -404,47 +405,27 @@ export default function SustentacaoProdutos() {
               <Input value={search} onChange={e => setSearch(e.target.value)}
                 placeholder="Buscar chamado..." className="bg-slate-700 border-slate-600 text-white pl-9 h-8 text-sm" />
             </div>
-            <Select value={filterProduct} onValueChange={setFilterProduct}>
-              <SelectTrigger className="bg-slate-700 border-slate-600 text-white h-8 text-sm w-40">
-                <SelectValue placeholder="Produto" />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-slate-700">
-                <SelectItem value="all" className="text-white">Todos os produtos</SelectItem>
-                {products.map(p => <SelectItem key={p.id} value={p.id} className="text-white">{p.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="bg-slate-700 border-slate-600 text-white h-8 text-sm w-40">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-slate-700">
-                <SelectItem value="all" className="text-white">Todos os status</SelectItem>
-                {Object.entries(STATUS_CONFIG).map(([v, c]) => (
-                  <SelectItem key={v} value={v} className="text-white">{c.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={filterPriority} onValueChange={setFilterPriority}>
-              <SelectTrigger className="bg-slate-700 border-slate-600 text-white h-8 text-sm w-36">
-                <SelectValue placeholder="Prioridade" />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-slate-700">
-                <SelectItem value="all" className="text-white">Todas</SelectItem>
-                {Object.entries(PRIO_CONFIG).map(([v, c]) => (
-                  <SelectItem key={v} value={v} className="text-white">{c.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <MultiSelectFilter
+              label="Produto" width="w-44"
+              options={products.map(p => ({ value: p.id, label: p.name }))}
+              selected={filterProduct} onChange={setFilterProduct}
+            />
+            <MultiSelectFilter
+              label="Status" width="w-44"
+              options={Object.entries(STATUS_CONFIG).map(([v, c]) => ({ value: v, label: c.label }))}
+              selected={filterStatus} onChange={setFilterStatus}
+            />
+            <MultiSelectFilter
+              label="Prioridade" width="w-40"
+              options={Object.entries(PRIO_CONFIG).map(([v, c]) => ({ value: v, label: c.label }))}
+              selected={filterPriority} onChange={setFilterPriority}
+            />
             {responsaveis.length > 0 && (
-              <Select value={filterResponsavel} onValueChange={setFilterResponsavel}>
-                <SelectTrigger className="bg-slate-700 border-slate-600 text-white h-8 text-sm w-40">
-                  <SelectValue placeholder="Responsável" />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700">
-                  <SelectItem value="all" className="text-white">Todos</SelectItem>
-                  {responsaveis.map(r => <SelectItem key={r} value={r} className="text-white">{r}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <MultiSelectFilter
+                label="Responsável" width="w-44"
+                options={responsaveis.map(r => ({ value: r, label: r }))}
+                selected={filterResponsavel} onChange={setFilterResponsavel}
+              />
             )}
             <span className="text-slate-500 text-xs ml-auto">{filteredChamados.length} chamados</span>
           </div>
