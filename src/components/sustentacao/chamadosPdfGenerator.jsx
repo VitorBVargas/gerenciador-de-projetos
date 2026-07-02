@@ -63,11 +63,17 @@ export function generateChamadosPdf({ chamados, kpis, projectName, tipoLabel }) 
       PRIO_LABEL[c.prioridade] || c.prioridade || '—',
       c.responsavel || '—',
       fmtDate(c.data_abertura),
-      fmtDate(c.previsao_conclusao),
+      c.previsao_conclusao ? fmtDate(c.previsao_conclusao) : 'Sem previsão — preencher',
     ]),
     styles: { fontSize: 7.5, cellPadding: 4, overflow: 'linebreak', valign: 'middle' },
     headStyles: { fillColor: [37, 99, 235], textColor: 255, fontSize: 8 },
     alternateRowStyles: { fillColor: [239, 246, 255] },
+    didParseCell: (data) => {
+      if (data.section === 'body' && data.column.index === 9 && !chamados[data.row.index]?.previsao_conclusao) {
+        data.cell.styles.textColor = [220, 38, 38];
+        data.cell.styles.fontStyle = 'bold';
+      }
+    },
     columnStyles: {
       0: { cellWidth: 55 },
       1: { cellWidth: 175 },
