@@ -272,12 +272,16 @@ export default function SustentacaoProdutos() {
   };
 
   const handleExportPdf = () => {
+    const semPrevisao = filteredChamados.filter(c => !c.previsao_conclusao && !['resolvido', 'fechado'].includes(c.status)).length;
     generateChamadosPdf({
       chamados: filteredChamados,
       kpis: [
         { label: 'Chamados Ativos', value: ativosCount },
         { label: 'Críticos / Bloqueadores', value: criticos.length },
         { label: 'Em Atraso', value: emAtraso.length },
+        semPrevisao > 0
+          ? { label: 'Sem Previsão de Conclusão', value: semPrevisao, alert: true, message: 'Preencha as datas pendentes' }
+          : { label: 'Sem Previsão de Conclusão', value: 0 },
       ],
       projectName,
       tipoLabel: activeSection === 'externos' ? 'Chamados Externos' : 'Chamados Internos',

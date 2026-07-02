@@ -33,24 +33,35 @@ export function generateChamadosPdf({ chamados, kpis, projectName, tipoLabel }) 
   // KPI cards
   let y = 80;
   const cardW = (pageWidth - margin * 2 - (kpis.length - 1) * 10) / kpis.length;
+  const cardH = 56;
   kpis.forEach((k, i) => {
     const x = margin + i * (cardW + 10);
-    doc.setDrawColor(200);
-    doc.setFillColor(239, 246, 255);
-    doc.roundedRect(x, y, cardW, 46, 4, 4, 'FD');
-    doc.setTextColor(100, 100, 100);
+    if (k.alert) {
+      doc.setDrawColor(220, 38, 38);
+      doc.setFillColor(254, 242, 242);
+    } else {
+      doc.setDrawColor(200);
+      doc.setFillColor(239, 246, 255);
+    }
+    doc.roundedRect(x, y, cardW, cardH, 4, 4, 'FD');
+    doc.setTextColor(k.alert ? 185 : 100, k.alert ? 28 : 100, k.alert ? 28 : 100);
     doc.setFontSize(8);
     doc.text(k.label, x + 10, y + 16);
-    doc.setTextColor(37, 99, 235);
+    doc.setTextColor(k.alert ? 220 : 37, k.alert ? 38 : 99, k.alert ? 38 : 235);
     doc.setFontSize(18);
     doc.setFont(undefined, 'bold');
     doc.text(String(k.value), x + 10, y + 38);
     doc.setFont(undefined, 'normal');
+    if (k.alert && k.message) {
+      doc.setTextColor(220, 38, 38);
+      doc.setFontSize(6.5);
+      doc.text(doc.splitTextToSize(k.message, cardW - 20), x + 10, y + 50);
+    }
   });
 
   // Table
   autoTable(doc, {
-    startY: y + 66,
+    startY: y + cardH + 20,
     margin: { left: margin, right: margin },
     head: [['Número', 'Descrição', 'Categoria', 'Produto', 'Entidade', 'Status', 'Prioridade', 'Solicitante', 'Abertura', 'Previsão Conclusão']],
     body: chamados.map(c => [
@@ -63,17 +74,11 @@ export function generateChamadosPdf({ chamados, kpis, projectName, tipoLabel }) 
       PRIO_LABEL[c.prioridade] || c.prioridade || '—',
       c.responsavel || '—',
       fmtDate(c.data_abertura),
-      c.previsao_conclusao ? fmtDate(c.previsao_conclusao) : 'Sem previsão — preencher',
+      fmtDate(c.previsao_conclusao),
     ]),
     styles: { fontSize: 7.5, cellPadding: 4, overflow: 'linebreak', valign: 'middle' },
     headStyles: { fillColor: [37, 99, 235], textColor: 255, fontSize: 8 },
     alternateRowStyles: { fillColor: [239, 246, 255] },
-    didParseCell: (data) => {
-      if (data.section === 'body' && data.column.index === 9 && !chamados[data.row.index]?.previsao_conclusao) {
-        data.cell.styles.textColor = [220, 38, 38];
-        data.cell.styles.fontStyle = 'bold';
-      }
-    },
     columnStyles: {
       0: { cellWidth: 55 },
       1: { cellWidth: 175 },
