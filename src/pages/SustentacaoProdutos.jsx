@@ -48,6 +48,8 @@ const SORT_OPTIONS = [
   { value: 'prio_desc',   label: 'Criticidade (maior)' },
   { value: 'prio_asc',    label: 'Criticidade (menor)' },
   { value: 'status_asc',  label: 'Status' },
+  { value: 'prev_asc',    label: 'Previsão Conclusão (mais próxima)' },
+  { value: 'prev_desc',   label: 'Previsão Conclusão (mais distante)' },
   { value: 'desc_asc',    label: 'Descrição (A–Z)' },
   { value: 'solic_asc',   label: 'Solicitante (A–Z)' },
 ];
@@ -64,6 +66,8 @@ function sortChamados(list, sortBy) {
     case 'prio_desc':   return arr.sort((a, b) => (PRIO_ORDER[b.prioridade] || 0) - (PRIO_ORDER[a.prioridade] || 0));
     case 'prio_asc':    return arr.sort((a, b) => (PRIO_ORDER[a.prioridade] || 0) - (PRIO_ORDER[b.prioridade] || 0));
     case 'status_asc':  return arr.sort((a, b) => (STATUS_ORDER[a.status] || 99) - (STATUS_ORDER[b.status] || 99));
+    case 'prev_asc':    return arr.sort((a, b) => (a.previsao_conclusao || '9999').localeCompare(b.previsao_conclusao || '9999'));
+    case 'prev_desc':   return arr.sort((a, b) => (b.previsao_conclusao || '').localeCompare(a.previsao_conclusao || ''));
     case 'desc_asc':    return arr.sort((a, b) => (a.descricao || '').localeCompare(b.descricao || ''));
     case 'solic_asc':   return arr.sort((a, b) => (a.responsavel || '').localeCompare(b.responsavel || ''));
     default:            return arr;
