@@ -36,6 +36,39 @@ const PRIO_CONFIG = {
 
 const PIE_COLORS = ['#3b82f6', '#f59e0b', '#a855f7', '#10b981', '#64748b'];
 
+const PRIO_ORDER = { critica: 4, alta: 3, media: 2, baixa: 1 };
+const STATUS_ORDER = { aberto: 1, em_andamento: 2, aguardando_cliente: 3, resolvido: 4, fechado: 5 };
+
+const SORT_OPTIONS = [
+  { value: 'data_desc',   label: 'Data (mais recente)' },
+  { value: 'data_asc',    label: 'Data (mais antiga)' },
+  { value: 'numero_asc',  label: 'Número (crescente)' },
+  { value: 'numero_desc', label: 'Número (decrescente)' },
+  { value: 'prio_desc',   label: 'Criticidade (maior)' },
+  { value: 'prio_asc',    label: 'Criticidade (menor)' },
+  { value: 'status_asc',  label: 'Status' },
+  { value: 'desc_asc',    label: 'Descrição (A–Z)' },
+  { value: 'solic_asc',   label: 'Solicitante (A–Z)' },
+];
+
+function sortChamados(list, sortBy) {
+  const arr = [...list];
+  const numVal = c => { const n = parseInt(String(c.numero || '').replace(/\D/g, ''), 10); return isNaN(n) ? 0 : n; };
+  const dateVal = c => c.data_abertura || '';
+  switch (sortBy) {
+    case 'data_asc':    return arr.sort((a, b) => dateVal(a).localeCompare(dateVal(b)));
+    case 'data_desc':   return arr.sort((a, b) => dateVal(b).localeCompare(dateVal(a)));
+    case 'numero_asc':  return arr.sort((a, b) => numVal(a) - numVal(b));
+    case 'numero_desc': return arr.sort((a, b) => numVal(b) - numVal(a));
+    case 'prio_desc':   return arr.sort((a, b) => (PRIO_ORDER[b.prioridade] || 0) - (PRIO_ORDER[a.prioridade] || 0));
+    case 'prio_asc':    return arr.sort((a, b) => (PRIO_ORDER[a.prioridade] || 0) - (PRIO_ORDER[b.prioridade] || 0));
+    case 'status_asc':  return arr.sort((a, b) => (STATUS_ORDER[a.status] || 99) - (STATUS_ORDER[b.status] || 99));
+    case 'desc_asc':    return arr.sort((a, b) => (a.descricao || '').localeCompare(b.descricao || ''));
+    case 'solic_asc':   return arr.sort((a, b) => (a.responsavel || '').localeCompare(b.responsavel || ''));
+    default:            return arr;
+  }
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function StatusBadge({ status }) {
   const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.aberto;
@@ -75,6 +108,7 @@ export default function SustentacaoProdutos() {
   const [filterStatus, setFilterStatus] = useState([]);
   const [filterPriority, setFilterPriority] = useState([]);
   const [filterResponsavel, setFilterResponsavel] = useState([]);
+  const [sortBy, setSortBy] = useState('data_desc');
   const [showModal, setShowModal] = useState(false);
   const [modalTipo, setModalTipo] = useState('interno');
   const [showImporter, setShowImporter] = useState(false);
@@ -118,7 +152,7 @@ export default function SustentacaoProdutos() {
   const tipoAtivo = activeSection === 'externos' ? 'externo' : 'interno';
 
   const filteredChamados = useMemo(() => {
-    return chamados.filter(c => {
+    const list = chamados.filter(c => {
       const cTipo = c.tipo || 'interno';
       if (cTipo !== tipoAtivo) return false;
       if (filterProduct.length && !filterProduct.includes(c.product_id)) return false;
@@ -132,7 +166,8 @@ export default function SustentacaoProdutos() {
       }
       return true;
     });
-  }, [chamados, tipoAtivo, filterProduct, filterStatus, filterPriority, filterResponsavel, search]);
+    return sortChamados(list, sortBy);
+  }, [chamados, tipoAtivo, filterProduct, filterStatus, filterPriority, filterResponsavel, search, sortBy]);
 
   const criticos = useMemo(() => chamados.filter(c =>
     (c.prioridade === 'critica' || c.is_bloqueador) && !['resolvido', 'fechado'].includes(c.status)
@@ -433,7 +468,20 @@ export default function SustentacaoProdutos() {
                 selected={filterResponsavel} onChange={setFilterResponsavel}
               />
             )}
-            <span className="text-slate-500 text-xs ml-auto">{filteredChamados.length} chamados</span>
+            <div className="flex items-center gap-1.5 ml-auto">
+              <span className="text-slate-500 text-xs">Ordenar:</span>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="h-8 w-48 bg-slate-700 border-slate-600 text-white text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                  {SORT_OPTIONS.map(o => (
+                    <SelectItem key={o.value} value={o.value} className="text-xs">{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <span className="text-slate-500 text-xs">{filteredChamados.length} chamados</span>
           </div>
 
           {/* Table */}
