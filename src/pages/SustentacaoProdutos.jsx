@@ -278,10 +278,10 @@ export default function SustentacaoProdutos() {
       kpis: [
         { label: 'Chamados Ativos', value: ativosCount },
         { label: 'Críticos / Bloqueadores', value: criticos.length },
-        { label: 'Em Atraso', value: emAtraso.length },
-        semPrevisao > 0
-          ? { label: 'Sem Previsão de Conclusão', value: semPrevisao, alert: true, message: 'Preencha as datas pendentes' }
-          : { label: 'Sem Previsão de Conclusão', value: 0 },
+        ...(emAtraso.length > 0 ? [{ label: 'Em Atraso', value: emAtraso.length }] : []),
+        ...(semPrevisao > 0
+          ? [{ label: 'Sem Previsão de Conclusão', value: semPrevisao, alert: true, message: 'Preencha as datas pendentes' }]
+          : []),
       ],
       projectName,
       tipoLabel: activeSection === 'externos' ? 'Chamados Externos' : 'Chamados Internos',
