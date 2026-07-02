@@ -207,6 +207,12 @@ export default function SustentacaoProdutos() {
     qc.invalidateQueries({ queryKey: ['chamados', projectId] });
   };
 
+  const handleResponsavelChange = async (chamado, value) => {
+    if ((chamado.responsavel || '') === value) return;
+    await base44.entities.Chamado.update(chamado.id, { responsavel: value });
+    qc.invalidateQueries({ queryKey: ['chamados', projectId] });
+  };
+
   const handleEdit = (chamado) => { setEditChamado(chamado); setModalTipo(chamado.tipo || 'interno'); setShowModal(true); };
   const handleNew = (tipo = 'interno') => { setEditChamado(null); setModalTipo(tipo); setShowModal(true); };
 
@@ -422,7 +428,7 @@ export default function SustentacaoProdutos() {
             />
             {responsaveis.length > 0 && (
               <MultiSelectFilter
-                label="Responsável" width="w-44"
+                label="Solicitante" width="w-44"
                 options={responsaveis.map(r => ({ value: r, label: r }))}
                 selected={filterResponsavel} onChange={setFilterResponsavel}
               />
@@ -442,7 +448,7 @@ export default function SustentacaoProdutos() {
                   <th className="text-left text-slate-400 font-medium px-4 py-3">Entidade</th>
                   <th className="text-left text-slate-400 font-medium px-4 py-3">Status</th>
                   <th className="text-left text-slate-400 font-medium px-4 py-3">Prioridade</th>
-                  <th className="text-left text-slate-400 font-medium px-4 py-3">Responsável</th>
+                  <th className="text-left text-slate-400 font-medium px-4 py-3">Solicitante</th>
                   <th className="text-left text-slate-400 font-medium px-4 py-3">Abertura</th>
                   <th className="px-4 py-3" />
                 </tr>
@@ -498,7 +504,16 @@ export default function SustentacaoProdutos() {
                       </select>
                     </td>
                     <td className="px-4 py-3"><PrioBadge prioridade={c.prioridade} /></td>
-                    <td className="px-4 py-3 text-slate-300 text-xs">{c.responsavel || '—'}</td>
+                    <td className="px-4 py-3">
+                      <input
+                        key={c.id + (c.responsavel || '')}
+                        defaultValue={c.responsavel || ''}
+                        onBlur={e => handleResponsavelChange(c, e.target.value.trim())}
+                        onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur(); }}
+                        placeholder="—"
+                        className="text-xs text-slate-200 bg-slate-700/60 border border-slate-600 rounded-md px-2 py-1 w-36 focus:outline-none focus:ring-1 focus:ring-purple-500 placeholder:text-slate-500"
+                      />
+                    </td>
                     <td className="px-4 py-3 text-slate-400 text-xs">
                       {c.data_abertura ? format(parseISO(c.data_abertura), 'dd/MM/yy') : '—'}
                     </td>
