@@ -32,7 +32,7 @@ export function generateChamadosPdf({ chamados, kpis, projectName, tipoLabel }) 
 
   // KPI cards
   let y = 80;
-  const cardW = (pageWidth - margin * 2 - 30) / 4;
+  const cardW = (pageWidth - margin * 2 - (kpis.length - 1) * 10) / kpis.length;
   kpis.forEach((k, i) => {
     const x = margin + i * (cardW + 10);
     doc.setDrawColor(200);

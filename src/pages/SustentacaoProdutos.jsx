@@ -278,7 +278,6 @@ export default function SustentacaoProdutos() {
         { label: 'Chamados Ativos', value: ativosCount },
         { label: 'Críticos / Bloqueadores', value: criticos.length },
         { label: 'Em Atraso', value: emAtraso.length },
-        { label: 'Nesta lista', value: filteredChamados.length },
       ],
       projectName,
       tipoLabel: activeSection === 'externos' ? 'Chamados Externos' : 'Chamados Internos',
