@@ -181,6 +181,11 @@ export default function SustentacaoProdutos() {
     (c.prioridade === 'critica' || c.is_bloqueador) && !['resolvido', 'fechado'].includes(c.status)
   ), [chamados]);
 
+  const emAtraso = useMemo(() => chamados.filter(c => {
+    if (['resolvido', 'fechado'].includes(c.status) || !c.previsao_conclusao) return false;
+    return differenceInDays(new Date(), parseISO(c.previsao_conclusao)) > 0;
+  }), [chamados]);
+
   // ── Charts data ───────────────────────────────────────────────────────────
   const chamadosPorProduto = useMemo(() => {
     const map = {};
@@ -266,9 +271,9 @@ export default function SustentacaoProdutos() {
     generateChamadosPdf({
       chamados: filteredChamados,
       kpis: [
-        { label: 'Total de Chamados', value: chamados.length },
         { label: 'Chamados Ativos', value: ativosCount },
         { label: 'Críticos / Bloqueadores', value: criticos.length },
+        { label: 'Em Atraso', value: emAtraso.length },
         { label: 'Nesta lista', value: filteredChamados.length },
       ],
       projectName,
@@ -320,9 +325,9 @@ export default function SustentacaoProdutos() {
       {/* KPI Strip */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         {[
-          { label: 'Total de Chamados', value: chamados.length, icon: Activity, color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/20' },
           { label: 'Chamados Ativos', value: ativosCount, icon: Clock, color: 'text-yellow-400', bg: 'bg-yellow-500/10 border-yellow-500/20' },
           { label: 'Críticos / Bloqueadores', value: criticos.length, icon: AlertTriangle, color: 'text-red-400', bg: 'bg-red-500/10 border-red-500/20' },
+          { label: 'Em Atraso', value: emAtraso.length, icon: Clock, color: 'text-orange-400', bg: 'bg-orange-500/10 border-orange-500/20' },
           { label: 'Produtos Monitorados', value: products.length, icon: Package, color: 'text-purple-400', bg: 'bg-purple-500/10 border-purple-500/20' },
           { label: 'Tempo Médio Resolução', value: `${tempoMedioResolucao}d`, icon: TrendingUp, color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
         ].map((kpi, i) => (
