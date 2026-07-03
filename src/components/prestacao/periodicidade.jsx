@@ -1,8 +1,11 @@
 // Periodicidade das obrigações legais de prestação de contas.
 // Define quais meses (1-12) cada tipo de obrigação possui competência em um exercício.
 
-// Anuais: competência única em janeiro do ano seguinte ao exercício
+// Anuais: competência única, posicionada em fevereiro do próprio exercício
 export const OBRIGACOES_ANUAIS = ['DECASP', 'IP', 'Balancete 13'];
+
+// Mês (0-indexed) em que as obrigações anuais são exibidas no quadro
+export const MES_ANUAL_IDX = 1; // Fevereiro
 
 // Mensais: todos os 12 meses
 export const OBRIGACOES_MENSAIS = ['MSC', 'AM', 'Balancete', 'Folha', 'Edital'];
@@ -27,6 +30,6 @@ export function mesesEsperados(nome) {
 
 // Verifica se um mês (0-indexed) faz parte da periodicidade da obrigação
 export function mesPertence(nome, mesIdx0) {
-  if (OBRIGACOES_ANUAIS.includes(nome)) return mesIdx0 === 0;
+  if (OBRIGACOES_ANUAIS.includes(nome)) return mesIdx0 === MES_ANUAL_IDX;
   return mesesEsperados(nome).includes(mesIdx0 + 1);
 }
