@@ -72,8 +72,7 @@ export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser, 
   const years = useMemo(() => {
     const yrs = new Set(obrigacoes.map(o => {
       const [, y] = (o.competencia || '').split('/');
-      // Obrigações anuais têm competência em jan do ano seguinte → pertencem ao exercício anterior
-      if (OBRIGACOES_ANUAIS.includes(o.nome) && y) return String(Number(y) - 1);
+      // Anuais e mensais pertencem ao exercício do próprio ano da competência
       return y;
     }).filter(Boolean));
     const currentYear = new Date().getFullYear().toString();
@@ -101,7 +100,7 @@ export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser, 
 
   // Retorna as competências esperadas para um tipo de obrigação
   const mesesDoTipo = (nome) => {
-    if (OBRIGACOES_ANUAIS.includes(nome)) return [`01/${Number(selectedYear) + 1}`];
+    if (OBRIGACOES_ANUAIS.includes(nome)) return [`02/${selectedYear}`];
     return mesesEsperados(nome).map(m => `${String(m).padStart(2, '0')}/${selectedYear}`);
   };
 
@@ -110,14 +109,11 @@ export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser, 
     const map = {};
     
     // First, collect existing obligations for this year.
-    // Obrigações anuais pertencem ao exercício anterior (competência = jan do ano seguinte).
-    const anoSeguinte = String(Number(selectedYear) + 1);
+    // Anuais e mensais pertencem ao exercício do próprio ano da competência.
     obrigacoes.forEach(o => {
       if (!o.nome || !o.nome.trim()) return; // ignora registros fantasma sem nome
       const [, y] = (o.competencia || '').split('/');
-      const isAnual = OBRIGACOES_ANUAIS.includes(o.nome);
-      const pertence = isAnual ? y === anoSeguinte : y === selectedYear;
-      if (!pertence) return;
+      if (y !== selectedYear) return;
       if (!map[o.nome]) map[o.nome] = {};
       map[o.nome][o.competencia] = o;
     });
@@ -249,12 +245,10 @@ export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser, 
   };
 
   const handleDeleteType = async (nome) => {
-    const anoSeguinte = String(Number(selectedYear) + 1);
     const registros = (grouped[nome] || []).filter(o => {
       if (!o.id) return false;
       const [, y] = (o.competencia || '').split('/');
-      const isAnual = OBRIGACOES_ANUAIS.includes(nome);
-      return isAnual ? y === anoSeguinte : y === selectedYear;
+      return y === selectedYear;
     });
 
     if (registros.length === 0) {
@@ -270,12 +264,10 @@ export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser, 
 
   // Remove todos os registros do exercício selecionado (inclui as anuais cuja competência é jan do ano seguinte)
   const handleDeleteYear = async () => {
-    const anoSeguinte = String(Number(selectedYear) + 1);
     const doExercicio = obrigacoes.filter(o => {
       if (!o.id) return false;
       const [, y] = (o.competencia || '').split('/');
-      const isAnual = OBRIGACOES_ANUAIS.includes(o.nome);
-      return isAnual ? y === anoSeguinte : y === selectedYear;
+      return y === selectedYear;
     });
     if (doExercicio.length === 0) {
       alert(`Não há registros para o exercício ${selectedYear}.`);

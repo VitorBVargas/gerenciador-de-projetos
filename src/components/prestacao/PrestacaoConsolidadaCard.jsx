@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { BarChart2 } from 'lucide-react';
-import { OBRIGACOES_ANUAIS, mesPertence } from './periodicidade';
+import { OBRIGACOES_ANUAIS, mesPertence, MES_ANUAL_IDX } from './periodicidade';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { entityMatchesObligation, getAvailableEntities } from '@/lib/entityRegistry';
 
@@ -81,8 +81,7 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
     filteredObrigacoes.forEach(o => {
       const [, y] = (o.competencia || '').split('/');
       if (!y) return;
-      const ano = OBRIGACOES_ANUAIS.includes(o.nome) ? Number(y) - 1 : Number(y);
-      set.add(ano);
+      set.add(Number(y));
     });
     set.add(new Date().getFullYear());
     return Array.from(set).sort((a, b) => b - a);
@@ -110,9 +109,8 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
       .forEach(o => {
         const [m, y] = (o.competencia || '').split('/');
         if (!m || !y) return;
-        const exercicio = isAnual ? Number(y) - 1 : Number(y);
-        if (exercicio !== ano) return;
-        const mesIdx = isAnual ? 0 : Number(m) - 1;
+        if (Number(y) !== ano) return;
+        const mesIdx = isAnual ? MES_ANUAL_IDX : Number(m) - 1;
         map[mesIdx] = o;
       });
     return map;
@@ -139,9 +137,8 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
           .forEach(o => {
             const [m, y] = (o.competencia || '').split('/');
             if (!m || !y) return;
-            const exercicio = isAnual ? Number(y) - 1 : Number(y);
-            if (exercicio !== ano) return;
-            const mesIdx = isAnual ? 0 : Number(m) - 1;
+            if (Number(y) !== ano) return;
+            const mesIdx = isAnual ? MES_ANUAL_IDX : Number(m) - 1;
             porMesPorEntidade[entityKey].porMes[mesIdx] = o;
           });
       });
@@ -320,9 +317,8 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
                   .forEach(o => {
                     const [m, y] = (o.competencia || '').split('/');
                     if (!m || !y) return;
-                    const exercicio = isAnualTipo ? Number(y) - 1 : Number(y);
-                    if (exercicio !== ano) return;
-                    const mesIdx = isAnualTipo ? 0 : Number(m) - 1;
+                    if (Number(y) !== ano) return;
+                    const mesIdx = isAnualTipo ? MES_ANUAL_IDX : Number(m) - 1;
                     porMesPorEntidade[entityKey].porMes[mesIdx] = o;
                   });
               });

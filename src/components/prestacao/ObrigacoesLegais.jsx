@@ -88,7 +88,7 @@ export default function ObrigacoesLegais({ projectId, project, vertical = null, 
   const initDefaults = async () => {
     const now = new Date();
     const comp = `${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
-    const compAnual = `01/${now.getFullYear() + 1}`;
+    const compAnual = `02/${now.getFullYear()}`;
     await Promise.all(OBRIGACOES_PADRAO.map(nome =>
       base44.entities.ObrigacaoLegal.create({
         project_id: projectId,
