@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { gerarListaPresencaDocx, gerarListaPresencaPdf } from './listaPresencaGenerator';
 
 export default function ListaPresencaModal({ products = [], projectName = '', onClose }) {
-  const [productId, setProductId] = useState('');
+  const [productIds, setProductIds] = useState([]);
   const [entidade, setEntidade] = useState('');
   const [data, setData] = useState('');
   const [hora, setHora] = useState('');
@@ -28,10 +28,14 @@ export default function ListaPresencaModal({ products = [], projectName = '', on
     });
   }, [products]);
 
-  const selectedProduct = useMemo(
-    () => products.find(p => p.id === productId) || null,
-    [products, productId]
+  const selectedProducts = useMemo(
+    () => uniqueProducts.filter(p => productIds.includes(p.id)),
+    [uniqueProducts, productIds]
   );
+
+  const toggleProduct = (id) => {
+    setProductIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
 
   // Entidades disponíveis no projeto
   const entidades = useMemo(
@@ -40,8 +44,8 @@ export default function ListaPresencaModal({ products = [], projectName = '', on
   );
 
   const handleGerar = async () => {
-    if (!selectedProduct) {
-      toast.error('Selecione o produto.');
+    if (selectedProducts.length === 0) {
+      toast.error('Selecione ao menos um produto.');
       return;
     }
     const qtd = Math.max(1, Math.min(200, Number(qtdPessoas) || 1));
@@ -49,12 +53,15 @@ export default function ListaPresencaModal({ products = [], projectName = '', on
     try {
       const entObj = products.find(p => p.entity === entidade);
       const gerar = tipoArquivo === 'pdf' ? gerarListaPresencaPdf : gerarListaPresencaDocx;
+      const primeiro = selectedProducts[0];
+      const produtoNome = selectedProducts.map(p => p.name).join(', ');
+      const chamado = selectedProducts.map(p => p.ticket_number).filter(Boolean).join(', ');
       await gerar({
         projectName,
-        produtoNome: selectedProduct.name,
-        chamado: selectedProduct.ticket_number || '',
-        entidade: entidade || selectedProduct.entity || '',
-        entidadeCompleta: entObj?.entity_full_name || selectedProduct.entity_full_name || '',
+        produtoNome,
+        chamado,
+        entidade: entidade || primeiro.entity || '',
+        entidadeCompleta: entObj?.entity_full_name || primeiro.entity_full_name || '',
         instrutor,
         data,
         hora,
@@ -91,23 +98,31 @@ export default function ListaPresencaModal({ products = [], projectName = '', on
         </div>
 
         <div className="space-y-3">
-          {/* Produto */}
+          {/* Produtos (multiseleção) */}
           <div>
-            <label className="text-xs text-slate-400 mb-1 block">Produto *</label>
-            <select
-              value={productId}
-              onChange={e => setProductId(e.target.value)}
-              className="w-full h-9 px-3 rounded-md bg-slate-900 border border-slate-600 text-slate-200 text-sm"
-            >
-              <option value="">Selecionar produto</option>
-              {uniqueProducts.map(p => (
-                <option key={p.id} value={p.id}>{p.name}</option>
-              ))}
-            </select>
-            {selectedProduct && (
-              <p className="text-[11px] text-slate-500 mt-1">
-                Chamado: <span className="text-slate-300 font-medium">{selectedProduct.ticket_number || '—'}</span>
-              </p>
+            <label className="text-xs text-slate-400 mb-1 block">Produtos * <span className="text-slate-500">(selecione um ou mais)</span></label>
+            <div className="max-h-40 overflow-y-auto rounded-md bg-slate-900 border border-slate-600 divide-y divide-slate-700/60">
+              {uniqueProducts.map(p => {
+                const checked = productIds.includes(p.id);
+                return (
+                  <label
+                    key={p.id}
+                    className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-slate-800/60"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggleProduct(p.id)}
+                      className="accent-blue-600 w-4 h-4"
+                    />
+                    <span className="text-sm text-slate-200 flex-1">{p.name}</span>
+                    {p.ticket_number && <span className="text-[11px] text-slate-500">#{p.ticket_number}</span>}
+                  </label>
+                );
+              })}
+            </div>
+            {selectedProducts.length > 0 && (
+              <p className="text-[11px] text-slate-500 mt-1">{selectedProducts.length} produto(s) selecionado(s).</p>
             )}
           </div>
 
@@ -241,7 +256,7 @@ export default function ListaPresencaModal({ products = [], projectName = '', on
           <Button variant="outline" className="border-slate-600 text-slate-300" onClick={onClose} disabled={gerando}>
             Cancelar
           </Button>
-          <Button className="bg-blue-600 hover:bg-blue-700 gap-2" onClick={handleGerar} disabled={gerando || !productId}>
+          <Button className="bg-blue-600 hover:bg-blue-700 gap-2" onClick={handleGerar} disabled={gerando || productIds.length === 0}>
             {gerando ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
             Gerar Documento
           </Button>
