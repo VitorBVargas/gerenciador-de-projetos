@@ -8,7 +8,7 @@ const esc = (v = '') =>
     .replace(/>/g, '&gt;');
 
 // Imagens institucionais da Betha
-const BETHA_LOGO = 'https://media.base44.com/images/public/693e9f298bb38fa472ef1725/8f9bd3f51_betha.png';
+const BETHA_LOGO = 'https://media.base44.com/images/public/693e9f298bb38fa472ef1725/b01405278_generated_image.png';
 const BETHA_ENDERECO = 'https://media.base44.com/images/public/693e9f298bb38fa472ef1725/44b5ed610_betha2.png';
 const BETHA_CONTATO = 'https://media.base44.com/images/public/693e9f298bb38fa472ef1725/96f26f070_betha3.png';
 
@@ -96,7 +96,7 @@ export async function gerarListaPresencaDocx({
   <body>
     <!-- Cabeçalho Betha -->
     <div style="margin-bottom:6px;">
-      <img src="${BETHA_LOGO}" style="height:38px;" />
+      <img src="${BETHA_LOGO}" style="height:32px;" />
     </div>
     <div style="border-bottom:3px solid #005CB9; margin-bottom:14px;"></div>
 
@@ -193,9 +193,9 @@ export async function gerarListaPresencaPdf({
   // Cabeçalho Betha (logo) — usa dimensões proporcionais e sem compressão para máxima nitidez
   const logoData = await loadImage(BETHA_LOGO);
   const logoDim = await imgSize(logoData);
-  const logoH = 11;
+  const logoH = 9;
   const logoW = (logoDim.w / logoDim.h) * logoH;
-  doc.addImage(logoData, 'PNG', margin, 12, logoW, logoH, undefined, 'NONE');
+  doc.addImage(logoData, 'PNG', margin, 13, logoW, logoH, undefined, 'NONE');
   doc.setDrawColor(...BLUE);
   doc.setLineWidth(0.8);
   doc.line(margin, 27, pageW - margin, 27);
