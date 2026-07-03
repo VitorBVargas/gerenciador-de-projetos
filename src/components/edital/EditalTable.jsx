@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import StatusCell from '@/components/edital/StatusCell';
 import { base44 } from '@/api/base44Client';
-import { ExternalLink, AlertTriangle, Clock, X, Search, Pencil, FileText } from 'lucide-react';
+import { ExternalLink, AlertTriangle, Clock, X, Search, Pencil, FileText, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import EditalPagination from '@/components/edital/EditalPagination';
 import EditEditalItemModal from '@/components/edital/EditEditalItemModal';
@@ -141,6 +141,21 @@ export default function EditalTable({ items, portfolio, showProject = true, proj
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['editalItems', portfolio] }),
     onError: () => toast.error('Erro ao salvar'),
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.EditalItem.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['editalItems', portfolio] });
+      toast.success('Item excluído');
+    },
+    onError: () => toast.error('Erro ao excluir'),
+  });
+
+  const handleDelete = (item) => {
+    if (window.confirm(`Excluir o item Nº ${item.numero_item || ''}? Esta ação não pode ser desfeita.`)) {
+      deleteMutation.mutate(item.id);
+    }
+  };
 
   const isDone = (s = '') => { const sl = s.toLowerCase(); return sl.includes('conclu') || sl.includes('entregue') || sl.includes('aprovad') || sl.includes('finaliz') || sl.includes('cancel') || sl.includes('recusad'); };
   const isAtrasado = (item) => !isDone(item.status) && item.data_prevista && item.data_prevista.length >= 10 && item.data_prevista < today;
@@ -368,13 +383,22 @@ export default function EditalTable({ items, portfolio, showProject = true, proj
                     </div>
                   </td>
                   <td className="px-3 py-2.5">
-                    <button
-                      onClick={() => setEditItem(item)}
-                      title="Editar item"
-                      className="p-1.5 rounded hover:bg-slate-700 text-slate-400 hover:text-orange-400 transition-colors"
-                    >
-                      <Pencil className="w-3.5 h-3.5" />
-                    </button>
+                    <div className="flex items-center gap-0.5">
+                      <button
+                        onClick={() => setEditItem(item)}
+                        title="Editar item"
+                        className="p-1.5 rounded hover:bg-slate-700 text-slate-400 hover:text-orange-400 transition-colors"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(item)}
+                        title="Excluir item"
+                        className="p-1.5 rounded hover:bg-slate-700 text-slate-400 hover:text-red-400 transition-colors"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               );
