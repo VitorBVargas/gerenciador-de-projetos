@@ -6,7 +6,7 @@ import { gerarListaPresencaDocx, gerarListaPresencaPdf } from './listaPresencaGe
 
 export default function ListaPresencaModal({ products = [], projectName = '', onClose }) {
   const [productIds, setProductIds] = useState([]);
-  const [entidade, setEntidade] = useState('');
+  const [entidadesSel, setEntidadesSel] = useState([]);
   const [data, setData] = useState('');
   const [hora, setHora] = useState('');
   const [formato, setFormato] = useState('presencial');
@@ -37,6 +37,10 @@ export default function ListaPresencaModal({ products = [], projectName = '', on
     setProductIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   };
 
+  const toggleEntidade = (ent) => {
+    setEntidadesSel(prev => prev.includes(ent) ? prev.filter(x => x !== ent) : [...prev, ent]);
+  };
+
   // Entidades disponíveis no projeto
   const entidades = useMemo(
     () => [...new Set(products.map(p => p.entity).filter(Boolean))].sort(),
@@ -51,17 +55,21 @@ export default function ListaPresencaModal({ products = [], projectName = '', on
     const qtd = Math.max(1, Math.min(200, Number(qtdPessoas) || 1));
     setGerando(true);
     try {
-      const entObj = products.find(p => p.entity === entidade);
       const gerar = tipoArquivo === 'pdf' ? gerarListaPresencaPdf : gerarListaPresencaDocx;
       const primeiro = selectedProducts[0];
       const produtoNome = selectedProducts.map(p => p.name).join(', ');
       const chamado = selectedProducts.map(p => p.ticket_number).filter(Boolean).join(', ');
+      const entsFinal = entidadesSel.length > 0 ? entidadesSel : (primeiro.entity ? [primeiro.entity] : []);
+      const entidade = entsFinal.join(', ');
+      const entidadeCompleta = entsFinal
+        .map(ent => products.find(p => p.entity === ent)?.entity_full_name || ent)
+        .join(', ');
       await gerar({
         projectName,
         produtoNome,
         chamado,
-        entidade: entidade || primeiro.entity || '',
-        entidadeCompleta: entObj?.entity_full_name || primeiro.entity_full_name || '',
+        entidade,
+        entidadeCompleta,
         instrutor,
         data,
         hora,
@@ -126,18 +134,23 @@ export default function ListaPresencaModal({ products = [], projectName = '', on
             )}
           </div>
 
-          {/* Entidade */}
+          {/* Entidades (multiseleção) */}
           {entidades.length > 1 && (
             <div>
-              <label className="text-xs text-slate-400 mb-1 block">Entidade</label>
-              <select
-                value={entidade}
-                onChange={e => setEntidade(e.target.value)}
-                className="w-full h-9 px-3 rounded-md bg-slate-900 border border-slate-600 text-slate-200 text-sm"
-              >
-                <option value="">Selecionar entidade</option>
-                {entidades.map(ent => <option key={ent} value={ent}>{ent}</option>)}
-              </select>
+              <label className="text-xs text-slate-400 mb-1 block">Entidades <span className="text-slate-500">(uma ou mais)</span></label>
+              <div className="max-h-32 overflow-y-auto rounded-md bg-slate-900 border border-slate-600 divide-y divide-slate-700/60">
+                {entidades.map(ent => (
+                  <label key={ent} className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-slate-800/60">
+                    <input
+                      type="checkbox"
+                      checked={entidadesSel.includes(ent)}
+                      onChange={() => toggleEntidade(ent)}
+                      className="accent-blue-600 w-4 h-4"
+                    />
+                    <span className="text-sm text-slate-200">{ent}</span>
+                  </label>
+                ))}
+              </div>
             </div>
           )}
 
