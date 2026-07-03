@@ -7,6 +7,25 @@ import { differenceInDays, parseISO } from 'date-fns';
 import { createPageUrl } from '../../utils';
 import { avaliarRiscoCND } from '../prestacao/CNDStatus';
 
+// Último dia útil (seg-sex) de um mês (ano, mês 0-indexed)
+function ultimoDiaUtil(ano, mes) {
+  const d = new Date(ano, mes + 1, 0); // último dia do mês
+  while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() - 1);
+  return d;
+}
+
+// Prazo efetivo: data_limite se preenchida, senão último dia útil do mês subsequente à competência (MM/AAAA)
+function prazoEfetivo(o) {
+  if (o.data_limite) return parseISO(o.data_limite);
+  if (!o.competencia || !o.competencia.includes('/')) return null;
+  const [mesStr, anoStr] = o.competencia.split('/');
+  const mes = parseInt(mesStr, 10) - 1;
+  const ano = parseInt(anoStr, 10);
+  if (isNaN(mes) || isNaN(ano)) return null;
+  // mês subsequente à competência
+  return ultimoDiaUtil(ano, mes + 1);
+}
+
 const RISCO_CFG = {
   baixo: { label: 'Baixo risco', color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/30' },
   medio: { label: 'Risco moderado', color: 'text-yellow-400', bg: 'bg-yellow-500/10 border-yellow-500/30' },
@@ -22,8 +41,10 @@ export default function SustentacaoStatusCard({ project, obrigacoes = [] }) {
   // Próximos envios: obrigações ainda não entregues, ordenadas pela data limite mais próxima
   const proximosEnvios = useMemo(() => {
     return obrigacoes
-      .filter(o => o.status !== 'enviado' && o.status !== 'aceito' && o.data_limite)
-      .map(o => ({ ...o, dias: differenceInDays(parseISO(o.data_limite), new Date()) }))
+      .filter(o => o.status !== 'enviado' && o.status !== 'aceito')
+      .map(o => ({ ...o, prazo: prazoEfetivo(o) }))
+      .filter(o => o.prazo)
+      .map(o => ({ ...o, dias: differenceInDays(o.prazo, new Date()) }))
       .sort((a, b) => a.dias - b.dias)
       .slice(0, 4);
   }, [obrigacoes]);
