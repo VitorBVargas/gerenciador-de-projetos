@@ -190,12 +190,12 @@ export async function gerarListaPresencaPdf({
   const entidadeTexto = entidadeCompleta || entidade;
   const dataHora = [formatarData(data), hora].filter(Boolean).join(' - ');
 
-  // Cabeçalho Betha (logo)
+  // Cabeçalho Betha (logo) — usa dimensões proporcionais e sem compressão para máxima nitidez
   const logoData = await loadImage(BETHA_LOGO);
   const logoDim = await imgSize(logoData);
-  const logoH = 12;
+  const logoH = 11;
   const logoW = (logoDim.w / logoDim.h) * logoH;
-  doc.addImage(logoData, 'PNG', margin, 12, logoW, logoH);
+  doc.addImage(logoData, 'PNG', margin, 12, logoW, logoH, undefined, 'NONE');
   doc.setDrawColor(...BLUE);
   doc.setLineWidth(0.8);
   doc.line(margin, 27, pageW - margin, 27);
@@ -267,8 +267,8 @@ export async function gerarListaPresencaPdf({
   doc.line(margin, footY - 4, pageW - margin, footY - 4);
   const endW = (endDim.w / endDim.h) * footH;
   const contW = (contDim.w / contDim.h) * footH;
-  doc.addImage(endData, 'PNG', margin, footY, endW, footH);
-  doc.addImage(contData, 'PNG', pageW - margin - contW, footY, contW, footH);
+  doc.addImage(endData, 'PNG', margin, footY, endW, footH, undefined, 'NONE');
+  doc.addImage(contData, 'PNG', pageW - margin - contW, footY, contW, footH, undefined, 'NONE');
 
   const safeName = (projectName || produtoNome || 'treinamento').replace(/[^a-zA-Z0-9]/g, '_');
   doc.save(`Lista_Presenca_${safeName}.pdf`);
