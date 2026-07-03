@@ -2,29 +2,23 @@ import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ShieldCheck, ShieldAlert, ClipboardList, ExternalLink, Wrench } from 'lucide-react';
-import { differenceInDays, parseISO } from 'date-fns';
+import { ShieldCheck, ShieldAlert, CheckCircle2, ExternalLink, Wrench } from 'lucide-react';
+import { parseISO } from 'date-fns';
 import { createPageUrl } from '../../utils';
 import { avaliarRiscoCND } from '../prestacao/CNDStatus';
 
-// Último dia útil (seg-sex) de um mês (ano, mês 0-indexed)
-function ultimoDiaUtil(ano, mes) {
-  const d = new Date(ano, mes + 1, 0); // último dia do mês
-  while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() - 1);
-  return d;
-}
+const MESES_NOMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
-// Prazo efetivo: data_limite se preenchida, senão último dia útil do mês subsequente à competência (MM/AAAA)
-function prazoEfetivo(o) {
-  if (o.data_limite) return parseISO(o.data_limite);
-  if (!o.competencia || !o.competencia.includes('/')) return null;
-  const [mesStr, anoStr] = o.competencia.split('/');
-  const mes = parseInt(mesStr, 10) - 1;
-  const ano = parseInt(anoStr, 10);
-  if (isNaN(mes) || isNaN(ano)) return null;
-  // mês subsequente à competência
-  return ultimoDiaUtil(ano, mes + 1);
-}
+// Nomes das obrigações que compõem um "mês enviado"
+const OBRIG_BALANCETE = ['balancete'];
+const OBRIG_AM = ['am', 'ata'];
+
+const matchNome = (nome = '', chaves) => {
+  const n = nome.toLowerCase();
+  return chaves.some(k => n.includes(k));
+};
+
+const foiEnviado = (o) => o.status === 'enviado' || o.status === 'aceito';
 
 const RISCO_CFG = {
   baixo: { label: 'Baixo risco', color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/30' },
@@ -38,15 +32,28 @@ export default function SustentacaoStatusCard({ project, obrigacoes = [] }) {
   const risco = useMemo(() => avaliarRiscoCND(obrigacoes), [obrigacoes]);
   const riscoCfg = RISCO_CFG[risco.nivel] || RISCO_CFG.indefinido;
 
-  // Próximos envios: obrigações ainda não entregues, ordenadas pela data limite mais próxima
-  const proximosEnvios = useMemo(() => {
-    return obrigacoes
-      .filter(o => o.status !== 'enviado' && o.status !== 'aceito')
-      .map(o => ({ ...o, prazo: prazoEfetivo(o) }))
-      .filter(o => o.prazo)
-      .map(o => ({ ...o, dias: differenceInDays(o.prazo, new Date()) }))
-      .sort((a, b) => a.dias - b.dias)
-      .slice(0, 4);
+  // Meses enviados: um mês (competência) conta como enviado quando Balancete + AM estão entregues
+  const mesesEnviados = useMemo(() => {
+    // Agrupa por competência MM/AAAA
+    const porComp = {};
+    obrigacoes.forEach(o => {
+      if (!o.competencia || !o.competencia.includes('/')) return;
+      if (!porComp[o.competencia]) porComp[o.competencia] = [];
+      porComp[o.competencia].push(o);
+    });
+
+    return Object.entries(porComp)
+      .filter(([, lista]) => {
+        const balancete = lista.find(o => matchNome(o.nome, OBRIG_BALANCETE));
+        const am = lista.find(o => matchNome(o.nome, OBRIG_AM));
+        return balancete && am && foiEnviado(balancete) && foiEnviado(am);
+      })
+      .map(([comp]) => {
+        const [mesStr, anoStr] = comp.split('/');
+        const mes = parseInt(mesStr, 10) - 1;
+        return { comp, mes, ano: parseInt(anoStr, 10), nome: MESES_NOMES[mes] || comp };
+      })
+      .sort((a, b) => a.ano - b.ano || a.mes - b.mes);
   }, [obrigacoes]);
 
   return (
@@ -88,29 +95,24 @@ export default function SustentacaoStatusCard({ project, obrigacoes = [] }) {
           </div>
         </div>
 
-        {/* Próximos envios da Prestação de Contas */}
+        {/* Meses enviados da Prestação de Contas (Balancete + AM entregues) */}
         <div>
           <div className="flex items-center gap-1.5 mb-2">
-            <ClipboardList className="w-3.5 h-3.5 text-blue-400" />
-            <span className="text-xs text-slate-300 font-semibold uppercase tracking-wider">Próximos Envios</span>
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+            <span className="text-xs text-slate-300 font-semibold uppercase tracking-wider">Meses Enviados</span>
           </div>
-          {proximosEnvios.length === 0 ? (
-            <p className="text-xs text-emerald-400">Nenhum envio pendente.</p>
+          {mesesEnviados.length === 0 ? (
+            <p className="text-xs text-slate-500">Nenhum mês concluído ainda.</p>
           ) : (
-            <div className="space-y-1.5">
-              {proximosEnvios.map(o => {
-                const overdue = o.dias < 0;
-                const soon = o.dias >= 0 && o.dias <= 7;
-                const color = overdue ? 'text-red-400' : soon ? 'text-yellow-400' : 'text-slate-300';
-                return (
-                  <div key={o.id || `${o.nome}-${o.competencia}`} className="flex items-center justify-between gap-2 text-xs">
-                    <span className="text-white truncate">{o.nome} <span className="text-slate-500">({o.competencia})</span></span>
-                    <span className={`font-semibold flex-shrink-0 ${color}`}>
-                      {overdue ? `${Math.abs(o.dias)}d atr.` : o.dias === 0 ? 'Hoje' : `${o.dias}d`}
-                    </span>
-                  </div>
-                );
-              })}
+            <div className="flex flex-wrap gap-1.5">
+              {mesesEnviados.map(m => (
+                <span
+                  key={m.comp}
+                  className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30"
+                >
+                  {m.nome}
+                </span>
+              ))}
             </div>
           )}
         </div>
