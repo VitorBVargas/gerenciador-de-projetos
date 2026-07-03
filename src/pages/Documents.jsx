@@ -433,34 +433,32 @@ export default function Documents() {
                 </Card>
               );
             })}
-          </div>
 
-          {/* Lista de Presença — gerador automático (após Treinamentos/Prova) */}
-          <Card className="bg-gradient-to-r from-blue-900/30 to-slate-800 border-blue-700/40">
-            <CardContent className="p-4 flex items-center justify-between gap-3 flex-wrap">
-              <div className="flex items-start gap-3">
-                <div className="w-9 h-9 rounded-lg bg-blue-600/20 flex items-center justify-center flex-shrink-0">
-                  <FileText className="w-5 h-5 text-blue-400" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-white">Lista de Presença</span>
-                    <span className="text-xs bg-blue-500/20 text-blue-300 border border-blue-500/30 rounded px-1.5 py-0.5">Automático</span>
+            {/* Lista de Presença — card padrão (ao lado do Aceite de Implantação) */}
+            <Card className="bg-slate-800 border-slate-700">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <FileText className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                      <span className="text-sm font-semibold text-white">Lista de Presença</span>
+                      <span className="text-xs bg-purple-500/20 text-purple-300 border border-purple-500/30 rounded px-1.5 py-0.5">Automático</span>
+                    </div>
+                    <p className="text-xs text-slate-400">Gera a lista de presença de treinamento preenchida com dados do produto e chamado.</p>
                   </div>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    Gera a lista de presença de treinamento preenchida com dados do produto e chamado.
-                  </p>
                 </div>
-              </div>
-              <Button
-                size="sm"
-                className="bg-blue-600 hover:bg-blue-700 gap-1.5 text-xs h-8"
-                onClick={() => setListaPresencaOpen(true)}
-              >
-                <FileText className="w-3.5 h-3.5" /> Gerar
-              </Button>
-            </CardContent>
-          </Card>
+                <div className="mt-3 flex items-center gap-2 flex-wrap">
+                  <Button
+                    size="sm"
+                    className="bg-blue-600 hover:bg-blue-700 gap-1.5 text-xs h-7"
+                    onClick={() => setListaPresencaOpen(true)}
+                  >
+                    <FileText className="w-3.5 h-3.5" /> Gerar
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
           <input
             ref={templateInputRef}
