@@ -21,6 +21,7 @@ export default function SustentacaoProjectModal({ open, onOpenChange, project, o
     last_meeting_date: '',
     next_meeting_date: '',
     notes: '',
+    show_in_executive_status: false,
   });
 
   const [newEntity, setNewEntity] = useState({ nome: '', nome_completo: '' });
@@ -46,6 +47,7 @@ export default function SustentacaoProjectModal({ open, onOpenChange, project, o
         last_meeting_date: project.last_meeting_date || '',
         next_meeting_date: project.next_meeting_date || '',
         notes: project.notes || '',
+        show_in_executive_status: project.show_in_executive_status || false,
       });
     }
     setNewEntity({ nome: '', nome_completo: '' });
@@ -130,6 +132,20 @@ export default function SustentacaoProjectModal({ open, onOpenChange, project, o
             <Input value={formData.notes} onChange={e => setFormData({ ...formData, notes: e.target.value })}
               className="bg-slate-700 border-slate-600 text-white" />
           </div>
+
+          {/* ── Status Executivo ── */}
+          <label className="flex items-start gap-3 rounded-lg border border-slate-600 bg-slate-900/40 p-3 cursor-pointer hover:bg-slate-900/60 transition-colors">
+            <input
+              type="checkbox"
+              checked={formData.show_in_executive_status}
+              onChange={e => setFormData({ ...formData, show_in_executive_status: e.target.checked })}
+              className="w-4 h-4 mt-0.5 rounded accent-blue-600"
+            />
+            <div>
+              <p className="text-sm font-medium text-white">Levar para o Status Executivo</p>
+              <p className="text-xs text-slate-400">Por padrão, projetos de sustentação não aparecem no Status Executivo. Marque para exibir o card deste projeto lá.</p>
+            </div>
+          </label>
 
           {/* ── Entidades ── */}
           <div className="rounded-lg border border-slate-600 bg-slate-900/40 p-3 space-y-3">

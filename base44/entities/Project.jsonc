@@ -126,6 +126,11 @@
       "default": false,
       "description": "Ocultar este projeto do Status Executivo (n\u00e3o envia dados para o portf\u00f3lio)"
     },
+    "show_in_executive_status": {
+      "type": "boolean",
+      "default": false,
+      "description": "Projeto de sustenta\u00e7\u00e3o: exibir card no Status Executivo (por padr\u00e3o sustenta\u00e7\u00e3o n\u00e3o aparece)"
+    },
     "population": {
       "type": "number",
       "description": "Quantidade de habitantes do munic\u00edpio"

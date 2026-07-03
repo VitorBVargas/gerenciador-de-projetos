@@ -38,6 +38,7 @@ import ProjectRecognitionsModal from '../components/modals/ProjectRecognitionsMo
 import EditProjectRecurringModal from '../components/modals/EditProjectRecurringModal';
 import { toast } from 'sonner';
 import OperationalCostsTab from '../components/executive/OperationalCostsTab';
+import SustentacaoStatusCard from '../components/executive/SustentacaoStatusCard';
 
 const statusLabels = {
   nao_iniciado: 'Não Iniciado',
@@ -173,6 +174,24 @@ export default function ExecutiveStatus() {
     queryFn: () => base44.entities.ProjectHealthCache.list('-updated_date', 10000),
     staleTime: 1 * 60 * 1000, gcTime: 30 * 60 * 1000,
   });
+
+  const { data: allObrigacoes = [] } = useQuery({
+    queryKey: ['allObrigacoes', portfolioFilter],
+    queryFn: () => base44.entities.ObrigacaoLegal.list('-created_date', 10000),
+    staleTime: 1 * 60 * 1000, gcTime: 30 * 60 * 1000,
+  });
+
+  // Projetos de sustentação marcados para aparecer no Status Executivo
+  const sustentacaoExecProjects = useMemo(() => {
+    const obrigacoesByProject = {};
+    allObrigacoes.forEach(o => {
+      if (!obrigacoesByProject[o.project_id]) obrigacoesByProject[o.project_id] = [];
+      obrigacoesByProject[o.project_id].push(o);
+    });
+    return allProjectsData
+      .filter(p => p.project_type === 'sustentacao' && p.show_in_executive_status && p.status !== 'concluido')
+      .map(p => ({ project: p, obrigacoes: obrigacoesByProject[p.id] || [] }));
+  }, [allProjectsData, allObrigacoes]);
 
   const isLoading = isRecalculating || loadingProjects || loadingCronogramas || loadingEvents || loadingProducts || loadingRevenues || loadingProgressCache || loadingOverallProgressCache || loadingFinancialDates || loadingHealthCaches;
 
@@ -822,6 +841,20 @@ export default function ExecutiveStatus() {
         </div>
         {projectsWithMetrics.length === 0 && <Card className="bg-slate-800 border-slate-600"><CardContent className="py-12 text-center"><LayoutDashboard className="w-12 h-12 text-slate-500 mx-auto mb-3" /><p className="text-slate-300">Nenhum projeto ativo no momento</p></CardContent></Card>}
         </div>
+
+        {sustentacaoExecProjects.length > 0 && !selectedStatusFilter && (
+          <div>
+            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+              Projetos de Sustentação
+              <span className="text-xs font-normal text-purple-300 bg-purple-500/15 border border-purple-500/30 px-2 py-0.5 rounded-full">{sustentacaoExecProjects.length}</span>
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {sustentacaoExecProjects.map(({ project, obrigacoes }) => (
+                <SustentacaoStatusCard key={project.id} project={project} obrigacoes={obrigacoes} />
+              ))}
+            </div>
+          </div>
+        )}
 
         {visibleProjectsData.filter(p => p.status === 'concluido').length > 0 && (
           <div>
