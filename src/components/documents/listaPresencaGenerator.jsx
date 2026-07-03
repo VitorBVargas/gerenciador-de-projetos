@@ -140,3 +140,104 @@ export async function gerarListaPresencaDocx({
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
+
+export async function gerarListaPresencaPdf({
+  projectName = '',
+  produtoNome = '',
+  chamado = '',
+  entidade = '',
+  entidadeCompleta = '',
+  instrutor = '',
+  data = '',
+  hora = '',
+  local = '',
+  formato = 'presencial',
+  cargaHoraria = '',
+  conteudo = '',
+  qtdLinhas = 10,
+}) {
+  const { jsPDF } = await import('jspdf');
+  const autoTable = (await import('jspdf-autotable')).default;
+
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const pageW = doc.internal.pageSize.getWidth();
+  const margin = 15;
+  const BLUE = [0, 92, 185];
+  const entidadeTexto = entidadeCompleta || entidade;
+  const dataHora = [formatarData(data), hora].filter(Boolean).join(' - ');
+
+  // Cabeçalho Betha
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(20);
+  doc.setTextColor(...BLUE);
+  doc.text('betha', margin, 18);
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'normal');
+  const w = doc.getTextWidth('betha') * (20 / 11);
+  doc.text(' sistemas', margin + w, 18);
+  doc.setFontSize(8);
+  doc.setTextColor(102, 102, 102);
+  doc.text('Tecnologia para gestão pública', margin, 23);
+  doc.text('Betha Sistemas Ltda.  ·  www.betha.com.br', pageW - margin, 18, { align: 'right' });
+  doc.setDrawColor(...BLUE);
+  doc.setLineWidth(0.8);
+  doc.line(margin, 27, pageW - margin, 27);
+
+  // Título
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.setTextColor(0, 0, 0);
+  doc.text('LISTA DE PRESENÇA DE TREINAMENTO', pageW / 2, 36, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(12);
+  doc.setTextColor(51, 51, 51);
+  doc.text(String(produtoNome || ''), pageW / 2, 43, { align: 'center' });
+
+  const presencial = formato === 'presencial' ? 'X' : ' ';
+  const remoto = formato === 'remoto' ? 'X' : ' ';
+
+  // Informações Gerais
+  autoTable(doc, {
+    startY: 50,
+    theme: 'grid',
+    styles: { fontSize: 10, cellPadding: 2 },
+    columnStyles: { 0: { cellWidth: 55, fillColor: [242, 242, 242], fontStyle: 'bold' } },
+    body: [
+      ['Entidade:', entidadeTexto || ''],
+      ['Chamado:', chamado || ''],
+      ['Instrutor Betha Sistemas:', instrutor || ''],
+      ['Data:', dataHora || ''],
+      ['Local:', local || ''],
+      ['Formato:', `( ${presencial} ) Presencial     ( ${remoto} ) Remoto`],
+      ['Carga Horária:', cargaHoraria || ''],
+    ],
+  });
+
+  // Conteúdo Ministrado
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(...BLUE);
+  doc.text('Conteúdo Ministrado', margin, doc.lastAutoTable.finalY + 8);
+  autoTable(doc, {
+    startY: doc.lastAutoTable.finalY + 10,
+    theme: 'grid',
+    styles: { fontSize: 10, cellPadding: 3, minCellHeight: 18, textColor: [0, 0, 0] },
+    body: [[conteudo || '']],
+  });
+
+  // Lista de assinaturas
+  const rows = [];
+  for (let i = 1; i <= qtdLinhas; i++) rows.push([String(i), '', '', '']);
+  autoTable(doc, {
+    startY: doc.lastAutoTable.finalY + 6,
+    theme: 'grid',
+    head: [['Nº', 'Nome Completo', 'Cargo/Função', 'Assinatura']],
+    headStyles: { fillColor: [217, 217, 217], textColor: [0, 0, 0], fontStyle: 'bold' },
+    styles: { fontSize: 10, cellPadding: 2, minCellHeight: 9, textColor: [0, 0, 0] },
+    columnStyles: { 0: { cellWidth: 12, halign: 'center' } },
+    body: rows,
+  });
+
+  const safeName = (projectName || produtoNome || 'treinamento').replace(/[^a-zA-Z0-9]/g, '_');
+  doc.save(`Lista_Presenca_${safeName}.pdf`);
+}

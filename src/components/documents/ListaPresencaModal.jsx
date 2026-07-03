@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { X, FileText, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { gerarListaPresencaDocx } from './listaPresencaGenerator';
+import { gerarListaPresencaDocx, gerarListaPresencaPdf } from './listaPresencaGenerator';
 
 export default function ListaPresencaModal({ products = [], projectName = '', onClose }) {
   const [productId, setProductId] = useState('');
@@ -15,6 +15,7 @@ export default function ListaPresencaModal({ products = [], projectName = '', on
   const [cargaHoraria, setCargaHoraria] = useState('');
   const [conteudo, setConteudo] = useState('');
   const [qtdPessoas, setQtdPessoas] = useState(10);
+  const [tipoArquivo, setTipoArquivo] = useState('doc');
   const [gerando, setGerando] = useState(false);
 
   // Produtos únicos por nome
@@ -47,7 +48,8 @@ export default function ListaPresencaModal({ products = [], projectName = '', on
     setGerando(true);
     try {
       const entObj = products.find(p => p.entity === entidade);
-      await gerarListaPresencaDocx({
+      const gerar = tipoArquivo === 'pdf' ? gerarListaPresencaPdf : gerarListaPresencaDocx;
+      await gerar({
         projectName,
         produtoNome: selectedProduct.name,
         chamado: selectedProduct.ticket_number || '',
@@ -205,6 +207,19 @@ export default function ListaPresencaModal({ products = [], projectName = '', on
               rows={3}
               className="w-full px-3 py-2 rounded-md bg-slate-900 border border-slate-600 text-slate-200 text-sm resize-none"
             />
+          </div>
+
+          {/* Formato do arquivo */}
+          <div>
+            <label className="text-xs text-slate-400 mb-1 block">Formato do arquivo</label>
+            <select
+              value={tipoArquivo}
+              onChange={e => setTipoArquivo(e.target.value)}
+              className="w-full h-9 px-3 rounded-md bg-slate-900 border border-slate-600 text-slate-200 text-sm"
+            >
+              <option value="doc">Word (.doc)</option>
+              <option value="pdf">PDF (.pdf)</option>
+            </select>
           </div>
 
           {/* Qtd pessoas */}
