@@ -36,6 +36,15 @@
     "drive_link": {
       "type": "string"
     },
+    "assinado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Indica se o documento foi assinado"
+    },
+    "signed_file_url": {
+      "type": "string",
+      "description": "URL da vers\u00e3o assinada do documento"
+    },
     "status": {
       "type": "string",
       "enum": [

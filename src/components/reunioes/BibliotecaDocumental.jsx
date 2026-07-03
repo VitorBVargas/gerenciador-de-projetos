@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import {
   Upload, FileText, Download, ExternalLink, Trash2, Plus, FileDown,
-  Sparkles, AlertTriangle, CheckCircle, Clock, ListChecks, Eye, Calendar, User
+  Sparkles, AlertTriangle, CheckCircle, Clock, ListChecks, Eye, Calendar, User,
+  PenLine, FileSignature
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { buildRelatorioPdf, parseRelatorio } from './relatorioPdfGenerator';
@@ -34,6 +35,24 @@ export default function BibliotecaDocumental({ relatorios, projectId, currentUse
   const [file, setFile] = useState(null);
   const [viewing, setViewing] = useState(null); // documento em leitura
   const [gerarOpen, setGerarOpen] = useState(false);
+  const [signingId, setSigningId] = useState(null); // id do doc com upload de assinatura em andamento
+
+  const handleUploadSigned = async (docId, selectedFile) => {
+    if (!selectedFile) return;
+    setSigningId(docId);
+    const res = await base44.integrations.Core.UploadFile({ file: selectedFile });
+    await base44.entities.RelatorioOperacional.update(docId, {
+      signed_file_url: res.file_url,
+      assinado: true,
+    });
+    queryClient.invalidateQueries(['relatorios', projectId]);
+    setSigningId(null);
+  };
+
+  const toggleAssinado = async (doc) => {
+    await base44.entities.RelatorioOperacional.update(doc.id, { assinado: !doc.assinado });
+    queryClient.invalidateQueries(['relatorios', projectId]);
+  };
 
   const anos = [...new Set(relatorios.map(r => r.ano).filter(Boolean))].sort((a, b) => b - a);
 
@@ -160,6 +179,9 @@ export default function BibliotecaDocumental({ relatorios, projectId, currentUse
                       <span className={`text-[10px] px-2 py-0.5 rounded-full ${tcfg.bg} ${tcfg.color}`}>{tcfg.label}</span>
                       {isIA && <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-300">Gerado por IA</span>}
                       {r.versao && <span className="text-[10px] text-slate-500">v{r.versao}</span>}
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full inline-flex items-center gap-1 ${r.assinado ? 'bg-emerald-500/10 text-emerald-300' : 'bg-amber-500/10 text-amber-300'}`}>
+                        <FileSignature className="w-3 h-3" />{r.assinado ? 'Assinado' : 'Não assinado'}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -202,6 +224,20 @@ export default function BibliotecaDocumental({ relatorios, projectId, currentUse
                       <ExternalLink className="w-3.5 h-3.5" /> Drive
                     </a>
                   )}
+                  {r.signed_file_url ? (
+                    <a href={r.signed_file_url} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs text-emerald-300 hover:text-emerald-400 hover:bg-emerald-500/10 px-2 py-1 rounded-lg transition-colors">
+                      <FileSignature className="w-3.5 h-3.5" /> Ver assinado
+                    </a>
+                  ) : (
+                    <label className="flex items-center gap-1 text-xs text-slate-300 hover:text-amber-400 hover:bg-amber-500/10 px-2 py-1 rounded-lg transition-colors cursor-pointer">
+                      <PenLine className="w-3.5 h-3.5" /> {signingId === r.id ? 'Enviando...' : 'Importar assinado'}
+                      <input type="file" accept=".pdf,.docx" className="hidden" disabled={signingId === r.id}
+                        onChange={e => handleUploadSigned(r.id, e.target.files[0])} />
+                    </label>
+                  )}
+                  <button onClick={() => toggleAssinado(r)} title={r.assinado ? 'Marcar como não assinado' : 'Marcar como assinado'} className="p-1 text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-colors">
+                    <CheckCircle className={`w-3.5 h-3.5 ${r.assinado ? 'text-emerald-400' : ''}`} />
+                  </button>
                   <button onClick={() => handleDelete(r.id)} className="ml-auto p-1 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
