@@ -9,15 +9,6 @@ import { avaliarRiscoCND } from '../prestacao/CNDStatus';
 
 const MESES_NOMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
-// Nomes das obrigações que compõem um "mês enviado"
-const OBRIG_BALANCETE = ['balancete'];
-const OBRIG_AM = ['am', 'ata'];
-
-const matchNome = (nome = '', chaves) => {
-  const n = nome.toLowerCase();
-  return chaves.some(k => n.includes(k));
-};
-
 const foiEnviado = (o) => o.status === 'enviado' || o.status === 'aceito';
 
 const RISCO_CFG = {
@@ -32,7 +23,7 @@ export default function SustentacaoStatusCard({ project, obrigacoes = [] }) {
   const risco = useMemo(() => avaliarRiscoCND(obrigacoes), [obrigacoes]);
   const riscoCfg = RISCO_CFG[risco.nivel] || RISCO_CFG.indefinido;
 
-  // Meses enviados: um mês (competência) conta como enviado quando Balancete + AM estão entregues
+  // Meses enviados: um mês (competência) só conta quando TODAS as obrigações daquele mês estão enviadas/aceitas (tudo verde)
   const mesesEnviados = useMemo(() => {
     // Agrupa por competência MM/AAAA
     const porComp = {};
@@ -43,11 +34,7 @@ export default function SustentacaoStatusCard({ project, obrigacoes = [] }) {
     });
 
     return Object.entries(porComp)
-      .filter(([, lista]) => {
-        const balancete = lista.find(o => matchNome(o.nome, OBRIG_BALANCETE));
-        const am = lista.find(o => matchNome(o.nome, OBRIG_AM));
-        return balancete && am && foiEnviado(balancete) && foiEnviado(am);
-      })
+      .filter(([, lista]) => lista.length > 0 && lista.every(foiEnviado))
       .map(([comp]) => {
         const [mesStr, anoStr] = comp.split('/');
         const mes = parseInt(mesStr, 10) - 1;
