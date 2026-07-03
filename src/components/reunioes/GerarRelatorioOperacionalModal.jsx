@@ -41,7 +41,7 @@ export default function GerarRelatorioOperacionalModal({ projectId, projectName 
 
   const [entidadesSel, setEntidadesSel] = useState(entidades.map(e => e.nome));
   const [productIds, setProductIds] = useState([]);
-  const [responsavelBetha, setResponsavelBetha] = useState(currentUser?.full_name || '');
+  const [responsavelBetha, setResponsavelBetha] = useState('');
   const [periodo, setPeriodo] = useState('');
   const [nomeServidor, setNomeServidor] = useState('');
   const [cargoMatricula, setCargoMatricula] = useState('');
