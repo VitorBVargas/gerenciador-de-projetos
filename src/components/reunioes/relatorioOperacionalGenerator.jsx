@@ -145,15 +145,17 @@ export async function gerarRelatorioOperacionalDocx(dados) {
   </html>`;
 
   const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+  const safeName = (projectName || entidade || 'relatorio').replace(/[^a-zA-Z0-9]/g, '_');
+  const fileName = `Relatorio_Operacional_${safeName}.doc`;
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  const safeName = (projectName || entidade || 'relatorio').replace(/[^a-zA-Z0-9]/g, '_');
   a.href = url;
-  a.download = `Relatorio_Operacional_${safeName}.doc`;
+  a.download = fileName;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+  return { blob, fileName };
 }
 
 // ─────────────────────────────── PDF ───────────────────────────────
@@ -296,5 +298,7 @@ export async function gerarRelatorioOperacionalPdf(dados) {
   doc.addImage(contData, 'PNG', pageW - margin - contW, footY, contW, footH, undefined, 'NONE');
 
   const safeName = (projectName || entidade || 'relatorio').replace(/[^a-zA-Z0-9]/g, '_');
-  doc.save(`Relatorio_Operacional_${safeName}.pdf`);
+  const fileName = `Relatorio_Operacional_${safeName}.pdf`;
+  doc.save(fileName);
+  return { blob: doc.output('blob'), fileName };
 }

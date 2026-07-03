@@ -1,4 +1,6 @@
 import React, { useState, useMemo } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { X, FileText, Loader2, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -10,7 +12,8 @@ const novaOcorrencia = () => ({ ocorrencia: '', gerouChamado: 'nao', chamado: ''
 const inputCls = 'w-full h-9 px-3 rounded-md bg-slate-900 border border-slate-600 text-slate-200 text-sm';
 const areaCls = 'w-full px-3 py-2 rounded-md bg-slate-900 border border-slate-600 text-slate-200 text-sm resize-none';
 
-export default function GerarRelatorioOperacionalModal({ projectName = '', currentUser, products = [], teamMembers = [], onClose }) {
+export default function GerarRelatorioOperacionalModal({ projectId, projectName = '', currentUser, products = [], teamMembers = [], onClose }) {
+  const queryClient = useQueryClient();
   // Entidades do projeto (a partir dos produtos)
   const entidades = useMemo(() => {
     const map = new Map();
@@ -73,8 +76,31 @@ export default function GerarRelatorioOperacionalModal({ projectName = '', curre
         responsavelBetha, periodo, atendimentos, ocorrencias, nomeServidor, cargoMatricula,
       };
       const gerar = tipoArquivo === 'pdf' ? gerarRelatorioOperacionalPdf : gerarRelatorioOperacionalDocx;
-      await gerar(dados);
-      toast.success('Relatório Operacional gerado!');
+      const { blob, fileName } = await gerar(dados);
+
+      // Salvar na Biblioteca Documental (upload + registro)
+      if (projectId && blob) {
+        const arquivo = new File([blob], fileName, { type: blob.type });
+        const { file_url } = await base44.integrations.Core.UploadFile({ file: arquivo });
+        const now = new Date();
+        const nomeDoc = `Relatório Operacional${entidade ? ' — ' + entidade : ''}${periodo ? ' (' + periodo + ')' : ''}`;
+        await base44.entities.RelatorioOperacional.create({
+          project_id: projectId,
+          nome: nomeDoc,
+          tipo: 'relatorio',
+          versao: '1.0',
+          observacoes: [produtoNome && `Produto: ${produtoNome}`, chamado && `Chamado: ${chamado}`, periodo && `Período: ${periodo}`].filter(Boolean).join(' • '),
+          file_url,
+          data_envio: now.toISOString().split('T')[0],
+          responsavel: responsavelBetha || currentUser?.full_name || '',
+          status: 'enviado',
+          ano: now.getFullYear(),
+          mes: now.getMonth() + 1,
+        });
+        queryClient.invalidateQueries(['relatorios', projectId]);
+      }
+
+      toast.success('Relatório gerado e salvo na Biblioteca!');
       onClose();
     } catch (e) {
       toast.error('Erro ao gerar: ' + e.message);

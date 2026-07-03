@@ -215,6 +215,7 @@ export default function BibliotecaDocumental({ relatorios, projectId, currentUse
       {/* Modal de geração de Relatório Operacional */}
       {gerarOpen && (
         <GerarRelatorioOperacionalModal
+          projectId={projectId}
           projectName={projectName}
           currentUser={currentUser}
           products={products}
