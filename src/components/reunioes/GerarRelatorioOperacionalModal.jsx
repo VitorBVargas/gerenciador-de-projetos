@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { X, FileText, Loader2, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -10,9 +10,34 @@ const novaOcorrencia = () => ({ ocorrencia: '', gerouChamado: 'nao', chamado: ''
 const inputCls = 'w-full h-9 px-3 rounded-md bg-slate-900 border border-slate-600 text-slate-200 text-sm';
 const areaCls = 'w-full px-3 py-2 rounded-md bg-slate-900 border border-slate-600 text-slate-200 text-sm resize-none';
 
-export default function GerarRelatorioOperacionalModal({ projectName = '', currentUser, onClose }) {
-  const [entidade, setEntidade] = useState('');
-  const [chamado, setChamado] = useState('');
+export default function GerarRelatorioOperacionalModal({ projectName = '', currentUser, products = [], teamMembers = [], onClose }) {
+  // Entidades do projeto (a partir dos produtos)
+  const entidades = useMemo(() => {
+    const map = new Map();
+    products.forEach(p => {
+      if (p.entity && !map.has(p.entity)) map.set(p.entity, p.entity_full_name || p.entity);
+    });
+    return [...map.entries()].map(([nome, completo]) => ({ nome, completo }));
+  }, [products]);
+
+  // Produtos únicos por nome
+  const uniqueProducts = useMemo(() => {
+    const seen = new Set();
+    return products.filter(p => {
+      if (seen.has(p.name)) return false;
+      seen.add(p.name);
+      return true;
+    });
+  }, [products]);
+
+  // Nomes da equipe (Betha)
+  const equipeNomes = useMemo(
+    () => [...new Set(teamMembers.map(m => m.name).filter(Boolean))].sort(),
+    [teamMembers]
+  );
+
+  const [entidadesSel, setEntidadesSel] = useState(entidades.map(e => e.nome));
+  const [productIds, setProductIds] = useState([]);
   const [responsavelBetha, setResponsavelBetha] = useState(currentUser?.full_name || '');
   const [periodo, setPeriodo] = useState('');
   const [nomeServidor, setNomeServidor] = useState('');
@@ -21,6 +46,13 @@ export default function GerarRelatorioOperacionalModal({ projectName = '', curre
   const [ocorrencias, setOcorrencias] = useState([]);
   const [tipoArquivo, setTipoArquivo] = useState('doc');
   const [gerando, setGerando] = useState(false);
+
+  const toggleEntidade = (nome) => setEntidadesSel(prev => prev.includes(nome) ? prev.filter(x => x !== nome) : [...prev, nome]);
+  const toggleProduct = (id) => setProductIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+
+  const selectedProducts = useMemo(() => uniqueProducts.filter(p => productIds.includes(p.id)), [uniqueProducts, productIds]);
+  // Chamados puxados dos produtos selecionados
+  const chamado = useMemo(() => selectedProducts.map(p => p.ticket_number).filter(Boolean).join(', '), [selectedProducts]);
 
   const updAtend = (i, campo, valor) => setAtendimentos(prev => prev.map((a, idx) => idx === i ? { ...a, [campo]: valor } : a));
   const updAtividade = (ai, li, valor) => setAtendimentos(prev => prev.map((a, idx) => idx === ai ? { ...a, atividades: a.atividades.map((v, j) => j === li ? valor : v) } : a));
@@ -32,7 +64,14 @@ export default function GerarRelatorioOperacionalModal({ projectName = '', curre
   const handleGerar = async () => {
     setGerando(true);
     try {
-      const dados = { projectName, entidade, chamado, responsavelBetha, periodo, atendimentos, ocorrencias, nomeServidor, cargoMatricula };
+      const entsFinal = entidadesSel.length > 0 ? entidadesSel : entidades.map(e => e.nome);
+      const entidade = entsFinal.join(', ');
+      const entidadeCompleta = entsFinal.map(nome => entidades.find(e => e.nome === nome)?.completo || nome).join(', ');
+      const produtoNome = selectedProducts.map(p => p.name).join(', ');
+      const dados = {
+        projectName, entidade, entidadeCompleta, produtoNome, chamado,
+        responsavelBetha, periodo, atendimentos, ocorrencias, nomeServidor, cargoMatricula,
+      };
       const gerar = tipoArquivo === 'pdf' ? gerarRelatorioOperacionalPdf : gerarRelatorioOperacionalDocx;
       await gerar(dados);
       toast.success('Relatório Operacional gerado!');
@@ -64,23 +103,66 @@ export default function GerarRelatorioOperacionalModal({ projectName = '', curre
         {/* Dados de Identificação */}
         <div className="space-y-3">
           <p className="text-xs font-semibold text-blue-400 uppercase tracking-wider">1. Dados de Identificação</p>
+
+          {/* Entidades (do projeto) */}
+          <div>
+            <label className="text-xs text-slate-400 mb-1 block">Entidade <span className="text-slate-500">(do projeto)</span></label>
+            {entidades.length === 0 ? (
+              <p className="text-xs text-slate-500">Nenhuma entidade cadastrada no projeto.</p>
+            ) : (
+              <div className="max-h-28 overflow-y-auto rounded-md bg-slate-900 border border-slate-600 divide-y divide-slate-700/60">
+                {entidades.map(e => (
+                  <label key={e.nome} className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-slate-800/60">
+                    <input type="checkbox" checked={entidadesSel.includes(e.nome)} onChange={() => toggleEntidade(e.nome)} className="accent-blue-600 w-4 h-4" />
+                    <span className="text-sm text-slate-200 flex-1">{e.completo}</span>
+                    {e.nome !== e.completo && <span className="text-[11px] text-slate-500">{e.nome}</span>}
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Produtos (puxam o chamado) */}
+          <div>
+            <label className="text-xs text-slate-400 mb-1 block">Produto <span className="text-slate-500">(selecione um ou mais — o chamado é puxado do produto)</span></label>
+            {uniqueProducts.length === 0 ? (
+              <p className="text-xs text-slate-500">Nenhum produto cadastrado no projeto.</p>
+            ) : (
+              <div className="max-h-32 overflow-y-auto rounded-md bg-slate-900 border border-slate-600 divide-y divide-slate-700/60">
+                {uniqueProducts.map(p => (
+                  <label key={p.id} className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-slate-800/60">
+                    <input type="checkbox" checked={productIds.includes(p.id)} onChange={() => toggleProduct(p.id)} className="accent-blue-600 w-4 h-4" />
+                    <span className="text-sm text-slate-200 flex-1">{p.name}</span>
+                    {p.ticket_number && <span className="text-[11px] text-slate-500">#{p.ticket_number}</span>}
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-slate-400 mb-1 block">Entidade</label>
-              <input value={entidade} onChange={e => setEntidade(e.target.value)} placeholder="Ex: Prefeitura Municipal" className={inputCls} />
-            </div>
-            <div>
               <label className="text-xs text-slate-400 mb-1 block">Chamado</label>
-              <input value={chamado} onChange={e => setChamado(e.target.value)} placeholder="BTHSC XXXX" className={inputCls} />
-            </div>
-            <div>
-              <label className="text-xs text-slate-400 mb-1 block">Responsável Betha</label>
-              <input value={responsavelBetha} onChange={e => setResponsavelBetha(e.target.value)} className={inputCls} />
+              <input value={chamado} readOnly placeholder="Selecione o produto" className={`${inputCls} opacity-80`} />
             </div>
             <div>
               <label className="text-xs text-slate-400 mb-1 block">Período</label>
               <input value={periodo} onChange={e => setPeriodo(e.target.value)} placeholder="Ex: 01/01 a 03/01/2026" className={inputCls} />
             </div>
+          </div>
+
+          {/* Responsável Betha (da equipe) */}
+          <div>
+            <label className="text-xs text-slate-400 mb-1 block">Responsável Betha</label>
+            {equipeNomes.length > 0 ? (
+              <select value={responsavelBetha} onChange={e => setResponsavelBetha(e.target.value)} className={inputCls}>
+                <option value="">Selecione...</option>
+                {!equipeNomes.includes(responsavelBetha) && responsavelBetha && <option value={responsavelBetha}>{responsavelBetha}</option>}
+                {equipeNomes.map(nome => <option key={nome} value={nome}>{nome}</option>)}
+              </select>
+            ) : (
+              <input value={responsavelBetha} onChange={e => setResponsavelBetha(e.target.value)} className={inputCls} />
+            )}
           </div>
         </div>
 

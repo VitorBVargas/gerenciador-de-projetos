@@ -24,7 +24,7 @@ const TIPO_CFG = {
 
 const MODEL_URL = 'https://media.base44.com/files/public/6a31ab9617c13b0a39ce874c/658928cdc_FAZERUMACPIAModelodeRelatrioOperacional.docx';
 
-export default function BibliotecaDocumental({ relatorios, projectId, currentUser, projectName }) {
+export default function BibliotecaDocumental({ relatorios, projectId, currentUser, projectName, products = [], teamMembers = [] }) {
   const queryClient = useQueryClient();
   const [modalOpen, setModalOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -217,6 +217,8 @@ export default function BibliotecaDocumental({ relatorios, projectId, currentUse
         <GerarRelatorioOperacionalModal
           projectName={projectName}
           currentUser={currentUser}
+          products={products}
+          teamMembers={teamMembers}
           onClose={() => setGerarOpen(false)}
         />
       )}

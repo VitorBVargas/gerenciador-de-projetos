@@ -85,6 +85,18 @@ export default function SustentacaoReunioes() {
   });
   const projectName = projectData?.name || '';
 
+  const { data: products = [] } = useQuery({
+    queryKey: ['products', projectId],
+    queryFn: () => base44.entities.Product.filter({ project_id: projectId }),
+    enabled: !!projectId,
+  });
+
+  const { data: teamMembers = [] } = useQuery({
+    queryKey: ['teamMembers', projectId],
+    queryFn: () => base44.entities.TeamMember.filter({ project_id: projectId }),
+    enabled: !!projectId,
+  });
+
   const now = new Date();
   const proximas = reunioes.filter(r => r.status === 'agendada' && r.data && isAfter(parseISO(r.data), now)).sort((a, b) => a.data.localeCompare(b.data));
   const realizadas = reunioes.filter(r => r.status === 'realizada');
@@ -402,7 +414,7 @@ export default function SustentacaoReunioes() {
 
       {/* ── DOCUMENTOS ── */}
       {tab === 'documentos' && (
-        <BibliotecaDocumental relatorios={relatorios} projectId={projectId} currentUser={currentUser} projectName={projectName} />
+        <BibliotecaDocumental relatorios={relatorios} projectId={projectId} currentUser={currentUser} projectName={projectName} products={products} teamMembers={teamMembers} />
       )}
 
       {/* Modals */}
