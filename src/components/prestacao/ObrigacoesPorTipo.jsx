@@ -22,7 +22,8 @@ const STATUS_CFG = {
 const DEFAULT_TYPE_ORDER = ['AM', 'SIOPE', 'SIOPS', 'Balancete', 'RGF', 'RREO', 'MSC', 'DECASP', 'IP', 'Balancete 13', 'Folha', 'Contratos'];
 
 function getSemaforo(o) {
-  if (o.status === 'aceito') return 'aceito';
+  // Já entregue (oficial ou teste) — não há prazo em atraso
+  if (o.status === 'enviado' || o.status === 'aceito') return 'aceito';
   if (!o.data_limite) return null;
   const days = differenceInDays(parseISO(o.data_limite), new Date());
   if (days < 0) return 'vermelho';
