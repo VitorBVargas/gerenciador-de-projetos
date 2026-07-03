@@ -8,7 +8,7 @@ const esc = (v = '') =>
     .replace(/>/g, '&gt;');
 
 // Imagens institucionais da Betha
-const BETHA_LOGO = 'https://media.base44.com/images/public/693e9f298bb38fa472ef1725/f65eb5365_ChatGPTImage3dejulde202614_42_23.png';
+const BETHA_LOGO = 'https://media.base44.com/images/public/693e9f298bb38fa472ef1725/536a64b83_Gemini_Generated_Image_wo9hvqwo9hvqwo9h1.png';
 const BETHA_ENDERECO = 'https://media.base44.com/images/public/693e9f298bb38fa472ef1725/5d1d27af6_Gemini_Generated_Image_wo9hvqwo9hvqwo9h.png';
 const BETHA_CONTATO = 'https://media.base44.com/images/public/693e9f298bb38fa472ef1725/fd99aa8de_ChatGPTImage3dejulde202614_42_36.png';
 
