@@ -127,10 +127,10 @@ export async function gerarListaPresencaDocx({
     <table>
       <thead>
         <tr>
-          <th style="border:1px solid #000; padding:8px; background:#d9d9d9; width:8%;">Nº</th>
-          <th style="border:1px solid #000; padding:8px; background:#d9d9d9;">Nome Completo</th>
-          <th style="border:1px solid #000; padding:8px; background:#d9d9d9;">Cargo/Função</th>
-          <th style="border:1px solid #000; padding:8px; background:#d9d9d9;">Assinatura</th>
+          <th style="border:1px solid #000; padding:5px; background:#d9d9d9; font-size:9pt; text-align:center; width:8%;">Nº</th>
+          <th style="border:1px solid #000; padding:5px; background:#d9d9d9; font-size:9pt; text-align:center;">Nome Completo</th>
+          <th style="border:1px solid #000; padding:5px; background:#d9d9d9; font-size:9pt; text-align:center;">Cargo/Função</th>
+          <th style="border:1px solid #000; padding:5px; background:#d9d9d9; font-size:9pt; text-align:center;">Assinatura</th>
         </tr>
       </thead>
       <tbody>
@@ -249,7 +249,7 @@ export async function gerarListaPresencaPdf({
     startY: doc.lastAutoTable.finalY + 6,
     theme: 'grid',
     head: [['Nº', 'Nome Completo', 'Cargo/Função', 'Assinatura']],
-    headStyles: { fillColor: [217, 217, 217], textColor: [0, 0, 0], fontStyle: 'bold' },
+    headStyles: { fillColor: [217, 217, 217], textColor: [0, 0, 0], fontStyle: 'bold', fontSize: 9, halign: 'center' },
     styles: { fontSize: 10, cellPadding: 2, minCellHeight: 9, textColor: [0, 0, 0] },
     columnStyles: { 0: { cellWidth: 12, halign: 'center' } },
     body: rows,
