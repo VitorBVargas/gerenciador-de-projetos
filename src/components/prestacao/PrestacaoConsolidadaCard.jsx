@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { BarChart2 } from 'lucide-react';
-import { OBRIGACOES_ANUAIS, mesPertence, MES_ANUAL_IDX } from './periodicidade';
+import { OBRIGACOES_ANUAIS, mesPertence, MES_ANUAL_IDX, periodicidadeLabel } from './periodicidade';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { entityMatchesObligation, getAvailableEntities } from '@/lib/entityRegistry';
 
@@ -252,6 +252,7 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
                   <div className="flex items-center pr-2">
                     <span className="text-xs text-slate-300 font-medium truncate bg-slate-700/40 rounded-full px-3 py-2 w-full" title={tipoNome}>
                       {tipoNome}
+                      {periodicidadeLabel(tipoNome) && <span className="text-slate-500"> ({periodicidadeLabel(tipoNome)})</span>}
                     </span>
                   </div>
                   {MESES.map((mes, index) => {
@@ -330,6 +331,7 @@ export default function PrestacaoConsolidadaCard({ obrigacoes = [], produtos = [
                   <div className="flex items-center pr-2">
                     <span className="text-xs text-slate-300 font-medium truncate bg-slate-700/40 rounded-full px-3 py-2 w-full" title={tipoAtivo}>
                       {tipoAtivo}
+                      {periodicidadeLabel(tipoAtivo) && <span className="text-slate-500"> ({periodicidadeLabel(tipoAtivo)})</span>}
                     </span>
                   </div>
                   {MESES.map((mes, index) => {

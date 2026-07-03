@@ -28,6 +28,14 @@ export function mesesEsperados(nome) {
   return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]; // mensais (default)
 }
 
+// Retorna o rótulo de periodicidade para exibir ao lado do nome (null = mensal, sem rótulo)
+export function periodicidadeLabel(nome) {
+  if (OBRIGACOES_ANUAIS.includes(nome)) return 'Anual';
+  if (OBRIGACOES_BIMESTRAIS.includes(nome)) return 'Bimestral';
+  if (OBRIGACOES_QUADRIMESTRAIS.includes(nome)) return 'Quadrimestral';
+  return null;
+}
+
 // Verifica se um mês (0-indexed) faz parte da periodicidade da obrigação
 export function mesPertence(nome, mesIdx0) {
   if (OBRIGACOES_ANUAIS.includes(nome)) return mesIdx0 === MES_ANUAL_IDX;
