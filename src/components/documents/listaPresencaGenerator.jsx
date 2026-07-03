@@ -63,11 +63,27 @@ export async function gerarListaPresencaDocx({
       body { font-family: Calibri, Arial, sans-serif; font-size: 11pt; color:#000; }
       h1 { font-size: 15pt; text-align:center; margin-bottom: 2px; }
       h2 { font-size: 12pt; text-align:center; margin-top:0; color:#333; font-weight:normal; }
-      h3 { font-size: 11pt; margin: 16px 0 6px; border-bottom:2px solid #000; padding-bottom:2px; }
+      h3 { font-size: 11pt; margin: 16px 0 6px; border-bottom:2px solid #005CB9; padding-bottom:2px; color:#005CB9; }
       table { border-collapse: collapse; width: 100%; }
     </style>
   </head>
   <body>
+    <!-- Cabeçalho Betha -->
+    <table style="width:100%; border:none; margin-bottom:6px;">
+      <tr>
+        <td style="border:none; vertical-align:middle; width:60%;">
+          <span style="font-size:22pt; font-weight:bold; color:#005CB9; letter-spacing:0.5px;">betha</span>
+          <span style="font-size:11pt; color:#005CB9;"> sistemas</span>
+          <div style="font-size:8pt; color:#666; margin-top:2px;">Tecnologia para gestão pública</div>
+        </td>
+        <td style="border:none; text-align:right; vertical-align:middle; font-size:8pt; color:#666; width:40%;">
+          Betha Sistemas Ltda.<br/>
+          www.betha.com.br
+        </td>
+      </tr>
+    </table>
+    <div style="border-bottom:3px solid #005CB9; margin-bottom:14px;"></div>
+
     <h1>LISTA DE PRESENÇA DE TREINAMENTO</h1>
     <h2>${esc(produtoNome)}</h2>
 
@@ -105,6 +121,11 @@ export async function gerarListaPresencaDocx({
         ${signRows}
       </tbody>
     </table>
+
+    <!-- Rodapé Betha -->
+    <div style="border-top:2px solid #005CB9; margin-top:20px; padding-top:6px; text-align:center; font-size:8pt; color:#666;">
+      <span style="font-weight:bold; color:#005CB9;">betha sistemas</span> &nbsp;·&nbsp; Documento gerado pelo Gerenciador de Projetos
+    </div>
   </body>
   </html>`;
 
