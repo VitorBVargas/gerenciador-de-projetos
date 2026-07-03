@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { buildRelatorioPdf, parseRelatorio } from './relatorioPdfGenerator';
+import GerarRelatorioOperacionalModal from './GerarRelatorioOperacionalModal';
 
 const TIPO_CFG = {
   relatorio: { label: 'Relatório', color: 'text-blue-400', bg: 'bg-blue-500/10' },
@@ -32,6 +33,7 @@ export default function BibliotecaDocumental({ relatorios, projectId, currentUse
   const [form, setForm] = useState({ nome: '', tipo: 'relatorio', versao: '1.0', observacoes: '', drive_link: '' });
   const [file, setFile] = useState(null);
   const [viewing, setViewing] = useState(null); // documento em leitura
+  const [gerarOpen, setGerarOpen] = useState(false);
 
   const anos = [...new Set(relatorios.map(r => r.ano).filter(Boolean))].sort((a, b) => b - a);
 
@@ -96,11 +98,16 @@ export default function BibliotecaDocumental({ relatorios, projectId, currentUse
           <p className="text-sm font-medium text-emerald-300">Modelo Padrão de Relatório Operacional</p>
           <p className="text-xs text-slate-400">Baixe, preencha e envie utilizando o botão "Adicionar" abaixo.</p>
         </div>
-        <a href={MODEL_URL} download className="flex-shrink-0">
-          <button className="flex items-center gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg transition-colors">
-            <Download className="w-3.5 h-3.5" /> Baixar Modelo
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <button onClick={() => setGerarOpen(true)} className="flex items-center gap-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg transition-colors">
+            <Sparkles className="w-3.5 h-3.5" /> Gerar Relatório
           </button>
-        </a>
+          <a href={MODEL_URL} download>
+            <button className="flex items-center gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg transition-colors">
+              <Download className="w-3.5 h-3.5" /> Baixar Modelo
+            </button>
+          </a>
+        </div>
       </div>
 
       <div className="flex items-center justify-between flex-wrap gap-3">
@@ -203,6 +210,15 @@ export default function BibliotecaDocumental({ relatorios, projectId, currentUse
             );
           })}
         </div>
+      )}
+
+      {/* Modal de geração de Relatório Operacional */}
+      {gerarOpen && (
+        <GerarRelatorioOperacionalModal
+          projectName={projectName}
+          currentUser={currentUser}
+          onClose={() => setGerarOpen(false)}
+        />
       )}
 
       {/* Modal de leitura ampliada */}

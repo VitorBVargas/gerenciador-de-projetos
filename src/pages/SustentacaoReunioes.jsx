@@ -28,7 +28,7 @@ const STATUS_CFG = {
 const TIPO_LABEL = { alinhamento: 'Alinhamento', revisao: 'Revisão', apresentacao: 'Apresentação', emergencial: 'Emergencial', kickoff: 'Kickoff', outro: 'Outro' };
 
 const TABS = ['dashboard', 'reunioes', 'relatorio_ia', 'decisoes', 'documentos'];
-const TAB_LABELS = { dashboard: 'Dashboard', reunioes: 'Reuniões', relatorio_ia: 'Relatório', decisoes: 'Observações', documentos: 'Documentos' };
+const TAB_LABELS = { dashboard: 'Dashboard', reunioes: 'Reuniões', relatorio_ia: 'Relatório', decisoes: 'Observações', documentos: 'Relatórios Operacionais' };
 
 function KPICard({ icon: Icon, label, value, color = 'text-blue-400', bg = 'bg-blue-500/10' }) {
   return (
