@@ -7,6 +7,32 @@ const esc = (v = '') =>
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 
+// Imagens institucionais da Betha
+const BETHA_LOGO = 'https://media.base44.com/images/public/693e9f298bb38fa472ef1725/8f9bd3f51_betha.png';
+const BETHA_ENDERECO = 'https://media.base44.com/images/public/693e9f298bb38fa472ef1725/44b5ed610_betha2.png';
+const BETHA_CONTATO = 'https://media.base44.com/images/public/693e9f298bb38fa472ef1725/96f26f070_betha3.png';
+
+// Carrega imagem como dataURL (para o PDF)
+async function loadImage(url) {
+  const res = await fetch(url);
+  const blob = await res.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+function imgSize(dataUrl) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight });
+    img.onerror = () => resolve({ w: 1, h: 1 });
+    img.src = dataUrl;
+  });
+}
+
 const formatarData = (isoDate) => {
   if (!isoDate) return '';
   const [y, m, d] = isoDate.split('-');
@@ -69,19 +95,9 @@ export async function gerarListaPresencaDocx({
   </head>
   <body>
     <!-- Cabeçalho Betha -->
-    <table style="width:100%; border:none; margin-bottom:6px;">
-      <tr>
-        <td style="border:none; vertical-align:middle; width:60%;">
-          <span style="font-size:22pt; font-weight:bold; color:#005CB9; letter-spacing:0.5px;">betha</span>
-          <span style="font-size:11pt; color:#005CB9;"> sistemas</span>
-          <div style="font-size:8pt; color:#666; margin-top:2px;">Tecnologia para gestão pública</div>
-        </td>
-        <td style="border:none; text-align:right; vertical-align:middle; font-size:8pt; color:#666; width:40%;">
-          Betha Sistemas Ltda.<br/>
-          www.betha.com.br
-        </td>
-      </tr>
-    </table>
+    <div style="margin-bottom:6px;">
+      <img src="${BETHA_LOGO}" style="height:38px;" />
+    </div>
     <div style="border-bottom:3px solid #005CB9; margin-bottom:14px;"></div>
 
     <h1>LISTA DE PRESENÇA DE TREINAMENTO</h1>
@@ -123,9 +139,17 @@ export async function gerarListaPresencaDocx({
     </table>
 
     <!-- Rodapé Betha -->
-    <div style="border-top:2px solid #005CB9; margin-top:20px; padding-top:6px; text-align:center; font-size:8pt; color:#666;">
-      <span style="font-weight:bold; color:#005CB9;">betha sistemas</span> &nbsp;·&nbsp; Documento gerado pelo Gerenciador de Projetos
-    </div>
+    <div style="border-top:2px solid #005CB9; margin-top:24px; padding-top:8px;"></div>
+    <table style="width:100%; border:none;">
+      <tr>
+        <td style="border:none; vertical-align:middle; width:55%;">
+          <img src="${BETHA_ENDERECO}" style="height:34px;" />
+        </td>
+        <td style="border:none; text-align:right; vertical-align:middle; width:45%;">
+          <img src="${BETHA_CONTATO}" style="height:34px;" />
+        </td>
+      </tr>
+    </table>
   </body>
   </html>`;
 
@@ -166,19 +190,12 @@ export async function gerarListaPresencaPdf({
   const entidadeTexto = entidadeCompleta || entidade;
   const dataHora = [formatarData(data), hora].filter(Boolean).join(' - ');
 
-  // Cabeçalho Betha
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(20);
-  doc.setTextColor(...BLUE);
-  doc.text('betha', margin, 18);
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'normal');
-  const w = doc.getTextWidth('betha') * (20 / 11);
-  doc.text(' sistemas', margin + w, 18);
-  doc.setFontSize(8);
-  doc.setTextColor(102, 102, 102);
-  doc.text('Tecnologia para gestão pública', margin, 23);
-  doc.text('Betha Sistemas Ltda.  ·  www.betha.com.br', pageW - margin, 18, { align: 'right' });
+  // Cabeçalho Betha (logo)
+  const logoData = await loadImage(BETHA_LOGO);
+  const logoDim = await imgSize(logoData);
+  const logoH = 12;
+  const logoW = (logoDim.w / logoDim.h) * logoH;
+  doc.addImage(logoData, 'PNG', margin, 12, logoW, logoH);
   doc.setDrawColor(...BLUE);
   doc.setLineWidth(0.8);
   doc.line(margin, 27, pageW - margin, 27);
@@ -237,6 +254,21 @@ export async function gerarListaPresencaPdf({
     columnStyles: { 0: { cellWidth: 12, halign: 'center' } },
     body: rows,
   });
+
+  // Rodapé Betha (endereço + contato)
+  const pageH = doc.internal.pageSize.getHeight();
+  const [endData, contData] = await Promise.all([loadImage(BETHA_ENDERECO), loadImage(BETHA_CONTATO)]);
+  const endDim = await imgSize(endData);
+  const contDim = await imgSize(contData);
+  const footH = 11;
+  const footY = pageH - 20;
+  doc.setDrawColor(...BLUE);
+  doc.setLineWidth(0.6);
+  doc.line(margin, footY - 4, pageW - margin, footY - 4);
+  const endW = (endDim.w / endDim.h) * footH;
+  const contW = (contDim.w / contDim.h) * footH;
+  doc.addImage(endData, 'PNG', margin, footY, endW, footH);
+  doc.addImage(contData, 'PNG', pageW - margin - contW, footY, contW, footH);
 
   const safeName = (projectName || produtoNome || 'treinamento').replace(/[^a-zA-Z0-9]/g, '_');
   doc.save(`Lista_Presenca_${safeName}.pdf`);
