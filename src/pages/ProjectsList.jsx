@@ -180,7 +180,7 @@ export default function ProjectsList() {
   };
 
   // Filter projects by status
-  const activeProjects = projects.filter(p => p.status !== 'concluido' && p.status !== 'pausado' && p.status !== 'sustentacao');
+  const activeProjects = projects.filter(p => p.status !== 'concluido' && p.status !== 'pausado' && p.status !== 'sustentacao' && p.project_type !== 'sustentacao');
   const pausedProjects = projects.filter(p => p.status === 'pausado');
   const completedProjects = projects.filter(p => p.status === 'concluido');
   const sustentacaoProjects = projects.filter(p => p.status === 'sustentacao' || p.project_type === 'sustentacao');
