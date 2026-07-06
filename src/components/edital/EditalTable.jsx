@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import StatusCell from '@/components/edital/StatusCell';
 import { base44 } from '@/api/base44Client';
-import { ExternalLink, AlertTriangle, Clock, X, Search, Pencil, FileText, Trash2 } from 'lucide-react';
+import { ExternalLink, AlertTriangle, Clock, X, Search, Pencil, FileText, Trash2, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import EditalPagination from '@/components/edital/EditalPagination';
 import EditEditalItemModal from '@/components/edital/EditEditalItemModal';
@@ -21,6 +21,8 @@ const compareNumeroItem = (a = '', b = '') => {
   return String(a).localeCompare(String(b), 'pt-BR', { numeric: true });
 };
 
+const isDoneStatus = (s = '') => { const sl = s.toLowerCase(); return sl.includes('conclu') || sl.includes('entregue') || sl.includes('aprovad') || sl.includes('finaliz') || sl.includes('cancel') || sl.includes('recusad'); };
+
 const getStatusCls = (s = '') => {
   const sl = s.toLowerCase();
   if (sl.includes('conclu') || sl.includes('entregue') || sl.includes('aprovad') || sl.includes('finaliz')) return 'text-green-300 bg-green-500/20 border-green-500/40';
@@ -34,6 +36,9 @@ export default function EditalTable({ items, portfolio, showProject = true, proj
   const [filterSistema, setFilterSistema] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [showConcluidos, setShowConcluidos] = useState(false);
+
+  const concluidosCount = useMemo(() => items.filter(i => isDoneStatus(i.status)).length, [items]);
 
   // Collect all unique statuses from current data for the dropdown
   const allStatuses = [...new Set(items.map(i => i.status).filter(Boolean))];
@@ -52,6 +57,7 @@ export default function EditalTable({ items, portfolio, showProject = true, proj
         (!filterStatus || i.status === filterStatus);
 
       if (!matchesFilters) return false;
+      if (!showConcluidos && isDoneStatus(i.status)) return false;
       if (!normalizedSearch) return true;
 
       const searchableText = [
@@ -79,7 +85,7 @@ export default function EditalTable({ items, portfolio, showProject = true, proj
     }
 
     return result;
-  }, [items, filterVertical, filterSistema, filterStatus, normalizedSearch, showProject]);
+  }, [items, filterVertical, filterSistema, filterStatus, normalizedSearch, showProject, showConcluidos]);
 
   // Paginação apenas na Lista Geral
   const isListaGeral = showProject;
@@ -88,7 +94,7 @@ export default function EditalTable({ items, portfolio, showProject = true, proj
   const totalPages = isListaGeral ? Math.max(1, Math.ceil(filteredItems.length / pageSize)) : 1;
 
   // Reset para página 1 quando filtros/busca/total/tamanho mudarem
-  useEffect(() => { setPage(1); }, [filterVertical, filterSistema, filterStatus, normalizedSearch, items.length, pageSize]);
+  useEffect(() => { setPage(1); }, [filterVertical, filterSistema, filterStatus, normalizedSearch, items.length, pageSize, showConcluidos]);
   // Garante que a página atual nunca passe do total (após mudança de filtros)
   useEffect(() => { if (page > totalPages) setPage(totalPages); }, [page, totalPages]);
 
@@ -234,6 +240,18 @@ export default function EditalTable({ items, portfolio, showProject = true, proj
               ✕ Limpar
             </button>
           )}
+          <button
+            onClick={() => setShowConcluidos(v => !v)}
+            className={`text-xs px-2 py-1 rounded border flex items-center gap-1.5 transition-colors ${
+              showConcluidos
+                ? 'border-green-600/50 text-green-300 bg-green-500/10 hover:bg-green-500/20'
+                : 'border-slate-700 text-slate-400 hover:text-white hover:border-slate-500'
+            }`}
+            title={showConcluidos ? 'Ocultar itens concluídos' : 'Mostrar itens concluídos'}
+          >
+            {showConcluidos ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+            {showConcluidos ? 'Ocultar concluídos' : `Mostrar concluídos (${concluidosCount})`}
+          </button>
           <span className="text-xs text-slate-500 ml-auto">{filteredItems.length} de {items.length}</span>
         </div>
       )}
@@ -276,6 +294,18 @@ export default function EditalTable({ items, portfolio, showProject = true, proj
               ✕ Limpar
             </button>
           )}
+          <button
+            onClick={() => setShowConcluidos(v => !v)}
+            className={`text-xs px-2.5 py-1.5 rounded border flex items-center gap-1.5 transition-colors ${
+              showConcluidos
+                ? 'border-green-600/50 text-green-300 bg-green-500/10 hover:bg-green-500/20'
+                : 'border-slate-700 text-slate-400 hover:text-white hover:border-slate-500'
+            }`}
+            title={showConcluidos ? 'Ocultar itens concluídos' : 'Mostrar itens concluídos'}
+          >
+            {showConcluidos ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+            {showConcluidos ? 'Ocultar concluídos' : `Mostrar concluídos (${concluidosCount})`}
+          </button>
           <span className="text-xs text-slate-500 ml-auto">
             {filteredItems.length} de {items.length} itens
           </span>
