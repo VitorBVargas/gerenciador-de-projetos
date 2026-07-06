@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2, EyeOff, Eye } from 'lucide-react';
 import { phaseLabels } from './phaseLabels';
 import { formatDateForDisplay } from './dateFormatter';
 
@@ -108,9 +108,25 @@ function EditableDate({ value, onCommit, readOnly }) {
   );
 }
 
+const HIDEABLE_COLUMNS = [
+  { key: 'status', label: 'Status' },
+  { key: 'dias', label: 'Dias' },
+  { key: 'start_date', label: 'Data Início' },
+  { key: 'end_date', label: 'Data Fim' },
+  { key: 'progress', label: 'Progresso' },
+];
+
 export default function TimelineByProduct({ verticals, entityProducts, timelineEvents, onStatusChange, onFieldChange, onEdit, onDelete, readOnly }) {
   const [activeVertical, setActiveVertical] = useState(verticals[0] || '');
   const [selectedProductId, setSelectedProductId] = useState(null);
+  const [hiddenColumns, setHiddenColumns] = useState([]);
+
+  const toggleColumn = (key) => {
+    setHiddenColumns(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
+  };
+  const isHidden = (key) => hiddenColumns.includes(key);
+  const hiddenList = HIDEABLE_COLUMNS.filter(c => hiddenColumns.includes(c.key));
+  const visibleCount = 2 + HIDEABLE_COLUMNS.length - hiddenColumns.length;
 
   // When vertical changes, reset selected product
   const handleVerticalChange = (v) => {
@@ -180,17 +196,39 @@ export default function TimelineByProduct({ verticals, entityProducts, timelineE
                   .sort((a, b) => (a.order || 0) - (b.order || 0));
 
                 return (
-                  <TabsContent key={product.id} value={product.id}>
+                  <TabsContent key={product.id} value={product.id} className="space-y-2">
+                    {hiddenList.length > 0 && (
+                      <div className="flex items-center gap-2 flex-wrap text-xs text-slate-400">
+                        <span>Colunas ocultas:</span>
+                        {hiddenList.map(c => (
+                          <button
+                            key={c.key}
+                            onClick={() => toggleColumn(c.key)}
+                            className="flex items-center gap-1 px-2 py-1 rounded border border-slate-600 text-slate-300 hover:text-white hover:border-slate-400 bg-slate-800"
+                            title={`Exibir coluna ${c.label}`}
+                          >
+                            <Eye className="w-3 h-3" /> {c.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                     <div className="overflow-x-auto bg-slate-800 rounded-lg border border-slate-700">
                       <table className="w-full">
                         <thead>
                           <tr className="border-b border-slate-700 bg-slate-900/50">
                             <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Atividade</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Status</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Dias</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Data Início</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Data Fim</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Progresso</th>
+                            {HIDEABLE_COLUMNS.map(col => !isHidden(col.key) && (
+                              <th key={col.key} className="px-4 py-3 text-left text-xs font-semibold text-slate-400">
+                                <button
+                                  onClick={() => toggleColumn(col.key)}
+                                  className="group flex items-center gap-1.5 hover:text-white transition-colors"
+                                  title={`Ocultar coluna ${col.label}`}
+                                >
+                                  {col.label}
+                                  <EyeOff className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                </button>
+                              </th>
+                            ))}
                             <th className="px-4 py-3"></th>
                           </tr>
                         </thead>
@@ -204,6 +242,7 @@ export default function TimelineByProduct({ verticals, entityProducts, timelineE
                                   onCommit={(v) => onFieldChange(event.id, 'title', v)}
                                 />
                               </td>
+                              {!isHidden('status') && (
                               <td className="px-4 py-3">
                                 <select
                                   value={event.status}
@@ -216,6 +255,8 @@ export default function TimelineByProduct({ verticals, entityProducts, timelineE
                                   ))}
                                 </select>
                               </td>
+                              )}
+                              {!isHidden('dias') && (
                               <td className="px-4 py-3">
                                 {calculateDaysBetween(event.start_date, event.end_date) !== null ? (
                                   <span className="text-sm text-slate-300">{calculateDaysBetween(event.start_date, event.end_date)} dias</span>
@@ -223,6 +264,8 @@ export default function TimelineByProduct({ verticals, entityProducts, timelineE
                                   <span className="text-sm text-slate-600">—</span>
                                 )}
                               </td>
+                              )}
+                              {!isHidden('start_date') && (
                               <td className="px-4 py-3">
                                 <EditableDate
                                   value={event.start_date}
@@ -230,6 +273,8 @@ export default function TimelineByProduct({ verticals, entityProducts, timelineE
                                   onCommit={(v) => onFieldChange(event.id, 'start_date', v)}
                                 />
                               </td>
+                              )}
+                              {!isHidden('end_date') && (
                               <td className="px-4 py-3">
                                 <EditableDate
                                   value={event.end_date}
@@ -237,12 +282,15 @@ export default function TimelineByProduct({ verticals, entityProducts, timelineE
                                   onCommit={(v) => onFieldChange(event.id, 'end_date', v)}
                                 />
                               </td>
+                              )}
+                              {!isHidden('progress') && (
                               <td className="px-4 py-3">
                                 <div className="flex items-center gap-2 max-w-xs">
                                   <Progress value={calculateProgressFromDates(event)} className="h-2 flex-1" />
                                   <span className="text-xs text-slate-400 min-w-[35px] text-right">{calculateProgressFromDates(event)}%</span>
                                 </div>
                               </td>
+                              )}
                               <td className="px-4 py-3">
                                 <div className="flex items-center gap-2">
                                   <button onClick={() => onEdit(event, product.id)} title="Editar" className="text-slate-400 hover:text-blue-400 transition">
@@ -258,7 +306,7 @@ export default function TimelineByProduct({ verticals, entityProducts, timelineE
                             </tr>
                           ))}
                           {productEvents.length === 0 && (
-                            <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-500 text-sm">Nenhuma etapa</td></tr>
+                            <tr><td colSpan={visibleCount} className="px-4 py-8 text-center text-slate-500 text-sm">Nenhuma etapa</td></tr>
                           )}
                         </tbody>
                       </table>
