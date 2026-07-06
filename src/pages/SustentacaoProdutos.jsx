@@ -171,8 +171,9 @@ export default function SustentacaoProdutos() {
       if (filterStatus.length && !filterStatus.includes(c.status)) return false;
       if (filterPriority.length && !filterPriority.includes(c.prioridade)) return false;
       if (filterResponsavel.length && !filterResponsavel.includes(c.responsavel)) return false;
-      if (search) {
-        const q = search.toLowerCase();
+      const term = search.trim();
+      if (term) {
+        const q = term.toLowerCase();
         return c.numero?.toLowerCase().includes(q) || c.descricao?.toLowerCase().includes(q) ||
           c.responsavel?.toLowerCase().includes(q) || c.product_name?.toLowerCase().includes(q);
       }
