@@ -8,6 +8,13 @@ const RECIPIENTS = [
   'leandro.santos@betha.com.br',
 ];
 
+// Só notifica quando estas obrigações (AM e Balancete) estiverem enviadas.
+// As demais obrigações da competência não entram na avaliação.
+const NOME_MONITORADO = (nome) => {
+  const n = (nome || '').toLowerCase();
+  return n.includes('am') || n.includes('balancete');
+};
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -33,16 +40,21 @@ Deno.serve(async (req) => {
       competencia,
     });
 
-    // Considera apenas registros reais com nome de obrigação
-    const reais = obrigacoes.filter(o => o.nome && o.nome.trim());
-    if (reais.length === 0) {
-      return Response.json({ skipped: true, reason: 'sem obrigacoes reais' });
+    // A obrigação que disparou deve ser AM ou Balancete
+    if (!NOME_MONITORADO(data.nome)) {
+      return Response.json({ skipped: true, reason: 'obrigacao alterada nao e AM nem Balancete' });
     }
 
-    // Mês finalizado = TODAS as obrigações da competência (todas entidades) em "enviado"
+    // Considera apenas AM e Balancete (todas as entidades) para avaliar o mês
+    const reais = obrigacoes.filter(o => o.nome && o.nome.trim() && NOME_MONITORADO(o.nome));
+    if (reais.length === 0) {
+      return Response.json({ skipped: true, reason: 'sem obrigacoes AM/Balancete' });
+    }
+
+    // Mês finalizado = AM e Balancete (todas entidades) em "enviado". As demais não contam.
     const todasEnviadas = reais.every(o => o.status === 'enviado');
     if (!todasEnviadas) {
-      return Response.json({ skipped: true, reason: 'ainda ha obrigacoes pendentes' });
+      return Response.json({ skipped: true, reason: 'AM/Balancete ainda pendentes' });
     }
 
     // Busca o projeto para nomear o e-mail
@@ -73,7 +85,7 @@ Deno.serve(async (req) => {
     const bodyHtml = `
       <div style="font-family: Arial, sans-serif; color: #1e293b;">
         <h2 style="color:#059669;">Prestação de Contas concluída</h2>
-        <p>Todas as obrigações da competência <strong>${competencia}</strong> foram marcadas como <strong>Enviado Oficial</strong>.</p>
+        <p><strong>AM</strong> e <strong>Balancete</strong> da competência <strong>${competencia}</strong> foram marcados como <strong>Enviado Oficial</strong>.</p>
         <table style="border-collapse: collapse; margin-top: 12px;">
           <tr><td style="padding:4px 12px 4px 0; color:#64748b;">Projeto:</td><td><strong>${nomeProjeto}</strong></td></tr>
           <tr><td style="padding:4px 12px 4px 0; color:#64748b;">Competência:</td><td><strong>${competencia}</strong></td></tr>
