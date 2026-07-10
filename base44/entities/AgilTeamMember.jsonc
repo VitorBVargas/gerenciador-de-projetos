@@ -14,6 +14,21 @@
       "type": "string",
       "description": "Fun\u00e7\u00e3o (Product Owner, Scrum Master, Desenvolvedor, QA, UX, Analista, DevOps, Gestor, Outros)"
     },
+    "cargo": {
+      "type": "string",
+      "description": "Cargo do integrante"
+    },
+    "senioridade": {
+      "type": "string",
+      "enum": [
+        "estagiario",
+        "junior",
+        "pleno",
+        "senior",
+        "especialista"
+      ],
+      "description": "Senioridade do integrante"
+    },
     "capacidade_semanal": {
       "type": "number",
       "description": "Capacidade semanal em horas"
@@ -21,6 +36,21 @@
     "dias_disponiveis": {
       "type": "string",
       "description": "Dias dispon\u00edveis"
+    },
+    "disponibilidade": {
+      "type": "number",
+      "default": 100,
+      "description": "Disponibilidade em % (0-100)"
+    },
+    "horas_planejadas": {
+      "type": "number",
+      "default": 0,
+      "description": "Horas planejadas na sprint atual"
+    },
+    "horas_executadas": {
+      "type": "number",
+      "default": 0,
+      "description": "Horas executadas na sprint atual"
     },
     "especialidade": {
       "type": "string",

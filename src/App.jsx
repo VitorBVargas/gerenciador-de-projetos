@@ -29,6 +29,7 @@ import AgilSprintBoard from './pages/AgilSprintBoard';
 import AgilTeam from './pages/AgilTeam';
 import AgilStakeholders from './pages/AgilStakeholders';
 import AgilProducts from './pages/AgilProducts';
+import AgilProductDashboard from './pages/AgilProductDashboard';
 import AgilDiscovery from './pages/AgilDiscovery';
 import AgilReleases from './pages/AgilReleases';
 
@@ -160,6 +161,11 @@ const AuthenticatedApp = () => {
       <Route path="/AgilProducts" element={
         <LayoutWrapper currentPageName="AgilProducts">
           <AgilProducts />
+        </LayoutWrapper>
+      } />
+      <Route path="/AgilProductDashboard" element={
+        <LayoutWrapper currentPageName="AgilProductDashboard">
+          <AgilProductDashboard />
         </LayoutWrapper>
       } />
       <Route path="/AgilDiscovery" element={

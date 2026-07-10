@@ -54,6 +54,49 @@
     "communication_routine": {
       "type": "string",
       "description": "Rotina de comunica\u00e7\u00e3o"
+    },
+    "interesse": {
+      "type": "string",
+      "enum": [
+        "alto",
+        "medio",
+        "baixo"
+      ],
+      "description": "N\u00edvel de interesse do stakeholder"
+    },
+    "influencia": {
+      "type": "string",
+      "enum": [
+        "alto",
+        "medio",
+        "baixo"
+      ],
+      "description": "N\u00edvel de influ\u00eancia do stakeholder"
+    },
+    "expectativa": {
+      "type": "string",
+      "description": "Expectativa do stakeholder"
+    },
+    "ultima_comunicacao": {
+      "type": "string",
+      "format": "date",
+      "description": "Data da \u00faltima comunica\u00e7\u00e3o"
+    },
+    "proxima_comunicacao": {
+      "type": "string",
+      "format": "date",
+      "description": "Data da pr\u00f3xima comunica\u00e7\u00e3o"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ativo",
+        "neutro",
+        "em_risco",
+        "critico"
+      ],
+      "default": "ativo",
+      "description": "Status do relacionamento com o stakeholder"
     }
   },
   "required": [
