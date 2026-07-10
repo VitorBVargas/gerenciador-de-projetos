@@ -174,44 +174,21 @@ export default function AgilTeam() {
           </div>
 
           {/* Gráficos */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <Card className="bg-slate-800/50 border-slate-700">
-              <CardContent className="p-5">
-                <h3 className="text-white font-semibold mb-4 flex items-center gap-2"><Activity className="w-4 h-4 text-blue-400" /> Capacidade x Ocupação</h3>
-                <ResponsiveContainer width="100%" height={240}>
-                  <BarChart data={charts}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                    <XAxis dataKey="nome" stroke="#64748b" fontSize={11} />
-                    <YAxis stroke="#64748b" fontSize={11} />
-                    <Tooltip contentStyle={tooltipStyle} />
-                    <Bar dataKey="capacidade" name="Capacidade (h)" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="ocupacao" name="Ocupação (%)" fill="#10b981" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-slate-800/50 border-slate-700">
-              <CardContent className="p-5">
-                <h3 className="text-white font-semibold mb-4 flex items-center gap-2"><Flame className="w-4 h-4 text-orange-400" /> Risco de Burnout x Disponibilidade</h3>
-                <ResponsiveContainer width="100%" height={240}>
-                  <BarChart data={charts}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                    <XAxis dataKey="nome" stroke="#64748b" fontSize={11} />
-                    <YAxis stroke="#64748b" fontSize={11} domain={[0, 100]} />
-                    <Tooltip contentStyle={tooltipStyle} />
-                    <Bar dataKey="disponibilidade" name="Disponibilidade (%)" fill="#38bdf8" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="burnout" name="Burnout (%)" radius={[4, 4, 0, 0]}>
-                      <LabelList dataKey="burnout" position="top" fill="#94a3b8" fontSize={10} />
-                      {charts.map((c, i) => (
-                        <Cell key={i} fill={c.burnout >= 70 ? '#ef4444' : c.burnout >= 45 ? '#f97316' : c.burnout >= 20 ? '#f59e0b' : '#10b981'} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </div>
+          <Card className="bg-slate-800/50 border-slate-700">
+            <CardContent className="p-5">
+              <h3 className="text-white font-semibold mb-4 flex items-center gap-2"><Activity className="w-4 h-4 text-blue-400" /> Capacidade x Ocupação</h3>
+              <ResponsiveContainer width="100%" height={240}>
+                <BarChart data={charts}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                  <XAxis dataKey="nome" stroke="#64748b" fontSize={11} />
+                  <YAxis stroke="#64748b" fontSize={11} />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Bar dataKey="capacidade" name="Capacidade (h)" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="ocupacao" name="Ocupação (%)" fill="#10b981" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
 
           {/* Cards dos membros */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
