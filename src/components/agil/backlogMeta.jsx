@@ -29,7 +29,7 @@ export const TIPO_META = {
     badge: 'bg-blue-500/15 text-blue-300 border-blue-500/40'
   },
   story: {
-    label: 'Story',
+    label: 'Tarefa',
     icon: BookOpen,
     color: 'text-green-400',
     bg: 'bg-green-500/15',
