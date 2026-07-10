@@ -1,0 +1,62 @@
+{
+  "name": "AgileSprint",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "ID do projeto \u00e1gil"
+    },
+    "nome": {
+      "type": "string",
+      "description": "Nome da sprint (ex: Sprint 1)"
+    },
+    "objetivo": {
+      "type": "string",
+      "description": "Objetivo da sprint"
+    },
+    "data_inicio": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de in\u00edcio"
+    },
+    "data_fim": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de fim"
+    },
+    "capacidade": {
+      "type": "number",
+      "default": 0,
+      "description": "Capacidade da sprint em horas"
+    },
+    "story_points_planejados": {
+      "type": "number",
+      "default": 0,
+      "description": "Story points planejados"
+    },
+    "story_points_entregues": {
+      "type": "number",
+      "default": 0,
+      "description": "Story points entregues"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "planejada",
+        "em_andamento",
+        "concluida"
+      ],
+      "default": "planejada",
+      "description": "Status da sprint"
+    },
+    "ordem": {
+      "type": "number",
+      "default": 0,
+      "description": "Ordem de exibi\u00e7\u00e3o"
+    }
+  },
+  "required": [
+    "project_id",
+    "nome"
+  ]
+}
