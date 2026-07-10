@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -18,6 +18,7 @@ import HealthScoreGauge from '@/components/agil/HealthScoreGauge';
 import DashboardStatCard from '@/components/agil/DashboardStatCard';
 import GerarBacklogIAModal from '@/components/agil/GerarBacklogIAModal';
 import StartGuidanceCards from '@/components/agil/StartGuidanceCards';
+import AgilWelcomeFlowModal from '@/components/agil/AgilWelcomeFlowModal';
 import { computeSprintMetrics, computeBurndown } from '@/components/agil/boardMetrics';
 import { computeSprintHealth, detectIssues, classifyScore } from '@/components/agil/scrumMasterAnalysis';
 import { effectiveColumn } from '@/components/agil/boardMeta';
@@ -29,8 +30,19 @@ export default function AgilDashboard() {
   const projectId = urlParams.get('project_id');
   const queryClient = useQueryClient();
   const [backlogModalOpen, setBacklogModalOpen] = useState(false);
+  const [welcomeOpen, setWelcomeOpen] = useState(false);
 
   const withPid = (page) => createPageUrl(`${page}?project_id=${projectId}`);
+
+  // Abre o assistente de início automaticamente na 1ª entrada no projeto (após criação).
+  useEffect(() => {
+    if (!projectId) return;
+    const key = `agilWelcomeSeen_${projectId}`;
+    if (!localStorage.getItem(key)) {
+      setWelcomeOpen(true);
+      localStorage.setItem(key, '1');
+    }
+  }, [projectId]);
 
   const { data: project } = useQuery({
     queryKey: ['agilProject', projectId],
@@ -310,6 +322,12 @@ export default function AgilDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <AgilWelcomeFlowModal
+        open={welcomeOpen}
+        onOpenChange={setWelcomeOpen}
+        project={project}
+      />
 
       <GerarBacklogIAModal
         open={backlogModalOpen}
