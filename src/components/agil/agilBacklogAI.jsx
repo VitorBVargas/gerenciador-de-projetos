@@ -142,9 +142,25 @@ const responseSchema = {
   required: ['epics', 'roadmap'],
 };
 
+// Monta um bloco de contexto com a Análise de Maturidade para calibrar o backlog.
+function buildMaturityContext(a) {
+  if (!a) return '';
+  const L = [`Discovery Score: ${a.score ?? '—'}/100`, a.complexidade && `Complexidade estimada: ${a.complexidade}`];
+  if (a.resumo_executivo) L.push(`Resumo executivo: ${a.resumo_executivo}`);
+  const lacunas = (a.itens || []).filter(i => i.status === 'nao_encontrado' || i.status === 'parcial' || i.status === 'pouco_detalhado');
+  if (lacunas.length) L.push(`Lacunas a considerar: ${lacunas.map(i => `${i.nome} (${i.status})`).join(', ')}`);
+  if ((a.sugestoes || []).length) L.push(`Sugestões de melhoria: ${a.sugestoes.join('; ')}`);
+  const est = a.estimativa || {};
+  if (est.epics || est.features || est.stories || est.sprints) {
+    L.push(`Estimativa de referência — Épicos: ${est.epics ?? '?'}, Features: ${est.features ?? '?'}, Stories: ${est.stories ?? '?'}, Sprints: ${est.sprints ?? '?'}.`);
+  }
+  return L.filter(Boolean).join('\n');
+}
+
 // Chama a IA para gerar o backlog a partir do Discovery.
-export async function generateBacklogFromDiscovery({ project, discovery }) {
+export async function generateBacklogFromDiscovery({ project, discovery, maturityAnalysis }) {
   const context = buildDiscoveryContext(discovery);
+  const maturity = buildMaturityContext(maturityAnalysis);
 
   const prompt = `Você é um Product Manager sênior e Agile Coach experiente. A partir do Discovery de produto abaixo, estruture um **Product Backlog inicial completo e acionável** para um projeto ágil (Scrum/Kanban).
 
@@ -155,7 +171,7 @@ ${project?.agil_objetivo ? `Objetivo declarado: ${project.agil_objetivo}` : ''}
 
 DISCOVERY:
 ${context || '(sem conteúdo detalhado — infira o mínimo necessário do nome/objetivo do projeto)'}
-
+${maturity ? `\nANÁLISE DE MATURIDADE DO DISCOVERY (use para calibrar priorização, story points, roadmap, Sprint 0, sprint planning, riscos e MVP; onde houver lacunas, seja conservador e sinalize riscos/débitos):\n${maturity}\n` : ''}
 REGRAS OBRIGATÓRIAS:
 1. Crie ÉPICOS organizados (nome, descrição, objetivo, prioridade, valor de negócio, complexidade).
 2. Para cada Épico, crie FEATURES (nome, descrição, critério de sucesso, dependências entre features usando as 'key').

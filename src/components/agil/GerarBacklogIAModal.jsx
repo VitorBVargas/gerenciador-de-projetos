@@ -12,6 +12,9 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { generateBacklogFromDiscovery, summarizeResult, persistBacklog, FIBONACCI, nearestFibonacci } from './agilBacklogAI';
+import { analyzeDiscoveryMaturity, persistMaturityRisks } from './discoveryMaturityAI';
+import DiscoveryGateReview from './DiscoveryGateReview';
+import { createPageUrl } from '@/utils';
 
 const PRIOS = ['baixa', 'media', 'alta', 'critica'];
 const prioColor = { baixa: 'bg-slate-600', media: 'bg-blue-600', alta: 'bg-orange-600', critica: 'bg-red-600' };
@@ -27,27 +30,56 @@ function StatChip({ icon: Icon, label, value, color }) {
 }
 
 export default function GerarBacklogIAModal({ open, onOpenChange, project, discovery, onDone }) {
-  const [phase, setPhase] = useState('intro'); // intro | generating | review | saving | done
+  const [phase, setPhase] = useState('intro'); // intro | gate-analyzing | gate | generating | review | saving | done
   const [result, setResult] = useState(null);
+  const [analysis, setAnalysis] = useState(null);
   const [expanded, setExpanded] = useState({});
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (open) { setPhase(discovery ? 'intro' : 'intro'); setResult(null); setError(''); setExpanded({}); }
+    if (open) { setPhase('intro'); setResult(null); setAnalysis(null); setError(''); setExpanded({}); }
   }, [open, discovery]);
+
+  // Gate de Qualidade: roda a Análise de Maturidade ANTES de gerar o backlog.
+  const runGate = async () => {
+    setPhase('gate-analyzing');
+    setError('');
+    try {
+      const a = await analyzeDiscoveryMaturity({ project, discovery });
+      if (!a) throw new Error('A IA não retornou a análise. Tente novamente.');
+      setAnalysis(a);
+      // Se o score for baixo, cria automaticamente os riscos de maturidade
+      if (a.score < 70 && (a.riscos || []).length) {
+        const n = await persistMaturityRisks({ projectId: project.id, riscos: a.riscos });
+        if (n) toast.success(`${n} risco(s) de maturidade enviado(s) ao Gerente de Riscos.`);
+      }
+      setPhase('gate');
+    } catch (e) {
+      setError(e?.message || 'Falha ao analisar a maturidade do Discovery.');
+      setPhase('intro');
+    }
+  };
+
+  const goToDiscovery = () => {
+    onOpenChange(false);
+    const url = discovery?.project_id
+      ? `InternalDashboard?id=${discovery.project_id}`
+      : 'InternalProjectsList';
+    window.location.href = createPageUrl(url);
+  };
 
   const runGeneration = async () => {
     setPhase('generating');
     setError('');
     try {
-      const r = await generateBacklogFromDiscovery({ project, discovery });
+      const r = await generateBacklogFromDiscovery({ project, discovery, maturityAnalysis: analysis });
       if (!r?.epics?.length) throw new Error('A IA não retornou épicos. Tente novamente.');
       setResult(r);
       setExpanded({ 0: true });
       setPhase('review');
     } catch (e) {
       setError(e?.message || 'Falha ao gerar o backlog.');
-      setPhase('intro');
+      setPhase('gate');
     }
   };
 
@@ -96,7 +128,7 @@ export default function GerarBacklogIAModal({ open, onOpenChange, project, disco
   };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (phase !== 'generating' && phase !== 'saving') onOpenChange(v); }}>
+    <Dialog open={open} onOpenChange={(v) => { if (phase !== 'generating' && phase !== 'saving' && phase !== 'gate-analyzing') onOpenChange(v); }}>
       <DialogContent className="bg-slate-900 border-slate-800 text-white max-w-4xl max-h-[92vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -122,12 +154,37 @@ export default function GerarBacklogIAModal({ open, onOpenChange, project, disco
                 Um backlog já foi gerado antes para este projeto. Gerar novamente adicionará novos itens (não substitui os existentes).
               </div>
             )}
+            <div className="flex items-start gap-2 bg-slate-800/60 border border-slate-700 rounded-lg p-3 text-sm text-slate-300">
+              <ShieldAlert className="w-4 h-4 mt-0.5 flex-shrink-0 text-emerald-400" />
+              Antes de gerar o backlog, a IA fará a <span className="text-white font-medium">Análise de Maturidade do Discovery</span> — o Gate Oficial de Qualidade — atribuindo um Discovery Score e avaliando se há informações suficientes para iniciar o desenvolvimento.
+            </div>
             {error && <p className="text-sm text-red-400">{error}</p>}
             <div className="flex justify-end gap-2 pt-2">
               <Button variant="outline" onClick={() => onOpenChange(false)} className="border-slate-700 bg-slate-800/50 text-slate-300 hover:bg-slate-800">Cancelar</Button>
-              <Button onClick={runGeneration} className="bg-emerald-600 hover:bg-emerald-700"><Sparkles className="w-4 h-4 mr-2" /> Gerar Backlog</Button>
+              <Button onClick={runGate} className="bg-emerald-600 hover:bg-emerald-700"><Sparkles className="w-4 h-4 mr-2" /> Gerar Product Backlog com IA</Button>
             </div>
           </div>
+        )}
+
+        {/* GATE ANALYZING */}
+        {phase === 'gate-analyzing' && (
+          <div className="py-16 flex flex-col items-center justify-center gap-4">
+            <Loader2 className="w-10 h-10 text-emerald-400 animate-spin" />
+            <div className="text-center">
+              <p className="text-white font-medium">Analisando a maturidade do Discovery…</p>
+              <p className="text-sm text-slate-400 mt-1">A IA está avaliando a qualidade das informações antes de gerar o backlog.</p>
+            </div>
+          </div>
+        )}
+
+        {/* GATE REVIEW */}
+        {phase === 'gate' && analysis && (
+          <DiscoveryGateReview
+            analysis={analysis}
+            project={project}
+            onBackToDiscovery={goToDiscovery}
+            onProceed={runGeneration}
+          />
         )}
 
         {/* GENERATING */}
