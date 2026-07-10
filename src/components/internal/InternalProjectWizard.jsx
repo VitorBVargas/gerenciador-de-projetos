@@ -130,6 +130,47 @@ export default function InternalProjectWizard({ open, onOpenChange, onComplete, 
 
   const handleFinish = async () => {
     setSaving(true);
+
+    // Adiciona automaticamente o Responsável à equipe (se preenchido e ainda não estiver na lista)
+    const responsavelNome = (general.manager || '').trim();
+    const teamToCreate = [...teamItems];
+    if (responsavelNome) {
+      const alreadyIncluded = teamToCreate.some(t => (t.name || '').trim().toLowerCase() === responsavelNome.toLowerCase());
+      if (!alreadyIncluded) {
+        teamToCreate.push({ name: responsavelNome, role: 'Responsável pelo Projeto', email: '', phone: '' });
+      }
+    }
+
+    // ── Projeto Ágil interno: usa a entidade Project (is_internal) para reaproveitar
+    // as telas Ágeis completas (Backlog, Sprint Board, Roadmap, Cerimônias, Métricas). ──
+    if (general.project_type === 'agil') {
+      const project = await base44.entities.Project.create({
+        name: general.name,
+        project_type: 'agil',
+        is_internal: true,
+        manager: general.manager,
+        agil_responsavel: general.manager,
+        agil_descricao: general.description,
+        agil_objetivo: general.description,
+        agil_start_date: general.deadline || null,
+        budget: general.budget ? parseFloat(general.budget) : undefined,
+        status: general.status || 'planejamento',
+      });
+      const pid = project.id;
+      const creates = [];
+      teamToCreate.forEach(t => creates.push(base44.entities.AgilTeamMember.create({ nome: t.name, funcao: t.role || '', email: t.email || '', telefone: t.phone || '', project_id: pid })));
+      stakeholders.forEach(s => creates.push(base44.entities.Stakeholder.create({ name: s.name, role: s.role || '', email: s.email || '', phone: s.phone || '', project_id: pid })));
+      products.forEach(p => creates.push(base44.entities.AgilProduct.create({ produto: p.name, descricao: p.delivery || '', observacao: p.monitoring || '', project_id: pid })));
+      await Promise.all(creates);
+      queryClient.invalidateQueries({ queryKey: ['internalProjects'] });
+      setSaving(false);
+      handleClose();
+      onComplete?.();
+      // Abre direto no dashboard Ágil (telas idênticas ao projeto normal)
+      window.location.href = `/AgilDashboard?project_id=${pid}`;
+      return;
+    }
+
     const project = await base44.entities.InternalProject.create({
       name: general.name,
       project_type: general.project_type || 'implantacao',
@@ -142,16 +183,6 @@ export default function InternalProjectWizard({ open, onOpenChange, onComplete, 
     const pid = project.id;
     const creates = [];
     scheduleItems.forEach((s, i) => creates.push(base44.entities.InternalSchedule.create({ ...s, project_id: pid, order: i })));
-
-    // Adiciona automaticamente o Responsável à equipe (se preenchido e ainda não estiver na lista)
-    const responsavelNome = (general.manager || '').trim();
-    const teamToCreate = [...teamItems];
-    if (responsavelNome) {
-      const alreadyIncluded = teamToCreate.some(t => (t.name || '').trim().toLowerCase() === responsavelNome.toLowerCase());
-      if (!alreadyIncluded) {
-        teamToCreate.push({ name: responsavelNome, role: 'Responsável pelo Projeto', email: '', phone: '' });
-      }
-    }
     teamToCreate.forEach(t => creates.push(base44.entities.InternalTeamMember.create({ ...t, project_id: pid })));
     stakeholders.forEach(s => creates.push(base44.entities.InternalStakeholder.create({ ...s, project_id: pid })));
     products.forEach(p => creates.push(base44.entities.InternalProduct.create({ ...p, project_id: pid })));

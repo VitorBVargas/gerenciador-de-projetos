@@ -38,23 +38,43 @@ export default function InternalProjectsList() {
   const [projectToDelete, setProjectToDelete] = useState(null);
   const [deletingProjectId, setDeletingProjectId] = useState(null);
 
-  const { data: projects = [], isLoading } = useQuery({
+  const { data: internalOnly = [], isLoading } = useQuery({
     queryKey: ['internalProjects'],
     queryFn: () => base44.entities.InternalProject.list('display_order')
   });
 
+  // Projetos Ágeis internos vivem na entidade Project (is_internal) para usar as telas Ágeis completas
+  const { data: agilInternal = [] } = useQuery({
+    queryKey: ['internalAgilProjects'],
+    queryFn: () => base44.entities.Project.filter({ is_internal: true }, 'display_order')
+  });
+
+  // Unifica as duas fontes marcando quais são ágeis (abrem no AgilDashboard)
+  const projects = [
+    ...internalOnly.map(p => ({ ...p, _isAgil: false })),
+    ...agilInternal.map(p => ({ ...p, _isAgil: true })),
+  ];
+
   const updateOrderMutation = useMutation({
-    mutationFn: ({ id, display_order }) => base44.entities.InternalProject.update(id, { display_order }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['internalProjects'] })
+    mutationFn: ({ project, display_order }) => project._isAgil
+      ? base44.entities.Project.update(project.id, { display_order })
+      : base44.entities.InternalProject.update(project.id, { display_order }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['internalProjects'] });
+      queryClient.invalidateQueries({ queryKey: ['internalAgilProjects'] });
+    }
   });
 
   // createMutation not needed - wizard handles creation internally
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.InternalProject.delete(id),
-    onMutate: (id) => setDeletingProjectId(id),
+    mutationFn: (project) => project._isAgil
+      ? base44.entities.Project.delete(project.id)
+      : base44.entities.InternalProject.delete(project.id),
+    onMutate: (project) => setDeletingProjectId(project.id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['internalProjects'] });
+      queryClient.invalidateQueries({ queryKey: ['internalAgilProjects'] });
       setDeleteDialogOpen(false);
       setProjectToDelete(null);
       setDeletingProjectId(null);
@@ -76,7 +96,7 @@ export default function InternalProjectsList() {
     const items = Array.from(list);
     const [moved] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, moved);
-    await Promise.all(items.map((p, i) => updateOrderMutation.mutateAsync({ id: p.id, display_order: i })));
+    await Promise.all(items.map((p, i) => updateOrderMutation.mutateAsync({ project: p, display_order: i })));
   };
 
   const activeProjects = projects.filter(p => p.status !== 'concluido');
@@ -93,8 +113,11 @@ export default function InternalProjectsList() {
               </div>
             )}
             <div className="flex-1 flex items-start justify-between">
-              <CardTitle className="text-white text-lg mb-2">
+              <CardTitle className="text-white text-lg mb-2 flex items-center gap-2">
                 {deletingProjectId === project.id ? 'Excluindo...' : project.name}
+                {project._isAgil && (
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Ágil</span>
+                )}
               </CardTitle>
               {deletingProjectId !== project.id && (
                 <Button
@@ -124,7 +147,7 @@ export default function InternalProjectsList() {
               <span>Prazo: {format(new Date(project.deadline), 'dd/MM/yyyy', { locale: ptBR })}</span>
             </div>
           )}
-          <Link to={createPageUrl(`InternalDashboard?project_id=${project.id}`)}>
+          <Link to={createPageUrl(`${project._isAgil ? 'AgilDashboard' : 'InternalDashboard'}?project_id=${project.id}`)}>
             <Button className="w-full bg-blue-600 hover:bg-blue-700 mt-4" disabled={deletingProjectId === project.id}>
               <FolderOpen className="w-4 h-4 mr-2" />
               Abrir Projeto
@@ -268,7 +291,7 @@ export default function InternalProjectsList() {
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => deleteMutation.mutate(projectToDelete?.id)}
+              onClick={() => projectToDelete && deleteMutation.mutate(projectToDelete)}
               disabled={deleteMutation.isPending}
               className="bg-red-600 hover:bg-red-700"
             >

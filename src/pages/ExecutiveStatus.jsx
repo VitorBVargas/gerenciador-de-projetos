@@ -195,7 +195,7 @@ export default function ExecutiveStatus() {
 
   const isLoading = isRecalculating || loadingProjects || loadingCronogramas || loadingEvents || loadingProducts || loadingRevenues || loadingProgressCache || loadingOverallProgressCache || loadingFinancialDates || loadingHealthCaches;
 
-  const visibleProjectsData = allProjectsData.filter(p => !p.hide_from_executive_status && p.project_type !== 'sustentacao');
+  const visibleProjectsData = allProjectsData.filter(p => !p.hide_from_executive_status && p.project_type !== 'sustentacao' && !p.is_internal);
   const projects = visibleProjectsData.filter(p => p.status !== 'concluido');
 
   const filteredProjectsForFinance = useMemo(() => {

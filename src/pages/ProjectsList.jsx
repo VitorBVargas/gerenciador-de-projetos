@@ -88,10 +88,12 @@ export default function ProjectsList() {
         : base44.entities.Project.filter({ portfolio: portfolioFilter }, 'display_order')
   });
 
+  // Projetos internos (Ágil interno) não aparecem no portfólio de clientes
+  const nonInternal = allProjects.filter((p) => !p.is_internal);
   // Parceiro só enxerga os projetos liberados
   const projects = parceiro
-    ? allProjects.filter((p) => allowedIds.includes(p.id))
-    : allProjects;
+    ? nonInternal.filter((p) => allowedIds.includes(p.id))
+    : nonInternal;
 
   const updateOrderMutation = useMutation({
     mutationFn: async ({ id, display_order }) => {

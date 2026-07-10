@@ -230,6 +230,11 @@
       "type": "boolean",
       "default": false,
       "description": "\u00c1gil: indica se o Product Backlog j\u00e1 foi gerado pela IA a partir do Discovery"
+    },
+    "is_internal": {
+      "type": "boolean",
+      "default": false,
+      "description": "Indica que este \u00e9 um projeto interno (\u00c1gil interno) e n\u00e3o deve aparecer nas listas de portf\u00f3lio/clientes"
     }
   },
   "required": [
