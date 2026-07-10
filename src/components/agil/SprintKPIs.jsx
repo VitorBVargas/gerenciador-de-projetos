@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  ListTodo, Target, CheckCircle2, Loader, Lock, Bug, Timer, Repeat, TrendingUp, Gauge, CalendarClock, Percent
+  ListTodo, Target, CheckCircle2, Loader, Lock, Bug, Timer, Repeat, TrendingUp, Gauge, CalendarClock, Percent, PauseCircle
 } from 'lucide-react';
 
 const Kpi = ({ icon: Icon, label, value, sub, tone = 'slate' }) => {
@@ -39,6 +39,7 @@ export default function SprintKPIs({ m }) {
       <Kpi icon={Bug} label="Bugs" value={m.bugs} tone="red" />
       <Kpi icon={Timer} label="Lead Time" value={`${m.leadTime}h`} tone="blue" />
       <Kpi icon={Repeat} label="Cycle Time" value={`${m.cycleTime}h`} tone="cyan" />
+      <Kpi icon={PauseCircle} label="Tempo Parado" value={`${m.tempoParadoMax || 0}h`} sub={`${m.itensParados || 0} parados +48h`} tone="orange" />
       <Kpi icon={TrendingUp} label="Throughput" value={m.throughput} sub="itens entregues" tone="emerald" />
       <Kpi icon={Gauge} label="Capacidade Util." value={`${m.capacidadeUtilizada}%`} sub={`${m.tempoGasto}h / ${m.capacidade}h`} tone="orange" />
       <Kpi icon={CalendarClock} label="Dias Restantes" value={m.diasRestantes === null ? '—' : m.diasRestantes} tone="blue" />

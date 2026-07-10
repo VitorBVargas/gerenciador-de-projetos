@@ -26,6 +26,16 @@ export function computeSprintMetrics(items, sprint) {
   // WIP = itens em colunas de trabalho ativo
   const wip = main.filter(i => ['em_desenvolvimento', 'code_review', 'teste', 'homologacao'].includes(effectiveColumn(i))).length;
 
+  // Tempo parado: horas na coluna atual para itens não concluídos e não bloqueados (média das maiores paradas)
+  const now = Date.now();
+  const paradas = main
+    .filter(i => effectiveColumn(i) !== 'concluido' && i.coluna_entrou_em)
+    .map(i => { try { return Math.max(0, Math.round((now - new Date(i.coluna_entrou_em).getTime()) / 3600000)); } catch { return 0; } });
+  const tempoParadoMax = paradas.length ? Math.max(...paradas) : 0;
+  const tempoParadoMedio = paradas.length ? Math.round(paradas.reduce((a, b) => a + b, 0) / paradas.length) : 0;
+  // Itens "parados" há mais de 48h
+  const itensParados = paradas.filter(h => h >= 48).length;
+
   // Lead / Cycle time médios (horas) dos concluídos
   const leadVals = done.map(i => i.lead_time_horas).filter(v => typeof v === 'number' && v > 0);
   const cycleVals = done.map(i => i.cycle_time_horas).filter(v => typeof v === 'number' && v > 0);
@@ -72,7 +82,35 @@ export function computeSprintMetrics(items, sprint) {
     total, sp, spDone, spRest, done: done.length, emAndamento, bloqueados, bugs, wip,
     leadTime, cycleTime, flowEfficiency, throughput, diasRestantes, totalDias,
     percentDecorrido, velocity, tempoGasto, capacidade, capacidadeUtilizada, percentSprint, health,
+    tempoParadoMax, tempoParadoMedio, itensParados,
   };
+}
+
+// Série de burnup: trabalho concluído acumulado x escopo total, por dia da sprint.
+export function computeBurnup(items, sprint) {
+  const main = items.filter(i => !i.is_subtask);
+  const totalSp = main.reduce((s, i) => s + (i.story_points || 0), 0);
+  if (!sprint?.data_inicio || !sprint?.data_fim) return { data: [], totalSp };
+  const inicio = parseISO(sprint.data_inicio);
+  const fim = parseISO(sprint.data_fim);
+  const dias = Math.max(1, differenceInCalendarDays(fim, inicio));
+  const hoje = new Date();
+
+  const data = [];
+  for (let d = 0; d <= dias; d++) {
+    const dia = new Date(inicio);
+    dia.setDate(inicio.getDate() + d);
+    let concluido = null;
+    if (dia <= hoje) {
+      concluido = main.filter(i => {
+        if (effectiveColumn(i) !== 'concluido') return false;
+        if (!i.completed_at) return true;
+        try { return new Date(i.completed_at) <= new Date(dia.getFullYear(), dia.getMonth(), dia.getDate(), 23, 59, 59); } catch { return false; }
+      }).reduce((s, i) => s + (i.story_points || 0), 0);
+    }
+    data.push({ dia: `D${d + 1}`, escopo: totalSp, concluido });
+  }
+  return { data, totalSp };
 }
 
 // Série de burndown ideal x real

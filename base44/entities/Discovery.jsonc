@@ -18,6 +18,78 @@
       ],
       "default": "em_andamento"
     },
+    "discovery_score": {
+      "type": "number",
+      "description": "Discovery Health Score (0-100) da \u00faltima an\u00e1lise de maturidade"
+    },
+    "discovery_analysis": {
+      "type": "object",
+      "description": "\u00daltima an\u00e1lise de maturidade da IA",
+      "properties": {
+        "score": {
+          "type": "number"
+        },
+        "complexidade": {
+          "type": "string"
+        },
+        "resumo_executivo": {
+          "type": "string"
+        },
+        "analyzed_at": {
+          "type": "string"
+        },
+        "estimativa": {
+          "type": "object",
+          "properties": {
+            "epics": {
+              "type": "number"
+            },
+            "features": {
+              "type": "number"
+            },
+            "stories": {
+              "type": "number"
+            },
+            "sprints": {
+              "type": "number"
+            },
+            "tempo_estimado": {
+              "type": "string"
+            },
+            "equipe": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "versoes": {
+      "type": "array",
+      "description": "Hist\u00f3rico de vers\u00f5es do Discovery",
+      "items": {
+        "type": "object",
+        "properties": {
+          "versao": {
+            "type": "number"
+          },
+          "data": {
+            "type": "string"
+          },
+          "autor": {
+            "type": "string"
+          },
+          "descricao": {
+            "type": "string"
+          },
+          "score": {
+            "type": "number"
+          }
+        }
+      }
+    },
     "diagnostico": {
       "type": "object",
       "description": "Etapa 1 - Diagn\u00f3stico",

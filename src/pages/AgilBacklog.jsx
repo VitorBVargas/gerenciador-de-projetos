@@ -19,6 +19,7 @@ import BacklogItemModal from '@/components/agil/BacklogItemModal';
 import BacklogItemDetails from '@/components/agil/BacklogItemDetails';
 import SprintModal from '@/components/agil/SprintModal';
 import SprintPlanningModal from '@/components/agil/SprintPlanningModal';
+import BacklogAIModal from '@/components/agil/BacklogAIModal';
 import { exportBacklogCsv, parseBacklogCsv } from '@/components/agil/backlogCsv';
 
 export default function AgilBacklog() {
@@ -38,6 +39,8 @@ export default function AgilBacklog() {
   const [sprintModalOpen, setSprintModalOpen] = useState(false);
   const [planningOpen, setPlanningOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [aiMode, setAiMode] = useState(null);
+  const [aiSplitTarget, setAiSplitTarget] = useState(null);
 
   useEffect(() => { base44.auth.me().then(setCurrentUser).catch(() => {}); }, []);
 
@@ -122,6 +125,18 @@ export default function AgilBacklog() {
     exportBacklogCsv(filtered);
   };
 
+  const openAI = (mode) => {
+    if (filtered.length === 0) { toast.error('Nenhum item no backlog para analisar.'); return; }
+    if (mode === 'divisao') {
+      const stories = filtered.filter(i => i.tipo === 'story' || i.tipo === 'feature');
+      const target = (stories.length ? stories : filtered).slice().sort((a, b) => (b.story_points || 0) - (a.story_points || 0))[0];
+      if (!target) { toast.error('Nenhuma story/feature para dividir.'); return; }
+      setAiSplitTarget(target);
+      toast.info(`Dividindo: "${target.titulo}"`);
+    }
+    setAiMode(mode);
+  };
+
   const handleImportClick = () => fileInputRef.current?.click();
 
   const handleImportFile = async (e) => {
@@ -166,12 +181,14 @@ export default function AgilBacklog() {
         </div>
       </div>
 
-      {/* IA (preparação) */}
+      {/* IA Scrum Master */}
       <div className="flex flex-wrap gap-2">
-        <Button disabled variant="outline" className="border-slate-700 text-slate-500 cursor-not-allowed"><Sparkles className="w-4 h-4 mr-1" /> Sugerir Priorização</Button>
-        <Button disabled variant="outline" className="border-slate-700 text-slate-500 cursor-not-allowed"><Sparkles className="w-4 h-4 mr-1" /> Sugerir Story Points</Button>
-        <Button disabled variant="outline" className="border-slate-700 text-slate-500 cursor-not-allowed"><Sparkles className="w-4 h-4 mr-1" /> Sugerir Divisão</Button>
-        <span className="text-xs text-slate-500 self-center">IA Scrum Master (em breve)</span>
+        <Button onClick={() => openAI('priorizacao')} variant="outline" className="border-emerald-700/50 text-emerald-300 hover:bg-emerald-600/10"><Sparkles className="w-4 h-4 mr-1" /> Priorização</Button>
+        <Button onClick={() => openAI('refinamento')} variant="outline" className="border-emerald-700/50 text-emerald-300 hover:bg-emerald-600/10"><Sparkles className="w-4 h-4 mr-1" /> Refinamento</Button>
+        <Button onClick={() => openAI('divisao')} variant="outline" className="border-emerald-700/50 text-emerald-300 hover:bg-emerald-600/10"><Sparkles className="w-4 h-4 mr-1" /> Divisão</Button>
+        <Button onClick={() => openAI('mesclagem')} variant="outline" className="border-emerald-700/50 text-emerald-300 hover:bg-emerald-600/10"><Sparkles className="w-4 h-4 mr-1" /> Mesclagem</Button>
+        <Button onClick={() => openAI('story_points')} variant="outline" className="border-emerald-700/50 text-emerald-300 hover:bg-emerald-600/10"><Sparkles className="w-4 h-4 mr-1" /> Story Points</Button>
+        <span className="text-xs text-slate-500 self-center">IA Scrum Master</span>
       </div>
 
       {/* Indicadores */}
@@ -231,6 +248,15 @@ export default function AgilBacklog() {
         items={items}
         sprints={sprints}
         onSaved={refresh}
+      />
+      <BacklogAIModal
+        open={!!aiMode}
+        onOpenChange={(v) => { if (!v) { setAiMode(null); setAiSplitTarget(null); } }}
+        mode={aiMode}
+        items={filtered}
+        projectId={projectId}
+        splitTarget={aiSplitTarget}
+        onApplied={refresh}
       />
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>

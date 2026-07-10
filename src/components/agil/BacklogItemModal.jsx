@@ -20,12 +20,15 @@ const empty = {
   story_points: 0,
   responsavel: '',
   sprint_id: '',
+  release: '',
   prioridade: 'media',
   status: 'backlog',
   criterio_aceite: '',
   definition_of_ready: '',
   definition_of_done: '',
   estimativa_horas: 0,
+  dependencias: [],
+  rice: { reach: '', impact: '', confidence: '', effort: '', score: '' },
   tags: [],
 };
 
@@ -35,11 +38,18 @@ export default function BacklogItemModal({ open, onOpenChange, item, projectId, 
 
   useEffect(() => {
     if (item) {
-      setForm({ ...empty, ...item, tags: item.tags || [] });
+      setForm({ ...empty, ...item, tags: item.tags || [], dependencias: item.dependencias || [], rice: { ...empty.rice, ...(item.rice || {}) } });
     } else {
       setForm(empty);
     }
   }, [item, open]);
+
+  const setRice = (k, v) => setForm(prev => {
+    const rice = { ...prev.rice, [k]: v };
+    const r = Number(rice.reach), i = Number(rice.impact), c = Number(rice.confidence), e = Number(rice.effort);
+    rice.score = (r && i && c && e) ? Math.round((r * i * c / e) * 10) / 10 : rice.score;
+    return { ...prev, rice };
+  });
 
   const set = (k, v) => setForm(prev => ({ ...prev, [k]: v }));
 
@@ -50,12 +60,22 @@ export default function BacklogItemModal({ open, onOpenChange, item, projectId, 
   const handleSave = async () => {
     if (!form.titulo.trim()) return;
     setSaving(true);
+    const riceNums = {
+      reach: Number(form.rice?.reach) || undefined,
+      impact: Number(form.rice?.impact) || undefined,
+      confidence: Number(form.rice?.confidence) || undefined,
+      effort: Number(form.rice?.effort) || undefined,
+      score: Number(form.rice?.score) || undefined,
+    };
+    const hasRice = Object.values(riceNums).some(v => v !== undefined);
     const payload = {
       ...form,
       project_id: projectId,
       story_points: Number(form.story_points) || 0,
       estimativa_horas: Number(form.estimativa_horas) || 0,
+      rice: hasRice ? riceNums : undefined,
       tags: typeof form.tags === 'string' ? form.tags.split(',').map(t => t.trim()).filter(Boolean) : (form.tags || []),
+      dependencias: Array.isArray(form.dependencias) ? form.dependencias : [],
     };
     if (item?.id) {
       await base44.entities.AgileBacklog.update(item.id, payload);
@@ -177,6 +197,11 @@ export default function BacklogItemModal({ open, onOpenChange, item, projectId, 
           </div>
 
           <div>
+            <Label className="text-slate-300">Release</Label>
+            <Input value={form.release} onChange={(e) => set('release', e.target.value)} placeholder="Ex: v1.0" className="bg-slate-800 border-slate-700" />
+          </div>
+
+          <div>
             <Label className="text-slate-300">Status</Label>
             <Select value={form.status} onValueChange={(v) => set('status', v)}>
               <SelectTrigger className="bg-slate-800 border-slate-700"><SelectValue /></SelectTrigger>
@@ -188,6 +213,39 @@ export default function BacklogItemModal({ open, onOpenChange, item, projectId, 
           <div>
             <Label className="text-slate-300">Tags (separadas por vírgula)</Label>
             <Input value={tagsValue} onChange={(e) => set('tags', e.target.value)} className="bg-slate-800 border-slate-700" />
+          </div>
+
+          {/* RICE */}
+          <div className="md:col-span-2">
+            <Label className="text-slate-300">Priorização RICE</Label>
+            <div className="grid grid-cols-5 gap-2 mt-1">
+              <Input type="number" value={form.rice?.reach ?? ''} onChange={(e) => setRice('reach', e.target.value)} placeholder="Reach" className="bg-slate-800 border-slate-700 text-xs" />
+              <Input type="number" value={form.rice?.impact ?? ''} onChange={(e) => setRice('impact', e.target.value)} placeholder="Impact" className="bg-slate-800 border-slate-700 text-xs" />
+              <Input type="number" value={form.rice?.confidence ?? ''} onChange={(e) => setRice('confidence', e.target.value)} placeholder="Confid." className="bg-slate-800 border-slate-700 text-xs" />
+              <Input type="number" value={form.rice?.effort ?? ''} onChange={(e) => setRice('effort', e.target.value)} placeholder="Effort" className="bg-slate-800 border-slate-700 text-xs" />
+              <Input value={form.rice?.score ?? ''} readOnly placeholder="Score" className="bg-slate-900 border-slate-700 text-xs text-cyan-300" />
+            </div>
+          </div>
+
+          {/* Dependências */}
+          <div className="md:col-span-2">
+            <Label className="text-slate-300">Dependências</Label>
+            <div className="max-h-28 overflow-y-auto bg-slate-800 border border-slate-700 rounded-md p-2 mt-1 space-y-1">
+              {(items || []).filter(i => i.id !== item?.id).length === 0 && <p className="text-xs text-slate-500">Nenhum outro item disponível.</p>}
+              {(items || []).filter(i => i.id !== item?.id).map(dep => {
+                const checked = (form.dependencias || []).includes(dep.id);
+                return (
+                  <label key={dep.id} className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => set('dependencias', checked ? form.dependencias.filter(x => x !== dep.id) : [...(form.dependencias || []), dep.id])}
+                    />
+                    <span className="truncate">[{dep.tipo}] {dep.titulo}</span>
+                  </label>
+                );
+              })}
+            </div>
           </div>
 
           <div className="md:col-span-2">
