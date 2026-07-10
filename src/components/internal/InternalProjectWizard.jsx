@@ -13,7 +13,7 @@ import { base44 } from '@/api/base44Client';
 import { useQueryClient } from '@tanstack/react-query';
 import { INTERNAL_TYPE_OPTIONS } from './internalProjectTypes';
 
-const STEPS = [
+const ALL_STEPS = [
   { id: 'general', label: 'Dados Gerais', icon: '📋' },
   { id: 'schedule', label: 'Cronograma', icon: '📅' },
   { id: 'team', label: 'Equipe', icon: '👥' },
@@ -22,6 +22,19 @@ const STEPS = [
   { id: 'checklist', label: 'Checklist', icon: '✅' },
   { id: 'risks', label: 'Riscos', icon: '⚠️' },
 ];
+
+// Passos exibidos por tipo de projeto. Ágil não usa cronograma/checklist tradicionais
+// (o fluxo é Discovery → Product Backlog, disponível no dashboard após a criação).
+const STEPS_BY_TYPE = {
+  implantacao: ['general', 'schedule', 'team', 'stakeholders', 'products', 'checklist', 'risks'],
+  sustentacao: ['general', 'schedule', 'team', 'stakeholders', 'products', 'checklist', 'risks'],
+  agil: ['general', 'team', 'stakeholders', 'products', 'risks'],
+};
+
+function getSteps(projectType) {
+  const ids = STEPS_BY_TYPE[projectType] || STEPS_BY_TYPE.implantacao;
+  return ids.map(id => ALL_STEPS.find(s => s.id === id));
+}
 
 const defaultGeneral = { name: '', project_type: 'implantacao', manager: '', description: '', deadline: '', budget: '', status: 'planejamento' };
 const defaultScheduleItem = { title: '', start_date: '', end_date: '' };
@@ -39,6 +52,12 @@ export default function InternalProjectWizard({ open, onOpenChange, onComplete }
   const fileInputRef = React.useRef(null);
 
   const [general, setGeneral] = useState(defaultGeneral);
+  const STEPS = getSteps(general.project_type);
+  const currentStepId = STEPS[step]?.id;
+
+  // Ao trocar o tipo de projeto, volta para o primeiro passo (o conjunto de passos muda)
+  const handleTypeChange = (v) => { setGeneral(p => ({ ...p, project_type: v })); setStep(0); };
+
   const [scheduleItems, setScheduleItems] = useState([]);
   const [scheduleForm, setScheduleForm] = useState(defaultScheduleItem);
   const [editingScheduleIdx, setEditingScheduleIdx] = useState(null);
@@ -271,8 +290,8 @@ export default function InternalProjectWizard({ open, onOpenChange, onComplete }
 
         <div className="flex-1 overflow-y-auto py-4 space-y-4">
 
-          {/* Step 0: Dados Gerais */}
-          {step === 0 && (
+          {/* Dados Gerais */}
+          {currentStepId === 'general' && (
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label className="text-slate-300">Nome do Projeto *</Label>
@@ -280,14 +299,20 @@ export default function InternalProjectWizard({ open, onOpenChange, onComplete }
               </div>
               <div className="space-y-2">
                 <Label className="text-slate-300">Tipo de Projeto *</Label>
-                <Select value={general.project_type} onValueChange={v => setGeneral(p => ({ ...p, project_type: v }))}>
+                <Select value={general.project_type} onValueChange={handleTypeChange}>
                   <SelectTrigger className="bg-slate-700 border-slate-600 text-white"><SelectValue /></SelectTrigger>
                   <SelectContent className="bg-slate-700 border-slate-600">
                     {INTERNAL_TYPE_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-slate-500">Define quais abas ficam disponíveis no projeto.</p>
+                <p className="text-xs text-slate-500">Define quais abas e etapas ficam disponíveis no projeto.</p>
               </div>
+              {general.project_type === 'agil' && (
+                <div className="flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-3 text-xs text-emerald-200">
+                  <span className="mt-0.5">💡</span>
+                  <span>Projeto Ágil: após a criação, use a aba <strong>Discovery</strong> para mapear o problema e gerar o <strong>Product Backlog</strong> com IA. Por isso o cadastro não inclui cronograma nem checklist tradicionais.</span>
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-slate-300">Responsável</Label>
@@ -323,8 +348,8 @@ export default function InternalProjectWizard({ open, onOpenChange, onComplete }
             </div>
           )}
 
-          {/* Step 1: Cronograma */}
-          {step === 1 && (
+          {/* Cronograma */}
+          {currentStepId === 'schedule' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <p className="text-sm text-slate-400">Adicione as etapas do cronograma com início e fim.</p>
@@ -379,8 +404,8 @@ export default function InternalProjectWizard({ open, onOpenChange, onComplete }
             </div>
           )}
 
-          {/* Step 2: Equipe */}
-          {step === 2 && (
+          {/* Equipe */}
+          {currentStepId === 'team' && (
             <div className="space-y-4">
               <p className="text-sm text-slate-400">Adicione os membros da equipe do projeto.</p>
               <div className="grid grid-cols-2 gap-3">
@@ -419,8 +444,8 @@ export default function InternalProjectWizard({ open, onOpenChange, onComplete }
             </div>
           )}
 
-          {/* Step 3: Stakeholders */}
-          {step === 3 && (
+          {/* Stakeholders */}
+          {currentStepId === 'stakeholders' && (
             <div className="space-y-4">
               <p className="text-sm text-slate-400">Adicione os stakeholders do projeto.</p>
               <div className="grid grid-cols-2 gap-3">
@@ -459,8 +484,8 @@ export default function InternalProjectWizard({ open, onOpenChange, onComplete }
             </div>
           )}
 
-          {/* Step 4: Produtos */}
-          {step === 4 && (
+          {/* Produtos */}
+          {currentStepId === 'products' && (
             <div className="space-y-4">
               <p className="text-sm text-slate-400">Registre os softwares/produtos envolvidos e o que precisa ser monitorado.</p>
               <div className="space-y-3">
@@ -495,8 +520,8 @@ export default function InternalProjectWizard({ open, onOpenChange, onComplete }
             </div>
           )}
 
-          {/* Step 5: Checklist */}
-          {step === 5 && (
+          {/* Checklist */}
+          {currentStepId === 'checklist' && (
             <div className="space-y-4">
               <p className="text-sm text-slate-400">Adicione as ações que devem ser executadas e seus responsáveis.</p>
               <div className="grid grid-cols-2 gap-3">
@@ -527,8 +552,8 @@ export default function InternalProjectWizard({ open, onOpenChange, onComplete }
             </div>
           )}
 
-          {/* Step 6: Riscos */}
-          {step === 6 && (
+          {/* Riscos */}
+          {currentStepId === 'risks' && (
             <div className="space-y-4">
               <p className="text-sm text-slate-400">Identifique os riscos do projeto.</p>
               <div className="space-y-3">
