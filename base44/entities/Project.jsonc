@@ -24,10 +24,11 @@
       "type": "string",
       "enum": [
         "implantacao",
-        "sustentacao"
+        "sustentacao",
+        "agil"
       ],
       "default": "implantacao",
-      "description": "Tipo do projeto: Implanta\u00e7\u00e3o ou Sustenta\u00e7\u00e3o"
+      "description": "Tipo do projeto: Implanta\u00e7\u00e3o, Sustenta\u00e7\u00e3o ou \u00c1gil (Scrum/Kanban)"
     },
     "manager": {
       "type": "string",
@@ -184,6 +185,42 @@
       "type": "boolean",
       "default": true,
       "description": "Certid\u00e3o Negativa de D\u00e9bitos (CND) est\u00e1 ativa"
+    },
+    "agil_descricao": {
+      "type": "string",
+      "description": "\u00c1gil: descri\u00e7\u00e3o do projeto"
+    },
+    "agil_objetivo": {
+      "type": "string",
+      "description": "\u00c1gil: objetivo do projeto"
+    },
+    "agil_area": {
+      "type": "string",
+      "description": "\u00c1gil: \u00e1rea/setor do projeto"
+    },
+    "agil_responsavel": {
+      "type": "string",
+      "description": "\u00c1gil: respons\u00e1vel pelo projeto"
+    },
+    "agil_product_owner": {
+      "type": "string",
+      "description": "\u00c1gil: Product Owner"
+    },
+    "agil_scrum_master": {
+      "type": "string",
+      "description": "\u00c1gil: Scrum Master"
+    },
+    "agil_start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "\u00c1gil: data prevista de in\u00edcio"
+    },
+    "agil_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "\u00c1gil: tags do projeto"
     }
   },
   "required": [

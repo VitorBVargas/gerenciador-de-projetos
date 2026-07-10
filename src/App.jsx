@@ -23,6 +23,7 @@ import SustentacaoPrestacaoContas from './pages/SustentacaoPrestacaoContas';
 import SustentacaoProdutos from './pages/SustentacaoProdutos';
 import SustentacaoReunioes from './pages/SustentacaoReunioes';
 import SustentacaoRoadmap from './pages/SustentacaoRoadmap';
+import AgilDashboard from './pages/AgilDashboard';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -122,6 +123,11 @@ const AuthenticatedApp = () => {
       <Route path="/SustentacaoRoadmap" element={
         <LayoutWrapper currentPageName="SustentacaoRoadmap">
           <SustentacaoRoadmap />
+        </LayoutWrapper>
+      } />
+      <Route path="/AgilDashboard" element={
+        <LayoutWrapper currentPageName="AgilDashboard">
+          <AgilDashboard />
         </LayoutWrapper>
       } />
       {Object.entries(Pages).map(([path, Page]) => (

@@ -26,7 +26,11 @@ import {
   ClipboardList,
   CalendarDays,
   MessageSquare,
-  Activity
+  Activity,
+  ListTodo,
+  Kanban,
+  Repeat,
+  BarChart3
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
@@ -62,6 +66,21 @@ const navigationSustentacao = [
   { name: 'Apontamento de Horas', href: 'HorasApontamento', icon: Timer },
   { name: 'KPI / Indicadores', href: 'SustentacaoKPIs', icon: Activity },
   { name: 'Lições Aprendidas', href: 'LicoesAprendidas', icon: BookOpen },
+];
+
+const navigationAgil = [
+  { name: 'Visão Geral', href: 'AgilDashboard', icon: LayoutDashboard },
+  { name: 'Equipe', href: 'AgilTeam', icon: Users },
+  { name: 'Stakeholders', href: 'AgilStakeholders', icon: UserCircle },
+  { name: 'Produtos', href: 'AgilProducts', icon: Package },
+  { name: 'Product Backlog', href: 'AgilBacklog', icon: ListTodo },
+  { name: 'Sprint Board', href: 'AgilSprintBoard', icon: Kanban },
+  { name: 'Roadmap', href: 'AgilRoadmap', icon: Map },
+  { name: 'Cerimônias', href: 'AgilCerimonias', icon: Repeat },
+  { name: 'Métricas Ágeis', href: 'AgilMetricas', icon: BarChart3 },
+  { name: 'Documentos', href: 'AgilDocumentos', icon: FileText },
+  { name: 'Riscos', href: 'AgilRiscos', icon: AlertTriangle },
+  { name: 'Lições Aprendidas', href: 'AgilLicoes', icon: BookOpen },
 ];
 
 export default function Layout({ children, currentPageName }) {
@@ -157,8 +176,11 @@ export default function Layout({ children, currentPageName }) {
           {activeProject?.project_type === 'sustentacao' && !collapsed && (
             <p className="text-xs text-purple-400 font-semibold uppercase tracking-wider px-3 mb-2">Sustentação</p>
           )}
+          {activeProject?.project_type === 'agil' && !collapsed && (
+            <p className="text-xs text-emerald-400 font-semibold uppercase tracking-wider px-3 mb-2">Ágil (Scrum/Kanban)</p>
+          )}
           <div className="space-y-1">
-            {(activeProject?.project_type === 'sustentacao' ? navigationSustentacao : navigationImplantacao)
+            {(activeProject?.project_type === 'agil' ? navigationAgil : activeProject?.project_type === 'sustentacao' ? navigationSustentacao : navigationImplantacao)
               .filter(item => {
                 // Aba Prestação de Contas só aparece se o projeto tiver produto com prestacao_contas=true
                 if (item.href === 'SustentacaoPrestacaoContas') return hasPrestacaoContas;

@@ -17,7 +17,9 @@ import CrmImporter from '../components/import/CrmImporter';
 import ProjectSetupWizard from '../components/modals/ProjectSetupWizard';
 import ProjectTypeSelector from '../components/modals/ProjectTypeSelector';
 import SustentacaoWizard from '../components/modals/SustentacaoWizard';
+import AgilWizard from '../components/modals/AgilWizard';
 import ProjectCard from '../components/projects/ProjectCard';
+import AgilProjectCard from '../components/projects/AgilProjectCard';
 import ClosureReportButton from '../components/closure/ClosureReportButton';
 import { useCurrentUser, canCreateProject, canDeleteProject, canManageUsers, isParceiro, getAllowedProjectIds } from '@/lib/permissions';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
@@ -67,6 +69,7 @@ export default function ProjectsList() {
   const [typeSelectorOpen, setTypeSelectorOpen] = useState(false);
   const [crmImportModalOpen, setCrmImportModalOpen] = useState(false);
   const [sustentacaoWizardOpen, setSustentacaoWizardOpen] = useState(false);
+  const [agilWizardOpen, setAgilWizardOpen] = useState(false);
   const [setupWizardOpen, setSetupWizardOpen] = useState(false);
   const [wizardProject, setWizardProject] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -174,16 +177,19 @@ export default function ProjectsList() {
     setTypeSelectorOpen(false);
     if (type === 'implantacao') {
       setCrmImportModalOpen(true);
+    } else if (type === 'agil') {
+      setAgilWizardOpen(true);
     } else {
       setSustentacaoWizardOpen(true);
     }
   };
 
   // Filter projects by status
-  const activeProjects = projects.filter(p => p.status !== 'concluido' && p.status !== 'pausado' && p.status !== 'sustentacao' && p.project_type !== 'sustentacao');
-  const pausedProjects = projects.filter(p => p.status === 'pausado');
-  const completedProjects = projects.filter(p => p.status === 'concluido');
-  const sustentacaoProjects = projects.filter(p => p.status === 'sustentacao' || p.project_type === 'sustentacao');
+  const activeProjects = projects.filter(p => p.project_type !== 'agil' && p.status !== 'concluido' && p.status !== 'pausado' && p.status !== 'sustentacao' && p.project_type !== 'sustentacao');
+  const pausedProjects = projects.filter(p => p.project_type !== 'agil' && p.status === 'pausado');
+  const completedProjects = projects.filter(p => p.project_type !== 'agil' && p.status === 'concluido');
+  const sustentacaoProjects = projects.filter(p => p.project_type !== 'agil' && (p.status === 'sustentacao' || p.project_type === 'sustentacao'));
+  const agilProjects = projects.filter(p => p.project_type === 'agil');
 
   const handleDragEnd = async (result, projectsList) => {
     if (!result.destination) return;
@@ -321,6 +327,9 @@ export default function ProjectsList() {
             </TabsTrigger>
             <TabsTrigger value="sustentacao" className="data-[state=active]:bg-slate-700">
               Sustentação ({sustentacaoProjects.length})
+            </TabsTrigger>
+            <TabsTrigger value="agil" className="data-[state=active]:bg-slate-700">
+              Ágil ({agilProjects.length})
             </TabsTrigger>
           </TabsList>
 
@@ -498,6 +507,29 @@ export default function ProjectsList() {
               </Card>
             )}
           </TabsContent>
+
+          <TabsContent value="agil" className="mt-6">
+            {agilProjects.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {agilProjects.map((project) => (
+                  <AgilProjectCard
+                    key={project.id}
+                    project={project}
+                    deletingProjectId={deletingProjectId}
+                    onDelete={handleDelete}
+                    canDelete={canDelete}
+                  />
+                ))}
+              </div>
+            ) : (
+              <Card className="bg-slate-800/50 border-slate-700">
+                <CardContent className="py-16 text-center">
+                  <h3 className="text-xl font-semibold text-white mb-2">Nenhum projeto ágil</h3>
+                  <p className="text-slate-400">Projetos ágeis (Scrum/Kanban) aparecerão aqui</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
         </Tabs>
       </div>
 
@@ -512,6 +544,14 @@ export default function ProjectsList() {
       <SustentacaoWizard
         open={sustentacaoWizardOpen}
         onOpenChange={setSustentacaoWizardOpen}
+        portfolioFilter={portfolioFilter}
+        onComplete={() => queryClient.invalidateQueries({ queryKey: ['projects'] })}
+      />
+
+      {/* Ágil Wizard */}
+      <AgilWizard
+        open={agilWizardOpen}
+        onOpenChange={setAgilWizardOpen}
         portfolioFilter={portfolioFilter}
         onComplete={() => queryClient.invalidateQueries({ queryKey: ['projects'] })}
       />

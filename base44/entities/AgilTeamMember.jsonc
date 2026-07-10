@@ -1,0 +1,50 @@
+{
+  "name": "AgilTeamMember",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "ID do projeto \u00e1gil"
+    },
+    "nome": {
+      "type": "string",
+      "description": "Nome do membro"
+    },
+    "funcao": {
+      "type": "string",
+      "description": "Fun\u00e7\u00e3o (Product Owner, Scrum Master, Desenvolvedor, QA, UX, Analista, DevOps, Gestor, Outros)"
+    },
+    "capacidade_semanal": {
+      "type": "number",
+      "description": "Capacidade semanal em horas"
+    },
+    "dias_disponiveis": {
+      "type": "string",
+      "description": "Dias dispon\u00edveis"
+    },
+    "especialidade": {
+      "type": "string",
+      "description": "Especialidade"
+    },
+    "skills": {
+      "type": "string",
+      "description": "Skills (separadas por v\u00edrgula)"
+    },
+    "email": {
+      "type": "string",
+      "description": "E-mail"
+    },
+    "telefone": {
+      "type": "string",
+      "description": "Telefone"
+    },
+    "observacao": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es"
+    }
+  },
+  "required": [
+    "project_id",
+    "nome"
+  ]
+}
