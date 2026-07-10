@@ -33,15 +33,18 @@ export default function AgilDashboard() {
 
   const withPid = (page) => createPageUrl(`${page}?project_id=${projectId}`);
 
-  // Abre o assistente de início automaticamente na 1ª entrada no projeto (após criação).
+  // Abre o assistente automaticamente APENAS quando o projeto é recém-criado (últimos 5 min) e ainda não foi visto.
   useEffect(() => {
-    if (!projectId) return;
+    if (!projectId || !project?.created_date) return;
     const key = `agilWelcomeSeen_${projectId}`;
-    if (!localStorage.getItem(key)) {
+    if (localStorage.getItem(key)) return;
+    const ageMs = Date.now() - new Date(project.created_date).getTime();
+    if (ageMs <= 5 * 60 * 1000) {
       setWelcomeOpen(true);
-      localStorage.setItem(key, '1');
     }
-  }, [projectId]);
+    // Marca como visto de qualquer forma, para nunca reaparecer neste projeto.
+    localStorage.setItem(key, '1');
+  }, [projectId, project?.created_date]);
 
   const { data: project } = useQuery({
     queryKey: ['agilProject', projectId],
