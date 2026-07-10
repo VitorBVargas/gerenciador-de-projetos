@@ -69,6 +69,20 @@
       "default": "backlog",
       "description": "Status do item"
     },
+    "board_status": {
+      "type": "string",
+      "enum": [
+        "backlog",
+        "ready",
+        "em_desenvolvimento",
+        "code_review",
+        "teste",
+        "homologacao",
+        "concluido"
+      ],
+      "default": "backlog",
+      "description": "Coluna no Sprint Board (Kanban)"
+    },
     "responsavel": {
       "type": "string",
       "description": "Respons\u00e1vel pelo item"
@@ -84,6 +98,15 @@
     "story_id": {
       "type": "string",
       "description": "ID da Story pai (para bugs)"
+    },
+    "parent_id": {
+      "type": "string",
+      "description": "ID do item pai (para subtasks)"
+    },
+    "is_subtask": {
+      "type": "boolean",
+      "default": false,
+      "description": "Indica se o item \u00e9 uma subtarefa"
     },
     "criterio_aceite": {
       "type": "string",
@@ -173,6 +196,56 @@
     "observacoes": {
       "type": "string",
       "description": "Observa\u00e7\u00f5es gerais"
+    },
+    "bloqueado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Item bloqueado"
+    },
+    "bloqueio_motivo": {
+      "type": "string",
+      "description": "Motivo do bloqueio"
+    },
+    "bloqueio_dependencia": {
+      "type": "string",
+      "description": "Depend\u00eancia que causou o bloqueio"
+    },
+    "bloqueio_responsavel": {
+      "type": "string",
+      "description": "Respons\u00e1vel pelo desbloqueio"
+    },
+    "bloqueio_previsao": {
+      "type": "string",
+      "format": "date",
+      "description": "Previs\u00e3o de desbloqueio"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data em que entrou em desenvolvimento (para Cycle Time)"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data de conclus\u00e3o (para Lead/Cycle Time)"
+    },
+    "coluna_entrou_em": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Momento em que entrou na coluna atual (tempo na coluna)"
+    },
+    "lead_time_horas": {
+      "type": "number",
+      "description": "Lead Time calculado em horas"
+    },
+    "cycle_time_horas": {
+      "type": "number",
+      "description": "Cycle Time calculado em horas"
+    },
+    "tracker_iniciado_em": {
+      "type": "string",
+      "format": "date-time",
+      "description": "In\u00edcio do tracker de horas ativo"
     },
     "history": {
       "type": "array",
