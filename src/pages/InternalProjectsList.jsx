@@ -23,6 +23,14 @@ import {
 import InternalProjectWizard from '@/components/internal/InternalProjectWizard';
 import InternalTypeSelector from '@/components/internal/InternalTypeSelector';
 
+const PRIORITY_LABEL = { baixa: 'Baixa', media: 'Média', alta: 'Alta', critica: 'Crítica' };
+const PRIORITY_STYLE = {
+  baixa: 'bg-slate-600/40 text-slate-300',
+  media: 'bg-blue-500/20 text-blue-300',
+  alta: 'bg-amber-500/20 text-amber-300',
+  critica: 'bg-red-500/20 text-red-300',
+};
+
 export default function InternalProjectsList() {
   const queryClient = useQueryClient();
   const [typeSelectorOpen, setTypeSelectorOpen] = useState(false);
@@ -99,7 +107,10 @@ export default function InternalProjectsList() {
     await Promise.all(items.map((p, i) => updateOrderMutation.mutateAsync({ project: p, display_order: i })));
   };
 
-  const activeProjects = projects.filter(p => p.status !== 'concluido');
+  const notCompleted = projects.filter(p => p.status !== 'concluido');
+  const activeProjects = notCompleted.filter(p => !p._isAgil && p.project_type !== 'sustentacao');
+  const sustentacaoProjects = notCompleted.filter(p => !p._isAgil && p.project_type === 'sustentacao');
+  const agilProjects = notCompleted.filter(p => p._isAgil);
   const completedProjects = projects.filter(p => p.status === 'concluido');
 
   const renderCard = (project, index, draggable = false) => {
@@ -133,19 +144,56 @@ export default function InternalProjectsList() {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          {project.manager && (
-            <div className="text-sm text-slate-400">
-              <span className="text-slate-500">Responsável:</span> {project.manager}
-            </div>
-          )}
-          {project.description && (
-            <div className="text-sm text-slate-400 line-clamp-2">{project.description}</div>
-          )}
-          {project.deadline && (
-            <div className="flex items-center gap-2 text-sm text-slate-400">
-              <Calendar className="w-4 h-4" />
-              <span>Prazo: {format(new Date(project.deadline), 'dd/MM/yyyy', { locale: ptBR })}</span>
-            </div>
+          {project._isAgil ? (
+            <>
+              {(project.agil_responsavel || project.manager) && (
+                <div className="text-sm text-slate-400">
+                  <span className="text-slate-500">Responsável:</span> {project.agil_responsavel || project.manager}
+                </div>
+              )}
+              {project.agil_descricao && (
+                <div className="text-sm text-slate-400 line-clamp-2">{project.agil_descricao}</div>
+              )}
+              {(project.agil_product_owner || project.agil_scrum_master) && (
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400">
+                  {project.agil_product_owner && <span><span className="text-slate-500">PO:</span> {project.agil_product_owner}</span>}
+                  {project.agil_scrum_master && <span><span className="text-slate-500">SM:</span> {project.agil_scrum_master}</span>}
+                </div>
+              )}
+              <div className="flex flex-wrap items-center gap-2">
+                {project.agil_area && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-slate-700 text-slate-300">{project.agil_area}</span>
+                )}
+                {project.priority && (
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${PRIORITY_STYLE[project.priority] || 'bg-slate-700 text-slate-300'}`}>
+                    {PRIORITY_LABEL[project.priority] || project.priority}
+                  </span>
+                )}
+              </div>
+              {project.agil_start_date && (
+                <div className="flex items-center gap-2 text-sm text-slate-400">
+                  <Calendar className="w-4 h-4" />
+                  <span>Início: {format(new Date(project.agil_start_date), 'dd/MM/yyyy', { locale: ptBR })}</span>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              {project.manager && (
+                <div className="text-sm text-slate-400">
+                  <span className="text-slate-500">Responsável:</span> {project.manager}
+                </div>
+              )}
+              {project.description && (
+                <div className="text-sm text-slate-400 line-clamp-2">{project.description}</div>
+              )}
+              {project.deadline && (
+                <div className="flex items-center gap-2 text-sm text-slate-400">
+                  <Calendar className="w-4 h-4" />
+                  <span>Prazo: {format(new Date(project.deadline), 'dd/MM/yyyy', { locale: ptBR })}</span>
+                </div>
+              )}
+            </>
           )}
           <Link to={createPageUrl(`${project._isAgil ? 'AgilDashboard' : 'InternalDashboard'}?project_id=${project.id}`)}>
             <Button className="w-full bg-blue-600 hover:bg-blue-700 mt-4" disabled={deletingProjectId === project.id}>
@@ -199,7 +247,7 @@ export default function InternalProjectsList() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-white">Projetos Internos</h1>
-            <p className="text-slate-400 mt-1">{activeProjects.length} projeto(s) ativo(s)</p>
+            <p className="text-slate-400 mt-1">{notCompleted.length} projeto(s) ativo(s)</p>
           </div>
           <Button onClick={() => setTypeSelectorOpen(true)} className="bg-indigo-600 hover:bg-indigo-700">
             <Plus className="w-4 h-4 mr-2" />
@@ -212,6 +260,12 @@ export default function InternalProjectsList() {
           <TabsList className="bg-slate-800 border-slate-700">
             <TabsTrigger value="active" className="data-[state=active]:bg-slate-700">
               Ativos ({activeProjects.length})
+            </TabsTrigger>
+            <TabsTrigger value="sustentacao" className="data-[state=active]:bg-slate-700">
+              Sustentação ({sustentacaoProjects.length})
+            </TabsTrigger>
+            <TabsTrigger value="agil" className="data-[state=active]:bg-slate-700">
+              Ágil ({agilProjects.length})
             </TabsTrigger>
             <TabsTrigger value="completed" className="data-[state=active]:bg-slate-700">
               Concluídos ({completedProjects.length})
@@ -240,6 +294,50 @@ export default function InternalProjectsList() {
                     <Plus className="w-4 h-4 mr-2" />
                     Criar Primeiro Projeto
                   </Button>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="sustentacao" className="mt-6">
+            {sustentacaoProjects.length > 0 ? (
+              <DragDropContext onDragEnd={(r) => handleDragEnd(r, sustentacaoProjects)}>
+                <Droppable droppableId="sustentacao-internal">
+                  {(provided) => (
+                    <div ref={provided.innerRef} {...provided.droppableProps} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {sustentacaoProjects.map((p, i) => renderCard(p, i, true))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
+            ) : (
+              <Card className="bg-slate-800/50 border-slate-700">
+                <CardContent className="py-16 text-center">
+                  <h3 className="text-xl font-semibold text-white mb-2">Nenhum projeto de sustentação</h3>
+                  <p className="text-slate-400">Os projetos internos de sustentação aparecerão aqui</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="agil" className="mt-6">
+            {agilProjects.length > 0 ? (
+              <DragDropContext onDragEnd={(r) => handleDragEnd(r, agilProjects)}>
+                <Droppable droppableId="agil-internal">
+                  {(provided) => (
+                    <div ref={provided.innerRef} {...provided.droppableProps} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {agilProjects.map((p, i) => renderCard(p, i, true))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
+            ) : (
+              <Card className="bg-slate-800/50 border-slate-700">
+                <CardContent className="py-16 text-center">
+                  <h3 className="text-xl font-semibold text-white mb-2">Nenhum projeto ágil</h3>
+                  <p className="text-slate-400">Os projetos internos ágeis (Scrum/Kanban) aparecerão aqui</p>
                 </CardContent>
               </Card>
             )}
