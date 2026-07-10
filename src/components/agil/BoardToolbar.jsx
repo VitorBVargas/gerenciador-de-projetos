@@ -45,6 +45,7 @@ export default function BoardToolbar({ filters, setFilters, swimlane, setSwimlan
       <Sel value={filters.responsavel} onChange={(v) => set('responsavel', v)} placeholder="Responsável" options={(options.responsaveis || []).map(v => ({ value: v, label: v }))} />
       <Sel value={filters.produto} onChange={(v) => set('produto', v)} placeholder="Produto" options={(options.produtos || []).map(v => ({ value: v, label: v }))} />
       <Sel value={filters.epic_id} onChange={(v) => set('epic_id', v)} placeholder="Epic" options={options.epics || []} />
+      <Sel value={filters.feature_id} onChange={(v) => set('feature_id', v)} placeholder="Feature" options={options.features || []} />
       <Sel value={filters.tipo} onChange={(v) => set('tipo', v)} placeholder="Tipo" options={TIPO_OPTIONS} />
       <Sel value={filters.prioridade} onChange={(v) => set('prioridade', v)} placeholder="Prioridade" options={PRIORIDADE_OPTIONS} />
       <Sel value={filters.tag} onChange={(v) => set('tag', v)} placeholder="Tag" options={(options.tags || []).map(v => ({ value: v, label: v }))} />

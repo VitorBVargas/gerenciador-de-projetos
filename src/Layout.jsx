@@ -76,10 +76,10 @@ const navigationAgil = [
   { name: 'Discovery', href: 'AgilDiscovery', icon: Search },
   { name: 'Product Backlog', href: 'AgilBacklog', icon: ListTodo },
   { name: 'Sprint Board', href: 'AgilSprintBoard', icon: Kanban },
-  { name: 'Roadmap', href: 'SustentacaoRoadmap', icon: Map },
+  { name: 'Roadmap', href: 'AgilRoadmap', icon: Map },
   { name: 'Releases', href: 'AgilReleases', icon: Rocket },
   { name: 'Reuniões e Relatórios', href: 'SustentacaoReunioes', icon: CalendarDays },
-  { name: 'KPI / Indicadores', href: 'SustentacaoKPIs', icon: Activity },
+  { name: 'KPI / Indicadores', href: 'AgilKPIs', icon: Activity },
   { name: 'Riscos', href: 'Risks', icon: AlertTriangle },
   { name: 'Lições Aprendidas', href: 'LicoesAprendidas', icon: BookOpen },
 ];

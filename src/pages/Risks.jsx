@@ -334,7 +334,8 @@ export default function Risks() {
 
   const aiMutation = useMutation({
     mutationFn: async () => {
-      const res = await base44.functions.invoke('generateProjectRisksAI', { project_id: projectId, replace: false });
+      const fn = activeProject?.project_type === 'agil' ? 'generateAgilRisksAI' : 'generateProjectRisksAI';
+      const res = await base44.functions.invoke(fn, { project_id: projectId, replace: false });
       return res.data;
     },
     onSuccess: (data) => {

@@ -1,0 +1,32 @@
+{
+  "name": "AgilKpiSnapshot",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "ID do projeto \u00e1gil"
+    },
+    "sprint_id": {
+      "type": "string",
+      "description": "ID da sprint associada (opcional)"
+    },
+    "sprint_nome": {
+      "type": "string",
+      "description": "Nome da sprint (desnormalizado)"
+    },
+    "captured_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Momento da captura do snapshot"
+    },
+    "metrics": {
+      "type": "object",
+      "description": "Valores dos indicadores no momento da captura (chave = id do KPI)",
+      "additionalProperties": true
+    }
+  },
+  "required": [
+    "project_id",
+    "captured_at"
+  ]
+}

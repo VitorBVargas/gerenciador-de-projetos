@@ -14,9 +14,10 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { BOARD_COLUMNS, BOARD_TO_STATUS, effectiveColumn } from '@/components/agil/boardMeta';
-import { computeSprintMetrics, computeBurndown } from '@/components/agil/boardMetrics';
+import { computeSprintMetrics, computeBurndown, computeBurnup } from '@/components/agil/boardMetrics';
 import SprintKPIs from '@/components/agil/SprintKPIs';
 import SprintBurndown from '@/components/agil/SprintBurndown';
+import SprintBurnup from '@/components/agil/SprintBurnup';
 import BoardColumn from '@/components/agil/BoardColumn';
 import BoardCardModal from '@/components/agil/BoardCardModal';
 import BoardCardMenu from '@/components/agil/BoardCardMenu';
@@ -93,6 +94,7 @@ export default function AgilSprintBoard() {
 
   const metrics = useMemo(() => computeSprintMetrics(sprintItems, activeSprint), [sprintItems, activeSprint]);
   const burndown = useMemo(() => computeBurndown(sprintItems, activeSprint), [sprintItems, activeSprint]);
+  const burnup = useMemo(() => computeBurnup(sprintItems, activeSprint), [sprintItems, activeSprint]);
 
   const epicsById = useMemo(() => {
     const map = {};
@@ -105,6 +107,7 @@ export default function AgilSprintBoard() {
     produtos: [...new Set(sprintItems.map(i => i.produto).filter(Boolean))],
     tags: [...new Set(sprintItems.flatMap(i => i.tags || []))],
     epics: allItems.filter(i => i.tipo === 'epic').map(e => ({ value: e.id, label: e.titulo })),
+    features: allItems.filter(i => i.tipo === 'feature').map(f => ({ value: f.id, label: f.titulo })),
   }), [sprintItems, allItems]);
 
   // Aplica filtros
@@ -112,6 +115,7 @@ export default function AgilSprintBoard() {
     if (filters.responsavel && i.responsavel !== filters.responsavel) return false;
     if (filters.produto && i.produto !== filters.produto) return false;
     if (filters.epic_id && i.epic_id !== filters.epic_id) return false;
+    if (filters.feature_id && i.feature_id !== filters.feature_id) return false;
     if (filters.tipo && i.tipo !== filters.tipo) return false;
     if (filters.prioridade && i.prioridade !== filters.prioridade) return false;
     if (filters.tag && !(i.tags || []).includes(filters.tag)) return false;
@@ -330,8 +334,11 @@ export default function AgilSprintBoard() {
           {/* KPIs */}
           <SprintKPIs m={metrics} />
 
-          {/* Burndown */}
-          <SprintBurndown data={burndown.data} totalSp={burndown.totalSp} />
+          {/* Burndown + Burnup */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <SprintBurndown data={burndown.data} totalSp={burndown.totalSp} />
+            <SprintBurnup data={burnup.data} totalSp={burnup.totalSp} />
+          </div>
 
           {/* Toolbar de filtros + swimlanes */}
           <BoardToolbar filters={filters} setFilters={setFilters} swimlane={swimlane} setSwimlane={setSwimlane} options={toolbarOptions} />

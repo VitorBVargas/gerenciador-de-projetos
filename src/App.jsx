@@ -32,6 +32,8 @@ import AgilProducts from './pages/AgilProducts';
 import AgilProductDashboard from './pages/AgilProductDashboard';
 import AgilDiscovery from './pages/AgilDiscovery';
 import AgilReleases from './pages/AgilReleases';
+import AgilRoadmap from './pages/AgilRoadmap';
+import AgilKPIs from './pages/AgilKPIs';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -176,6 +178,16 @@ const AuthenticatedApp = () => {
       <Route path="/AgilReleases" element={
         <LayoutWrapper currentPageName="AgilReleases">
           <AgilReleases />
+        </LayoutWrapper>
+      } />
+      <Route path="/AgilRoadmap" element={
+        <LayoutWrapper currentPageName="AgilRoadmap">
+          <AgilRoadmap />
+        </LayoutWrapper>
+      } />
+      <Route path="/AgilKPIs" element={
+        <LayoutWrapper currentPageName="AgilKPIs">
+          <AgilKPIs />
         </LayoutWrapper>
       } />
       {Object.entries(Pages).map(([path, Page]) => (
