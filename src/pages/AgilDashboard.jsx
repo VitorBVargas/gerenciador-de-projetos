@@ -33,6 +33,12 @@ export default function AgilDashboard() {
 
   const withPid = (page) => createPageUrl(`${page}?project_id=${projectId}`);
 
+  const { data: project } = useQuery({
+    queryKey: ['agilProject', projectId],
+    enabled: !!projectId,
+    queryFn: async () => (await base44.entities.Project.filter({ id: projectId }))?.[0] || null,
+  });
+
   // Abre o assistente automaticamente APENAS quando o projeto é recém-criado (últimos 5 min) e ainda não foi visto.
   useEffect(() => {
     if (!projectId || !project?.created_date) return;
@@ -45,12 +51,6 @@ export default function AgilDashboard() {
     // Marca como visto de qualquer forma, para nunca reaparecer neste projeto.
     localStorage.setItem(key, '1');
   }, [projectId, project?.created_date]);
-
-  const { data: project } = useQuery({
-    queryKey: ['agilProject', projectId],
-    enabled: !!projectId,
-    queryFn: async () => (await base44.entities.Project.filter({ id: projectId }))?.[0] || null,
-  });
 
   const { data: discovery } = useQuery({
     queryKey: ['agilDiscovery', project?.discovery_id],
