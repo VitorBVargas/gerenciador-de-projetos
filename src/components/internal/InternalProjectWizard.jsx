@@ -28,7 +28,7 @@ const ALL_STEPS = [
 const STEPS_BY_TYPE = {
   implantacao: ['general', 'schedule', 'team', 'stakeholders', 'products', 'checklist', 'risks'],
   sustentacao: ['general', 'schedule', 'team', 'stakeholders', 'products', 'checklist', 'risks'],
-  agil: ['general', 'team', 'stakeholders', 'products', 'risks'],
+  agil: ['general', 'team', 'stakeholders', 'products'],
 };
 
 function getSteps(projectType) {
