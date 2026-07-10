@@ -436,7 +436,7 @@ export default function AgilWizard({ open, onOpenChange, portfolioFilter, onComp
         })));
       }
 
-      onComplete?.();
+      onComplete?.(project);
       resetAndClose();
     } catch (err) {
       console.error(err);

@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import {
   Rocket, Zap, CheckCircle2, ClipboardList, Bug, Wrench, Timer, Gauge, TrendingUp,
   Kanban, ListTodo, Search, Plus, Sparkles, AlertTriangle, CalendarDays, Map,
-  PackageCheck, MessageSquare, Ban, RefreshCw
+  PackageCheck, MessageSquare, Ban, RefreshCw, Compass
 } from 'lucide-react';
 import {
   LineChart, Line, AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid
@@ -17,6 +17,7 @@ import {
 import HealthScoreGauge from '@/components/agil/HealthScoreGauge';
 import DashboardStatCard from '@/components/agil/DashboardStatCard';
 import GerarBacklogIAModal from '@/components/agil/GerarBacklogIAModal';
+import StartGuidanceCards from '@/components/agil/StartGuidanceCards';
 import { computeSprintMetrics, computeBurndown } from '@/components/agil/boardMetrics';
 import { computeSprintHealth, detectIssues, classifyScore } from '@/components/agil/scrumMasterAnalysis';
 import { effectiveColumn } from '@/components/agil/boardMeta';
@@ -129,6 +130,7 @@ export default function AgilDashboard() {
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Link to={withPid('AgilStartAssistant')}><Button size="sm" variant="outline" className="border-emerald-700/50 text-emerald-300 hover:bg-emerald-600/10"><Compass className="w-4 h-4 mr-1.5" /> Assistente de Início</Button></Link>
           <Link to={withPid('AgilSprintBoard')}><Button size="sm" className="bg-emerald-600 hover:bg-emerald-700"><Kanban className="w-4 h-4 mr-1.5" /> Abrir Sprint</Button></Link>
           <Link to={withPid('AgilBacklog')}><Button size="sm" variant="outline" className="border-slate-700 text-slate-200 hover:bg-slate-800"><ListTodo className="w-4 h-4 mr-1.5" /> Abrir Backlog</Button></Link>
           <Link to={withPid('AgilDiscovery')}><Button size="sm" variant="outline" className="border-slate-700 text-slate-200 hover:bg-slate-800"><Search className="w-4 h-4 mr-1.5" /> Abrir Discovery</Button></Link>
@@ -136,6 +138,17 @@ export default function AgilDashboard() {
           <Button size="sm" onClick={() => setBacklogModalOpen(true)} className="bg-indigo-600 hover:bg-indigo-700"><Sparkles className="w-4 h-4 mr-1.5" /> Gerar IA</Button>
         </div>
       </div>
+
+      {/* Guias de início: aparecem só quando falta Discovery ou Stories */}
+      <StartGuidanceCards
+        project={project}
+        discovery={discovery}
+        hasStories={globais.storiesPlanejadas > 0}
+        onBacklogGenerated={() => {
+          queryClient.invalidateQueries({ queryKey: ['agileBacklog', projectId] });
+          queryClient.invalidateQueries({ queryKey: ['agileSprints', projectId] });
+        }}
+      />
 
       {/* Linha 1: Health + Sprint atual + Discovery */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

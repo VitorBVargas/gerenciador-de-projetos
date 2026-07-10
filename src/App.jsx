@@ -35,6 +35,7 @@ import AgilReleases from './pages/AgilReleases';
 import AgilRoadmap from './pages/AgilRoadmap';
 import AgilKPIs from './pages/AgilKPIs';
 import AgilAgenteScrum from './pages/AgilAgenteScrum';
+import AgilStartAssistant from './pages/AgilStartAssistant';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -194,6 +195,11 @@ const AuthenticatedApp = () => {
       <Route path="/AgilAgenteScrum" element={
         <LayoutWrapper currentPageName="AgilAgenteScrum">
           <AgilAgenteScrum />
+        </LayoutWrapper>
+      } />
+      <Route path="/AgilStartAssistant" element={
+        <LayoutWrapper currentPageName="AgilStartAssistant">
+          <AgilStartAssistant />
         </LayoutWrapper>
       } />
       {Object.entries(Pages).map(([path, Page]) => (

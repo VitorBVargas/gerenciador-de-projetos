@@ -555,7 +555,12 @@ export default function ProjectsList() {
         open={agilWizardOpen}
         onOpenChange={setAgilWizardOpen}
         portfolioFilter={portfolioFilter}
-        onComplete={() => queryClient.invalidateQueries({ queryKey: ['projects'] })}
+        onComplete={(project) => {
+          queryClient.invalidateQueries({ queryKey: ['projects'] });
+          if (project?.id) {
+            window.location.href = createPageUrl(`AgilStartAssistant?project_id=${project.id}`);
+          }
+        }}
       />
 
       {/* CRM Import */}
