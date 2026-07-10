@@ -25,6 +25,7 @@ import BlockItemModal from '@/components/agil/BlockItemModal';
 import SprintModal from '@/components/agil/SprintModal';
 import SprintPlanningModal from '@/components/agil/SprintPlanningModal';
 import BacklogItemModal from '@/components/agil/BacklogItemModal';
+import ScrumMasterIA from '@/components/agil/ScrumMasterIA';
 
 const HEALTH = {
   ok: { label: 'Saudável', color: 'text-emerald-300', bg: 'bg-emerald-500/15 border-emerald-500/40' },
@@ -435,6 +436,15 @@ export default function AgilSprintBoard() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Scrum Master IA — painel flutuante (somente módulo Ágil) */}
+      <ScrumMasterIA
+        project={project}
+        sprint={activeSprint}
+        sprintItems={sprintItems}
+        allItems={allItems}
+        metrics={metrics}
+      />
     </div>
   );
 }
