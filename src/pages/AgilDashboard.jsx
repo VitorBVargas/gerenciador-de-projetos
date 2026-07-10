@@ -17,7 +17,6 @@ import {
 import HealthScoreGauge from '@/components/agil/HealthScoreGauge';
 import DashboardStatCard from '@/components/agil/DashboardStatCard';
 import GerarBacklogIAModal from '@/components/agil/GerarBacklogIAModal';
-import StartGuidanceCards from '@/components/agil/StartGuidanceCards';
 import AgilWelcomeFlowModal from '@/components/agil/AgilWelcomeFlowModal';
 import { computeSprintMetrics, computeBurndown } from '@/components/agil/boardMetrics';
 import { computeSprintHealth, detectIssues, classifyScore } from '@/components/agil/scrumMasterAnalysis';
@@ -150,17 +149,6 @@ export default function AgilDashboard() {
           <Button size="sm" onClick={() => setBacklogModalOpen(true)} className="bg-indigo-600 hover:bg-indigo-700"><Sparkles className="w-4 h-4 mr-1.5" /> Gerar IA</Button>
         </div>
       </div>
-
-      {/* Guias de início: aparecem só quando falta Discovery ou Stories */}
-      <StartGuidanceCards
-        project={project}
-        discovery={discovery}
-        hasStories={globais.storiesPlanejadas > 0}
-        onBacklogGenerated={() => {
-          queryClient.invalidateQueries({ queryKey: ['agileBacklog', projectId] });
-          queryClient.invalidateQueries({ queryKey: ['agileSprints', projectId] });
-        }}
-      />
 
       {/* Linha 1: Health + Sprint atual + Discovery */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
