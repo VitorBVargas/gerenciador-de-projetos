@@ -37,6 +37,7 @@ import InternalActivitiesTab from '../components/internal/InternalActivitiesTab'
 import InternalKPITimeTab from '../components/internal/InternalKPITimeTab';
 import InternalDiscoveryTab from '../components/internal/InternalDiscoveryTab';
 import InternalProjectModal from '../components/internal/InternalProjectModal';
+import { getVisibleTabs, INTERNAL_TYPE_META } from '../components/internal/internalProjectTypes';
 import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
 
@@ -58,7 +59,7 @@ const NAV = [
 ];
 
 // ─── Sidebar ──────────────────────────────────────────────────────────────────
-function Sidebar({ activeTab, setActiveTab, projectId, collapsed, setCollapsed, user }) {
+function Sidebar({ activeTab, setActiveTab, projectId, collapsed, setCollapsed, user, navItems }) {
   return (
     <aside
       className={cn(
@@ -85,7 +86,7 @@ function Sidebar({ activeTab, setActiveTab, projectId, collapsed, setCollapsed, 
 
       <nav className="flex-1 overflow-y-auto py-4 px-3">
         <div className="space-y-1">
-          {NAV.map((item) => (
+          {navItems.map((item) => (
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
@@ -1516,6 +1517,15 @@ export default function InternalDashboard() {
   const { data: schedule = [] } = useQuery({ queryKey: ['internalSchedule', projectId], queryFn: () => base44.entities.InternalSchedule.filter({ project_id: projectId }), enabled: !!projectId });
   const { data: budget = [] } = useQuery({ queryKey: ['expenses', projectId], queryFn: () => base44.entities.Expense.filter({ project_id: projectId }), enabled: !!projectId });
 
+  // Abas visíveis conforme o tipo do projeto
+  const visibleIds = getVisibleTabs(project?.project_type);
+  const navItems = NAV.filter(item => visibleIds.includes(item.id));
+
+  // Se a aba ativa não existir para este tipo, volta para "overview"
+  React.useEffect(() => {
+    if (project && !visibleIds.includes(activeTab)) setActiveTab('overview');
+  }, [project?.project_type]);
+
   if (!projectId) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
@@ -1548,7 +1558,7 @@ export default function InternalDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-900 flex">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} projectId={projectId} collapsed={collapsed} setCollapsed={setCollapsed} user={user} />
+      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} projectId={projectId} collapsed={collapsed} setCollapsed={setCollapsed} user={user} navItems={navItems} />
       <main className={cn("flex-1 transition-all duration-300", collapsed ? "ml-20" : "ml-64")}>
         <div className="p-6 lg:p-8">
           {/* Breadcrumb */}
@@ -1556,6 +1566,11 @@ export default function InternalDashboard() {
             <Link to={createPageUrl('InternalProjectsList')} className="hover:text-white transition-colors">Projetos Internos</Link>
             <span>/</span>
             <span className="text-slate-300">{project?.name || 'Carregando...'}</span>
+            {project?.project_type && (
+              <Badge className={cn("border text-xs ml-1", INTERNAL_TYPE_META[project.project_type]?.badge)}>
+                {INTERNAL_TYPE_META[project.project_type]?.label}
+              </Badge>
+            )}
           </div>
           {renderTab()}
         </div>

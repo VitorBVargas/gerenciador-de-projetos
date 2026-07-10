@@ -11,9 +11,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { INTERNAL_TYPE_OPTIONS } from './internalProjectTypes';
 
 const defaultForm = {
   name: '',
+  project_type: 'implantacao',
   manager: '',
   description: '',
   deadline: '',
@@ -32,6 +34,7 @@ export default function InternalProjectModal({ open, onOpenChange, onSave, proje
       if (project) {
         setForm({
           name: project.name || '',
+          project_type: project.project_type || 'implantacao',
           manager: project.manager || '',
           description: project.description || '',
           deadline: project.deadline || '',
@@ -78,6 +81,18 @@ export default function InternalProjectModal({ open, onOpenChange, onSave, proje
               placeholder="Ex: Implantação do novo ERP"
               required
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Tipo de Projeto *</Label>
+            <Select value={form.project_type} onValueChange={(v) => setForm({ ...form, project_type: v })}>
+              <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-700 border-slate-600">
+                {INTERNAL_TYPE_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">

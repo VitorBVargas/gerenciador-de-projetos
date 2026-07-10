@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { ChevronRight, ChevronLeft, Check, Plus, X, Pencil, Trash2, Upload } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useQueryClient } from '@tanstack/react-query';
+import { INTERNAL_TYPE_OPTIONS } from './internalProjectTypes';
 
 const STEPS = [
   { id: 'general', label: 'Dados Gerais', icon: '📋' },
@@ -22,7 +23,7 @@ const STEPS = [
   { id: 'risks', label: 'Riscos', icon: '⚠️' },
 ];
 
-const defaultGeneral = { name: '', manager: '', description: '', deadline: '', budget: '', status: 'planejamento' };
+const defaultGeneral = { name: '', project_type: 'implantacao', manager: '', description: '', deadline: '', budget: '', status: 'planejamento' };
 const defaultScheduleItem = { title: '', start_date: '', end_date: '' };
 const defaultTeamItem = { name: '', role: '', email: '', phone: '' };
 const defaultStakeholder = { name: '', role: '', email: '', phone: '' };
@@ -107,6 +108,7 @@ export default function InternalProjectWizard({ open, onOpenChange, onComplete }
     setSaving(true);
     const project = await base44.entities.InternalProject.create({
       name: general.name,
+      project_type: general.project_type || 'implantacao',
       manager: general.manager,
       description: general.description,
       deadline: general.deadline || null,
@@ -275,6 +277,16 @@ export default function InternalProjectWizard({ open, onOpenChange, onComplete }
               <div className="space-y-2">
                 <Label className="text-slate-300">Nome do Projeto *</Label>
                 <Input value={general.name} onChange={e => setGeneral(p => ({ ...p, name: e.target.value }))} placeholder="Ex: Implantação ERP" className="bg-slate-700 border-slate-600 text-white" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-slate-300">Tipo de Projeto *</Label>
+                <Select value={general.project_type} onValueChange={v => setGeneral(p => ({ ...p, project_type: v }))}>
+                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white"><SelectValue /></SelectTrigger>
+                  <SelectContent className="bg-slate-700 border-slate-600">
+                    {INTERNAL_TYPE_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-slate-500">Define quais abas ficam disponíveis no projeto.</p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
