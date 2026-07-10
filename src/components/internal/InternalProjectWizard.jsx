@@ -33,10 +33,19 @@ const STEPS_BY_TYPE = {
 
 function getSteps(projectType) {
   const ids = STEPS_BY_TYPE[projectType] || STEPS_BY_TYPE.implantacao;
-  return ids.map(id => ALL_STEPS.find(s => s.id === id));
+  return ids.map(id => {
+    const base = ALL_STEPS.find(s => s.id === id);
+    // Ágil usa "Visão Geral" no primeiro passo (igual ao wizard de projeto normal)
+    if (id === 'general' && projectType === 'agil') return { ...base, label: 'Visão Geral' };
+    return base;
+  });
 }
 
-const defaultGeneral = { name: '', project_type: 'implantacao', manager: '', description: '', deadline: '', budget: '', status: 'planejamento' };
+const defaultGeneral = {
+  name: '', project_type: 'implantacao', manager: '', description: '', deadline: '', budget: '', status: 'planejamento',
+  // Campos específicos do Ágil (Visão Geral)
+  objetivo: '', area: '', product_owner: '', scrum_master: '', priority: 'media',
+};
 const defaultScheduleItem = { title: '', start_date: '', end_date: '' };
 const defaultTeamItem = { name: '', role: '', email: '', phone: '' };
 const defaultStakeholder = { name: '', role: '', email: '', phone: '' };
@@ -148,13 +157,16 @@ export default function InternalProjectWizard({ open, onOpenChange, onComplete, 
         name: general.name,
         project_type: 'agil',
         is_internal: true,
+        priority: general.priority || 'media',
         manager: general.manager,
         agil_responsavel: general.manager,
         agil_descricao: general.description,
-        agil_objetivo: general.description,
+        agil_objetivo: general.objetivo,
+        agil_area: general.area,
+        agil_product_owner: general.product_owner,
+        agil_scrum_master: general.scrum_master,
         agil_start_date: general.deadline || null,
-        budget: general.budget ? parseFloat(general.budget) : undefined,
-        status: general.status || 'planejamento',
+        status: 'em_andamento',
       });
       const pid = project.id;
       const creates = [];
@@ -331,8 +343,64 @@ export default function InternalProjectWizard({ open, onOpenChange, onComplete, 
 
         <div className="flex-1 overflow-y-auto py-4 space-y-4">
 
-          {/* Dados Gerais */}
-          {currentStepId === 'general' && (
+          {/* Dados Gerais / Visão Geral (Ágil) */}
+          {currentStepId === 'general' && general.project_type === 'agil' && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-slate-300">Nome do Projeto *</Label>
+                <Input value={general.name} onChange={e => setGeneral(p => ({ ...p, name: e.target.value }))} placeholder="Ex: App Minha Cidade — Squad Mobile" className="bg-slate-700 border-slate-600 text-white" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-slate-300">Descrição</Label>
+                <Textarea value={general.description} onChange={e => setGeneral(p => ({ ...p, description: e.target.value }))} placeholder="Descreva o projeto..." className="bg-slate-700 border-slate-600 text-white h-16 resize-none" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-slate-300">Objetivo</Label>
+                <Textarea value={general.objetivo} onChange={e => setGeneral(p => ({ ...p, objetivo: e.target.value }))} placeholder="Qual o objetivo?" className="bg-slate-700 border-slate-600 text-white h-16 resize-none" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-slate-300">Área</Label>
+                  <Input value={general.area} onChange={e => setGeneral(p => ({ ...p, area: e.target.value }))} placeholder="Ex: Produto" className="bg-slate-700 border-slate-600 text-white" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-300">Responsável</Label>
+                  <Input value={general.manager} onChange={e => setGeneral(p => ({ ...p, manager: e.target.value }))} placeholder="Nome" className="bg-slate-700 border-slate-600 text-white" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-slate-300">Product Owner</Label>
+                  <Input value={general.product_owner} onChange={e => setGeneral(p => ({ ...p, product_owner: e.target.value }))} placeholder="Nome do PO" className="bg-slate-700 border-slate-600 text-white" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-300">Scrum Master</Label>
+                  <Input value={general.scrum_master} onChange={e => setGeneral(p => ({ ...p, scrum_master: e.target.value }))} placeholder="Nome do SM" className="bg-slate-700 border-slate-600 text-white" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-slate-300">Data prevista de início</Label>
+                  <Input type="date" value={general.deadline} onChange={e => setGeneral(p => ({ ...p, deadline: e.target.value }))} className="bg-slate-700 border-slate-600 text-white" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-300">Prioridade</Label>
+                  <Select value={general.priority} onValueChange={v => setGeneral(p => ({ ...p, priority: v }))}>
+                    <SelectTrigger className="bg-slate-700 border-slate-600 text-white"><SelectValue /></SelectTrigger>
+                    <SelectContent className="bg-slate-700 border-slate-600">
+                      <SelectItem value="baixa">Baixa</SelectItem>
+                      <SelectItem value="media">Média</SelectItem>
+                      <SelectItem value="alta">Alta</SelectItem>
+                      <SelectItem value="critica">Crítica</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Dados Gerais (Implantação / Sustentação) */}
+          {currentStepId === 'general' && general.project_type !== 'agil' && (
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label className="text-slate-300">Nome do Projeto *</Label>
@@ -346,12 +414,6 @@ export default function InternalProjectWizard({ open, onOpenChange, onComplete, 
                   </Badge>
                 </div>
               </div>
-              {general.project_type === 'agil' && (
-                <div className="flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-3 text-xs text-emerald-200">
-                  <span className="mt-0.5">💡</span>
-                  <span>Projeto Ágil: após a criação, use a aba <strong>Discovery</strong> para mapear o problema e gerar o <strong>Product Backlog</strong> com IA. Por isso o cadastro não inclui cronograma nem checklist tradicionais.</span>
-                </div>
-              )}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-slate-300">Responsável</Label>
