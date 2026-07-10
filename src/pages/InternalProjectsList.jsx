@@ -21,10 +21,19 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import InternalProjectWizard from '@/components/internal/InternalProjectWizard';
+import InternalTypeSelector from '@/components/internal/InternalTypeSelector';
 
 export default function InternalProjectsList() {
   const queryClient = useQueryClient();
+  const [typeSelectorOpen, setTypeSelectorOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [selectedType, setSelectedType] = useState('implantacao');
+
+  const handleSelectType = (type) => {
+    setSelectedType(type);
+    setTypeSelectorOpen(false);
+    setModalOpen(true);
+  };
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState(null);
   const [deletingProjectId, setDeletingProjectId] = useState(null);
@@ -169,7 +178,7 @@ export default function InternalProjectsList() {
             <h1 className="text-3xl font-bold text-white">Projetos Internos</h1>
             <p className="text-slate-400 mt-1">{activeProjects.length} projeto(s) ativo(s)</p>
           </div>
-          <Button onClick={() => setModalOpen(true)} className="bg-indigo-600 hover:bg-indigo-700">
+          <Button onClick={() => setTypeSelectorOpen(true)} className="bg-indigo-600 hover:bg-indigo-700">
             <Plus className="w-4 h-4 mr-2" />
             Novo Projeto Interno
           </Button>
@@ -204,7 +213,7 @@ export default function InternalProjectsList() {
                   <FolderOpen className="w-16 h-16 mx-auto mb-4 text-slate-600" />
                   <h3 className="text-xl font-semibold text-white mb-2">Nenhum projeto interno</h3>
                   <p className="text-slate-400 mb-6">Crie o primeiro projeto interno da Betha</p>
-                  <Button onClick={() => setModalOpen(true)} className="bg-indigo-600 hover:bg-indigo-700">
+                  <Button onClick={() => setTypeSelectorOpen(true)} className="bg-indigo-600 hover:bg-indigo-700">
                     <Plus className="w-4 h-4 mr-2" />
                     Criar Primeiro Projeto
                   </Button>
@@ -230,10 +239,18 @@ export default function InternalProjectsList() {
         </Tabs>
       </div>
 
+      {/* Seletor de Tipo */}
+      <InternalTypeSelector
+        open={typeSelectorOpen}
+        onOpenChange={setTypeSelectorOpen}
+        onSelect={handleSelectType}
+      />
+
       {/* Wizard Criar Projeto */}
       <InternalProjectWizard
         open={modalOpen}
         onOpenChange={setModalOpen}
+        projectType={selectedType}
         onComplete={() => queryClient.invalidateQueries({ queryKey: ['internalProjects'] })}
       />
 

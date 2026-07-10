@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { ChevronRight, ChevronLeft, Check, Plus, X, Pencil, Trash2, Upload } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useQueryClient } from '@tanstack/react-query';
-import { INTERNAL_TYPE_OPTIONS } from './internalProjectTypes';
+import { INTERNAL_TYPE_META } from './internalProjectTypes';
 
 const ALL_STEPS = [
   { id: 'general', label: 'Dados Gerais', icon: '📋' },
@@ -44,19 +44,24 @@ const defaultProduct = { name: '', delivery: '', monitoring: '', status: 'penden
 const defaultChecklist = { action: '', responsible: '' };
 const defaultRisk = { title: '', category: 'tecnico', probability: 'media', impact: 'medio', mitigation: '' };
 
-export default function InternalProjectWizard({ open, onOpenChange, onComplete }) {
+export default function InternalProjectWizard({ open, onOpenChange, onComplete, projectType = 'implantacao' }) {
   const queryClient = useQueryClient();
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [importing, setImporting] = useState(false);
   const fileInputRef = React.useRef(null);
 
-  const [general, setGeneral] = useState(defaultGeneral);
+  const [general, setGeneral] = useState({ ...defaultGeneral, project_type: projectType });
   const STEPS = getSteps(general.project_type);
   const currentStepId = STEPS[step]?.id;
 
-  // Ao trocar o tipo de projeto, volta para o primeiro passo (o conjunto de passos muda)
-  const handleTypeChange = (v) => { setGeneral(p => ({ ...p, project_type: v })); setStep(0); };
+  // Sincroniza o tipo escolhido na tela de seleção quando o wizard abre
+  React.useEffect(() => {
+    if (open) {
+      setGeneral({ ...defaultGeneral, project_type: projectType });
+      setStep(0);
+    }
+  }, [open, projectType]);
 
   const [scheduleItems, setScheduleItems] = useState([]);
   const [scheduleForm, setScheduleForm] = useState(defaultScheduleItem);
@@ -79,7 +84,7 @@ export default function InternalProjectWizard({ open, onOpenChange, onComplete }
 
   const handleClose = () => {
     setStep(0);
-    setGeneral(defaultGeneral);
+    setGeneral({ ...defaultGeneral, project_type: projectType });
     setScheduleItems([]); setScheduleForm(defaultScheduleItem); setEditingScheduleIdx(null);
     setTeamItems([]); setTeamForm(defaultTeamItem);
     setStakeholders([]); setStakeholderForm(defaultStakeholder);
@@ -269,7 +274,12 @@ export default function InternalProjectWizard({ open, onOpenChange, onComplete }
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="bg-slate-800 border-slate-700 text-white max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-white">Novo Projeto Interno</DialogTitle>
+          <DialogTitle className="text-xl font-bold text-white flex items-center gap-2">
+            Novo Projeto Interno
+            <Badge className={INTERNAL_TYPE_META[general.project_type]?.badge}>
+              {INTERNAL_TYPE_META[general.project_type]?.label}
+            </Badge>
+          </DialogTitle>
           {/* Steps */}
           <div className="flex flex-wrap items-center gap-1 mt-3">
             {STEPS.map((s, i) => (
@@ -298,14 +308,12 @@ export default function InternalProjectWizard({ open, onOpenChange, onComplete }
                 <Input value={general.name} onChange={e => setGeneral(p => ({ ...p, name: e.target.value }))} placeholder="Ex: Implantação ERP" className="bg-slate-700 border-slate-600 text-white" />
               </div>
               <div className="space-y-2">
-                <Label className="text-slate-300">Tipo de Projeto *</Label>
-                <Select value={general.project_type} onValueChange={handleTypeChange}>
-                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white"><SelectValue /></SelectTrigger>
-                  <SelectContent className="bg-slate-700 border-slate-600">
-                    {INTERNAL_TYPE_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-slate-500">Define quais abas e etapas ficam disponíveis no projeto.</p>
+                <Label className="text-slate-300">Tipo de Projeto</Label>
+                <div className="flex items-center gap-2">
+                  <Badge className={INTERNAL_TYPE_META[general.project_type]?.badge}>
+                    {INTERNAL_TYPE_META[general.project_type]?.label}
+                  </Badge>
+                </div>
               </div>
               {general.project_type === 'agil' && (
                 <div className="flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-3 text-xs text-emerald-200">
