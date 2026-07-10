@@ -221,6 +221,15 @@
         "type": "string"
       },
       "description": "\u00c1gil: tags do projeto"
+    },
+    "discovery_id": {
+      "type": "string",
+      "description": "\u00c1gil: ID do Discovery de origem (quando criado a partir de um Discovery)"
+    },
+    "agil_backlog_generated": {
+      "type": "boolean",
+      "default": false,
+      "description": "\u00c1gil: indica se o Product Backlog j\u00e1 foi gerado pela IA a partir do Discovery"
     }
   },
   "required": [

@@ -63,12 +63,21 @@ export default function TransformarAgilModal({ open, onOpenChange, discovery }) 
     if (!form.name.trim()) { toast.error('Informe o nome do projeto.'); return; }
     setSaving(true);
     try {
-      const project = await base44.entities.InternalProject.create({
+      // Cria um Projeto Ágil (entidade Project) vinculado ao Discovery de origem,
+      // para que a Visão Geral Ágil, o Product Backlog e o Sprint Board funcionem.
+      const project = await base44.entities.Project.create({
         name: form.name.trim(),
         project_type: 'agil',
+        portfolio: 'grandes_contas_sc_mg',
         status: 'planejamento',
+        priority: form.prioridade || 'media',
         manager: form.responsavel || '',
-        description: buildDescription({ ...discovery, name: form.name.trim() }),
+        discovery_id: discovery?.id || undefined,
+        agil_descricao: form.descricao || '',
+        agil_objetivo: form.objetivo || '',
+        agil_area: form.area || '',
+        agil_responsavel: form.responsavel || '',
+        notes: buildDescription({ ...discovery, name: form.name.trim() }),
       });
 
       // Copia riscos levantados (gaps do AS IS) como riscos do projeto
@@ -77,11 +86,13 @@ export default function TransformarAgilModal({ open, onOpenChange, discovery }) 
         .map(g => (typeof g.descricao === 'string' ? g.descricao : '').trim())
         .filter(Boolean);
       if (riscos.length) {
-        await base44.entities.InternalRisk.bulkCreate(riscos.map(title => ({
+        await base44.entities.Risk.bulkCreate(riscos.map(title => ({
           project_id: project.id,
           title,
-          category: 'outro',
-          status: 'identificado',
+          category: 'produto',
+          source: 'ia',
+          origem: 'discovery',
+          status: 'aberto',
         })));
       }
 
@@ -94,11 +105,11 @@ export default function TransformarAgilModal({ open, onOpenChange, discovery }) 
   };
 
   const goToProject = () => {
-    window.location.href = createPageUrl(`InternalDashboard?id=${created.id}`);
+    window.location.href = createPageUrl(`AgilDashboard?project_id=${created.id}`);
   };
 
   const goGenerateBacklog = () => {
-    window.location.href = createPageUrl(`AgilBacklog?project_id=${created.id}&generate=ia`);
+    window.location.href = createPageUrl(`AgilDashboard?project_id=${created.id}`);
   };
 
   return (
@@ -184,8 +195,7 @@ export default function TransformarAgilModal({ open, onOpenChange, discovery }) 
               <p className="text-sm text-slate-400 mt-1">"{created.name}" foi criado como Projeto Ágil em planejamento.</p>
             </div>
             <div className="flex flex-col gap-2">
-              <Button onClick={goToProject} className="bg-emerald-600 hover:bg-emerald-700"><FolderOpen className="w-4 h-4 mr-2" />Abrir Projeto</Button>
-              <Button onClick={goGenerateBacklog} variant="outline" className="border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/10"><Sparkles className="w-4 h-4 mr-2" />Gerar Backlog com IA</Button>
+              <Button onClick={goGenerateBacklog} className="bg-emerald-600 hover:bg-emerald-700"><Sparkles className="w-4 h-4 mr-2" />Abrir Projeto e Gerar Backlog com IA</Button>
               <Button onClick={() => onOpenChange(false)} variant="ghost" className="text-slate-400 hover:text-white"><X className="w-4 h-4 mr-2" />Fechar</Button>
             </div>
           </div>
