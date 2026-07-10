@@ -30,7 +30,8 @@ import {
   ListTodo,
   Kanban,
   Search,
-  Rocket
+  Rocket,
+  Bot
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
@@ -80,6 +81,7 @@ const navigationAgil = [
   { name: 'Releases', href: 'AgilReleases', icon: Rocket },
   { name: 'Reuniões e Relatórios', href: 'SustentacaoReunioes', icon: CalendarDays },
   { name: 'KPI / Indicadores', href: 'AgilKPIs', icon: Activity },
+  { name: 'Agente Scrum IA', href: 'AgilAgenteScrum', icon: Bot },
   { name: 'Riscos', href: 'Risks', icon: AlertTriangle },
   { name: 'Lições Aprendidas', href: 'LicoesAprendidas', icon: BookOpen },
 ];
