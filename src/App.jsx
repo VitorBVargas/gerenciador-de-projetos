@@ -26,6 +26,11 @@ import SustentacaoRoadmap from './pages/SustentacaoRoadmap';
 import AgilDashboard from './pages/AgilDashboard';
 import AgilBacklog from './pages/AgilBacklog';
 import AgilSprintBoard from './pages/AgilSprintBoard';
+import AgilTeam from './pages/AgilTeam';
+import AgilStakeholders from './pages/AgilStakeholders';
+import AgilProducts from './pages/AgilProducts';
+import AgilDiscovery from './pages/AgilDiscovery';
+import AgilReleases from './pages/AgilReleases';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -140,6 +145,31 @@ const AuthenticatedApp = () => {
       <Route path="/AgilSprintBoard" element={
         <LayoutWrapper currentPageName="AgilSprintBoard">
           <AgilSprintBoard />
+        </LayoutWrapper>
+      } />
+      <Route path="/AgilTeam" element={
+        <LayoutWrapper currentPageName="AgilTeam">
+          <AgilTeam />
+        </LayoutWrapper>
+      } />
+      <Route path="/AgilStakeholders" element={
+        <LayoutWrapper currentPageName="AgilStakeholders">
+          <AgilStakeholders />
+        </LayoutWrapper>
+      } />
+      <Route path="/AgilProducts" element={
+        <LayoutWrapper currentPageName="AgilProducts">
+          <AgilProducts />
+        </LayoutWrapper>
+      } />
+      <Route path="/AgilDiscovery" element={
+        <LayoutWrapper currentPageName="AgilDiscovery">
+          <AgilDiscovery />
+        </LayoutWrapper>
+      } />
+      <Route path="/AgilReleases" element={
+        <LayoutWrapper currentPageName="AgilReleases">
+          <AgilReleases />
         </LayoutWrapper>
       } />
       {Object.entries(Pages).map(([path, Page]) => (

@@ -29,8 +29,8 @@ import {
   Activity,
   ListTodo,
   Kanban,
-  Repeat,
-  BarChart3
+  Search,
+  Rocket
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
@@ -73,14 +73,15 @@ const navigationAgil = [
   { name: 'Equipe', href: 'AgilTeam', icon: Users },
   { name: 'Stakeholders', href: 'AgilStakeholders', icon: UserCircle },
   { name: 'Produtos', href: 'AgilProducts', icon: Package },
+  { name: 'Discovery', href: 'AgilDiscovery', icon: Search },
   { name: 'Product Backlog', href: 'AgilBacklog', icon: ListTodo },
   { name: 'Sprint Board', href: 'AgilSprintBoard', icon: Kanban },
-  { name: 'Roadmap', href: 'AgilRoadmap', icon: Map },
-  { name: 'Cerimônias', href: 'AgilCerimonias', icon: Repeat },
-  { name: 'Métricas Ágeis', href: 'AgilMetricas', icon: BarChart3 },
-  { name: 'Documentos', href: 'AgilDocumentos', icon: FileText },
-  { name: 'Riscos', href: 'AgilRiscos', icon: AlertTriangle },
-  { name: 'Lições Aprendidas', href: 'AgilLicoes', icon: BookOpen },
+  { name: 'Roadmap', href: 'SustentacaoRoadmap', icon: Map },
+  { name: 'Releases', href: 'AgilReleases', icon: Rocket },
+  { name: 'Reuniões e Relatórios', href: 'SustentacaoReunioes', icon: CalendarDays },
+  { name: 'KPI / Indicadores', href: 'SustentacaoKPIs', icon: Activity },
+  { name: 'Riscos', href: 'Risks', icon: AlertTriangle },
+  { name: 'Lições Aprendidas', href: 'LicoesAprendidas', icon: BookOpen },
 ];
 
 export default function Layout({ children, currentPageName }) {
