@@ -17,6 +17,7 @@ import StepToBe from './StepToBe';
 import StepHipoteses from './StepHipoteses';
 import StepPlanoAcoes from './StepPlanoAcoes';
 import StepResultado from './StepResultado';
+import StepTransformacaoAgil from './StepTransformacaoAgil';
 import { riceScore, ricePriority, emptyDiscovery } from './discoveryUtils';
 
 const STEPS = [
@@ -28,7 +29,8 @@ const STEPS = [
   { id: 'to_be', label: '5. TO BE' },
   { id: 'hipoteses', label: '6. Hipóteses' },
   { id: 'acoes', label: '7. Plano de Ações' },
-  { id: 'resultado', label: 'Resultado' }
+  { id: 'resultado', label: 'Resultado' },
+  { id: 'transformacao_agil', label: '🚀 Transformação Ágil' }
 ];
 
 export default function DiscoveryWizard({ open, onOpenChange, discovery, projectId }) {
@@ -203,6 +205,7 @@ export default function DiscoveryWizard({ open, onOpenChange, discovery, project
           {stepId === 'hipoteses' && <StepHipoteses hipoteses={data.hipoteses || []} onChange={updateField('hipoteses')} fullDiscovery={data} />}
           {stepId === 'acoes' && <StepPlanoAcoes acoes={data.acoes || []} onChange={updateField('acoes')} fullDiscovery={data} />}
           {stepId === 'resultado' && <StepResultado discovery={data} onGenerateTasks={handleGenerateTasks} onConcluir={handleConcluir} generating={generating} onMetricasChange={updateField('metricas')} />}
+          {stepId === 'transformacao_agil' && <StepTransformacaoAgil discovery={data} />}
         </div>
 
         <div className="flex items-center justify-between pt-3 border-t border-slate-800">
