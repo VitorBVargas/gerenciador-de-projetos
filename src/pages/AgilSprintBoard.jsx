@@ -14,10 +14,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { BOARD_COLUMNS, BOARD_TO_STATUS, effectiveColumn } from '@/components/agil/boardMeta';
-import { computeSprintMetrics, computeBurndown, computeBurnup } from '@/components/agil/boardMetrics';
-import SprintKPIs from '@/components/agil/SprintKPIs';
-import SprintBurndown from '@/components/agil/SprintBurndown';
-import SprintBurnup from '@/components/agil/SprintBurnup';
+import { computeSprintMetrics } from '@/components/agil/boardMetrics';
 import BoardColumn from '@/components/agil/BoardColumn';
 import BoardCardModal from '@/components/agil/BoardCardModal';
 import BoardCardMenu from '@/components/agil/BoardCardMenu';
@@ -86,15 +83,16 @@ export default function AgilSprintBoard() {
     return sprints.find(s => s.status === 'em_andamento') || sprints[0] || null;
   }, [sprints, selectedSprintId]);
 
-  // Itens da sprint atual (não subtasks aparecem no board principal)
+  // Itens da sprint atual + itens do backlog sem sprint (aparecem na coluna Backlog)
   const sprintItems = useMemo(
-    () => allItems.filter(i => activeSprint && i.sprint_id === activeSprint.id && !i.is_subtask),
+    () => allItems.filter(i =>
+      !i.is_subtask && activeSprint &&
+      (i.sprint_id === activeSprint.id || !i.sprint_id)
+    ),
     [allItems, activeSprint]
   );
 
   const metrics = useMemo(() => computeSprintMetrics(sprintItems, activeSprint), [sprintItems, activeSprint]);
-  const burndown = useMemo(() => computeBurndown(sprintItems, activeSprint), [sprintItems, activeSprint]);
-  const burnup = useMemo(() => computeBurnup(sprintItems, activeSprint), [sprintItems, activeSprint]);
 
   const epicsById = useMemo(() => {
     const map = {};
@@ -169,6 +167,11 @@ export default function AgilSprintBoard() {
       status: item.bloqueado ? item.status : newStatus,
       coluna_entrou_em: nowIso,
     };
+
+    // Item vindo do backlog sem sprint -> vincula à sprint ativa ao entrar no board
+    if (!item.sprint_id && newCol !== 'backlog' && activeSprint) {
+      patch.sprint_id = activeSprint.id;
+    }
 
     // Início do fluxo (primeira vez em desenvolvimento) -> started_at (Cycle Time)
     if (newCol === 'em_desenvolvimento' && !item.started_at) {
@@ -331,15 +334,6 @@ export default function AgilSprintBoard() {
         </div>
       ) : (
         <>
-          {/* KPIs */}
-          <SprintKPIs m={metrics} />
-
-          {/* Burndown + Burnup */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <SprintBurndown data={burndown.data} totalSp={burndown.totalSp} />
-            <SprintBurnup data={burnup.data} totalSp={burnup.totalSp} />
-          </div>
-
           {/* Toolbar de filtros + swimlanes */}
           <BoardToolbar filters={filters} setFilters={setFilters} swimlane={swimlane} setSwimlane={setSwimlane} options={toolbarOptions} />
 
