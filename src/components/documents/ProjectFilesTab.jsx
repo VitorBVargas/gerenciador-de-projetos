@@ -38,10 +38,15 @@ export default function ProjectFilesTab({ projectId }) {
     enabled: !!projectId,
   });
 
-  // Arquivo anexado a cada documento do modelo (por doc_key)
+  // Arquivos anexados a cada documento do modelo (por doc_key) — pode haver várias versões
   const modeloFileMap = useMemo(() => {
     const map = {};
-    files.forEach(f => { if (f.doc_key) map[f.doc_key] = f; });
+    files.forEach(f => {
+      if (f.doc_key) {
+        if (!map[f.doc_key]) map[f.doc_key] = [];
+        map[f.doc_key].push(f);
+      }
+    });
     return map;
   }, [files]);
 
@@ -59,24 +64,23 @@ export default function ProjectFilesTab({ projectId }) {
     setUploadOpen(false);
   };
 
-  // Anexar arquivo em um slot de documento do modelo
-  const handleSlotUpload = async (file, doc) => {
+  // Anexar arquivo(s) em um documento do modelo — sempre cria nova versão
+  const handleSlotUpload = async (fileList, doc) => {
     setUploadingSlot(doc.key);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      const existing = modeloFileMap[doc.key];
-      if (existing) {
-        await base44.entities.ProjectFile.update(existing.id, { file_url });
-      } else {
+      const arr = Array.from(fileList);
+      const existingCount = (modeloFileMap[doc.key] || []).length;
+      for (let i = 0; i < arr.length; i++) {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file: arr[i] });
         await base44.entities.ProjectFile.create({
           project_id: projectId,
-          nome: doc.label,
+          nome: arr[i].name || `${doc.label} v${existingCount + i + 1}`,
           doc_key: doc.key,
           categoria: 'assinado',
           file_url,
         });
       }
-      toast.success('Arquivo anexado!');
+      toast.success(arr.length > 1 ? `${arr.length} arquivos anexados!` : 'Arquivo anexado!');
       queryClient.invalidateQueries({ queryKey: ['projectFiles', projectId] });
     } catch (e) {
       toast.error('Erro ao anexar: ' + e.message);
@@ -126,8 +130,8 @@ export default function ProjectFilesTab({ projectId }) {
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {MODELO_DOCS.map(doc => {
-            const file = modeloFileMap[doc.key];
-            const hasFile = !!file;
+            const docFiles = modeloFileMap[doc.key] || [];
+            const hasFile = docFiles.length > 0;
             return (
               <Card key={doc.key} className="bg-slate-800 border-slate-700">
                 <CardContent className="p-4 space-y-2">
@@ -135,39 +139,41 @@ export default function ProjectFilesTab({ projectId }) {
                     {hasFile
                       ? <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
                       : <FileText className="w-4 h-4 text-slate-500 flex-shrink-0 mt-0.5" />}
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold text-white truncate">{doc.label}</p>
                       <p className="text-xs text-slate-400 line-clamp-1">{doc.description}</p>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2 pt-1">
-                    {hasFile ? (
-                      <>
-                        <a href={file.file_url} target="_blank" rel="noreferrer" className="flex-1">
-                          <Button size="sm" className="w-full bg-green-600 hover:bg-green-700 gap-1.5 text-xs h-7">
-                            <Download className="w-3.5 h-3.5" /> Baixar
-                          </Button>
-                        </a>
-                        <Button size="sm" variant="outline"
-                          className="border-slate-600 text-slate-400 hover:text-white h-7 px-2"
-                          onClick={() => { slotInputRef.current._doc = doc; slotInputRef.current.click(); }}>
-                          {uploadingSlot === doc.key ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
-                        </Button>
-                        <Button size="sm" variant="outline"
-                          className="border-slate-600 text-slate-400 hover:text-red-400 h-7 px-2"
-                          onClick={() => handleDelete(file)}>
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
-                      </>
-                    ) : (
-                      <Button size="sm" variant="outline"
-                        className="w-full border-dashed border-slate-600 text-slate-400 hover:text-white hover:border-blue-500 text-xs h-7 gap-1.5"
-                        onClick={() => { slotInputRef.current._doc = doc; slotInputRef.current.click(); }}>
-                        {uploadingSlot === doc.key ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
-                        Anexar arquivo
-                      </Button>
+                    {hasFile && (
+                      <span className="text-[10px] bg-slate-700 text-slate-300 rounded px-1.5 py-0.5 flex-shrink-0">
+                        {docFiles.length} {docFiles.length === 1 ? 'arquivo' : 'arquivos'}
+                      </span>
                     )}
                   </div>
+
+                  {/* Lista de versões/arquivos */}
+                  {hasFile && (
+                    <div className="space-y-1">
+                      {docFiles.map(f => (
+                        <div key={f.id} className="flex items-center gap-2 bg-slate-900/50 rounded px-2 py-1">
+                          <FileText className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
+                          <span className="text-xs text-slate-300 truncate flex-1">{f.nome}</span>
+                          <a href={f.file_url} target="_blank" rel="noreferrer" className="text-blue-400 hover:text-blue-300" title="Baixar">
+                            <Download className="w-3.5 h-3.5" />
+                          </a>
+                          <button onClick={() => handleDelete(f)} className="text-slate-500 hover:text-red-400" title="Excluir">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <Button size="sm" variant="outline"
+                    className={`w-full text-xs h-7 gap-1.5 ${hasFile ? 'border-slate-600 text-slate-400 hover:text-white' : 'border-dashed border-slate-600 text-slate-400 hover:text-white hover:border-blue-500'}`}
+                    onClick={() => { slotInputRef.current._doc = doc; slotInputRef.current.click(); }}>
+                    {uploadingSlot === doc.key ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : (hasFile ? <Plus className="w-3.5 h-3.5" /> : <Upload className="w-3.5 h-3.5" />)}
+                    {hasFile ? 'Adicionar versão' : 'Anexar arquivo'}
+                  </Button>
                 </CardContent>
               </Card>
             );
@@ -222,11 +228,10 @@ export default function ProjectFilesTab({ projectId }) {
       </div>
 
       {/* input compartilhado dos slots do modelo */}
-      <input ref={slotInputRef} type="file" className="hidden"
+      <input ref={slotInputRef} type="file" multiple className="hidden"
         onChange={e => {
-          const file = e.target.files[0];
           const doc = slotInputRef.current._doc;
-          if (file && doc) handleSlotUpload(file, doc);
+          if (e.target.files.length && doc) handleSlotUpload(e.target.files, doc);
           e.target.value = '';
         }} />
 
