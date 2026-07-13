@@ -6,11 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   FileText, Upload, Download, Check, X, CheckCircle2,
-  Clock, AlertCircle, ChevronRight, Loader2, Package
+  Clock, AlertCircle, ChevronRight, Loader2, Package, FolderOpen
 } from 'lucide-react';
 import { toast } from 'sonner';
 import KickoffDeck from '@/components/kickoff/KickoffDeck';
 import ListaPresencaModal from '@/components/documents/ListaPresencaModal';
+import ProjectFilesTab from '@/components/documents/ProjectFilesTab';
 
 const DOCUMENTS = [
   { key: 'tap', label: 'TAP', byProduct: false, description: 'Termo de Abertura do Projeto' },
@@ -28,7 +29,7 @@ export default function Documents() {
   const urlParams = new URLSearchParams(window.location.search);
   const projectId = urlParams.get('project_id');
 
-  const [activeTab, setActiveTab] = useState('padrao');
+  const [activeTab, setActiveTab] = useState('arquivos');
   const [collapsedDocs, setCollapsedDocs] = useState({});
   const [filterVertical, setFilterVertical] = useState('');
   const [filterEntity, setFilterEntity] = useState('');
@@ -323,13 +324,21 @@ export default function Documents() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="bg-slate-800 border border-slate-700">
+          <TabsTrigger value="arquivos" className="data-[state=active]:bg-blue-600">
+            <FolderOpen className="w-4 h-4 mr-1.5" /> Arquivos do Projeto
+          </TabsTrigger>
           <TabsTrigger value="padrao" className="data-[state=active]:bg-blue-600">
-            <FileText className="w-4 h-4 mr-1.5" /> Documentos Padrão
+            <FileText className="w-4 h-4 mr-1.5" /> Modelo
           </TabsTrigger>
           <TabsTrigger value="controle" className="data-[state=active]:bg-blue-600">
             <CheckCircle2 className="w-4 h-4 mr-1.5" /> Controle de Documentos
           </TabsTrigger>
         </TabsList>
+
+        {/* ===== ARQUIVOS DO PROJETO (assinados / utilizados) ===== */}
+        <TabsContent value="arquivos" className="mt-4">
+          <ProjectFilesTab projectId={projectId} />
+        </TabsContent>
 
         {/* ===== DOCUMENTOS PADRÃO ===== */}
         <TabsContent value="padrao" className="mt-4 space-y-3">
