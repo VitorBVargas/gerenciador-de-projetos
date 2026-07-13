@@ -8,6 +8,12 @@ function itemsContext(items) {
 
 const MODEL = 'claude_sonnet_4_6';
 
+// O InvokeLLM às vezes embrulha o resultado em { response: {...} }. Normaliza.
+function unwrap(r) {
+  if (r && typeof r === 'object' && r.response && typeof r.response === 'object') return r.response;
+  return r || {};
+}
+
 // 1) PRIORIZAÇÃO (RICE) — sugere prioridade + RICE por item.
 export async function suggestPrioritization(items) {
   const schema = {
@@ -37,7 +43,7 @@ export async function suggestPrioritization(items) {
     required: ['itens'],
   };
   const prompt = `Você é um Product Manager sênior. Priorize os itens de backlog abaixo usando o framework RICE (Reach, Impact, Confidence, Effort; score = R*I*C/E). Para cada item, defina prioridade (baixa/media/alta/critica) e os valores RICE, com breve justificativa. Sempre valor de negócio antes de esforço técnico.\n\nITENS:\n${itemsContext(items)}\n\nResponda estritamente no schema JSON.`;
-  const r = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: schema, model: MODEL });
+  const r = unwrap(await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: schema, model: MODEL }));
   return r?.itens || [];
 }
 
@@ -65,7 +71,7 @@ export async function suggestRefinement(items) {
     required: ['itens'],
   };
   const prompt = `Você é um Agile Coach. Refine os itens de backlog abaixo: melhore o título (formato Scrum quando for story), a descrição, escreva critérios de aceite claros (Gherkin Given/When/Then quando fizer sentido), Definition of Ready e Definition of Done. Não invente escopo novo; apenas clarifique.\n\nITENS:\n${itemsContext(items)}\n\nResponda estritamente no schema JSON.`;
-  const r = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: schema, model: MODEL });
+  const r = unwrap(await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: schema, model: MODEL }));
   return r?.itens || [];
 }
 
@@ -92,7 +98,7 @@ export async function suggestSplit(item) {
     required: ['novos_itens'],
   };
   const prompt = `Você é um Agile Coach. Quebre o item de backlog abaixo em stories menores, independentes e entregáveis (INVEST). Cada nova story deve ter título, descrição, prioridade, story points (Fibonacci: 1,2,3,5,8,13,21) e critérios de aceite.\n\nITEM:\n- [${item.tipo}] "${item.titulo}"\n${item.descricao ? `Descrição: ${item.descricao}` : ''}\n${item.criterio_aceite ? `Critérios atuais: ${item.criterio_aceite}` : ''}\n\nResponda estritamente no schema JSON.`;
-  const r = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: schema, model: MODEL });
+  const r = unwrap(await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: schema, model: MODEL }));
   return (r?.novos_itens || []).map(n => ({ ...n, story_points: nearestFibonacci(n.story_points) }));
 }
 
@@ -117,7 +123,7 @@ export async function suggestMerge(items) {
     required: ['grupos'],
   };
   const prompt = `Você é um Product Manager. Identifique itens de backlog DUPLICADOS ou muito semelhantes que deveriam ser mesclados. Para cada grupo, liste os ids, um título unificado sugerido e o motivo. Só agrupe quando houver real sobreposição.\n\nITENS:\n${itemsContext(items)}\n\nResponda estritamente no schema JSON.`;
-  const r = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: schema, model: MODEL });
+  const r = unwrap(await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: schema, model: MODEL }));
   return (r?.grupos || []).filter(g => (g.ids || []).length > 1);
 }
 
@@ -143,7 +149,7 @@ export async function suggestStoryPoints(items) {
     required: ['itens'],
   };
   const prompt = `Você é um Agile Coach. Estime Story Points (Fibonacci: 1,2,3,5,8,13,21) para cada item, considerando complexidade, esforço e incerteza, com breve justificativa.\n\nITENS:\n${itemsContext(items)}\n\nResponda estritamente no schema JSON.`;
-  const r = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: schema, model: MODEL });
+  const r = unwrap(await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: schema, model: MODEL }));
   return (r?.itens || []).map(n => ({ ...n, story_points: nearestFibonacci(n.story_points) }));
 }
 
