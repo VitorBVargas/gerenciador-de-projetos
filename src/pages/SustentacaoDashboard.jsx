@@ -18,6 +18,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import SustentacaoProjectModal from '../components/modals/SustentacaoProjectModal.jsx';
 import GlobalTracker from '@/components/horas/GlobalTracker.jsx';
 import ChamadosResumo from '../components/sustentacao/ChamadosResumo.jsx';
+import RelatoriosOperacionaisResumo from '../components/sustentacao/RelatoriosOperacionaisResumo.jsx';
 import HideableSection from '../components/sustentacao/HideableSection.jsx';
 import { useCurrentUser, canEditProject } from '@/lib/permissions';
 import { getAvailableEntities } from '@/lib/entityRegistry';
@@ -30,6 +31,7 @@ const SECTION_LABELS = {
   kpis: 'KPI Cards',
   objetivos: 'Objetivos do Roadmap',
   chamados: 'Chamados',
+  relatorios: 'Relatórios Operacionais',
   backlog: 'Backlog e Riscos',
   evolucao: 'Evolução das Atividades',
 };
@@ -468,6 +470,13 @@ export default function SustentacaoDashboard() {
       {!isHidden('chamados') && (
         <HideableSection hidden={false} onHide={() => hideSection('chamados')}>
           <ChamadosResumo chamados={chamados} projectId={projectId} />
+        </HideableSection>
+      )}
+
+      {/* ── RELATÓRIOS OPERACIONAIS (histórico + download direto) ─────── */}
+      {!isHidden('relatorios') && (
+        <HideableSection hidden={false} onHide={() => hideSection('relatorios')}>
+          <RelatoriosOperacionaisResumo projectId={projectId} projectName={activeProject.name} />
         </HideableSection>
       )}
 
