@@ -23,8 +23,10 @@ export default function ChamadoImporter({ open, onOpenChange, projectId, product
     if (!file) return;
     setStatus('processing');
     try {
-      const buffer = await file.arrayBuffer();
-      const wb = XLSX.read(buffer, { type: 'array' });
+      const isCsv = /\.csv$/i.test(file.name);
+      const wb = isCsv
+        ? XLSX.read(await file.text(), { type: 'string', raw: false })
+        : XLSX.read(await file.arrayBuffer(), { type: 'array' });
       const sheet = wb.Sheets[wb.SheetNames[0]];
       const matrix = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, defval: '' });
       if (!matrix.length) throw new Error('Planilha vazia.');
