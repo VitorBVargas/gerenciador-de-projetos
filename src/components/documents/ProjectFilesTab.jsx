@@ -19,6 +19,7 @@ const MODELO_DOCS = [
   { key: 'aceite_homologacao', label: 'Aceite de Homologação', description: 'Aceite de homologação' },
   { key: 'tac', label: 'TAC', description: 'Termo de Aceite de Contrato' },
   { key: 'treinamentos_prova', label: 'Treinamentos/Prova', description: 'Documentos de treinamento' },
+  { key: 'lista_presenca', label: 'Lista de Presença', description: 'Listas de presença assinadas dos treinamentos' },
   { key: 'aceite_implantacao', label: 'Aceite de Implantação', description: 'Aceite de implantação final' },
 ];
 

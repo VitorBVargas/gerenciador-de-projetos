@@ -6,6 +6,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Calendar, Edit3 } from 'lucide-react';
 import TimelineEventModal from '../components/modals/TimelineEventModal';
+import TrainingChecklistModal from '../components/modals/TrainingChecklistModal';
 import BulkEditDatesModal from '../components/modals/BulkEditDatesModal';
 import EmptyState from '../components/ui/EmptyState';
 import EntityFilter from '../components/filters/EntityFilter';
@@ -38,6 +39,7 @@ export default function Timeline() {
   const [selectedEntity, setSelectedEntity] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [editDatesOpen, setEditDatesOpen] = useState(false);
+  const [trainingLockEvent, setTrainingLockEvent] = useState(null);
 
   // Get project_id from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -62,6 +64,14 @@ export default function Timeline() {
     queryFn: () => projectId ? base44.entities.TimelineEvent.filter({ project_id: projectId }) : [],
     enabled: !!projectId
   });
+
+  // Arquivos do projeto — usado para saber se a lista de presença já foi anexada
+  const { data: projectFiles = [] } = useQuery({
+    queryKey: ['projectFiles', projectId],
+    queryFn: () => projectId ? base44.entities.ProjectFile.filter({ project_id: projectId }) : [],
+    enabled: !!projectId
+  });
+  const hasListaPresenca = projectFiles.some(f => f.doc_key === 'lista_presenca');
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.TimelineEvent.create(data),
@@ -109,6 +119,12 @@ export default function Timeline() {
 
   const handleSave = (data) => {
     const adjustedData = { ...data, start_date: data.start_date, end_date: data.end_date };
+    // Crítica: concluir etapa de Treinamento exige lista de presença assinada anexada
+    if (selectedEvent && adjustedData.phase === 'treinamento' && adjustedData.status === 'concluido' && !hasListaPresenca) {
+      setModalOpen(false);
+      setTrainingLockEvent({ ...selectedEvent, ...adjustedData, _pendingStatus: 'concluido' });
+      return;
+    }
     if (selectedEvent) {
       updateMutation.mutate({ 
         id: selectedEvent.id, 
@@ -141,9 +157,22 @@ export default function Timeline() {
 
   const handleStatusChange = (eventId, newStatus) => {
     const event = timelineEvents.find(e => e.id === eventId);
-    if (event) {
-      updateMutation.mutate({ id: eventId, data: { ...event, status: newStatus } });
+    if (!event) return;
+    // Crítica: concluir etapa de Treinamento exige lista de presença assinada anexada
+    if (event.phase === 'treinamento' && newStatus === 'concluido' && !hasListaPresenca) {
+      setTrainingLockEvent({ ...event, _pendingStatus: newStatus });
+      return;
     }
+    updateMutation.mutate({ id: eventId, data: { ...event, status: newStatus } });
+  };
+
+  const confirmTrainingCompletion = () => {
+    const ev = trainingLockEvent;
+    if (ev) {
+      updateMutation.mutate({ id: ev.id, data: { ...ev, status: ev._pendingStatus || 'concluido' } });
+    }
+    queryClient.invalidateQueries({ queryKey: ['projectFiles', projectId] });
+    setTrainingLockEvent(null);
   };
 
   // Edição inline direto no quadro (título, datas)
@@ -316,6 +345,14 @@ export default function Timeline() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <TrainingChecklistModal
+        open={!!trainingLockEvent}
+        onOpenChange={(v) => { if (!v) setTrainingLockEvent(null); }}
+        event={trainingLockEvent}
+        projectId={projectId}
+        onConfirm={confirmTrainingCompletion}
+      />
 
       <BulkEditDatesModal
         open={editDatesOpen}
