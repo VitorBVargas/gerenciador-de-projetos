@@ -12,9 +12,9 @@ import { useCurrentUser } from '@/lib/permissions';
 import ObrigacoesPorTipo from './ObrigacoesPorTipo';
 import CNDStatusCard from './CNDStatus';
 import { entityMatchesObligation } from '@/lib/entityRegistry';
+import { OBRIGACOES_ANUAIS, mesesEsperados } from './periodicidade';
 
 const OBRIGACOES_PADRAO = ['AM', 'SIOPE', 'SIOPS', 'Balancete', 'RGF', 'RREO', 'MSC', 'DECASP', 'IP', 'Balancete 13', 'Folha', 'Edital'];
-const OBRIGACOES_ANUAIS = ['DECASP', 'IP', 'Balancete 13'];
 
 function getSemaforo(obrigacao) {
   if (obrigacao.status === 'aceito') return null;
@@ -86,21 +86,24 @@ export default function ObrigacoesLegais({ projectId, project, vertical = null, 
   }, [allObrigacoes, vertical, entity, allEntities]);
 
   const initDefaults = async () => {
-    const now = new Date();
-    const comp = `${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
-    const compAnual = `02/${now.getFullYear()}`;
-    await Promise.all(OBRIGACOES_PADRAO.map(nome =>
-      base44.entities.ObrigacaoLegal.create({
-        project_id: projectId,
-        ...(vertical ? { vertical } : {}),
-        ...(entity ? { entity_id: entity.id, entity_name: entity.nome } : {}),
-        nome,
-        competencia: OBRIGACOES_ANUAIS.includes(nome) ? compAnual : comp,
-        ordem: OBRIGACOES_PADRAO.indexOf(nome),
-        status: 'nao_iniciado',
-        is_padrao: true,
-      })
-    ));
+    const year = new Date().getFullYear();
+    const registros = [];
+    OBRIGACOES_PADRAO.forEach((nome, idx) => {
+      const meses = OBRIGACOES_ANUAIS.includes(nome) ? [2] : mesesEsperados(nome);
+      meses.forEach(m => {
+        registros.push({
+          project_id: projectId,
+          ...(vertical ? { vertical } : {}),
+          ...(entity ? { entity_id: entity.id, entity_name: entity.nome } : {}),
+          nome,
+          competencia: `${String(m).padStart(2, '0')}/${year}`,
+          ordem: idx,
+          status: 'nao_iniciado',
+          is_padrao: true,
+        });
+      });
+    });
+    await base44.entities.ObrigacaoLegal.bulkCreate(registros);
     queryClient.invalidateQueries(['obrigacoes', projectId]);
   };
 

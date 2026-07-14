@@ -11,6 +11,8 @@ import ObrigacaoModal from './ObrigacaoModal';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { OBRIGACOES_ANUAIS, mesesEsperados } from './periodicidade';
 
+const OBRIGACOES_PADRAO = ['AM', 'SIOPE', 'SIOPS', 'Balancete', 'RGF', 'RREO', 'MSC', 'DECASP', 'IP', 'Balancete 13', 'Folha', 'Edital'];
+
 const STATUS_CFG = {
   nao_iniciado: { label: 'Pendente', color: 'text-slate-400', bg: 'bg-slate-700/60', icon: Clock },
   em_elaboracao: { label: 'Em elaboração', color: 'text-yellow-400', bg: 'bg-yellow-500/10 border border-yellow-500/30', icon: FileText },
@@ -213,10 +215,50 @@ export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser, 
   const canGoPrev = currentYearIdx < years.length - 1;
   const canGoNext = currentYearIdx > 0;
 
-  const addNewYear = () => {
-    const maxYear = Math.max(...years.map(Number));
+  const [creatingYear, setCreatingYear] = useState(false);
+
+  // Cria todas as barras padrão (com suas competências conforme periodicidade) para um exercício.
+  const createDefaultsForYear = async (year) => {
+    const registros = [];
+    OBRIGACOES_PADRAO.forEach((nome, idx) => {
+      const meses = OBRIGACOES_ANUAIS.includes(nome) ? [2] : mesesEsperados(nome);
+      meses.forEach(m => {
+        registros.push({
+          project_id: projectId,
+          ...(vertical ? { vertical } : {}),
+          ...(entity ? { entity_id: entity.id, entity_name: entity.nome } : {}),
+          nome,
+          competencia: `${String(m).padStart(2, '0')}/${year}`,
+          ordem: idx,
+          status: 'nao_iniciado',
+          is_padrao: true,
+        });
+      });
+    });
+    await base44.entities.ObrigacaoLegal.bulkCreate(registros);
+    queryClient.invalidateQueries(['obrigacoes', projectId]);
+  };
+
+  const addNewYear = async () => {
+    const maxYear = years.length ? Math.max(...years.map(Number)) : new Date().getFullYear();
     const newYear = String(maxYear + 1);
-    setSelectedYear(newYear);
+    setCreatingYear(true);
+    try {
+      await createDefaultsForYear(newYear);
+      setSelectedYear(newYear);
+    } finally {
+      setCreatingYear(false);
+    }
+  };
+
+  // Popula o exercício atualmente selecionado quando ele está vazio (sem nenhuma barra).
+  const populateSelectedYear = async () => {
+    setCreatingYear(true);
+    try {
+      await createDefaultsForYear(selectedYear);
+    } finally {
+      setCreatingYear(false);
+    }
   };
 
   const persistTypeOrder = async (orderedNames) => {
@@ -310,11 +352,23 @@ export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser, 
               <Trash2 className="w-3.5 h-3.5" /> Deletar Exercício
             </Button>
           )}
-          <Button size="sm" variant="outline" onClick={addNewYear} className="border-slate-600 text-slate-300 hover:bg-slate-700 gap-1.5">
+          <Button size="sm" variant="outline" onClick={addNewYear} disabled={creatingYear} className="border-slate-600 text-slate-300 hover:bg-slate-700 gap-1.5">
             <Plus className="w-3.5 h-3.5" /> Novo Exercício
           </Button>
         </div>
       </div>
+      {nomes.length === 0 ? (
+        <Card className="border-slate-700/50 bg-slate-800/60">
+          <CardContent className="p-8 text-center">
+            <FileText className="w-10 h-10 mx-auto mb-3 text-slate-600" />
+            <p className="text-white font-medium mb-1">Nenhuma obrigação no exercício {selectedYear}</p>
+            <p className="text-sm text-slate-400 mb-4">Crie as obrigações padrão (AM, SIOPE, RREO, RGF, etc.) para começar.</p>
+            <Button onClick={populateSelectedYear} disabled={creatingYear} className="bg-blue-600 hover:bg-blue-700 gap-1.5">
+              <Plus className="w-4 h-4" /> {creatingYear ? 'Criando...' : 'Criar obrigações padrão'}
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
       <DragDropContext onDragEnd={handleDragEnd}>
         <Droppable droppableId="obrigacoes-tipos">
           {(dropProvided) => (
@@ -464,6 +518,7 @@ export default function ObrigacoesPorTipo({ obrigacoes, projectId, currentUser, 
           )}
         </Droppable>
       </DragDropContext>
+      )}
 
       <ObrigacaoModal
         open={modalOpen}
