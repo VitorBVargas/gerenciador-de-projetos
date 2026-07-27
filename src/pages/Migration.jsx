@@ -508,6 +508,7 @@ export default function Migration() {
                                   if (!seen.has(tl)) { seen.set(tl, t); uniq.push(t); }
                                   else if (t.completed && !seen.get(tl).completed) { uniq[uniq.indexOf(seen.get(tl))] = t; seen.set(tl, t); }
                                 }
+                                uniq.sort((a, b) => section.tasks.findIndex(st => st.toLowerCase() === a.title.toLowerCase()) - section.tasks.findIndex(st => st.toLowerCase() === b.title.toLowerCase()));
                                 uniq.forEach(t => claimedRenderIds.add(t.id));
                                 if (uniq.length > 0) tableSections.push({ name: section.section, tasks: uniq });
                               });
@@ -612,6 +613,7 @@ export default function Migration() {
                                         }
                                       }
                                     }
+                                    uniqueTasks.sort((a, b) => section.tasks.findIndex(st => st.toLowerCase() === a.title.toLowerCase()) - section.tasks.findIndex(st => st.toLowerCase() === b.title.toLowerCase()));
                                     uniqueTasks.forEach(t => claimedRenderIds.add(t.id));
 
                                     if (uniqueTasks.length === 0) return null;
