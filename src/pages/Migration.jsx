@@ -197,7 +197,10 @@ export default function Migration() {
     }
 
     if (sectionPercents.length === 0) return 0;
-    return Math.round(sectionPercents.reduce((sum, p) => sum + p, 0) / sectionPercents.length);
+    // Progresso = soma das % das etapas ÷ total possível (nº de etapas × 100)
+    const totalPossible = sectionPercents.length * 100;
+    const totalAchieved = sectionPercents.reduce((sum, p) => sum + p, 0);
+    return Math.round((totalAchieved / totalPossible) * 100);
   };
 
   // Entity filter
