@@ -161,12 +161,15 @@ export default function Migration() {
       return acc;
     }, {});
 
-    // Contar tarefas padrão — cada registro de DB "pertence" à primeira seção que o reivindica
+    // Progresso = média da % de conclusão de cada etapa (cada etapa pesa igual)
+    const sectionPercents = [];
+
+    // Etapas padrão — cada registro de DB "pertence" à primeira seção que o reivindica
     const claimedIds = new Set();
-    let visibleCount = 0;
-    let completedCount = 0;
     for (const section of defaultSections) {
       const seenInSection = new Set();
+      let total = 0;
+      let completed = 0;
       for (const task of standardTasks) {
         if (claimedIds.has(task.id)) continue;
         if (!section.tasks.some(st => st.toLowerCase() === task.title.toLowerCase())) continue;
@@ -174,27 +177,27 @@ export default function Migration() {
         if (!seenInSection.has(tl)) {
           seenInSection.add(tl);
           claimedIds.add(task.id);
-          visibleCount++;
-          if (task.completed) completedCount++;
+          total++;
+          if (task.completed) completed++;
         }
       }
+      if (total > 0) sectionPercents.push((completed / total) * 100);
     }
 
-    // Tarefas importadas
-    const importedVisible = Object.values(importedBySection).flatMap(map => Array.from(map.values()));
-    visibleCount += importedVisible.length;
-    completedCount += importedVisible.filter(t => t.completed).length;
+    // Etapas importadas
+    Object.values(importedBySection).forEach(map => {
+      const items = Array.from(map.values());
+      if (items.length > 0) sectionPercents.push((items.filter(t => t.completed).length / items.length) * 100);
+    });
 
     // Tarefas não atribuídas: só conta se o produto não tem template (sem seções padrão)
-    // Se tem template, tarefas não atribuídas são órfãs (ignorar no cálculo)
     if (defaultSections.length === 0) {
       const unclaimed = standardTasks.filter(t => !claimedIds.has(t.id));
-      visibleCount += unclaimed.length;
-      completedCount += unclaimed.filter(t => t.completed).length;
+      if (unclaimed.length > 0) sectionPercents.push((unclaimed.filter(t => t.completed).length / unclaimed.length) * 100);
     }
 
-    if (visibleCount === 0) return 0;
-    return Math.round((completedCount / visibleCount) * 100);
+    if (sectionPercents.length === 0) return 0;
+    return Math.round(sectionPercents.reduce((sum, p) => sum + p, 0) / sectionPercents.length);
   };
 
   // Entity filter
