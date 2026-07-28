@@ -19,6 +19,34 @@ export default function TaskTableView({ sections, onToggle, onDelete, onRename, 
   const [editingId, setEditingId] = useState(null);
   const [editValue, setEditValue] = useState('');
   const inputRef = useRef(null);
+  const [editingPctId, setEditingPctId] = useState(null);
+  const [pctValue, setPctValue] = useState('');
+  const pctInputRef = useRef(null);
+
+  useEffect(() => {
+    if (editingPctId && pctInputRef.current) {
+      pctInputRef.current.focus();
+      pctInputRef.current.select();
+    }
+  }, [editingPctId]);
+
+  const startEditPct = (task) => {
+    setEditingPctId(task.id);
+    setPctValue(String(task.percentage ?? 0));
+  };
+
+  const cancelEditPct = () => {
+    setEditingPctId(null);
+    setPctValue('');
+  };
+
+  const saveEditPct = (task) => {
+    let v = parseInt(pctValue, 10);
+    if (isNaN(v)) v = 0;
+    v = Math.max(0, Math.min(100, v));
+    if (onPercentageChange && v !== (task.percentage ?? 0)) onPercentageChange(task, v);
+    cancelEditPct();
+  };
 
   useEffect(() => {
     if (editingId && inputRef.current) {
@@ -145,22 +173,32 @@ export default function TaskTableView({ sections, onToggle, onDelete, onRename, 
                       )}
                     </td>
                     <td className="px-4 py-2.5 text-center">
-                      <div className="flex items-center justify-center gap-1">
-                        <Input
-                          type="number"
-                          min={0}
-                          max={100}
-                          value={task.percentage ?? 0}
-                          onChange={(e) => {
-                            let v = parseInt(e.target.value, 10);
-                            if (isNaN(v)) v = 0;
-                            v = Math.max(0, Math.min(100, v));
-                            if (onPercentageChange) onPercentageChange(task, v);
-                          }}
-                          className="bg-slate-700 border-slate-600 text-white h-7 w-16 text-sm text-center px-1"
-                        />
-                        <span className="text-slate-400 text-xs">%</span>
-                      </div>
+                      {editingPctId === task.id ? (
+                        <div className="flex items-center justify-center gap-1">
+                          <Input
+                            ref={pctInputRef}
+                            type="number"
+                            min={0}
+                            max={100}
+                            value={pctValue}
+                            onChange={(e) => setPctValue(e.target.value)}
+                            onBlur={() => saveEditPct(task)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') saveEditPct(task);
+                              if (e.key === 'Escape') cancelEditPct();
+                            }}
+                            className="bg-slate-700 border-slate-600 text-white h-7 w-16 text-sm text-center px-1"
+                          />
+                          <span className="text-slate-400 text-xs">%</span>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => startEditPct(task)}
+                          className="text-slate-300 hover:text-blue-400 hover:underline transition-colors cursor-pointer"
+                        >
+                          {task.percentage ?? 0}%
+                        </button>
+                      )}
                     </td>
                     <td className="px-4 py-2.5 text-center">
                       <Checkbox
