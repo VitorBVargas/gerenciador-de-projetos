@@ -164,7 +164,7 @@ export default function Migration() {
     // Progresso = média da % de conclusão de cada etapa (cada etapa pesa igual).
     // A % de cada etapa é a média do campo "percentage" das suas tarefas.
     const sectionPercents = [];
-    const avgPercentage = (items) => items.reduce((sum, t) => sum + (t.percentage ?? 0), 0) / items.length;
+    const avgPercentage = (items) => items.reduce((sum, t) => sum + (t.completed ? 100 : (t.percentage ?? 0)), 0) / items.length;
 
     // Etapas padrão — cada registro de DB "pertence" à primeira seção que o reivindica
     const claimedIds = new Set();
