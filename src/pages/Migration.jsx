@@ -161,16 +161,15 @@ export default function Migration() {
       return acc;
     }, {});
 
-    // Progresso = média da % de conclusão de cada etapa (cada etapa pesa igual).
-    // A % de cada etapa é a média do campo "percentage" das suas tarefas.
-    const sectionPercents = [];
-    const avgPercentage = (items) => items.reduce((sum, t) => sum + (t.completed ? 100 : (t.percentage ?? 0)), 0) / items.length;
+    // % efetivo de uma tarefa: se marcada como concluída conta 100%, senão usa o campo percentage
+    const taskPct = (task) => task.completed ? 100 : (task.percentage ?? 0);
 
-    // Etapas padrão — cada registro de DB "pertence" à primeira seção que o reivindica
+    // Contar tarefas padrão — cada registro de DB "pertence" à primeira seção que o reivindica
     const claimedIds = new Set();
+    let visibleCount = 0;
+    let pctSum = 0;
     for (const section of defaultSections) {
       const seenInSection = new Set();
-      const items = [];
       for (const task of standardTasks) {
         if (claimedIds.has(task.id)) continue;
         if (!section.tasks.some(st => st.toLowerCase() === task.title.toLowerCase())) continue;
@@ -178,29 +177,26 @@ export default function Migration() {
         if (!seenInSection.has(tl)) {
           seenInSection.add(tl);
           claimedIds.add(task.id);
-          items.push(task);
+          visibleCount++;
+          pctSum += taskPct(task);
         }
       }
-      if (items.length > 0) sectionPercents.push(avgPercentage(items));
     }
 
-    // Etapas importadas
-    Object.values(importedBySection).forEach(map => {
-      const items = Array.from(map.values());
-      if (items.length > 0) sectionPercents.push(avgPercentage(items));
-    });
+    // Tarefas importadas
+    const importedVisible = Object.values(importedBySection).flatMap(map => Array.from(map.values()));
+    visibleCount += importedVisible.length;
+    pctSum += importedVisible.reduce((sum, t) => sum + taskPct(t), 0);
 
     // Tarefas não atribuídas: só conta se o produto não tem template (sem seções padrão)
     if (defaultSections.length === 0) {
       const unclaimed = standardTasks.filter(t => !claimedIds.has(t.id));
-      if (unclaimed.length > 0) sectionPercents.push(avgPercentage(unclaimed));
+      visibleCount += unclaimed.length;
+      pctSum += unclaimed.reduce((sum, t) => sum + taskPct(t), 0);
     }
 
-    if (sectionPercents.length === 0) return 0;
-    // Progresso = soma das % das etapas ÷ total possível (nº de etapas × 100)
-    const totalPossible = sectionPercents.length * 100;
-    const totalAchieved = sectionPercents.reduce((sum, p) => sum + p, 0);
-    return Math.round((totalAchieved / totalPossible) * 100);
+    if (visibleCount === 0) return 0;
+    return Math.round(pctSum / visibleCount);
   };
 
   // Entity filter
