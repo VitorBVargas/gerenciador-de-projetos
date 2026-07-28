@@ -137,7 +137,7 @@ export default function Migration() {
 
   const handleToggleTask = (task) => {
     const newCompleted = !task.completed;
-    updateTaskMutation.mutate({ id: task.id, data: { completed: newCompleted, completed_date: newCompleted ? new Date().toISOString() : null } });
+    updateTaskMutation.mutate({ id: task.id, data: { completed: newCompleted, completed_date: newCompleted ? new Date().toISOString() : null, percentage: newCompleted ? 100 : 0 } });
   };
 
   const getProductTasks = (productId) => tasks.filter(t => t.product_id === productId);
@@ -307,13 +307,14 @@ export default function Migration() {
     if (tasksToUpdate.length === 0) return;
     setMarkingProgress({ isLoading: true, current: 0, total: tasksToUpdate.length });
     const completedDate = completed ? new Date().toISOString() : null;
+    const percentage = completed ? 100 : 0;
     for (let i = 0; i < tasksToUpdate.length; i++) {
       const task = tasksToUpdate[i];
       try {
-        await base44.entities.MigrationTask.update(task.id, { completed, completed_date: completedDate });
+        await base44.entities.MigrationTask.update(task.id, { completed, completed_date: completedDate, percentage });
       } catch (e) {
         await new Promise(resolve => setTimeout(resolve, 500));
-        await base44.entities.MigrationTask.update(task.id, { completed, completed_date: completedDate }).catch(() => {});
+        await base44.entities.MigrationTask.update(task.id, { completed, completed_date: completedDate, percentage }).catch(() => {});
       }
       setMarkingProgress({ isLoading: true, current: i + 1, total: tasksToUpdate.length });
     }
