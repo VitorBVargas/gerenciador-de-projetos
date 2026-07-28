@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
  * - onMarkAll: (sectionTasks, completed) => void   // opcional — habilita botão "Marcar todos" por seção
  * - markingDisabled: boolean   // opcional — desabilita o botão enquanto processa
  */
-export default function TaskTableView({ sections, onToggle, onDelete, onRename, onMarkAll, markingDisabled = false }) {
+export default function TaskTableView({ sections, onToggle, onDelete, onRename, onMarkAll, onPercentageChange, markingDisabled = false }) {
   const [editingId, setEditingId] = useState(null);
   const [editValue, setEditValue] = useState('');
   const inputRef = useRef(null);
@@ -58,6 +58,7 @@ export default function TaskTableView({ sections, onToggle, onDelete, onRename, 
           <tr className="text-left text-cyan-400 text-xs uppercase tracking-wider">
             <th className="px-4 py-3 w-1/4">Etapa Macro</th>
             <th className="px-4 py-3">Ação</th>
+            <th className="px-4 py-3 w-24 text-center">%</th>
             <th className="px-4 py-3 w-20 text-center">Check</th>
             <th className="px-4 py-3 w-32">Data</th>
             <th className="px-4 py-3 w-20"></th>
@@ -68,7 +69,7 @@ export default function TaskTableView({ sections, onToggle, onDelete, onRename, 
             <React.Fragment key={`${section.name}-${sIdx}`}>
               {/* Header da etapa macro */}
               <tr className="bg-cyan-500/10 border-y border-cyan-500/20">
-                <td colSpan={5} className="px-4 py-2">
+                <td colSpan={6} className="px-4 py-2">
                   <div className="flex items-center justify-between gap-2">
                     <div className="text-cyan-300 font-semibold text-xs uppercase tracking-wide">
                       {section.name}
@@ -142,6 +143,24 @@ export default function TaskTableView({ sections, onToggle, onDelete, onRename, 
                           </Button>
                         </div>
                       )}
+                    </td>
+                    <td className="px-4 py-2.5 text-center">
+                      <div className="flex items-center justify-center gap-1">
+                        <Input
+                          type="number"
+                          min={0}
+                          max={100}
+                          value={task.percentage ?? 0}
+                          onChange={(e) => {
+                            let v = parseInt(e.target.value, 10);
+                            if (isNaN(v)) v = 0;
+                            v = Math.max(0, Math.min(100, v));
+                            if (onPercentageChange) onPercentageChange(task, v);
+                          }}
+                          className="bg-slate-700 border-slate-600 text-white h-7 w-16 text-sm text-center px-1"
+                        />
+                        <span className="text-slate-400 text-xs">%</span>
+                      </div>
                     </td>
                     <td className="px-4 py-2.5 text-center">
                       <Checkbox

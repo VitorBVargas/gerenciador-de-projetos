@@ -533,6 +533,7 @@ export default function Migration() {
                                       updateTaskMutation.mutate({ id: task.id, data: { title: finalTitle } });
                                     }}
                                     onMarkAll={handleMarkSectionTasks}
+                                    onPercentageChange={(task, value) => updateTaskMutation.mutate({ id: task.id, data: { percentage: value } })}
                                     markingDisabled={markingProgress.isLoading}
                                   />
                                   {markingProgress.isLoading && (
