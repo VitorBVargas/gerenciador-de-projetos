@@ -161,15 +161,16 @@ export default function Migration() {
       return acc;
     }, {});
 
-    // Progresso = média da % de conclusão de cada etapa (cada etapa pesa igual)
+    // Progresso = média da % de conclusão de cada etapa (cada etapa pesa igual).
+    // A % de cada etapa é a média do campo "percentage" das suas tarefas.
     const sectionPercents = [];
+    const avgPercentage = (items) => items.reduce((sum, t) => sum + (t.percentage ?? 0), 0) / items.length;
 
     // Etapas padrão — cada registro de DB "pertence" à primeira seção que o reivindica
     const claimedIds = new Set();
     for (const section of defaultSections) {
       const seenInSection = new Set();
-      let total = 0;
-      let completed = 0;
+      const items = [];
       for (const task of standardTasks) {
         if (claimedIds.has(task.id)) continue;
         if (!section.tasks.some(st => st.toLowerCase() === task.title.toLowerCase())) continue;
@@ -177,23 +178,22 @@ export default function Migration() {
         if (!seenInSection.has(tl)) {
           seenInSection.add(tl);
           claimedIds.add(task.id);
-          total++;
-          if (task.completed) completed++;
+          items.push(task);
         }
       }
-      if (total > 0) sectionPercents.push((completed / total) * 100);
+      if (items.length > 0) sectionPercents.push(avgPercentage(items));
     }
 
     // Etapas importadas
     Object.values(importedBySection).forEach(map => {
       const items = Array.from(map.values());
-      if (items.length > 0) sectionPercents.push((items.filter(t => t.completed).length / items.length) * 100);
+      if (items.length > 0) sectionPercents.push(avgPercentage(items));
     });
 
     // Tarefas não atribuídas: só conta se o produto não tem template (sem seções padrão)
     if (defaultSections.length === 0) {
       const unclaimed = standardTasks.filter(t => !claimedIds.has(t.id));
-      if (unclaimed.length > 0) sectionPercents.push((unclaimed.filter(t => t.completed).length / unclaimed.length) * 100);
+      if (unclaimed.length > 0) sectionPercents.push(avgPercentage(unclaimed));
     }
 
     if (sectionPercents.length === 0) return 0;
