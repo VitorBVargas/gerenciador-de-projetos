@@ -1671,10 +1671,11 @@ const normalizeProductName = (name) => {
   if (!name) return '';
   return name
     .toLowerCase()
-    .replace(/\(cloud\)/gi, '')
+    .replace(/cloud/gi, '')
     .replace(/[()]/g, '')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+    .replace(/\s*-\s*/g, '-') // Normaliza hífen: "e - nota" -> "e-nota"
     .trim()
     .replace(/\s+/g, ' ');
 };
