@@ -55,6 +55,16 @@
     "phone": {
       "type": "string"
     },
+    "ferias_inicio": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de in\u00edcio das f\u00e9rias do membro"
+    },
+    "ferias_fim": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de fim das f\u00e9rias do membro"
+    },
     "stages": {
       "type": "array",
       "description": "Etapas do cronograma associadas ao membro",

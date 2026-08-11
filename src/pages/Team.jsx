@@ -13,8 +13,10 @@ import {
   Phone,
   Pencil,
   Trash2,
-  Crown
+  Crown,
+  Plane
 } from 'lucide-react';
+import { format, parseISO, isWithinInterval } from 'date-fns';
 import { cn } from "@/lib/utils";
 import TeamMemberModal from '../components/modals/TeamMemberModal';
 import { VERTICAL_BADGE_COLORS, VERTICAL_AVATAR_COLORS } from '../components/verticalColors';
@@ -241,6 +243,21 @@ export default function Team() {
                                 <span>{member.phone}</span>
                               </div>
                             )}
+                            {(member.ferias_inicio || member.ferias_fim) && (() => {
+                              const hoje = new Date();
+                              const emFerias = member.ferias_inicio && member.ferias_fim &&
+                                isWithinInterval(hoje, { start: parseISO(member.ferias_inicio), end: parseISO(member.ferias_fim) });
+                              const fmt = (d) => d ? format(parseISO(d), 'dd/MM/yyyy') : '—';
+                              return (
+                                <div className={cn(
+                                  "flex items-center gap-1 text-[11px] mt-1",
+                                  emFerias ? 'text-amber-400 font-medium' : 'text-slate-500'
+                                )}>
+                                  <Plane className="w-2.5 h-2.5" />
+                                  <span>{emFerias ? 'De férias: ' : 'Férias: '}{fmt(member.ferias_inicio)} – {fmt(member.ferias_fim)}</span>
+                                </div>
+                              );
+                            })()}
                             {member.stages?.length > 0 && (
                               <div className="flex flex-wrap gap-1 mt-2">
                                 {member.stages.map((stage) => (

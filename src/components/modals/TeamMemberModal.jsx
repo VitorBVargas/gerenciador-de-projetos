@@ -48,7 +48,7 @@ const normalizeVertical = (v) => {
 
 export default function TeamMemberModal({ open, onOpenChange, member, onSave, projectId, portfolio }) {
   const [formData, setFormData] = useState({
-    name: '', vertical: '', role: '', entity: '', ticket_number: '', email: '', phone: '', stages: []
+    name: '', vertical: '', role: '', entity: '', ticket_number: '', email: '', phone: '', ferias_inicio: '', ferias_fim: '', stages: []
   });
   const [showSuggestions, setShowSuggestions] = useState(false);
   const nameRef = useRef(null);
@@ -62,6 +62,25 @@ export default function TeamMemberModal({ open, onOpenChange, member, onSave, pr
     staleTime: 5 * 60 * 1000
   });
 
+  // Entidades já cadastradas no projeto (para seleção, não digitação)
+  const { data: entidades = [] } = useQuery({
+    queryKey: ['entidades', projectId],
+    queryFn: () => base44.entities.Entidade.filter({ project_id: projectId }),
+    enabled: !!projectId
+  });
+  const { data: products = [] } = useQuery({
+    queryKey: ['products', projectId],
+    queryFn: () => base44.entities.Product.filter({ project_id: projectId }),
+    enabled: !!projectId
+  });
+
+  const entityOptions = React.useMemo(() => {
+    const set = new Set();
+    entidades.forEach(e => { if (e.nome) set.add(e.nome); });
+    products.forEach(p => { if (p.entity) set.add(p.entity); });
+    return [...set].sort((a, b) => a.localeCompare(b));
+  }, [entidades, products]);
+
   useEffect(() => {
     if (member) {
       setFormData({
@@ -72,10 +91,12 @@ export default function TeamMemberModal({ open, onOpenChange, member, onSave, pr
         ticket_number: member.ticket_number || '',
         email: member.email || '',
         phone: member.phone || '',
+        ferias_inicio: member.ferias_inicio || '',
+        ferias_fim: member.ferias_fim || '',
         stages: member.stages || []
       });
     } else {
-      setFormData({ name: '', vertical: '', role: '', entity: '', ticket_number: '', email: '', phone: '', stages: [] });
+      setFormData({ name: '', vertical: '', role: '', entity: '', ticket_number: '', email: '', phone: '', ferias_inicio: '', ferias_fim: '', stages: [] });
     }
   }, [member, open]);
 
@@ -192,13 +213,17 @@ export default function TeamMemberModal({ open, onOpenChange, member, onSave, pr
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="entity">Entidade</Label>
-              <Input
+              <select
                 id="entity"
                 value={formData.entity}
                 onChange={(e) => setFormData({ ...formData, entity: e.target.value })}
-                className="bg-slate-700 border-slate-600 text-white"
-                placeholder="Ex: CM, IPASI, PM"
-              />
+                className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2 text-sm h-9 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="">Selecione a entidade</option>
+                {entityOptions.map((ent) => (
+                  <option key={ent} value={ent}>{ent}</option>
+                ))}
+              </select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="ticket">Chamado</Label>
@@ -229,6 +254,29 @@ export default function TeamMemberModal({ open, onOpenChange, member, onSave, pr
                 id="phone"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                className="bg-slate-700 border-slate-600 text-white"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="ferias_inicio">Início das Férias</Label>
+              <Input
+                id="ferias_inicio"
+                type="date"
+                value={formData.ferias_inicio}
+                onChange={(e) => setFormData({ ...formData, ferias_inicio: e.target.value })}
+                className="bg-slate-700 border-slate-600 text-white"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ferias_fim">Fim das Férias</Label>
+              <Input
+                id="ferias_fim"
+                type="date"
+                value={formData.ferias_fim}
+                onChange={(e) => setFormData({ ...formData, ferias_fim: e.target.value })}
                 className="bg-slate-700 border-slate-600 text-white"
               />
             </div>
