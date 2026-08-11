@@ -27,7 +27,7 @@ const STATUS_CFG = {
 
 const TIPO_LABEL = { alinhamento: 'Alinhamento', revisao: 'Revisão', apresentacao: 'Apresentação', emergencial: 'Emergencial', kickoff: 'Kickoff', outro: 'Outro' };
 
-const TABS = ['dashboard', 'reunioes', 'relatorio_ia', 'decisoes', 'documentos'];
+const TABS = ['documentos', 'dashboard', 'reunioes', 'relatorio_ia', 'decisoes'];
 const TAB_LABELS = { dashboard: 'Dashboard', reunioes: 'Reuniões', relatorio_ia: 'Relatório', decisoes: 'Observações', documentos: 'Relatórios Operacionais' };
 
 function KPICard({ icon: Icon, label, value, color = 'text-blue-400', bg = 'bg-blue-500/10' }) {
@@ -52,7 +52,7 @@ export default function SustentacaoReunioes() {
   const { user: currentUser } = useCurrentUser();
   const queryClient = useQueryClient();
 
-  const [tab, setTab] = useState('dashboard');
+  const [tab, setTab] = useState('documentos');
   const [reuModalOpen, setReuModalOpen] = useState(false);
   const [editingReu, setEditingReu] = useState(null);
   const [selectedReu, setSelectedReu] = useState(null);
