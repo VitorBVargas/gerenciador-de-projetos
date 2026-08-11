@@ -224,12 +224,15 @@ export default function Team() {
                               {member.is_leader && <Crown className="w-3.5 h-3.5 text-yellow-400 flex-shrink-0" />}
                             </div>
 
-                            {(member.entity || member.ticket_number) && (
-                              <div className="text-xs text-slate-500 mt-0.5">
-                                {member.entity && <span>{member.entity}</span>}
-                                {member.entity && member.ticket_number && <span> • </span>}
-                                {member.ticket_number && <span>{member.ticket_number}</span>}
+                            {member.entity && (
+                              <div className="mt-1">
+                                <Badge variant="outline" className="border-indigo-500/40 bg-indigo-500/15 text-indigo-300 text-[11px] font-medium">
+                                  {member.entity}
+                                </Badge>
                               </div>
+                            )}
+                            {member.ticket_number && (
+                              <div className="text-xs text-slate-500 mt-0.5">{member.ticket_number}</div>
                             )}
                             {member.email && (
                               <div className="flex items-center gap-1 text-[11px] text-slate-500 mt-1">
@@ -250,11 +253,13 @@ export default function Team() {
                               const fmt = (d) => d ? format(parseISO(d), 'dd/MM/yyyy') : '—';
                               return (
                                 <div className={cn(
-                                  "flex items-center gap-1 text-[11px] mt-1",
-                                  emFerias ? 'text-amber-400 font-medium' : 'text-slate-500'
+                                  "flex items-center gap-1.5 mt-1.5 px-2 py-1 rounded-md border text-xs font-medium",
+                                  emFerias
+                                    ? 'border-amber-500/50 bg-amber-500/20 text-amber-300'
+                                    : 'border-slate-600/50 bg-slate-700/40 text-slate-300'
                                 )}>
-                                  <Plane className="w-2.5 h-2.5" />
-                                  <span>{emFerias ? 'De férias: ' : 'Férias: '}{fmt(member.ferias_inicio)} – {fmt(member.ferias_fim)}</span>
+                                  <Plane className="w-3 h-3 flex-shrink-0" />
+                                  <span>{emFerias ? 'De férias' : 'Férias'}: {fmt(member.ferias_inicio)} – {fmt(member.ferias_fim)}</span>
                                 </div>
                               );
                             })()}
