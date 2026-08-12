@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import StakeholderModal from '../components/modals/StakeholderModal';
 import EmptyState from '../components/ui/EmptyState';
 import EntityFilter from '../components/filters/EntityFilter';
+import StakeholderImporter from '../components/stakeholders/StakeholderImporter';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -166,13 +167,16 @@ export default function Stakeholders() {
           <h1 className="text-2xl lg:text-3xl font-bold text-white">Stakeholders</h1>
           <p className="text-slate-400 mt-1">{stakeholders.length} stakeholders cadastrados</p>
         </div>
-        <Button 
-          onClick={() => { setSelectedStakeholder(null); setModalOpen(true); }}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Adicionar Stakeholder
-        </Button>
+        <div className="flex flex-wrap items-center gap-3">
+          <StakeholderImporter projectId={projectId} />
+          <Button 
+            onClick={() => { setSelectedStakeholder(null); setModalOpen(true); }}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Adicionar Stakeholder
+          </Button>
+        </div>
       </div>
 
       {/* Search & Filter */}
