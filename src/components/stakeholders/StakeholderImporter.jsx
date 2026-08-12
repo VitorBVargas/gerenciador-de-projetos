@@ -15,6 +15,7 @@ const COLUNAS = [
   { header: 'Papel/Atuação', field: 'role', exemplo: 'Secretário de Fazenda' },
   { header: 'Entidade', field: 'entity', exemplo: 'PM' },
   { header: 'Vertical', field: 'vertical', exemplo: 'arrecadacao', ajuda: VERTICAIS },
+  { header: 'Setor/Produto', field: 'setor_produto', exemplo: 'Cloud Arrecadação' },
   { header: 'E-mail', field: 'email', exemplo: 'joao@prefeitura.gov.br' },
   { header: 'Telefone', field: 'phone', exemplo: '(51) 99999-0000' },
   { header: 'Nível de Comunicação', field: 'communication_level', exemplo: 'medio', ajuda: NIVEIS },
