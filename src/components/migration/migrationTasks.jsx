@@ -349,6 +349,7 @@ export const migrationTasksByProduct = {
     'Extrair Bairro Logradouro',
     'Extrair CEP Logradouro',
     'Extrair Loteamento',
+    'Extrair Pessoas Endereços',
     'Extrair Organograma Config',
     'Extrair Organograma Nível',
     'Extrair Organograma',
