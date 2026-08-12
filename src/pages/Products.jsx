@@ -501,7 +501,16 @@ export default function Products() {
                           )}
                           {product.ticket_number && (
                              <p className="text-[10px] text-slate-400 truncate">
-                               <span className="text-slate-500">Chamado:</span> {product.ticket_number}
+                               <span className="text-slate-500">Chamado:</span>{' '}
+                               <a
+                                 href={`https://atendimento.betha.com.br/browse/${encodeURIComponent(product.ticket_number.trim())}`}
+                                 target="_blank"
+                                 rel="noopener noreferrer"
+                                 onClick={(e) => e.stopPropagation()}
+                                 className="text-cyan-400 hover:text-cyan-300 hover:underline"
+                               >
+                                 {product.ticket_number}
+                               </a>
                              </p>
                            )}
                            {(product.implementation_value > 0 || product.inclusion_value > 0) && (

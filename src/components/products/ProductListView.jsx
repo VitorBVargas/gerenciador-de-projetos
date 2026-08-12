@@ -85,7 +85,21 @@ export default function ProductListView({
                         <td className="px-3 py-2">
                           {p.entity ? <EntityBadge code={p.entity} size="sm" /> : <span className="text-slate-500">—</span>}
                         </td>
-                        <td className="px-3 py-2 text-slate-400 text-xs">{p.ticket_number || '—'}</td>
+                        <td className="px-3 py-2 text-xs">
+                          {p.ticket_number ? (
+                            <a
+                              href={`https://atendimento.betha.com.br/browse/${encodeURIComponent(p.ticket_number.trim())}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="text-cyan-400 hover:text-cyan-300 hover:underline"
+                            >
+                              {p.ticket_number}
+                            </a>
+                          ) : (
+                            <span className="text-slate-500">—</span>
+                          )}
+                        </td>
                         <td className="px-3 py-2 text-right text-slate-300 text-xs">
                           {p.implementation_value > 0 ? fmtBRL(p.implementation_value) : '—'}
                         </td>
