@@ -75,6 +75,13 @@ export async function gerarRelatorioOperacionalDocx(dados) {
       </ul>
     </div>`).join('');
 
+  // Embute as imagens como data URI para que abram em qualquer visualizador (Google Docs/Word não carregam URLs externas em .doc)
+  const [logoData, endData, contData] = await Promise.all([
+    loadImage(BETHA_LOGO).catch(() => BETHA_LOGO),
+    loadImage(BETHA_ENDERECO).catch(() => BETHA_ENDERECO),
+    loadImage(BETHA_CONTATO).catch(() => BETHA_CONTATO),
+  ]);
+
   const ocorrenciasHtml = ocorrencias.map(o => {
     const naoMark = o.gerouChamado === 'nao' ? 'X' : '&nbsp;';
     const simMark = o.gerouChamado === 'sim' ? 'X' : '&nbsp;';
@@ -103,7 +110,7 @@ export async function gerarRelatorioOperacionalDocx(dados) {
     </style>
   </head>
   <body>
-    <div style="margin-bottom:6px;"><img src="${BETHA_LOGO}" style="height:32px;" /></div>
+    <div style="margin-bottom:6px;"><img src="${logoData}" style="height:32px;" /></div>
     <div style="border-bottom:3px solid #005CB9; margin-bottom:14px;"></div>
 
     <h1>RELATÓRIO OPERACIONAL</h1>
@@ -137,8 +144,8 @@ export async function gerarRelatorioOperacionalDocx(dados) {
     <div style="border-top:2px solid #005CB9; margin-top:24px; padding-top:8px;"></div>
     <table style="width:100%; border:none;">
       <tr>
-        <td style="border:none; vertical-align:middle; width:55%;"><img src="${BETHA_ENDERECO}" style="height:34px;" /></td>
-        <td style="border:none; text-align:right; vertical-align:middle; width:45%;"><img src="${BETHA_CONTATO}" style="height:34px;" /></td>
+        <td style="border:none; vertical-align:middle; width:55%;"><img src="${endData}" style="height:34px;" /></td>
+        <td style="border:none; text-align:right; vertical-align:middle; width:45%;"><img src="${contData}" style="height:34px;" /></td>
       </tr>
     </table>
   </body>
