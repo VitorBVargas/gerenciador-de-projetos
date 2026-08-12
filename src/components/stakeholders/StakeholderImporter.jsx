@@ -17,11 +17,7 @@ const COLUNAS = [
   { header: 'Vertical', field: 'vertical', exemplo: 'arrecadacao', ajuda: VERTICAIS },
   { header: 'E-mail', field: 'email', exemplo: 'joao@prefeitura.gov.br' },
   { header: 'Telefone', field: 'phone', exemplo: '(51) 99999-0000' },
-  { header: 'Interesse', field: 'interesse', exemplo: 'alto', ajuda: NIVEIS },
-  { header: 'Influência', field: 'influencia', exemplo: 'alto', ajuda: NIVEIS },
   { header: 'Nível de Comunicação', field: 'communication_level', exemplo: 'medio', ajuda: NIVEIS },
-  { header: 'Rotina de Comunicação', field: 'communication_routine', exemplo: 'Reunião semanal às segundas' },
-  { header: 'Expectativa', field: 'expectativa', exemplo: 'Sistema estável até o fim do ano' },
 ];
 
 const normalize = (v) => String(v ?? '').trim();
@@ -35,6 +31,19 @@ export function baixarPlanilhaStakeholders() {
   COLUNAS.forEach(c => { exemploRow[c.header] = c.exemplo; });
   const ws = XLSX.utils.json_to_sheet([exemploRow], { header: COLUNAS.map(c => c.header) });
   ws['!cols'] = COLUNAS.map(c => ({ wch: Math.max(c.header.length + 4, 22) }));
+
+  // Estiliza a primeira linha (cabeçalho): fundo azul claro + texto branco em negrito
+  COLUNAS.forEach((_, i) => {
+    const ref = XLSX.utils.encode_cell({ r: 0, c: i });
+    if (ws[ref]) {
+      ws[ref].s = {
+        fill: { patternType: 'solid', fgColor: { rgb: '5B9BD5' } },
+        font: { bold: true, color: { rgb: 'FFFFFF' } },
+        alignment: { horizontal: 'center', vertical: 'center' },
+      };
+    }
+  });
+
   XLSX.utils.book_append_sheet(wb, ws, 'Stakeholders');
 
   // Aba de instruções com valores aceitos
@@ -47,7 +56,7 @@ export function baixarPlanilhaStakeholders() {
   wsInfo['!cols'] = [{ wch: 24 }, { wch: 12 }, { wch: 70 }];
   XLSX.utils.book_append_sheet(wb, wsInfo, 'Instruções');
 
-  XLSX.writeFile(wb, 'Modelo_Stakeholders.xlsx');
+  XLSX.writeFile(wb, 'Modelo_Stakeholders.xlsx', { cellStyles: true });
 }
 
 export default function StakeholderImporter({ projectId }) {
