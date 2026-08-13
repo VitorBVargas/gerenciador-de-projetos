@@ -27,7 +27,9 @@ const verticalMapping = {
   'no paper': 'plataforma',
   'atendimento': 'atendimento',
   'saúde': 'saude',
-  'saude': 'saude'
+  'saude': 'saude',
+  'outros': 'outros',
+  'outro': 'outros'
 };
 
 const statusMapping = {

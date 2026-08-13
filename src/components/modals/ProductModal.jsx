@@ -17,7 +17,8 @@ const verticals = [
   { value: 'parceiros', label: 'Parceiros' },
   { value: 'plataforma', label: 'Plataforma' },
   { value: 'saude', label: 'Saúde' },
-  { value: 'atendimento', label: 'Atendimento' }
+  { value: 'atendimento', label: 'Atendimento' },
+  { value: 'outros', label: 'Outros' }
 ];
 
 export default function ProductModal({ open, onOpenChange, product, onSave, projectId }) {

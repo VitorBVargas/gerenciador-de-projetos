@@ -50,7 +50,8 @@ const verticalLabels = {
   parceiros: 'Parceiros',
   plataforma: 'Plataforma',
   atendimento: 'Atendimento',
-  saude: 'Saúde'
+  saude: 'Saúde',
+  outros: 'Outros'
 };
 
 // imported from verticalColors
@@ -180,6 +181,12 @@ export default function Products() {
       const created = await base44.entities.Product.create(data);
       queryClient.invalidateQueries({ queryKey: ['products', projectId] });
       setModalOpen(false);
+
+      // Vertical "Outros": produto entra apenas para registro/contabilização de valor,
+      // não gera cronograma, migração nem homologação.
+      if (created.vertical === 'outros') {
+        return;
+      }
 
       // 1. Create timeline stages via backend function (lightweight)
       base44.functions.invoke('initializeSingleProduct', {
