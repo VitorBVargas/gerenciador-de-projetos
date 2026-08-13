@@ -53,13 +53,28 @@ export default function TeamTimeline({ members, timelineEvents, travels = [] }) 
         return true;
       });
 
-      const segments = [];
+      // Consolida por fase: menor início e maior fim entre todos os eventos daquela fase
+      const byPhase = {};
       memberEvents.forEach((ev) => {
         const start = safeParse(ev.start_date);
         const end = safeParse(ev.end_date);
-        if (start && end) {
-          segments.push({ type: 'stage', label: phaseLabels[ev.phase] || ev.title, start, end, status: ev.status });
+        if (!start || !end) return;
+        const key = ev.phase;
+        if (!byPhase[key]) {
+          byPhase[key] = { label: phaseLabels[ev.phase] || ev.title, start, end, statuses: [ev.status] };
+        } else {
+          if (start < byPhase[key].start) byPhase[key].start = start;
+          if (end > byPhase[key].end) byPhase[key].end = end;
+          byPhase[key].statuses.push(ev.status);
         }
+      });
+      const segments = Object.values(byPhase).map((p) => {
+        // Status consolidado: atrasado > em_andamento > nao_iniciado > concluido (prioriza o que precisa de atenção)
+        let status = 'concluido';
+        if (p.statuses.includes('atrasado')) status = 'atrasado';
+        else if (p.statuses.includes('em_andamento')) status = 'em_andamento';
+        else if (p.statuses.includes('nao_iniciado')) status = 'nao_iniciado';
+        return { type: 'stage', label: p.label, start: p.start, end: p.end, status };
       });
 
       const trips = [];
