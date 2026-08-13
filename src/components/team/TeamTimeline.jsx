@@ -160,15 +160,6 @@ export default function TeamTimeline({ members, timelineEvents }) {
                   {member.is_leader && <Crown className="w-3 h-3 text-yellow-400 flex-shrink-0" />}
                 </div>
                 <span className="text-[11px] text-slate-500">{verticalLabels[member.vertical] || member.vertical}</span>
-                {(member.stages || []).length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {(member.stages || []).map((st) => (
-                      <span key={st} className="text-[9px] px-1.5 py-0.5 rounded bg-slate-700/60 text-slate-300 whitespace-nowrap">
-                        {phaseLabels[st] || st}
-                      </span>
-                    ))}
-                  </div>
-                )}
                 {ferias && (
                   <span className="text-[10px] text-amber-400/90 flex items-center gap-1 mt-0.5">
                     <Plane className="w-2.5 h-2.5" />
