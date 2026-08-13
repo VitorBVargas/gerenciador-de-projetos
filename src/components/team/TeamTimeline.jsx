@@ -160,6 +160,12 @@ export default function TeamTimeline({ members, timelineEvents }) {
                   {member.is_leader && <Crown className="w-3 h-3 text-yellow-400 flex-shrink-0" />}
                 </div>
                 <span className="text-[11px] text-slate-500">{verticalLabels[member.vertical] || member.vertical}</span>
+                {ferias && (
+                  <span className="text-[10px] text-amber-400/90 flex items-center gap-1 mt-0.5">
+                    <Plane className="w-2.5 h-2.5" />
+                    {format(ferias.start, 'dd/MM')} – {format(ferias.end, 'dd/MM/yy')}
+                  </span>
+                )}
               </div>
 
               {/* Faixa Gantt */}
@@ -188,10 +194,13 @@ export default function TeamTimeline({ members, timelineEvents }) {
                 {ferias && (
                   <div
                     title={`Férias: ${format(ferias.start, 'dd/MM/yyyy')} – ${format(ferias.end, 'dd/MM/yyyy')}`}
-                    className="absolute inset-y-0 rounded border-2 border-dashed border-amber-400/80 bg-amber-500/25 flex items-center justify-center"
+                    className="absolute inset-y-0 rounded border-2 border-dashed border-amber-400/80 bg-amber-500/25 flex items-center justify-center gap-1.5 px-2 overflow-hidden"
                     style={{ left: `${pct(ferias.start)}%`, width: `${widthPct(ferias.start, ferias.end)}%` }}
                   >
-                    <Plane className="w-3 h-3 text-amber-300" />
+                    <Plane className="w-3 h-3 text-amber-300 flex-shrink-0" />
+                    <span className="text-[10px] font-medium text-amber-100 truncate whitespace-nowrap">
+                      {format(ferias.start, 'dd/MM/yyyy')} – {format(ferias.end, 'dd/MM/yyyy')}
+                    </span>
                   </div>
                 )}
               </div>
