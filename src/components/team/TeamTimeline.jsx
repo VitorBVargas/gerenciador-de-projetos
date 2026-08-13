@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { parseISO, differenceInCalendarDays, format, min, max } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Plane, Crown, CalendarRange } from 'lucide-react';
+import { Plane, Crown, CalendarRange, MapPin } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { phaseLabels } from '../timeline/phaseLabels';
 import EmptyState from '../ui/EmptyState';
@@ -160,6 +160,12 @@ export default function TeamTimeline({ members, timelineEvents }) {
                   {member.is_leader && <Crown className="w-3 h-3 text-yellow-400 flex-shrink-0" />}
                 </div>
                 <span className="text-[11px] text-slate-500">{verticalLabels[member.vertical] || member.vertical}</span>
+                {member.city && (
+                  <span className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5">
+                    <MapPin className="w-2.5 h-2.5 text-blue-400" />
+                    {member.city}
+                  </span>
+                )}
                 {ferias && (
                   <span className="text-[10px] text-amber-400/90 flex items-center gap-1 mt-0.5">
                     <Plane className="w-2.5 h-2.5" />

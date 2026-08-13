@@ -17,7 +17,8 @@ import {
   Crown,
   Plane,
   LayoutGrid,
-  CalendarRange
+  CalendarRange,
+  MapPin
 } from 'lucide-react';
 import { format, parseISO, isWithinInterval } from 'date-fns';
 import { cn } from "@/lib/utils";
@@ -253,6 +254,12 @@ export default function Team() {
                                 <Badge variant="outline" className="border-indigo-500/40 bg-indigo-500/15 text-indigo-300 text-[11px] font-medium">
                                   {member.entity}
                                 </Badge>
+                              </div>
+                            )}
+                            {member.city && (
+                              <div className="flex items-center gap-1 text-[11px] text-slate-400 mt-1">
+                                <MapPin className="w-2.5 h-2.5 text-blue-400" />
+                                <span className="truncate">{member.city}</span>
                               </div>
                             )}
                             {member.ticket_number && (

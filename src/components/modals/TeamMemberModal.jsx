@@ -48,7 +48,7 @@ const normalizeVertical = (v) => {
 
 export default function TeamMemberModal({ open, onOpenChange, member, onSave, projectId, portfolio }) {
   const [formData, setFormData] = useState({
-    name: '', vertical: '', role: '', entity: '', ticket_number: '', email: '', phone: '', ferias_inicio: '', ferias_fim: '', stages: []
+    name: '', vertical: '', role: '', entity: '', city: '', ticket_number: '', email: '', phone: '', ferias_inicio: '', ferias_fim: '', stages: []
   });
   const [showSuggestions, setShowSuggestions] = useState(false);
   const nameRef = useRef(null);
@@ -88,6 +88,7 @@ export default function TeamMemberModal({ open, onOpenChange, member, onSave, pr
         vertical: member.vertical || '',
         role: member.role || '',
         entity: member.entity || '',
+        city: member.city || '',
         ticket_number: member.ticket_number || '',
         email: member.email || '',
         phone: member.phone || '',
@@ -96,7 +97,7 @@ export default function TeamMemberModal({ open, onOpenChange, member, onSave, pr
         stages: member.stages || []
       });
     } else {
-      setFormData({ name: '', vertical: '', role: '', entity: '', ticket_number: '', email: '', phone: '', ferias_inicio: '', ferias_fim: '', stages: [] });
+      setFormData({ name: '', vertical: '', role: '', entity: '', city: '', ticket_number: '', email: '', phone: '', ferias_inicio: '', ferias_fim: '', stages: [] });
     }
   }, [member, open]);
 
@@ -235,6 +236,17 @@ export default function TeamMemberModal({ open, onOpenChange, member, onSave, pr
                 placeholder="Número do chamado"
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="city">Cidade</Label>
+            <Input
+              id="city"
+              value={formData.city}
+              onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+              className="bg-slate-700 border-slate-600 text-white"
+              placeholder="Cidade onde o membro está baseado (logística)"
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
