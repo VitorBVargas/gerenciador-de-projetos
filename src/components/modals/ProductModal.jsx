@@ -16,6 +16,7 @@ const verticals = [
   { value: 'iss', label: 'ISS' },
   { value: 'parceiros', label: 'Parceiros' },
   { value: 'plataforma', label: 'Plataforma' },
+  { value: 'saude', label: 'Saúde' },
   { value: 'atendimento', label: 'Atendimento' }
 ];
 
