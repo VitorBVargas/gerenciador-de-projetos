@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { parseISO, differenceInCalendarDays, format, min, max } from 'date-fns';
+import { parseISO, differenceInCalendarDays, format, min, max, addDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Plane, Crown, CalendarRange, MapPin, Navigation } from 'lucide-react';
 import { cn } from "@/lib/utils";
@@ -129,7 +129,7 @@ export default function TeamTimeline({ members, timelineEvents, travels = [] }) 
     nao_iniciado: 'bg-slate-500/60 border-slate-400/50'
   };
 
-  // Marcadores de mês para o cabeçalho
+  // Marcadores de mês para o cabeçalho (linhas de grade)
   const monthMarkers = [];
   {
     const cursor = new Date(rangeStart.getFullYear(), rangeStart.getMonth(), 1);
@@ -139,6 +139,14 @@ export default function TeamTimeline({ members, timelineEvents, travels = [] }) 
       }
       cursor.setMonth(cursor.getMonth() + 1);
     }
+  }
+
+  // Marcadores de dia para o cabeçalho (com espaçamento adaptativo)
+  const dayStep = totalDays <= 21 ? 1 : totalDays <= 60 ? 3 : totalDays <= 120 ? 7 : Math.ceil(totalDays / 20);
+  const dayMarkers = [];
+  for (let d = 0; d < totalDays; d += dayStep) {
+    const date = addDays(rangeStart, d);
+    dayMarkers.push({ date, left: pct(date) });
   }
 
   return (
@@ -154,13 +162,20 @@ export default function TeamTimeline({ members, timelineEvents, travels = [] }) 
       </div>
 
       <div className="border border-slate-700 rounded-lg overflow-hidden">
-        {/* Cabeçalho de meses */}
+        {/* Cabeçalho: meses + dias */}
         <div className="flex bg-slate-900/60 border-b border-slate-700">
-          <div className="w-52 flex-shrink-0 px-3 py-2 text-xs font-semibold text-cyan-400 uppercase tracking-wider">Membro</div>
-          <div className="relative flex-1 h-8">
+          <div className="w-52 flex-shrink-0 px-3 py-2 text-xs font-semibold text-cyan-400 uppercase tracking-wider flex items-end">Membro</div>
+          <div className="relative flex-1 h-12">
+            {/* Linha dos meses */}
             {monthMarkers.map((m, i) => (
-              <div key={i} className="absolute top-0 h-full border-l border-slate-700/60 pl-1 text-[10px] text-slate-500" style={{ left: `${m.left}%` }}>
+              <div key={`m-${i}`} className="absolute top-0 h-5 border-l border-slate-700/60 pl-1 text-[10px] font-semibold text-slate-400" style={{ left: `${m.left}%` }}>
                 {format(m.date, 'MMM/yy', { locale: ptBR })}
+              </div>
+            ))}
+            {/* Linha dos dias */}
+            {dayMarkers.map((d, i) => (
+              <div key={`d-${i}`} className="absolute bottom-0 h-6 border-l border-slate-700/40 pl-0.5 text-[9px] text-slate-500 whitespace-nowrap" style={{ left: `${d.left}%` }}>
+                {format(d.date, 'dd/MM')}
               </div>
             ))}
           </div>
