@@ -89,6 +89,12 @@ export default function Team() {
     enabled: !!projectId
   });
 
+  const { data: travels = [] } = useQuery({
+    queryKey: ['travels', projectId],
+    queryFn: () => projectId ? base44.entities.Travel.filter({ project_id: projectId }) : [],
+    enabled: !!projectId
+  });
+
   const activeProject = projects.find(p => p.id === projectId);
 
   const createMutation = useMutation({
@@ -200,7 +206,7 @@ export default function Team() {
       </div>
 
       {viewMode === 'timeline' ? (
-        <TeamTimeline members={filteredMembers} timelineEvents={timelineEvents} />
+        <TeamTimeline members={filteredMembers} timelineEvents={timelineEvents} travels={travels} />
       ) : (
       /* Team Grid - Card Layout by Vertical */
       filteredMembers.length > 0 ? (

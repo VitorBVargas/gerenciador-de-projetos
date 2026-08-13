@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { parseISO, differenceInCalendarDays, format, min, max } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Plane, Crown, CalendarRange, MapPin } from 'lucide-react';
+import { Plane, Crown, CalendarRange, MapPin, Navigation } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { phaseLabels } from '../timeline/phaseLabels';
 import EmptyState from '../ui/EmptyState';
@@ -34,12 +34,17 @@ const safeParse = (d) => {
  * Para cada membro, calcula o intervalo das etapas do cronograma da sua vertical
  * que correspondem às fases (stages) em que ele está alocado, e sobrepõe as férias.
  */
-export default function TeamTimeline({ members, timelineEvents }) {
+export default function TeamTimeline({ members, timelineEvents, travels = [] }) {
   // Mapa: para cada membro, as etapas do cronograma que batem com suas stages+vertical
   const rows = useMemo(() => {
     const result = [];
 
     members.forEach((member) => {
+      // Viagens em que o membro é participante (casamento por nome)
+      const memberTravels = travels.filter((t) =>
+        Array.isArray(t.attendees) &&
+        t.attendees.some((a) => a && member.name && a.trim().toLowerCase() === member.name.trim().toLowerCase())
+      );
       const stages = member.stages || [];
       // Eventos do cronograma da vertical do membro cuja fase está entre as stages dele
       const memberEvents = timelineEvents.filter((ev) => {
@@ -57,28 +62,39 @@ export default function TeamTimeline({ members, timelineEvents }) {
         }
       });
 
+      const trips = [];
+      memberTravels.forEach((t) => {
+        const start = safeParse(t.start_date);
+        const end = safeParse(t.end_date) || start;
+        if (start && end) {
+          trips.push({ label: t.location || t.title, start, end, travelType: t.travel_type, title: t.title });
+        }
+      });
+
       const feriasStart = safeParse(member.ferias_inicio);
       const feriasEnd = safeParse(member.ferias_fim);
       const hasFerias = feriasStart && feriasEnd;
 
-      // Só inclui membros que têm ao menos etapas ou férias com datas
-      if (segments.length === 0 && !hasFerias) return;
+      // Só inclui membros que têm ao menos etapas, viagens ou férias com datas
+      if (segments.length === 0 && trips.length === 0 && !hasFerias) return;
 
       result.push({
         member,
         segments,
+        trips,
         ferias: hasFerias ? { start: feriasStart, end: feriasEnd } : null
       });
     });
 
     return result;
-  }, [members, timelineEvents]);
+  }, [members, timelineEvents, travels]);
 
   // Janela global de datas (min/max de todos os segmentos e férias)
   const { rangeStart, rangeEnd, totalDays } = useMemo(() => {
     const allDates = [];
     rows.forEach((r) => {
       r.segments.forEach((s) => { allDates.push(s.start, s.end); });
+      r.trips.forEach((t) => { allDates.push(t.start, t.end); });
       if (r.ferias) { allDates.push(r.ferias.start, r.ferias.end); }
     });
     if (allDates.length === 0) return { rangeStart: null, rangeEnd: null, totalDays: 0 };
@@ -134,6 +150,7 @@ export default function TeamTimeline({ members, timelineEvents }) {
         <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-red-500/70 border border-red-400/60" /> Atrasado</span>
         <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-slate-500/60 border border-slate-400/50" /> Não iniciado</span>
         <span className="flex items-center gap-1.5"><Plane className="w-3 h-3 text-amber-400" /> Férias</span>
+        <span className="flex items-center gap-1.5"><Navigation className="w-3 h-3 text-purple-400" /> Viagem/Deslocamento</span>
       </div>
 
       <div className="border border-slate-700 rounded-lg overflow-hidden">
@@ -151,7 +168,7 @@ export default function TeamTimeline({ members, timelineEvents }) {
 
         {/* Linhas */}
         <div className="divide-y divide-slate-800/60">
-          {rows.map(({ member, segments, ferias }) => (
+          {rows.map(({ member, segments, trips, ferias }) => (
             <div key={member.id} className="flex items-stretch hover:bg-slate-800/30">
               {/* Nome do membro */}
               <div className="w-52 flex-shrink-0 px-3 py-3 flex flex-col justify-center">
@@ -175,7 +192,7 @@ export default function TeamTimeline({ members, timelineEvents }) {
               </div>
 
               {/* Faixa Gantt */}
-              <div className="relative flex-1 my-2 mr-3 min-h-[2.5rem]">
+              <div className="relative flex-1 my-2 mr-3 min-h-[3.75rem]">
                 {/* Grade de meses */}
                 {monthMarkers.map((m, i) => (
                   <div key={i} className="absolute top-0 h-full border-l border-slate-800/50" style={{ left: `${m.left}%` }} />
@@ -193,6 +210,19 @@ export default function TeamTimeline({ members, timelineEvents }) {
                     style={{ left: `${pct(seg.start)}%`, width: `${widthPct(seg.start, seg.end)}%`, top: `${i % 2 === 0 ? 2 : 20}px` }}
                   >
                     <span className="text-[9px] text-white/90 truncate whitespace-nowrap">{seg.label}</span>
+                  </div>
+                ))}
+
+                {/* Barras de viagem/deslocamento (roxo) */}
+                {trips.map((trip, i) => (
+                  <div
+                    key={`trip-${i}`}
+                    title={`Viagem${trip.title ? ` – ${trip.title}` : ''}: ${format(trip.start, 'dd/MM/yyyy')} – ${format(trip.end, 'dd/MM/yyyy')}${trip.label ? ` (${trip.label})` : ''}`}
+                    className="absolute h-4 rounded border border-purple-400/60 bg-purple-500/70 flex items-center gap-1 px-1.5 overflow-hidden"
+                    style={{ left: `${pct(trip.start)}%`, width: `${widthPct(trip.start, trip.end)}%`, top: '38px' }}
+                  >
+                    <Navigation className="w-2.5 h-2.5 text-white/90 flex-shrink-0" />
+                    <span className="text-[9px] text-white/90 truncate whitespace-nowrap">{trip.label}</span>
                   </div>
                 ))}
 
