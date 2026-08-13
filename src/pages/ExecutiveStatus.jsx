@@ -39,6 +39,7 @@ import EditProjectRecurringModal from '../components/modals/EditProjectRecurring
 import { toast } from 'sonner';
 import OperationalCostsTab from '../components/executive/OperationalCostsTab';
 import SustentacaoStatusCard from '../components/executive/SustentacaoStatusCard';
+import TeamCountModal from '../components/executive/TeamCountModal';
 
 const statusLabels = {
   nao_iniciado: 'Não Iniciado',
@@ -100,6 +101,7 @@ export default function ExecutiveStatus() {
   const [selectedFinancialDetailProject, setSelectedFinancialDetailProject] = useState('all');
   const [selectedFinancialDetailVertical, setSelectedFinancialDetailVertical] = useState('all');
   const [trafficLightProject, setTrafficLightProject] = useState(null);
+  const [teamModalProject, setTeamModalProject] = useState(null);
   const queryClient = useQueryClient();
   const urlParams = new URLSearchParams(window.location.search);
   const portfolioFilter = urlParams.get('portfolio') || 'grandes_contas_sc_mg';
@@ -181,6 +183,12 @@ export default function ExecutiveStatus() {
     staleTime: 1 * 60 * 1000, gcTime: 30 * 60 * 1000,
   });
 
+  const { data: allTeamMembers = [] } = useQuery({
+    queryKey: ['allTeamMembers', portfolioFilter],
+    queryFn: () => base44.entities.TeamMember.list('-created_date', 10000),
+    staleTime: 1 * 60 * 1000, gcTime: 30 * 60 * 1000,
+  });
+
   // Projetos de sustentação marcados para aparecer no Status Executivo
   const sustentacaoExecProjects = useMemo(() => {
     const obrigacoesByProject = {};
@@ -216,11 +224,17 @@ export default function ExecutiveStatus() {
     const progressCacheByProjectId = {};
     const overallProgressCacheByProjectId = {};
     const healthCacheByProjectId = {};
+    const teamMembersByProjectId = {};
 
     allProjectsData.forEach(p => {
       projectById[p.id] = p;
       productsByProjectId[p.id] = [];
       revenuesByProjectId[p.id] = [];
+      teamMembersByProjectId[p.id] = [];
+    });
+
+    allTeamMembers.forEach(m => {
+      if (teamMembersByProjectId[m.project_id]) teamMembersByProjectId[m.project_id].push(m);
     });
 
     allProducts.forEach(p => {
@@ -258,9 +272,10 @@ export default function ExecutiveStatus() {
       revenuesByProjectId,
       progressCacheByProjectId,
       overallProgressCacheByProjectId,
-      healthCacheByProjectId
+      healthCacheByProjectId,
+      teamMembersByProjectId
     };
-  }, [allProjectsData, allProducts, allTimelineEvents, allProductFinancialDates, allRecognizedRevenues, allProgressCache, allOverallProgressCache, allHealthCaches]);
+  }, [allProjectsData, allProducts, allTimelineEvents, allProductFinancialDates, allRecognizedRevenues, allProgressCache, allOverallProgressCache, allHealthCaches, allTeamMembers]);
 
 
   // Mutações (Mantidas intactas)
@@ -726,6 +741,19 @@ export default function ExecutiveStatus() {
                   <div className="flex items-start justify-between gap-3">
                     <CardTitle className="text-lg text-white group-hover:text-blue-400 transition-colors">{project.name}</CardTitle>
                     <div className="flex items-center gap-2">
+                      {(() => {
+                        const teamCount = (dictionaries.teamMembersByProjectId[project.id] || []).length;
+                        return (
+                          <button
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setTeamModalProject(project); }}
+                            className="flex flex-col items-center justify-center h-9 min-w-9 px-1.5 rounded-md bg-blue-800/40 hover:bg-blue-700/60 border border-blue-600/40 shrink-0 transition-colors"
+                            title="Ver equipe do projeto"
+                          >
+                            <span className="text-sm font-bold leading-none text-blue-200">{teamCount}</span>
+                            <span className="text-[8px] leading-tight text-blue-300/80 uppercase tracking-wide">equipe</span>
+                          </button>
+                        );
+                      })()}
                       <Badge className={cn("border", getHealthBg(project.healthScore))}><span className={getHealthColor(project.healthScore)}>{project.healthScore}</span></Badge>
                       <div className="flex items-center gap-1">
                         <Button size="icon" onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.location.href = createPageUrl(`Dashboard?project_id=${project.id}`); }} className="h-8 w-8 bg-emerald-800/50 hover:bg-emerald-700 border border-emerald-600/40 shrink-0" title="Abrir projeto"><ExternalLink className="w-4 h-4 text-emerald-300" /></Button>
@@ -1226,6 +1254,13 @@ export default function ExecutiveStatus() {
           projectProgress={trafficLightProject.progress || 0}
           onClose={() => setTrafficLightProject(null)}
           onOpenProject={() => window.location.href = createPageUrl(`Dashboard?project_id=${trafficLightProject.id}`)}
+        />
+      )}
+      {teamModalProject && (
+        <TeamCountModal
+          project={teamModalProject}
+          members={dictionaries.teamMembersByProjectId[teamModalProject.id] || []}
+          onClose={() => setTeamModalProject(null)}
         />
       )}
       {recognitionsModalProject && <ProjectRecognitionsModal open={!!recognitionsModalProject} onOpenChange={(v) => { if (!v) setRecognitionsModalProject(null); }} project={recognitionsModalProject} recognitions={dictionaries.revenuesByProjectId[recognitionsModalProject.id] || []} products={dictionaries.productsByProjectId[recognitionsModalProject.id] || []} />}
