@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Plus, 
   Search, 
@@ -14,13 +15,16 @@ import {
   Pencil,
   Trash2,
   Crown,
-  Plane
+  Plane,
+  LayoutGrid,
+  CalendarRange
 } from 'lucide-react';
 import { format, parseISO, isWithinInterval } from 'date-fns';
 import { cn } from "@/lib/utils";
 import TeamMemberModal from '../components/modals/TeamMemberModal';
 import { VERTICAL_BADGE_COLORS, VERTICAL_AVATAR_COLORS } from '../components/verticalColors';
 import { phaseLabels } from '../components/timeline/phaseLabels';
+import TeamTimeline from '../components/team/TeamTimeline';
 import EmptyState from '../components/ui/EmptyState';
 import {
   AlertDialog,
@@ -61,6 +65,7 @@ export default function Team() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [memberToDelete, setMemberToDelete] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState('cards'); // 'cards' | 'timeline'
 
   // Get project_id from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -74,6 +79,12 @@ export default function Team() {
   const { data: teamMembers = [] } = useQuery({
     queryKey: ['teamMembers', projectId],
     queryFn: () => projectId ? base44.entities.TeamMember.filter({ project_id: projectId }) : [],
+    enabled: !!projectId
+  });
+
+  const { data: timelineEvents = [] } = useQuery({
+    queryKey: ['timelineEvents', projectId],
+    queryFn: () => projectId ? base44.entities.TimelineEvent.filter({ project_id: projectId }) : [],
     enabled: !!projectId
   });
 
@@ -157,13 +168,23 @@ export default function Team() {
           <h1 className="text-2xl lg:text-3xl font-bold text-white">Equipe do Projeto</h1>
           <p className="text-slate-400 mt-1">{teamMembers.length} membros cadastrados</p>
         </div>
-        <Button 
-          onClick={() => { setSelectedMember(null); setModalOpen(true); }}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Adicionar Membro
-        </Button>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center bg-slate-800/50 rounded-lg p-1 border border-slate-700/50">
+            <Button size="sm" variant={viewMode === 'cards' ? 'default' : 'ghost'} onClick={() => setViewMode('cards')} className={cn("h-8", viewMode === 'cards' ? "bg-blue-600 hover:bg-blue-700" : "text-slate-300 hover:text-white")}>
+              <LayoutGrid className="w-4 h-4 mr-1" /> Cards
+            </Button>
+            <Button size="sm" variant={viewMode === 'timeline' ? 'default' : 'ghost'} onClick={() => setViewMode('timeline')} className={cn("h-8", viewMode === 'timeline' ? "bg-blue-600 hover:bg-blue-700" : "text-slate-300 hover:text-white")}>
+              <CalendarRange className="w-4 h-4 mr-1" /> Timeline
+            </Button>
+          </div>
+          <Button 
+            onClick={() => { setSelectedMember(null); setModalOpen(true); }}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Adicionar Membro
+          </Button>
+        </div>
       </div>
 
       {/* Search */}
@@ -177,8 +198,11 @@ export default function Team() {
         />
       </div>
 
-      {/* Team Grid - Card Layout by Vertical */}
-      {filteredMembers.length > 0 ? (
+      {viewMode === 'timeline' ? (
+        <TeamTimeline members={filteredMembers} timelineEvents={timelineEvents} />
+      ) : (
+      /* Team Grid - Card Layout by Vertical */
+      filteredMembers.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {Object.entries(membersByVertical)
             .sort(([a], [b]) => {
@@ -314,6 +338,7 @@ export default function Team() {
             </Button>
           )}
         />
+      )
       )}
 
       {/* Modal */}
